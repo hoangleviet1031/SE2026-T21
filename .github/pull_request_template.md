@@ -1,15 +1,41 @@
-## Mô tả
-<!-- Thay đổi gì, vì sao. Link issue: Closes #... -->
+## Ticket
 
-## Yêu cầu / test liên quan
-<!-- ID yêu cầu trong docs/SPEC.md (vd FR27, NFR1), test ID (E1–E6, C1–C9, R1–R8) — xem docs/TESTING.md -->
-- FR:
-- Test ID:
+<!-- vd. TV2-03 – Route theo dự án + phạm vi pull (docs/plan/tv2-sync-server.md) -->
 
-## Checklist Definition of Done (docs/SPEC.md §7)
-- [ ] Lint + typecheck sạch, CI xanh
-- [ ] Có unit/integration test cho logic mới
-- [ ] Thay đổi chạm offline/sync/conflict có E2E tương ứng
-- [ ] Đã thử trên điện thoại thật (nếu thay đổi UI surveyor)
-- [ ] Cập nhật docs (API.md / DATA_MODEL.md / SYNC.md / ADR) nếu thay đổi hành vi hoặc hợp đồng
-- [ ] Thay đổi API contract: đã có đủ A, B, C duyệt
+## Thay đổi
+
+<!-- 2–5 gạch đầu dòng: làm gì, vì sao. Đổi API/kiểu/schema thì ghi rõ. -->
+
+## Tiêu chí "Xong khi" → test
+
+| Tiêu chí trong ticket | Test kiểm chứng |
+|---|---|
+| | |
+
+## AI đã làm gì / tôi đã kiểm tra gì
+
+- Công cụ AI dùng:
+- Phần AI viết chính:
+- Phần tôi tự viết hoặc sửa tay:
+- Tôi đã tự đọc toàn bộ diff: [ ] có
+- Tôi giải thích được mọi đoạn trong diff: [ ] có
+- Đã thử trên điện thoại thật (nếu có UI): [ ] có / [ ] không áp dụng
+
+## Người review cần đọc kỹ
+
+<!-- Chỉ ra file/hàm rủi ro nhất: transaction, SQL dự án, xoá dữ liệu, merge, ... -->
+
+## Checklist (docs/vibe-coding.md §4)
+
+- [ ] Chỉ chạm file trong phạm vi ticket (hoặc đã giải thích)
+- [ ] Không thêm thư viện mới (hoặc nhóm đã đồng ý)
+- [ ] Không xoá/skip/nới test có sẵn; không `waitForTimeout`
+- [ ] Không `any`, `@ts-ignore`, `catch` nuốt lỗi
+- [ ] Giữ bất biến trong CLAUDE.md (không mất dữ liệu, transaction phiếu+op, `projectId` từ `ctx`, `updatedBy` từ token)
+- [ ] `npm run typecheck` và `npm test` xanh
+- [ ] Đã cập nhật design.md / ADR / trạng thái ticket nếu cần
+- [ ] Chạm vùng **Lõi** → đã nhờ hai người duyệt
+
+## Phát hiện ngoài phạm vi
+
+<!-- Lỗi hoặc chỗ lệch spec thấy được nhưng không sửa trong PR này -->

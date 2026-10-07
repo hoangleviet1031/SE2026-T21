@@ -1,9 +1,27 @@
 {
-  "name": "field-survey",
-  "version": "0.0.0",
+  "name": "field-survey-pwa",
   "private": true,
-  "description": "APP-01 Offline-first Field Survey — PWA thu thập khảo sát offline, sync và conflict giải thích được",
+  "version": "0.1.0",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "test": "npm test -w shared && npm test -w server",
+    "test:e2e": "npm run test:e2e -w client",
+    "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "~5.9.3"
+  },
   "engines": {
-    "node": ">=24"
+    "node": ">=22.13"
+  },
+  "overrides": {
+    "shell-quote": "^1.12.0"
   }
 }
