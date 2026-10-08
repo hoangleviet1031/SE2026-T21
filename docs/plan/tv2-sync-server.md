@@ -8,7 +8,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-01 · Migration + schema multi-tenancy · **Lõi** · **Người làm** (thiết kế)
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-02, TV2-03, TV3-02)
 - **Tuần:** 1–2 · **Phụ thuộc:** không
 - **Spec:** design §6.1, §12 (Migration CSDL server); ADR 0002 §1–2
 - **File:** `server/src/db.ts`, `server/test/db.test.ts` (mới)
