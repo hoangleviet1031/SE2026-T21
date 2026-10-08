@@ -2,9 +2,9 @@
 
 Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 ngày, diff ≤ ~400 dòng) để làm theo [quy trình vibe coding](../vibe-coding.md). Mỗi ticket ghi: tuần, phụ thuộc, mục spec, file, việc cần làm, tiêu chí xong, test, và **chỗ người phải review kỹ**.
 
-- [TV1 – Form, PWA, màn hình dự án, staging](tv1-form-pwa.md)
-- [TV2 – Đồng bộ, server, multi-tenancy](tv2-sync-server.md)
-- [TV3 – Conflict UX, ảnh, export, kiểm thử](tv3-conflict-media-test.md)
+- [Dương (TV1) – Form, PWA, màn hình dự án, staging](tv1-form-pwa.md)
+- [Hoàng (TV2) – Đồng bộ, server, multi-tenancy](tv2-sync-server.md)
+- [Đại (TV3) – Conflict UX, ảnh, export, kiểm thử](tv3-conflict-media-test.md)
 
 ## Nhãn
 
@@ -20,7 +20,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 
 ## Bảng tổng
 
-| Tuần | TV1 | TV2 | TV3 | Mốc |
+| Tuần | Dương | Hoàng | Đại | Mốc |
 |---|---|---|---|---|
 | 1 | TV1-01 | TV2-01 | TV3-01 | Cả nhóm chạy được dự án, CI xanh |
 | 2 | TV1-02, TV1-03 | TV2-02, TV2-03 | TV3-02, TV3-03 | Điền phiếu trong một dự án trên điện thoại thật |
@@ -89,4 +89,4 @@ flowchart LR
   TV3-03 --> TV3-06
 ```
 
-**Tuần 2 là điểm nghẽn:** TV2-03 + TV3-02 đổi toàn bộ đường dẫn API và thêm token. Trước khi PR đó merge, không merge PR nào khác chạm `server/src/routes/`. TV1 tuần 2 làm phần UI không phụ thuộc server (TV1-02 dùng stub, TV1-03 phần validate thuần).
+**Tuần 2 là điểm nghẽn:** TV2-03 + TV3-02 đổi toàn bộ đường dẫn API và thêm token. Trước khi PR đó merge, không merge PR nào khác chạm `server/src/routes/`. Dương tuần 2 làm phần UI không phụ thuộc server (TV1-02 dùng stub, TV1-03 phần validate thuần).
