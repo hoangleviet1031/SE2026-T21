@@ -48,7 +48,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | TV1-11 | E2E O2, O4, T6, T10 | — |
 | TV1-12 | Hoàn thiện UI, tài liệu người dùng | — |
 | TV2-01 | Migration + schema multi-tenancy | ✅ `feat/tv2-multi-tenancy-core` |
-| TV2-02 | Xác thực, `requireMember`, lớp `ctx` | — |
+| TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ `feat/tv2-multi-tenancy-core` |
 | TV2-03 | Route theo dự án + phạm vi pull | — |
 | TV2-04 | `/api/me`, `/api/admin/projects` | — |
 | TV2-05 | CSDL account + CSDL theo dự án, `api.ts` | — |

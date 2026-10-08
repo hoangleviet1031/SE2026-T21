@@ -76,3 +76,6 @@ export interface PullResponse {
   /** Truyền lại vào ?since= ở lần pull sau */
   cursor: number;
 }
+
+/** Vai trò trong một dự án (ADR 0002 §2). `admin` là cờ toàn hệ thống, không phải vai trò dự án. */
+export type Role = 'surveyor' | 'supervisor';

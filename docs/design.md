@@ -525,7 +525,7 @@ Phạm vi đồ án giữ đơn giản:
 
 | # | Ca | Kỳ vọng | Trạng thái |
 |---|---|---|---|
-| A1 | Không có token | `401` | TODO |
+| A1 | Không có token | `401` | Có ở mức middleware (`server/test/auth.test.ts`); gắn vào route thật ở TV2-03 |
 | A2 | Surveyor pull | Chỉ nhận phiếu mình tạo | TODO |
 | A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | TODO |
 | A4 | Rút hoặc hạ giám sát viên cuối cùng | `409 last_supervisor` | TODO |

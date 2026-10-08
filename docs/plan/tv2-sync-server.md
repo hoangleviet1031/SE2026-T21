@@ -27,7 +27,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-02 · Xác thực, `requireMember`, lớp `ctx` · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-03, TV3-02)
 - **Tuần:** 2 · **Phụ thuộc:** TV2-01
 - **Spec:** design §9, §7.1 (`401`, `403 not_member`, `403 forbidden`); ADR 0002 §2–3
 - **File:** `server/src/auth.ts` (mới), `server/src/repo/` (mới: `records.ts`, `forms.ts`, `memberships.ts`), `server/src/app.ts`, `server/test/auth.test.ts` (mới)
