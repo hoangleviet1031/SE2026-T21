@@ -59,7 +59,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | — |
 | TV2-11 | Hiệu năng pull | — |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
-| TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | — |
+| TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ⏳ `feat/tv3-01-ci-test-routes` |
 | TV3-02 | CLI quản trị, fixture, sửa test theo API mới | — |
 | TV3-03 | Nén ảnh | — |
 | TV3-04 | Test cách ly T1–T5 | — |
