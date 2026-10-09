@@ -1,6 +1,6 @@
 import { Router, type RequestHandler } from 'express';
 
-// Tiêm lỗi để kiểm thử retry (chỉ bật ngoài production).
+// Tiêm lỗi để kiểm thử retry (chỉ bật khi ENABLE_TEST_ROUTES=1).
 // POST /api/__test/faults { "mode": "500" | "timeout" | "drop", "count": 3 }
 // -> `count` request /api/records tiếp theo sẽ lỗi theo mode.
 type Mode = '500' | 'timeout' | 'drop';
