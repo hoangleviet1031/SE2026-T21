@@ -8,7 +8,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-01 · CI, `ENABLE_TEST_ROUTES`, unit test client
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv3-01-ci-test-routes`
 - **Tuần:** 1 · **Phụ thuộc:** không
 - **Spec:** design §9 (Route tiêm lỗi), §10.2
 - **File:** `.github/workflows/ci.yml` (đã có bản đầu), `server/src/index.ts`, `server/src/app.ts`, `client/playwright.config.ts`, `client/package.json`, `client/vitest.config.ts` (mới), `package.json`
