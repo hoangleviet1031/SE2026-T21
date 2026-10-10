@@ -29,7 +29,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-02 · Màn hình nhập mã đăng nhập
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv1-02-login`
 - **Tuần:** 2 · **Phụ thuộc:** không (dùng stub); nối thật sau TV2-05
 - **Spec:** design §4.7 (Lần đầu mở app), §9
 - **File:** `client/src/pages/LoginPage.tsx` (mới), `client/src/auth.ts` (mới, stub), `client/src/App.tsx`
