@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { login } from './helpers';
 
 const API = 'http://localhost:3001/api';
 
@@ -7,7 +8,7 @@ test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, ngư�
   context,
   request,
 }) => {
-  await page.goto('/');
+  await login(page);
   await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
   await page.locator('input[name=householdName]').fill('Trần Thị Gốc');
   await page.locator('input[name=members]').fill('3');

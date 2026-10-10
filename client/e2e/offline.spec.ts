@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { login } from './helpers';
 
 async function waitForServiceWorker(page: Page) {
   await page.evaluate(async () => {
@@ -12,7 +13,7 @@ async function waitForServiceWorker(page: Page) {
 }
 
 test('điền phiếu khi offline, có mạng lại thì tự đồng bộ', async ({ page, context, request }) => {
-  await page.goto('/');
+  await login(page);
   await waitForServiceWorker(page);
   await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
 
@@ -38,7 +39,7 @@ test('điền phiếu khi offline, có mạng lại thì tự đồng bộ', asy
 });
 
 test('server lỗi 500 hai lần: retry và vẫn đồng bộ đúng một bản ghi', async ({ page, request }) => {
-  await page.goto('/');
+  await login(page);
   await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
   await request.post('http://localhost:3001/api/__test/faults', { data: { mode: '500', count: 2 } });
 

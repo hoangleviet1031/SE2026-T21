@@ -1,13 +1,34 @@
+import { useLiveQuery } from 'dexie-react-hooks';
+import { getToken } from './auth';
 import { useHashRoute } from './useHashRoute';
 import { useOnline } from './useOnline';
 import { HomePage } from './pages/HomePage';
 import { FillPage } from './pages/FillPage';
 import { ConflictPage } from './pages/ConflictPage';
+import { LoginPage } from './pages/LoginPage';
 import { syncNow } from './sync/engine';
 
 export function App() {
   const [page, ...args] = useHashRoute();
   const online = useOnline();
+  // Đọc qua liveQuery để khi mã bị xoá (401, đăng xuất) app tự quay về màn hình nhập mã
+  const token = useLiveQuery(getToken, []);
+
+  // Đang đọc IndexedDB: chưa vẽ gì, tránh nháy màn hình nhập mã với người đã đăng nhập
+  if (token === undefined) return null;
+
+  if (token === null) {
+    return (
+      <div className="app">
+        <header>
+          <span className="brand">Khảo sát thực địa</span>
+        </header>
+        <main>
+          <LoginPage />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
