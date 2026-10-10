@@ -210,3 +210,23 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 - **File:** `docs/sync-internals.md` (mới), `docs/adr/*`
 
 **Việc:** rà ADR khớp code (sửa ADR nếu có quyết định mới, viết ADR 0003 nếu đổi hướng); tài liệu kỹ thuật: luồng một op từ lúc lưu tới lúc lên server, kèm sơ đồ; cách thêm route theo dự án an toàn.
+
+---
+
+## TV2-13 · Xoá phiếu: logic phía client và đồng bộ · **Lõi**
+
+- **Trạng thái:** —
+- **Tuần:** 5 · **Phụ thuộc:** TV2-05; phần ảnh cần bảng `attachments` phía client (TV3-06), chưa có thì để lại phần ảnh và ghi rõ trong PR
+- **Spec:** design §5.7, §5.2 (gộp op); ADR 0001 quy tắc 6; CLAUDE.md bất biến 1, 2, 3
+- **File:** `client/src/sync/outbox.ts` (`deleteRecordLocally`), `client/src/sync/engine.ts`, `client/e2e/delete.spec.ts` (mới)
+
+**Việc**
+- `deleteRecordLocally(recordId)` cạnh `saveRecordLocally`, một transaction Dexie gồm `records`, `outbox`, `attachments`. Từ chối (ném lỗi rõ ràng) khi phiếu đang `conflict`.
+- Chưa thể tới server (`baseVersion = 0` và mọi op có `attempts = 0`): xoá hẳn phiếu, mọi op, mọi ảnh; không gửi gì.
+- Có thể đã tới server: `deleted = true`, op xoá theo quy tắc gộp §5.2 (op chưa gửi thì sửa op đó, op đã gửi thì thêm op mới). `data` của op = dữ liệu hợp lệ mới nhất (`baseData` nếu phiếu là nháp).
+- Engine: op xoá được server xác nhận thì xoá phiếu và blob ảnh khỏi máy; ngừng upload ảnh của phiếu `deleted`. `409` khi xoá đi theo luồng conflict có sẵn (C4, TV3-08).
+- Xuất hàm cho TV1-13 dùng; đường xoá cũ `saveRecordLocally({ deleted: true })` trong `FillPage` do TV1-13 thay.
+
+**Xong khi:** E2E **O7**, **O8** (design §10.1).
+
+**Review kỹ (TV1 duyệt):** điều kiện "chưa thể tới server": nhầm sang xoá hẳn khi server đã có bản ghi sẽ để phiếu mồ côi trên server; không sửa `data` của op có `attempts > 0`; transaction bao đủ ba bảng; không xoá gì ngoài phiếu đang xoá.
