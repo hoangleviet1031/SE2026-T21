@@ -1,9 +1,9 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4 (2026-10-09)
+- **Phiên bản:** 0.4.1 (2026-10-10)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
-- **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo. Đoạn có nhãn **(chờ chốt)** là đề xuất của bản 0.4, nhóm cần duyệt (danh sách ở §14) trước khi làm ticket liên quan.
+- **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
 - **Phác thảo giao diện:** [ui.md](ui.md)
 
 ## Lịch sử thay đổi
@@ -14,6 +14,7 @@
 | 0.2 | 2026-10-07 | Thêm trạng thái nháp, sơ đồ trạng thái đầy đủ, khoá sửa khi đang xung đột, đồng bộ ảnh (§5.6), nhiều tab, phạm vi pull và vai trò, ràng buộc idempotency key, trình duyệt hỗ trợ, yêu cầu phi chức năng, triển khai, mã lỗi API, tiêu chí chấp nhận, thuật ngữ |
 | 0.3 | 2026-10-07 | Chốt ADR 0001; phục vụ nhiều tổ chức theo ADR 0002: dự án, thành viên, vai trò `admin`, API theo dự án, mỗi dự án một IndexedDB, màn hình Dự án/Thành viên (§4.7); cắt builder kéo thả, so sánh ảnh, ZIP |
 | 0.4 | 2026-10-09 | Lấp chỗ hở trong spec: `createdBy` và tên người sửa trong `ServerRecord`/lịch sử (§6.2, §7), định dạng `GET /api/me` (§7), phân trang pull `hasMore` (§7), validate theo từng loại trường (§4.1), danh sách phiếu và bộ lọc (§4.8), đăng nhập mã khác khi còn dữ liệu (§4.7), xoá phiếu (§5.7), API tiêm lỗi đầy đủ (§10.1), cập nhật cấu trúc mã nguồn (§3); thêm [ui.md](ui.md). Các đề xuất chờ chốt liệt kê ở §14 |
+| 0.4.1 | 2026-10-10 | Nhóm chốt P1, P2, P3, P5, P6, P8 (§14); bỏ nhãn "chờ chốt" ở §4.7, §5.7, §6.2, §7, §10.1 |
 
 ## Mục lục
 
@@ -263,7 +264,7 @@ Theo ADR 0002.
 - **Màn hình Dự án** (`admin`, cần online): tạo dự án, đổi tên, lưu trữ; chỉ định giám sát viên đầu tiên.
 - **Bị rút khỏi dự án:** dự án hiện mờ trong bộ chọn với nhãn "Đã rời". Còn phiếu chưa gửi thì có banner "Bạn không còn thuộc dự án X. N phiếu chưa gửi được" với nút "Xuất JSON" và "Xoá khỏi máy".
 - **Tạo người dùng** không có UI: quản trị chạy CLI ở server (§12).
-- **Nhập mã của người khác trên máy đang có dữ liệu** (sau `401`, hoặc người dùng tự nhập lại) **(chờ chốt):** sau khi `GET /api/me` trả về, so `user.id` mới với `userId` đang lưu trong `field-survey-account`.
+- **Nhập mã của người khác trên máy đang có dữ liệu** (sau `401`, hoặc người dùng tự nhập lại):** sau khi `GET /api/me` trả về, so `user.id` mới với `userId` đang lưu trong `field-survey-account`.
   - Cùng người (mã được cấp lại bằng `user:rotate-token`): chỉ thay token, giữ nguyên mọi CSDL, đồng bộ tiếp.
   - Khác người và máy **không** còn dữ liệu chưa gửi ở mọi dự án (định nghĩa như `hasUnsentData`, ADR 0002 §6): xoá mọi CSDL dự án của người cũ rồi đăng nhập người mới.
   - Khác người và máy **còn** dữ liệu chưa gửi: từ chối, hiện "Máy này còn N phiếu chưa gửi của <tên người cũ>. Nhập lại mã của người đó để gửi, hoặc xuất JSON trước." kèm nút "Xuất JSON". Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
@@ -277,7 +278,7 @@ Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), kh
 
 - **Nhóm theo form**, mỗi form một mục có số phiếu; trong mục, phiếu sắp theo `updatedAt` cục bộ mới nhất trước.
 - **Mỗi dòng:** tiêu đề phiếu (giá trị trường `text` đầu tiên không ẩn, rỗng thì "Phiếu chưa có tên"), nhãn trạng thái hiển thị (§5.1, §5.6), giờ sửa cuối. Với `supervisor` thêm tên người tạo (`createdByName`, kèm "(đã rời dự án)" nếu cần).
-- **Bộ lọc:** trạng thái ("Tất cả", "Cần xử lý", "Chưa đồng bộ", "Nháp", "Lỗi"); với `supervisor` thêm lọc theo người tạo (cần `createdBy`, phụ thuộc P1; P1 không được duyệt thì bỏ lọc này). Ô tìm kiếm theo tiêu đề phiếu. Bộ lọc chạy trên index `syncState` và lọc trong bộ nhớ, đủ cho 2.000 phiếu (§11.2).
+- **Bộ lọc:** trạng thái ("Tất cả", "Cần xử lý", "Chưa đồng bộ", "Nháp", "Lỗi"); với `supervisor` thêm lọc theo người tạo (cần `createdBy`, §6.2). Ô tìm kiếm theo tiêu đề phiếu. Bộ lọc chạy trên index `syncState` và lọc trong bộ nhớ, đủ cho 2.000 phiếu (§11.2).
 - **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định.
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).
@@ -377,7 +378,7 @@ Lý do: không tải dữ liệu cá nhân (tên chủ hộ, GPS, ảnh) của n
 - **Xoá ảnh khỏi phiếu:** chỉ bỏ id khỏi trường photo; blob cục bộ giữ tới khi người dùng dọn bộ nhớ.
 - **Dọn rác ở server:** chunk tạm của ảnh chưa `complete` sau 7 ngày thì xoá. File đã hoàn tất không tự xoá, vì `record_history` có thể còn tham chiếu.
 
-### 5.7 Xoá phiếu (chờ chốt)
+### 5.7 Xoá phiếu
 
 Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu này? Không hoàn tác được trên máy." (bất biến 1: người dùng đã bấm xác nhận). Surveyor xoá được phiếu mình tạo, supervisor xoá được mọi phiếu. Phiếu đang `conflict` không xoá được (chỉ đọc, §4.5). Hàm xoá nằm cạnh `saveRecordLocally` và chạy trong **một transaction Dexie** gồm `records`, `outbox`, `attachments`.
 
@@ -415,7 +416,7 @@ Mọi truy vấn dữ liệu dự án đi qua lớp truy cập nhận `ctx = { u
 
 Định nghĩa ở `shared/src/types.ts`: `FormSchema`, `FieldDef` (thêm `hidden?: boolean`), `FieldValue`, `ServerRecord`, `RecordHistoryEntry`, `PushRecordRequest` (bỏ `updatedBy`), `ConflictResponse`, `PullResponse` (thêm `scope`, `hasMore`), `ApiError`, `Role`, `MeResponse`, `ProjectSummary`, `Member`.
 
-**Thay đổi ở bản 0.4 (chờ chốt):**
+**Thay đổi ở bản 0.4:**
 
 ```ts
 interface ServerRecord {
@@ -496,7 +497,7 @@ Content-Type: application/json
 | `404` | `baseVersion > 0` nhưng phiếu không tồn tại, phiếu ngoài phạm vi của surveyor, hoặc `id` thuộc dự án khác |
 | `422 idempotency_key_reused` | key đã dùng cho request khác (khác dự án, khác `recordId` hoặc khác nội dung) |
 
-**GET /api/me** (chờ chốt)
+**GET /api/me**
 
 ```json
 {
@@ -635,7 +636,7 @@ Phạm vi đồ án giữ đơn giản:
 
 **Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên).
 
-**API kiểm thử** (chờ chốt; chỉ đăng ký khi `ENABLE_TEST_ROUTES=1`, file `server/src/routes/faults.ts`):
+**API kiểm thử** (chỉ đăng ký khi `ENABLE_TEST_ROUTES=1`, file `server/src/routes/faults.ts`):
 
 | Method | Đường dẫn | Thân / kết quả |
 |---|---|---|
@@ -738,7 +739,7 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 
 ## 14. Câu hỏi mở
 
-**Đã chốt (2026-10-07)**
+**Đã chốt** (ngày chốt ghi ở từng dòng; các dòng không ghi là 2026-10-07)
 
 | Câu hỏi | Quyết định |
 |---|---|
@@ -750,19 +751,12 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 | Phục vụ nhiều nhóm thế nào? | Nhiều tổ chức tách biệt trên một hệ thống, đơn vị cách ly là dự án (ADR 0002) |
 | Luật validate phiếu (P4)? | Theo bảng §4.1: text bỏ khoảng trắng hai đầu rồi mới xét; ảnh bắt buộc chỉ cần có trên máy, chưa upload không làm phiếu thành nháp (Dương, 2026-10-09) |
 | Trình bày danh sách phiếu (P7)? | Nhóm theo form; lọc theo trạng thái, supervisor lọc thêm theo người tạo; tìm theo tiêu đề (§4.8; Dương, 2026-10-09) |
-
-**Chờ chốt (đề xuất ở bản 0.4)**
-
-Nhóm duyệt từng mục; chốt xong thì bỏ nhãn "(chờ chốt)" ở mục tương ứng và chuyển dòng lên bảng "Đã chốt". Ticket nào phụ thuộc mục chưa chốt thì không bắt đầu.
-
-| # | Đề xuất | Mục | Ticket bị ảnh hưởng | Phương án khác đã cân nhắc |
-|---|---|---|---|---|
-| P1 | `ServerRecord` thêm `createdBy`, `createdByName`, `updatedByName`; lịch sử thêm `updatedByName` | §6.2 | TV2-03, TV3-07, TV3-09 | API danh bạ cho mọi thành viên (cần online, lộ danh sách thành viên cho surveyor) |
-| P2 | Định dạng `GET /api/me` (dự án bị rút biến khỏi danh sách) | §7 | TV2-04, TV2-05, TV2-07, TV1-06 | Trả cả dự án đã rút kèm `status` (server phải nhớ lịch sử thành viên) |
-| P3 | Pull có `hasMore`, lưu cursor sau mỗi trang | §7 | TV2-03, TV2-11 | Client tự dừng khi trang ít hơn `limit` (thêm một request rỗng ở cuối) |
-| P5 | Nhập mã người khác khi còn dữ liệu chưa gửi thì từ chối | §4.7 | TV1-02, TV1-07, TV2-05 | Giữ dữ liệu người cũ và gửi bằng token người mới (vi phạm bất biến 6) |
-| P6 | Xoá phiếu: xoá hẳn nếu chưa thể tới server, tombstone nếu có thể đã tới | §5.7 | TV2-10 (hoặc ticket mới), TV1 (nút xoá) | Luôn gửi tombstone (để lại rác trên server cho phiếu chưa từng gửi) |
-| P8 | API kiểm thử đầy đủ (`match`, `chunkIndex`, `400`, `stats`) | §10.1 | TV2-06, TV2-08, TV2-09, TV3-10 | Mỗi ticket tự thêm mode riêng |
+| `ServerRecord` có tên người tạo/sửa không (P1)? | Có: thêm `createdBy`, `createdByName`, `updatedByName`, lịch sử thêm `updatedByName`, để màn hình xung đột hiện tên cả khi offline (§6.2; nhóm, 2026-10-10) |
+| Định dạng `GET /api/me` (P2)? | Theo §7; dự án bị rút biến khỏi danh sách (nhóm, 2026-10-10) |
+| Phân trang pull (P3)? | Có `hasMore`, client lưu cursor sau mỗi trang (§7; TV2 chốt, 2026-10-10) |
+| Nhập mã người khác khi còn phiếu chưa gửi (P5)? | Từ chối, chỉ cho xuất JSON (§4.7; nhóm, 2026-10-10) |
+| Xoá phiếu (P6)? | Xoá hẳn nếu chưa thể tới server, tombstone nếu có thể đã tới (§5.7). Phân công: TV2 làm phần sync, TV1 làm nút xoá và hộp xác nhận (nhóm, 2026-10-10) |
+| API kiểm thử chung (P8)? | Một API dùng chung gồm `match`, `chunkIndex`, `400`, `stats` (§10.1); không ticket nào tự thêm mode riêng vào `faults.ts` (TV2 và TV3, 2026-10-10) |
 
 **Còn mở**
 
