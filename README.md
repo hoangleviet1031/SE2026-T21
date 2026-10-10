@@ -44,6 +44,13 @@ npm run test:e2e     # build, chạy vite preview + API in-memory, chạy E2E
 
 E2E hiện có: điền phiếu offline rồi đồng bộ, retry khi server lỗi 500, xung đột cùng trường và giải quyết qua UI.
 
+Route tiêm lỗi `POST /api/__test/faults` (giả lập server lỗi 500, treo, cắt kết nối) chỉ bật khi đặt `ENABLE_TEST_ROUTES=1`. E2E tự bật; muốn thử bằng tay khi chạy dev thì:
+
+```bash
+ENABLE_TEST_ROUTES=1 npm run dev                  # bash
+$env:ENABLE_TEST_ROUTES='1'; npm run dev          # PowerShell
+```
+
 ## Cấu trúc
 
 ```
