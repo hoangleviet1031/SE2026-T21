@@ -91,7 +91,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-05 · Validate phiếu + trạng thái nháp · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv1-05-validate-record` – xong `validateRecord` + unit test; còn phần client (nháp, FormRenderer, nhãn, E2E O5)
 - **Tuần:** 3 · **Phụ thuộc:** không
 - **Spec:** design §4.1 (Validate phiếu), §5.1 (sơ đồ trạng thái), ADR 0001 quy tắc 8
 - **File:** `shared/src/recordValidation.ts` + `.test.ts` (mới), `client/src/db/db.ts` (`SyncState` thêm `'draft'`, `validationErrors?`), `client/src/sync/outbox.ts`, `client/src/components/FormRenderer.tsx`, `client/src/pages/FillPage.tsx`, `client/src/pages/HomePage.tsx` (nhãn "Nháp")
