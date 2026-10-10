@@ -28,7 +28,7 @@ Tài liệu liên quan: [CLAUDE.md](../CLAUDE.md) (luật cho AI), [plan/](plan/
 7. **Thử thật**: tính năng có UI thì thử trên điện thoại qua staging ít nhất một lần trước khi đóng ticket (định nghĩa "xong" trong team-plan).
 8. **Mở PR** theo mẫu (`.github/pull_request_template.md`), điền phần "AI đã làm gì / tôi đã kiểm tra gì".
 9. **Review**: người duyệt dùng checklist mục 4; PR chạm vùng lõi cần hai người duyệt.
-10. **Đánh dấu ticket xong** trong `docs/plan/` (cùng PR).
+10. **Đánh dấu ticket xong** trong `docs/plan/` và **ghi worklog** (một dòng trong `docs/worklog/<tên>.md`, theo [quy ước](worklog/README.md)), cùng PR.
 
 ## 3. Mẫu prompt
 
@@ -64,6 +64,7 @@ Không sửa code.
 - [ ] Mỗi tiêu chí "Xong khi" của ticket có test tương ứng, và assertion kiểm tra đúng điều spec nói (không chỉ "không lỗi").
 - [ ] Mã lỗi, nhãn UI, tên trường khớp design.md.
 - [ ] Đổi API/kiểu/schema thì design.md đã cập nhật cùng PR.
+- [ ] Trạng thái ticket trong `docs/plan/` và dòng worklog của người làm đã cập nhật cùng PR.
 
 **Bất biến (CLAUDE.md)**
 - [ ] Không có đường nào xoá dữ liệu chưa đồng bộ mà không hỏi người dùng.
