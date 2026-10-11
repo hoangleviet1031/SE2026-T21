@@ -17,7 +17,7 @@ export default defineConfig({
       command: 'npm run start -w server',
       cwd: '..',
       url: 'http://localhost:3001/api/health',
-      env: { DB_PATH: ':memory:', PORT: '3001' },
+      env: { DB_PATH: ':memory:', PORT: '3001', ENABLE_TEST_ROUTES: '1' },
       reuseExistingServer: !process.env.CI,
     },
     {

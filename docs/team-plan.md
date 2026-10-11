@@ -78,7 +78,7 @@ Không được cắt: bộ test cách ly T1–T5, xử lý bị rút khỏi d�
 
 ## Quy trình làm việc
 
-- **Git:** nhánh `main` luôn chạy được. Mỗi việc một nhánh `feat/<tên>`, mở PR, ít nhất một bạn review. CI phải xanh mới merge.
+- **Git:** nhánh `main` luôn chạy được. Mỗi ticket một nhánh `feat/<mã-ticket>-<tên-ngắn>` (vibe-coding §2), mở PR, ít nhất một bạn review. CI phải xanh mới merge.
 - **Phần lõi cần hai người duyệt:** PR sửa `shared/`, `docs/adr/`, `client/src/db/`, `client/src/sync/engine.ts`, `server/src/auth.ts` hoặc bất kỳ câu SQL nào trên dữ liệu dự án cần cả hai bạn còn lại duyệt. Người duyệt kiểm tra riêng: truy vấn có đi qua `ctx` không.
 - **Giao diện giữa các mảng** là kiểu trong `shared/src/types.ts` và API ở design §7. Đổi kiểu dùng chung thì báo cả nhóm và cập nhật tài liệu (kể cả bảng lịch sử thay đổi trong design.md) trong cùng PR.
 - **Họp:** 15 phút đầu tuần (kế hoạch), 30 phút cuối tuần (demo nội bộ trên staging với hai dự án mẫu, cập nhật bảng tiến độ).

@@ -7,6 +7,11 @@ import { attachmentsRouter } from './routes/attachments';
 import { exportRouter } from './routes/export';
 import { faultInjector, faultsRouter } from './routes/faults';
 
+// Bật chủ động: quên cấu hình thì route tiêm lỗi tắt, kể cả khi quên đặt NODE_ENV. Xem docs/design.md §9.
+export function testRoutesEnabled(env: NodeJS.ProcessEnv): boolean {
+  return env.ENABLE_TEST_ROUTES === '1';
+}
+
 export function createApp(db: Db, opts: { enableTestRoutes?: boolean } = {}) {
   const app = express();
   app.use(cors());

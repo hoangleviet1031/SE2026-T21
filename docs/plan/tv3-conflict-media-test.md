@@ -8,7 +8,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-01 · CI, `ENABLE_TEST_ROUTES`, unit test client
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv3-01-ci-test-routes`
 - **Tuần:** 1 · **Phụ thuộc:** không
 - **Spec:** design §9 (Route tiêm lỗi), §10.2
 - **File:** `.github/workflows/ci.yml` (đã có bản đầu), `server/src/index.ts`, `server/src/app.ts`, `client/playwright.config.ts`, `client/package.json`, `client/vitest.config.ts` (mới), `package.json`
@@ -110,7 +110,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 - **Trạng thái:** —
 - **Tuần:** 5 · **Phụ thuộc:** TV2-10
-- **Spec:** design §4.5; ADR 0001 quy tắc 7; UI màn hình 3 (thẻ mỗi trường, không dùng bảng 4 cột trên điện thoại)
+- **Spec:** design §4.5; ADR 0001 quy tắc 7; [ui.md màn hình 3](../ui.md#3-xung-đột) (thẻ mỗi trường, không dùng bảng 4 cột trên điện thoại)
 - **File:** `client/src/pages/ConflictPage.tsx`, `client/src/pages/FillPage.tsx` (làm cùng TV1), `client/e2e/conflict.spec.ts`
 
 **Việc**
