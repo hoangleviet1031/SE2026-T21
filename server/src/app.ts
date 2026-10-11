@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import type { Db } from './db';
+import { createAuth } from './auth';
 import { formsRouter } from './routes/forms';
 import { recordsRouter } from './routes/records';
 import { attachmentsRouter } from './routes/attachments';
@@ -23,11 +24,14 @@ export function createApp(db: Db, opts: { enableTestRoutes?: boolean } = {}) {
 
   if (opts.enableTestRoutes) {
     app.use('/api/__test', faultsRouter());
-    app.use('/api/records', faultInjector);
+    app.use('/api/projects/:projectId/records', faultInjector);
   }
 
-  app.use('/api/forms', formsRouter(db));
-  app.use('/api/records', recordsRouter(db));
+  // Route theo dự án: xác thực rồi kiểm thành viên (ADR 0002 §3). projectId chỉ lấy từ đường dẫn.
+  const { requireAuth, requireMember } = createAuth(db);
+  const asMember = [requireAuth, requireMember('surveyor')];
+  app.use('/api/projects/:projectId/forms', ...asMember, formsRouter(db));
+  app.use('/api/projects/:projectId/records', ...asMember, recordsRouter(db));
   app.use('/api/attachments', attachmentsRouter());
   app.use('/api/export', exportRouter(db));
   return app;

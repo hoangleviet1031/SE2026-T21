@@ -60,7 +60,6 @@ export interface PushRecordRequest {
   baseVersion: number;
   data: RecordData;
   deleted: boolean;
-  updatedBy: string;
 }
 
 /** Thân response 409 */
@@ -75,6 +74,8 @@ export interface PullResponse {
   records: ServerRecord[];
   /** Truyền lại vào ?since= ở lần pull sau */
   cursor: number;
+  /** Phạm vi pull theo vai trò; đổi phạm vi thì client đặt cursor về 0 (design §5.5) */
+  scope: 'own' | 'all';
 }
 
 /** Vai trò trong một dự án (ADR 0002 §2). `admin` là cờ toàn hệ thống, không phải vai trò dự án. */
