@@ -30,7 +30,7 @@ Node ≥ 22.13 (cần `node:sqlite`).
 shared/   kiểu dùng chung, threeWayMerge, backoff, validate – hàm thuần, không I/O
 server/   Express 5 + node:sqlite; src/routes/*, src/db.ts; test/ (Vitest, gọi HTTP thật)
 client/   React 19 + Vite + Dexie + vite-plugin-pwa; src/db, src/sync, src/pages, src/components; e2e/
-docs/     design.md (spec), ui.md (phác thảo màn hình), adr/ (quyết định), plan/ (ticket), vibe-coding.md (quy trình)
+docs/     design.md (spec), ui.md (phác thảo màn hình), adr/ (quyết định), plan/ (ticket), worklog/ (nhật ký từng người), vibe-coding.md (quy trình)
 ```
 
 ## Bất biến không được phá (vi phạm = PR bị từ chối)
@@ -65,5 +65,5 @@ docs/     design.md (spec), ui.md (phác thảo màn hình), adr/ (quyết đị
 
 1. `npm run typecheck` và `npm test` xanh; chạy E2E liên quan nếu có.
 2. Cập nhật tài liệu nếu đổi API, kiểu dùng chung, mã lỗi, schema (cùng PR): design.md (kèm bảng lịch sử thay đổi), cột "Trạng thái" trong design §7 và §10.1.
-3. Đánh dấu ticket trong `docs/plan/` là xong.
+3. Đánh dấu ticket trong `docs/plan/` là xong và thêm một dòng vào `docs/worklog/<tên người làm>.md` (quy ước ở [docs/worklog/README.md](docs/worklog/README.md)). Chỉ sửa file worklog của người đang làm.
 4. Báo cáo ngắn: đã làm gì, file nào, test nào, **chỗ nào người review cần đọc kỹ**, phát hiện ngoài phạm vi.
