@@ -216,3 +216,20 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 **Việc**
 - Rà UI ở bề ngang 360px, chữ đúng design, trạng thái rỗng/đang tải/lỗi ở mọi trang.
 - `docs/user-guide.md`: cho điều tra viên (cài app, nhập mã, điền phiếu, xử lý xung đột, khi nào an toàn để đổi máy), giám sát viên (form, thành viên, xuất), quản trị (CLI, tạo dự án). AI viết nháp, người sửa theo app thật, kèm ảnh chụp màn hình.
+
+---
+
+## TV1-13 · Nút xoá phiếu và hộp xác nhận
+
+- **Trạng thái:** —
+- **Tuần:** 5 · **Phụ thuộc:** TV2-13
+- **Spec:** design §5.7, §4.8 (phiếu đã xoá không hiện); [ui.md](../ui.md) màn hình 4 (trang phiếu)
+- **File:** `client/src/pages/FillPage.tsx`, `client/src/components/ConfirmDialog.tsx` (mới), `client/e2e/delete.spec.ts` (phần UI, chung file với TV2-13)
+
+**Việc**
+- Nút "Xoá phiếu" ở trang phiếu, hộp xác nhận đúng câu chữ "Xoá phiếu này? Không hoàn tác được trên máy." Bấm "Huỷ" thì không đổi gì.
+- Ẩn nút với surveyor khi phiếu không do mình tạo; khoá nút khi phiếu đang `conflict`.
+- Gọi `deleteRecordLocally` (TV2-13), thay đường xoá cũ `saveRecordLocally({ deleted: true })`.
+- Danh sách phiếu không hiện phiếu `deleted`.
+
+**Xong khi:** phần UI của E2E **O7**: bấm "Huỷ" thì phiếu còn; bấm "Xoá" thì phiếu biến khỏi danh sách.

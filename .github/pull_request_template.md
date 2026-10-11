@@ -34,6 +34,7 @@
 - [ ] Giữ bất biến trong CLAUDE.md (không mất dữ liệu, transaction phiếu+op, `projectId` từ `ctx`, `updatedBy` từ token)
 - [ ] `npm run typecheck` và `npm test` xanh
 - [ ] Đã cập nhật design.md / ADR / trạng thái ticket nếu cần
+- [ ] Đã ghi một dòng vào `docs/worklog/<tên>.md`
 - [ ] Chạm vùng **Lõi** → đã nhờ hai người duyệt
 
 ## Phát hiện ngoài phạm vi
