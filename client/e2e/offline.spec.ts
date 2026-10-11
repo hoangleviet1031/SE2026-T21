@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { login } from './helpers';
+import { API, TOKENS, authHeaders, login } from './helpers';
 
 async function waitForServiceWorker(page: Page) {
   await page.evaluate(async () => {
@@ -32,7 +32,7 @@ test('điền phiếu khi offline, có mạng lại thì tự đồng bộ', asy
   await context.setOffline(false);
   await expect(row.getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 15_000 });
 
-  const pulled = await (await request.get('http://localhost:3001/api/records?since=0')).json();
+  const pulled = await (await request.get(`${API}/records?since=0`, { headers: authHeaders(TOKENS.minh) })).json();
   const saved = pulled.records.find((r: { data: { householdName: string } }) => r.data.householdName === 'Nguyễn Văn Offline');
   expect(saved.version).toBe(1);
   expect(saved.data.members).toBe(4);
@@ -51,7 +51,7 @@ test('server lỗi 500 hai lần: retry và vẫn đồng bộ đúng một bả
   // Backoff: ~1s rồi ~2s; nút Đồng bộ chỉ kích hoạt lại, không bỏ qua lịch retry
   await expect(row.getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 40_000 });
 
-  const pulled = await (await request.get('http://localhost:3001/api/records?since=0')).json();
+  const pulled = await (await request.get(`${API}/records?since=0`, { headers: authHeaders(TOKENS.minh) })).json();
   const matches = pulled.records.filter((r: { data: { householdName: string } }) => r.data.householdName === 'Retry 500');
   expect(matches).toHaveLength(1);
 });

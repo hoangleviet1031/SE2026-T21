@@ -33,6 +33,18 @@ npm run dev          # API :3001 và web :5173 (web proxy /api sang API)
 
 Mở http://localhost:5173. Để thử offline: DevTools > Network > Offline, rồi tải lại trang.
 
+### Tài khoản demo
+
+Đặt `SEED_DEMO=1` khi chạy server để nạp dữ liệu demo (chỉ dùng dev/test, token cố định): `SEED_DEMO=1 npm run dev` (PowerShell: `$env:SEED_DEMO='1'; npm run dev`).
+
+| Người dùng | Token | Dự án |
+|---|---|---|
+| `lan` | `demo-token-lan` | `demo-yte`: supervisor; `demo-nongnghiep`: surveyor |
+| `minh` | `demo-token-minh` | `demo-yte`: surveyor |
+| `admin` | `demo-token-admin` | quản trị hệ thống, chưa là thành viên dự án nào |
+
+Nhập token ở màn hình đăng nhập. E2E tự bật `SEED_DEMO=1`.
+
 ## Kiểm thử
 
 ```bash

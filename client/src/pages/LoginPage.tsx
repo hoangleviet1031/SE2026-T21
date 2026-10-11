@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { setToken } from '../auth';
 import { useOnline } from '../useOnline';
+import { syncNow } from '../sync/engine';
 
 const OFFLINE_MSG = 'Cần kết nối mạng để đăng nhập lần đầu';
 
@@ -25,6 +26,8 @@ export function LoginPage() {
     try {
       // TODO(TV2-04): gọi GET /api/me qua api.ts để kiểm tra mã; 401 thì báo "Mã không đúng".
       await setToken(value);
+      // Chưa có mã thì các lần đồng bộ trước đều dừng; có mã rồi thì tải form và phiếu ngay.
+      void syncNow().catch((e) => console.warn('sync failed', e));
     } finally {
       setBusy(false);
     }

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { TOKENS } from './helpers';
 
-// TV1-02, design §4.7 "Lần đầu mở app". Chưa có GET /api/me (TV2-04) nên mã nào cũng được nhận.
+// TV1-02, design §4.7 "Lần đầu mở app". Chưa có GET /api/me (TV2-04) nên màn hình chưa tự kiểm mã; form chỉ tải được khi mã là token thật của server.
 
 test('lần đầu mở app thấy màn hình nhập mã; nhập xong vào trang chủ, tải lại vẫn ở trang chủ', async ({ page }) => {
   await page.goto('/');
@@ -8,7 +9,7 @@ test('lần đầu mở app thấy màn hình nhập mã; nhập xong vào trang
   await expect(page.getByText('Nhận mã từ quản trị viên.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Tạo phiếu mới' })).toHaveCount(0);
 
-  await page.getByTestId('login-token').fill('  ma-thu-nghiem  ');
+  await page.getByTestId('login-token').fill(`  ${TOKENS.minh}  `);
   await page.getByRole('button', { name: 'Tiếp tục' }).click();
   await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
   await expect(page.getByTestId('login-token')).toHaveCount(0);

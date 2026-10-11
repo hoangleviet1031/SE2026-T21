@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.2 (2026-10-10)
+- **Phiên bản:** 0.4.3 (2026-10-11)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -17,6 +17,7 @@
 | 0.4 | 2026-10-09 | Lấp chỗ hở trong spec: `createdBy` và tên người sửa trong `ServerRecord`/lịch sử (§6.2, §7), định dạng `GET /api/me` (§7), phân trang pull `hasMore` (§7), validate theo từng loại trường (§4.1), danh sách phiếu và bộ lọc (§4.8), đăng nhập mã khác khi còn dữ liệu (§4.7), xoá phiếu (§5.7), API tiêm lỗi đầy đủ (§10.1), cập nhật cấu trúc mã nguồn (§3); thêm [ui.md](ui.md). Các đề xuất chờ chốt liệt kê ở §14 |
 | 0.4.1 | 2026-10-10 | Nhóm chốt P1, P2, P3, P5, P6, P8 (§14); bỏ nhãn "chờ chốt" ở §4.7, §5.7, §6.2, §7, §10.1 |
 | 0.4.2 | 2026-10-08 | TV2-01: chốt schema server sau migration 2 (§6.1): `record_history` có `project_id` (khớp ADR 0002), thêm index `memberships(user_id)`, `idempotency(created_at)`, khoá ngoại và `CHECK` vai trò; `attachments` để TV3-05 thêm ở migration 3 |
+| 0.4.3 | 2026-10-11 | TV2-03: `P/forms`, `P/records` (pull, history, PUT) chạy theo dự án và có xác thực (§7); `PullResponse.scope` thêm, `PushRecordRequest` bỏ `updatedBy` (§6.2); server dev/E2E nạp tài khoản demo khi `SEED_DEMO=1` |
 
 ## Mục lục
 
@@ -444,7 +445,7 @@ interface RecordHistoryEntry {
 
 ## 7. REST API
 
-Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <token>` (§9). Route theo dự án nằm dưới `/api/projects/:projectId` (viết tắt `P` trong bảng) và đi qua middleware kiểm tra thành viên (ADR 0002 §3). Code hiện tại dùng đường dẫn không có `P` và chưa có xác thực.
+Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <token>` (§9). Route theo dự án nằm dưới `/api/projects/:projectId` (viết tắt `P` trong bảng) và đi qua middleware kiểm tra thành viên (ADR 0002 §3). Các route `forms` và `records` đã theo dự án và có xác thực (TV2-03); `attachments` và `export` vẫn dùng đường dẫn cũ, chưa xác thực.
 
 **Không theo dự án**
 
@@ -464,10 +465,10 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | GET | `P/members` | Danh sách thành viên | supervisor | TODO TV1 |
 | PUT | `P/members/:userId` | Thêm hoặc đổi vai trò `{ role }` | supervisor | TODO TV1 |
 | DELETE | `P/members/:userId` | Rút khỏi dự án (không rút được giám sát viên cuối cùng) | supervisor | TODO TV1 |
-| GET | `P/forms` | Phiên bản mới nhất của mỗi form | thành viên | Có (chưa theo dự án) |
-| GET | `P/forms/:id/versions/:v` | Một phiên bản form | thành viên | Có (chưa theo dự án) |
+| GET | `P/forms` | Phiên bản mới nhất của mỗi form | thành viên | Có |
+| GET | `P/forms/:id/versions/:v` | Một phiên bản form | thành viên | Có |
 | POST | `P/forms` | Lưu form từ builder, tự tăng version | supervisor | TODO TV1 |
-| GET | `P/records?since=&limit=` | Pull theo cursor, lọc theo phạm vi §5.5; trả thêm `scope` | thành viên | Có (chưa lọc) |
+| GET | `P/records?since=&limit=` | Pull theo cursor, lọc theo phạm vi §5.5; trả thêm `scope` | thành viên | Có (chưa có `hasMore`) |
 | GET | `P/records/:id/history` | Lịch sử phiên bản | thành viên (trong phạm vi) | Có |
 | PUT | `P/records/:id` | Ghi có điều kiện, cần `Idempotency-Key` | thành viên (trong phạm vi) | Có |
 | GET | `P/attachments/:id/status` | Chunk đã nhận | thành viên | TODO TV3 |

@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login } from './helpers';
-
-const API = 'http://localhost:3001/api';
+import { API, TOKENS, authHeaders, login } from './helpers';
 
 test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, người dùng chọn rồi đồng bộ', async ({
   page,
@@ -27,13 +25,12 @@ test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, ngư�
 
   // Trong lúc đó người khác sửa tên và nguồn nước trên server
   const other = await request.put(`${API}/records/${id}`, {
-    headers: { 'Idempotency-Key': crypto.randomUUID() },
+    headers: { ...authHeaders(TOKENS.lan), 'Idempotency-Key': crypto.randomUUID() },
     data: {
       formId: 'household-survey',
       formVersion: 1,
       baseVersion: 1,
       deleted: false,
-      updatedBy: 'Lan',
       data: { householdName: 'Trần Thị Máy B', members: 3, waterSource: 'Giếng' },
     },
   });
@@ -44,7 +41,8 @@ test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, ngư�
   await expect(conflictBadge).toBeVisible({ timeout: 15_000 });
   await conflictBadge.click();
 
-  await expect(page.getByText('Lan')).toBeVisible();
+  // Tạm hiện userId của người sửa; tên ('Lan') chờ updatedByName (design §6.2)
+  await expect(page.getByText('u_lan')).toBeVisible();
   const table = page.getByTestId('conflict-table');
   // Chỉ householdName xung đột; members và waterSource được gộp tự động
   await expect(table.locator('tbody tr')).toHaveCount(1);
@@ -54,7 +52,7 @@ test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, ngư�
   await expect(page.getByTestId('records').getByTestId('sync-state').first()).toHaveText('Đã đồng bộ', {
     timeout: 15_000,
   });
-  const pulled = await (await request.get(`${API}/records?since=0`)).json();
+  const pulled = await (await request.get(`${API}/records?since=0`, { headers: authHeaders(TOKENS.lan) })).json();
   const saved = pulled.records.find((r: { id: string }) => r.id === id);
   expect(saved.version).toBe(3);
   expect(saved.data).toMatchObject({ householdName: 'Trần Thị Máy A', members: 5, waterSource: 'Giếng' });
