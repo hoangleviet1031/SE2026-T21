@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.2 (2026-10-10)
+- **Phiên bản:** 0.4.5 (2026-10-11)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -17,6 +17,9 @@
 | 0.4 | 2026-10-09 | Lấp chỗ hở trong spec: `createdBy` và tên người sửa trong `ServerRecord`/lịch sử (§6.2, §7), định dạng `GET /api/me` (§7), phân trang pull `hasMore` (§7), validate theo từng loại trường (§4.1), danh sách phiếu và bộ lọc (§4.8), đăng nhập mã khác khi còn dữ liệu (§4.7), xoá phiếu (§5.7), API tiêm lỗi đầy đủ (§10.1), cập nhật cấu trúc mã nguồn (§3); thêm [ui.md](ui.md). Các đề xuất chờ chốt liệt kê ở §14 |
 | 0.4.1 | 2026-10-10 | Nhóm chốt P1, P2, P3, P5, P6, P8 (§14); bỏ nhãn "chờ chốt" ở §4.7, §5.7, §6.2, §7, §10.1 |
 | 0.4.2 | 2026-10-10 | Thêm ca kiểm thử O7, O8 cho xoá phiếu (§10.1); P6 giao cho ticket TV2-13, TV1-13 (§14) |
+| 0.4.3 | 2026-10-08 | TV2-01: chốt schema server sau migration 2 (§6.1): `record_history` có `project_id` (khớp ADR 0002), thêm index `memberships(user_id)`, `idempotency(created_at)`, khoá ngoại và `CHECK` vai trò; `attachments` để TV3-05 thêm ở migration 3 |
+| 0.4.4 | 2026-10-11 | TV2-03: `P/forms`, `P/records` (pull, history, PUT) chạy theo dự án và có xác thực (§7); `PullResponse.scope` thêm, `PushRecordRequest` bỏ `updatedBy` (§6.2); server dev/E2E nạp tài khoản demo khi `SEED_DEMO=1` |
+| 0.4.5 | 2026-10-11 | TV3-02: `seed:demo` từ chối chạy khi `NODE_ENV=production` (§12); `user:add` sinh `userId` dạng `u_` + 8 ký tự a-z0-9 |
 
 ## Mục lục
 
@@ -401,16 +404,16 @@ Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu
 | Bảng | Cột chính | Ghi chú |
 |---|---|---|
 | `projects` | `id`, `name`, `archived`, `created_at` | ADR 0002 |
-| `users` | `id`, `name`, `token_hash`, `is_admin`, `disabled`, `created_at` | Token chỉ lưu SHA-256 |
-| `memberships` | `project_id`, `user_id`, `role`, `added_at` | PK `(project_id, user_id)`; `role` ∈ `surveyor`, `supervisor` |
-| `forms` | `project_id`, `id`, `version`, `schema` (JSON), `created_at`, `created_by` | PK `(project_id, id, version)` |
-| `records` | `id`, `project_id`, `form_id`, `form_version`, `data` (JSON), `version`, `deleted`, `created_by`, `updated_at`, `updated_by`, `seq` | Bản hiện tại; `id` duy nhất toàn hệ thống; index `(project_id, seq)`, `(project_id, created_by, seq)` |
-| `record_history` | `record_id`, `version`, `data`, `deleted`, `updated_at`, `updated_by` | Mọi phiên bản; dự án suy ra từ `records` |
-| `idempotency` | `key`, `project_id`, `record_id`, `request_hash`, `status`, `body`, `created_at` | Response đã lưu; dọn sau 30 ngày |
-| `attachments` *(sẽ thêm)* | `id`, `project_id`, `record_id`, `mime_type`, `size`, `sha256`, `total_chunks`, `created_by`, `created_at`, `completed_at` | File nằm ở `uploads/<projectId>/` |
+| `users` | `id`, `name`, `token_hash`, `is_admin`, `disabled`, `created_at` | Token chỉ lưu SHA-256; `token_hash` duy nhất |
+| `memberships` | `project_id`, `user_id`, `role`, `added_at` | PK `(project_id, user_id)`; `role` ∈ `surveyor`, `supervisor` (`CHECK`); FK tới `projects`, `users`; index `(user_id)` |
+| `forms` | `project_id`, `id`, `version`, `schema` (JSON), `created_at`, `created_by` | PK `(project_id, id, version)`; FK `project_id` |
+| `records` | `id`, `project_id`, `form_id`, `form_version`, `data` (JSON), `version`, `deleted`, `created_by`, `updated_at`, `updated_by`, `seq` | Bản hiện tại; `id` duy nhất toàn hệ thống (để PUT vào id của dự án khác trả `404`); FK `project_id`; index `(project_id, seq)`, `(project_id, created_by, seq)`. Không FK tới `forms` (phiếu offline có thể tham chiếu phiên bản form chưa pull) và không FK từ `created_by`/`updated_by` tới `users` (người bị vô hiệu hoá vẫn giữ phiếu) |
+| `record_history` | `record_id`, `project_id`, `version`, `data`, `deleted`, `updated_at`, `updated_by` | PK `(record_id, version)`; FK `record_id` → `records`; `project_id` nhắc lại từ `records` để mọi truy vấn dữ liệu dự án đều lọc cùng một cách; index `(project_id, record_id)` |
+| `idempotency` | `key`, `project_id`, `record_id`, `request_hash`, `status`, `body`, `created_at` | PK chỉ là `key` (dùng lại key ở dự án khác phải bị phát hiện và trả `422`); index `(created_at)` để dọn sau 30 ngày |
+| `attachments` *(sẽ thêm ở TV3-05)* | `id`, `project_id`, `record_id`, `mime_type`, `size`, `sha256`, `total_chunks`, `created_by`, `created_at`, `completed_at` | File nằm ở `uploads/<projectId>/` |
 | `meta` | `k`, `v` | Bộ đếm `seq` |
 
-Mọi truy vấn dữ liệu dự án đi qua lớp truy cập nhận `ctx = { userId, projectId, role }` bắt buộc (ADR 0002 §3). Các bảng và cột mới ở bản 0.2–0.3 code chưa làm.
+Mọi truy vấn dữ liệu dự án đi qua lớp truy cập nhận `ctx = { userId, projectId, role }` bắt buộc (ADR 0002 §3). Schema ở bảng trên đã có trong `db.ts` (migration 2, TV2-01); lớp truy cập và middleware thì code chưa làm (TV2-02).
 
 **Nếu đổi sang Postgres:** phần lớn SQL dùng lại được, nhưng cursor `seq` **không** còn đúng nếu chỉ dùng sequence: hai transaction song song có thể commit ngược thứ tự `seq`, và client pull giữa hai lần commit sẽ bỏ sót phiếu. Cần tuần tự hoá việc ghi (`pg_advisory_xact_lock` trên một khoá chung, đủ cho quy mô đồ án) hoặc đổi sang cursor dựa trên transaction id. Không nằm trong phạm vi 8 tuần.
 
@@ -444,7 +447,7 @@ interface RecordHistoryEntry {
 
 ## 7. REST API
 
-Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <token>` (§9). Route theo dự án nằm dưới `/api/projects/:projectId` (viết tắt `P` trong bảng) và đi qua middleware kiểm tra thành viên (ADR 0002 §3). Code hiện tại dùng đường dẫn không có `P` và chưa có xác thực.
+Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <token>` (§9). Route theo dự án nằm dưới `/api/projects/:projectId` (viết tắt `P` trong bảng) và đi qua middleware kiểm tra thành viên (ADR 0002 §3). Các route `forms` và `records` đã theo dự án và có xác thực (TV2-03); `attachments` và `export` vẫn dùng đường dẫn cũ, chưa xác thực.
 
 **Không theo dự án**
 
@@ -464,10 +467,10 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | GET | `P/members` | Danh sách thành viên | supervisor | TODO TV1 |
 | PUT | `P/members/:userId` | Thêm hoặc đổi vai trò `{ role }` | supervisor | TODO TV1 |
 | DELETE | `P/members/:userId` | Rút khỏi dự án (không rút được giám sát viên cuối cùng) | supervisor | TODO TV1 |
-| GET | `P/forms` | Phiên bản mới nhất của mỗi form | thành viên | Có (chưa theo dự án) |
-| GET | `P/forms/:id/versions/:v` | Một phiên bản form | thành viên | Có (chưa theo dự án) |
+| GET | `P/forms` | Phiên bản mới nhất của mỗi form | thành viên | Có |
+| GET | `P/forms/:id/versions/:v` | Một phiên bản form | thành viên | Có |
 | POST | `P/forms` | Lưu form từ builder, tự tăng version | supervisor | TODO TV1 |
-| GET | `P/records?since=&limit=` | Pull theo cursor, lọc theo phạm vi §5.5; trả thêm `scope` | thành viên | Có (chưa lọc) |
+| GET | `P/records?since=&limit=` | Pull theo cursor, lọc theo phạm vi §5.5; trả thêm `scope` | thành viên | Có (chưa có `hasMore`) |
 | GET | `P/records/:id/history` | Lịch sử phiên bản | thành viên (trong phạm vi) | Có |
 | PUT | `P/records/:id` | Ghi có điều kiện, cần `Idempotency-Key` | thành viên (trong phạm vi) | Có |
 | GET | `P/attachments/:id/status` | Chunk đã nhận | thành viên | TODO TV3 |
@@ -633,12 +636,12 @@ Phạm vi đồ án giữ đơn giản:
 
 | # | Ca | Kỳ vọng | Trạng thái |
 |---|---|---|---|
-| A1 | Không có token | `401` | TODO |
-| A2 | Surveyor pull | Chỉ nhận phiếu mình tạo | TODO |
+| A1 | Không có token | `401` | Có (`server/test/auth.test.ts` ở mức middleware, `server/test/records.test.ts` ở route thật) |
+| A2 | Surveyor pull | Chỉ nhận phiếu mình tạo | Có (`server/test/records.test.ts`) |
 | A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | TODO |
 | A4 | Rút hoặc hạ giám sát viên cuối cùng | `409 last_supervisor` | TODO |
 
-**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên).
+**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2); T5 chưa làm.
 
 **API kiểm thử** (chỉ đăng ký khi `ENABLE_TEST_ROUTES=1`, file `server/src/routes/faults.ts`):
 
@@ -719,7 +722,7 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 | `npm run user:add -w server -- --name "Lan" [--admin]` | Tạo người dùng, in `userId` và token **một lần** |
 | `npm run user:rotate-token -w server -- --user <userId>` | Cấp token mới, token cũ hết hiệu lực |
 | `npm run user:disable -w server -- --user <userId>` | Khoá tài khoản |
-| `npm run seed:demo -w server` | Tạo hai dự án mẫu `demo-yte`, `demo-nongnghiep` và người dùng demo |
+| `npm run seed:demo -w server` | Tạo hai dự án mẫu `demo-yte`, `demo-nongnghiep` và người dùng demo. Từ chối khi `NODE_ENV=production` (token demo công khai) |
 
 - **Sao lưu:** mỗi ngày chạy `VACUUM INTO 'backup/survey-<ngày>.db'` và sao chép thư mục `uploads/`; giữ 7 bản.
 - **Migration CSDL server:** đánh số trong `db.ts` (`PRAGMA user_version`), chỉ thêm cột/bảng, không sửa câu lệnh cũ.

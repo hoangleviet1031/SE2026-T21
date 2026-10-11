@@ -13,6 +13,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-10 | TV1-02 | feat | Màn hình nhập mã (stub): `auth.ts` get/set/clearToken trên bảng `meta`, chặn app khi chưa có mã, báo cần mạng khi offline; E2E `login.spec.ts`, `e2e/helpers.ts` `login()` | PR #6 | chờ review |
 | 2026-10-10 | — | docs | Thêm ticket xoá phiếu TV2-13, TV1-13 và ca O7, O8; đưa bước ghi worklog vào CLAUDE.md, vibe-coding, mẫu PR | nhánh `docs/worklog-process` | chờ review |
 | 2026-10-10 | — | docs | Chuyển P1, P2, P3, P5, P6, P8 sang "Đã chốt"; bỏ nhãn chờ chốt; design lên 0.4.1 | 702a666, PR #3 | xong |
 | 2026-10-10 | — | quyết định | Nhóm chốt P1, P2, P3, P5, P6, P8 theo đề xuất | design §14 | xong |

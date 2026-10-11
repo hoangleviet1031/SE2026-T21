@@ -1,10 +1,6 @@
 import type { RecordData } from '@field-survey/shared';
 import { db, type LocalRecord } from '../db/db';
 
-export function getSurveyorName(): string {
-  return localStorage.getItem('surveyorName') || 'surveyor';
-}
-
 /**
  * Lưu bản ghi cục bộ và đưa vào outbox trong cùng một transaction,
  * nên không bao giờ có bản ghi đã sửa mà không có op tương ứng.

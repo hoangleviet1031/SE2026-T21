@@ -14,6 +14,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-11 | TV2-03 | feat | Route records/forms theo dự án có xác thực, pull theo phạm vi (`scope`), `updatedBy` từ token, client gửi token; fixture test và tài khoản demo (`SEED_DEMO=1`) | nhánh `feat/tv2-multi-tenancy-core` | chờ review |
 | 2026-10-08 | TV2-02 | feat | Xác thực token, `requireMember`, lớp repo theo `ctx` | 7f8623a, nhánh `feat/tv2-multi-tenancy-core` | chờ review |
 | 2026-10-08 | TV2-01 | feat | Migration 2 và schema multi-tenancy (`record_history.project_id`, index, FK, `CHECK` vai trò) | fd52235, nhánh `feat/tv2-multi-tenancy-core` | chờ review |
 | 2026-10-07 | — | chore | Thay nội dung repo bằng dự án Offline-first Field Survey PWA | 3d7bda8 | xong |

@@ -8,7 +8,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-01 · Migration + schema multi-tenancy · **Lõi** · **Người làm** (thiết kế)
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-02, TV2-03, TV3-02)
 - **Tuần:** 1–2 · **Phụ thuộc:** không
 - **Spec:** design §6.1, §12 (Migration CSDL server); ADR 0002 §1–2
 - **File:** `server/src/db.ts`, `server/test/db.test.ts` (mới)
@@ -27,7 +27,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-02 · Xác thực, `requireMember`, lớp `ctx` · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-03, TV3-02)
 - **Tuần:** 2 · **Phụ thuộc:** TV2-01
 - **Spec:** design §9, §7.1 (`401`, `403 not_member`, `403 forbidden`); ADR 0002 §2–3
 - **File:** `server/src/auth.ts` (mới), `server/src/repo/` (mới: `records.ts`, `forms.ts`, `memberships.ts`), `server/src/app.ts`, `server/test/auth.test.ts` (mới)
@@ -48,7 +48,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-03 · Route theo dự án + phạm vi pull · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-01, TV2-02; TV3-02 mới làm phần fixture/helper)
 - **Tuần:** 2 · **Phụ thuộc:** TV2-02 · **Làm cùng:** TV3-02 (**một PR**)
 - **Spec:** design §5.5, §7 (bảng "Theo dự án", PUT records); ADR 0001 quy tắc 2, 10; ADR 0002 §3
 - **File:** `server/src/app.ts`, `server/src/routes/records.ts`, `server/src/routes/forms.ts` (chỉ GET), `shared/src/types.ts`, `client/src/sync/api.ts`, `client/src/sync/engine.ts`, `client/src/sync/outbox.ts`

@@ -24,7 +24,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-02 · CLI quản trị, fixture, sửa test theo API mới
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv3-02-cli-fixtures` (chờ PR chung với TV2-03)
 - **Tuần:** 2 · **Phụ thuộc:** TV2-02 · **Làm cùng:** TV2-03 (**một PR**)
 - **Spec:** design §12 (Lệnh quản trị), §10.1 (fixture chung)
 - **File:** `server/src/cli/user.ts`, `server/src/cli/seedDemo.ts` (mới), `server/package.json` (scripts), `server/test/fixtures.ts` (mới), `server/test/records.test.ts`, `client/e2e/helpers.ts` (mới), `client/e2e/*.spec.ts`

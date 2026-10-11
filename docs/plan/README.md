@@ -36,7 +36,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | Ticket | Tên | Trạng thái |
 |---|---|---|
 | TV1-01 | Staging HTTPS | — |
-| TV1-02 | Màn hình nhập mã đăng nhập | — |
+| TV1-02 | Màn hình nhập mã đăng nhập | ✅ PR #6 |
 | TV1-03 | Validate form + `POST P/forms` | — |
 | TV1-04 | Form builder | — |
 | TV1-05 | Validate phiếu + nháp | — |
@@ -48,9 +48,9 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | TV1-11 | E2E O2, O4, T6, T10 | — |
 | TV1-12 | Hoàn thiện UI, tài liệu người dùng | — |
 | TV1-13 | Nút xoá phiếu + hộp xác nhận | — |
-| TV2-01 | Migration + schema multi-tenancy | — |
-| TV2-02 | Xác thực, `requireMember`, lớp `ctx` | — |
-| TV2-03 | Route theo dự án + phạm vi pull | — |
+| TV2-01 | Migration + schema multi-tenancy | ✅ `feat/tv2-multi-tenancy-core` |
+| TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ `feat/tv2-multi-tenancy-core` |
+| TV2-03 | Route theo dự án + phạm vi pull | ✅ `feat/tv2-multi-tenancy-core` |
 | TV2-04 | `/api/me`, `/api/admin/projects` | — |
 | TV2-05 | CSDL account + CSDL theo dự án, `api.ts` | — |
 | TV2-06 | Sync nhiều dự án + Web Locks | — |
@@ -62,7 +62,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
 | TV2-13 | Xoá phiếu: logic client + đồng bộ | — |
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ⏳ `feat/tv3-01-ci-test-routes` |
-| TV3-02 | CLI quản trị, fixture, sửa test theo API mới | — |
+| TV3-02 | CLI quản trị, fixture, sửa test theo API mới | ⏳ `feat/tv3-02-cli-fixtures` (đủ CLI, fixture, helper E2E; chờ PR chung với TV2-03) |
 | TV3-03 | Nén ảnh | — |
 | TV3-04 | Test cách ly T1–T5 | — |
 | TV3-05 | Upload ảnh theo chunk (server) | — |
