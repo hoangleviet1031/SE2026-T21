@@ -632,12 +632,12 @@ Phạm vi đồ án giữ đơn giản:
 
 | # | Ca | Kỳ vọng | Trạng thái |
 |---|---|---|---|
-| A1 | Không có token | `401` | Có ở mức middleware (`server/test/auth.test.ts`); gắn vào route thật ở TV2-03 |
-| A2 | Surveyor pull | Chỉ nhận phiếu mình tạo | TODO |
+| A1 | Không có token | `401` | Có (`server/test/auth.test.ts` ở mức middleware, `server/test/records.test.ts` ở route thật) |
+| A2 | Surveyor pull | Chỉ nhận phiếu mình tạo | Có (`server/test/records.test.ts`) |
 | A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | TODO |
 | A4 | Rút hoặc hạ giám sát viên cuối cùng | `409 last_supervisor` | TODO |
 
-**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên).
+**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2); T5 chưa làm.
 
 **API kiểm thử** (chỉ đăng ký khi `ENABLE_TEST_ROUTES=1`, file `server/src/routes/faults.ts`):
 
