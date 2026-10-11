@@ -8,7 +8,6 @@ import {
 } from '@field-survey/shared';
 import { db, formKey, getMeta, setMeta, type OutboxOp } from '../db/db';
 import { NetworkError, fetchForms, pullRecords, pushRecord } from './api';
-import { getSurveyorName } from './outbox';
 
 // Sync engine: push outbox (FIFO theo từng bản ghi) rồi pull thay đổi từ server.
 // Xem docs/design.md §5 và docs/adr/0001-consistency-model.md.
@@ -101,7 +100,6 @@ async function pushOne(op: OutboxOp): Promise<boolean> {
         baseVersion: record.baseVersion,
         data: op.data,
         deleted: op.deleted,
-        updatedBy: getSurveyorName(),
       },
       op.opId,
     );
@@ -125,6 +123,9 @@ async function pushOne(op: OutboxOp): Promise<boolean> {
     await scheduleRetry(op, `HTTP ${res.status}`);
     return false;
   }
+  // 403: không còn là thành viên dự án. Giữ op trong outbox, không đánh dấu lỗi (bất biến 1);
+  // việc xử lý như bị rút khỏi dự án thuộc TV2-07. 401 đã được api.ts xử lý (AuthError).
+  if (res.status === 403) return false;
   // 4xx khác: lỗi dữ liệu, retry cũng vô ích
   await db.transaction('rw', db.outbox, db.records, async () => {
     await db.outbox.update(op.seq!, { status: 'failed', lastError: `HTTP ${res.status}` });

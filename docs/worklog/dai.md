@@ -13,5 +13,6 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-11 | TV3-02 | feat | CLI `user:add`, `user:rotate-token`, `user:disable`, `seed:demo` (chặn khi production), 14 ca test | nhánh `feat/tv3-02-cli-fixtures` | chờ review |
 | 2026-10-09 | TV3-01 | feat | Route tiêm lỗi chỉ bật khi `ENABLE_TEST_ROUTES=1`; thêm Vitest cho client; cập nhật design §9, §10 | PR #2 | xong |
 | 2026-10-08 | — | docs | Ghi tên thành viên thay cho TV1/TV2/TV3 trong plan | 94fd618, PR #1 | xong |

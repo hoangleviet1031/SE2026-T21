@@ -1,84 +1,96 @@
 import { Router, type Request } from 'express';
-import type {
-  ConflictResponse,
-  PullResponse,
-  PushRecordRequest,
-  RecordHistoryEntry,
-  ServerRecord,
-} from '@field-survey/shared';
-import { nextSeq, tx, type Db } from '../db';
+import type { ConflictResponse, PullResponse, PushRecordRequest } from '@field-survey/shared';
+import { getCtx, type Ctx } from '../auth';
+import { tx, type Db } from '../db';
+import { findResponse, saveResponse } from '../repo/idempotency';
+import { getHistory, getRecordAccess, pullRecords, writeRecord } from '../repo/records';
 
-interface RecordRow {
-  id: string;
-  form_id: string;
-  form_version: number;
-  data: string;
-  version: number;
-  deleted: number;
-  updated_at: string;
-  updated_by: string;
-  seq: number;
+// Route theo dự án: chỉ dùng `getCtx(req)`, không đọc projectId/userId từ body hay query.
+// Xem docs/design.md §5.5, §7 và ADR 0002 §3.
+
+function isValidPush(body: unknown): body is PushRecordRequest {
+  if (typeof body !== 'object' || body === null) return false;
+  const b = body as Record<string, unknown>;
+  return (
+    Number.isInteger(b.baseVersion) &&
+    (b.baseVersion as number) >= 0 &&
+    typeof b.data === 'object' &&
+    b.data !== null &&
+    !Array.isArray(b.data) &&
+    typeof b.formId === 'string' &&
+    b.formId !== '' &&
+    Number.isInteger(b.formVersion) &&
+    typeof b.deleted === 'boolean'
+  );
 }
 
-function toRecord(row: RecordRow): ServerRecord {
-  return {
-    id: row.id,
-    formId: row.form_id,
-    formVersion: row.form_version,
-    data: JSON.parse(row.data),
-    version: row.version,
-    deleted: row.deleted === 1,
-    updatedAt: row.updated_at,
-    updatedBy: row.updated_by,
-  };
+function applyPush(ctx: Ctx, db: Db, id: string, body: unknown): { status: number; body: unknown } {
+  if (!isValidPush(body)) return { status: 400, body: { error: 'invalid_body' } };
+
+  const access = getRecordAccess(ctx, db, id);
+  // Phiếu ở dự án khác hoặc ngoài phạm vi: trả y như "không có" để không lộ sự tồn tại.
+  if (access.kind === 'hidden') return { status: 404, body: { error: 'not_found' } };
+
+  const currentVersion = access.kind === 'visible' ? access.record.version : 0;
+  if (currentVersion !== body.baseVersion) {
+    if (access.kind === 'none') return { status: 404, body: { error: 'not_found' } };
+    const conflict: ConflictResponse = {
+      error: 'version_conflict',
+      current: access.record,
+      history: getHistory(ctx, db, id, body.baseVersion) ?? [],
+    };
+    return { status: 409, body: conflict };
+  }
+
+  const saved = writeRecord(ctx, db, {
+    id,
+    formId: body.formId,
+    formVersion: body.formVersion,
+    data: body.data,
+    deleted: body.deleted,
+  });
+  return { status: currentVersion === 0 ? 201 : 200, body: saved };
 }
 
 export function recordsRouter(db: Db): Router {
   const r = Router();
 
-  // Pull: các bản ghi thay đổi sau cursor
+  // Pull: các bản ghi thay đổi sau cursor, trong phạm vi của vai trò (design §5.5)
   r.get('/', (req, res) => {
-    const since = Number(req.query.since ?? 0);
-    const limit = Math.min(Number(req.query.limit ?? 500), 1000);
-    const rows = db
-      .prepare(`SELECT * FROM records WHERE seq > ? ORDER BY seq LIMIT ?`)
-      .all(since, limit) as unknown as RecordRow[];
-    const body: PullResponse = {
-      records: rows.map(toRecord),
-      cursor: rows.length ? rows[rows.length - 1]!.seq : since,
-    };
+    const ctx = getCtx(req);
+    const since = Math.max(0, Math.trunc(Number(req.query.since ?? 0)) || 0);
+    const limit = Math.min(Math.max(1, Math.trunc(Number(req.query.limit ?? 500)) || 500), 1000);
+    const page = pullRecords(ctx, db, since, limit);
+    const body: PullResponse = { records: page.records, cursor: page.cursor, scope: page.scope };
     res.json(body);
   });
 
   r.get('/:id/history', (req, res) => {
-    const rows = db
-      .prepare(`SELECT * FROM record_history WHERE record_id = ? ORDER BY version`)
-      .all(req.params.id) as unknown as HistoryRow[];
-    res.json(rows.map(toHistory));
+    const history = getHistory(getCtx(req), db, req.params.id);
+    if (!history) return void res.status(404).json({ error: 'not_found' });
+    res.json(history);
   });
 
   // Push: ghi có điều kiện theo baseVersion (optimistic concurrency).
   // Header Idempotency-Key bắt buộc: gửi lại cùng key trả lại đúng response cũ.
-  r.put('/:id', (req: Request<{ id: string }, unknown, PushRecordRequest>, res) => {
+  r.put('/:id', (req: Request<{ id: string }>, res) => {
+    const ctx = getCtx(req);
     const key = req.header('Idempotency-Key');
     if (!key) return void res.status(400).json({ error: 'missing_idempotency_key' });
 
     const result = tx(db, () => {
-      const seen = db.prepare(`SELECT status, body FROM idempotency WHERE key = ?`).get(key) as
-        | { status: number; body: string }
-        | undefined;
-      if (seen) return { status: seen.status, body: JSON.parse(seen.body), replay: true };
-
-      const out = applyPush(db, req.params.id, req.body);
-      // Chỉ lưu kết quả thành công; 409 không lưu để client gửi lại sau khi merge (với key mới)
-      if (out.status < 300) {
-        db.prepare(`INSERT INTO idempotency (key, status, body, created_at) VALUES (?, ?, ?, ?)`).run(
-          key,
-          out.status,
-          JSON.stringify(out.body),
-          new Date().toISOString(),
-        );
+      const seen = findResponse(db, key);
+      if (seen) {
+        // Key của dự án/phiếu khác: không replay (sẽ lộ dữ liệu). Việc so nội dung là của TV2-08.
+        if (seen.projectId !== ctx.projectId || seen.recordId !== req.params.id) {
+          return { status: 422, body: { error: 'idempotency_key_reused' }, replay: false };
+        }
+        return { status: seen.status, body: seen.body, replay: true };
       }
+
+      const out = applyPush(ctx, db, req.params.id, req.body);
+      // Chỉ lưu kết quả thành công; 409 không lưu để client gửi lại sau khi merge (với key mới)
+      if (out.status < 300) saveResponse(ctx, db, key, req.params.id, req.body, out.status, out.body);
       return { ...out, replay: false };
     });
 
@@ -87,62 +99,4 @@ export function recordsRouter(db: Db): Router {
   });
 
   return r;
-}
-
-interface HistoryRow {
-  version: number;
-  data: string;
-  deleted: number;
-  updated_at: string;
-  updated_by: string;
-}
-
-function toHistory(h: HistoryRow): RecordHistoryEntry {
-  return {
-    version: h.version,
-    data: JSON.parse(h.data),
-    deleted: h.deleted === 1,
-    updatedAt: h.updated_at,
-    updatedBy: h.updated_by,
-  };
-}
-
-function applyPush(db: Db, id: string, body: PushRecordRequest): { status: number; body: unknown } {
-  const { baseVersion, data, deleted, formId, formVersion, updatedBy } = body;
-  if (typeof baseVersion !== 'number' || typeof data !== 'object' || !formId) {
-    return { status: 400, body: { error: 'invalid_body' } };
-  }
-
-  const current = db.prepare(`SELECT * FROM records WHERE id = ?`).get(id) as RecordRow | undefined;
-  const currentVersion = current?.version ?? 0;
-
-  if (currentVersion !== baseVersion) {
-    if (!current) return { status: 404, body: { error: 'not_found' } };
-    const history = db
-      .prepare(`SELECT * FROM record_history WHERE record_id = ? AND version > ? ORDER BY version`)
-      .all(id, baseVersion) as unknown as HistoryRow[];
-    const conflict: ConflictResponse = {
-      error: 'version_conflict',
-      current: toRecord(current),
-      history: history.map(toHistory),
-    };
-    return { status: 409, body: conflict };
-  }
-
-  const version = currentVersion + 1;
-  const now = new Date().toISOString();
-  const seq = nextSeq(db);
-  const dataJson = JSON.stringify(data);
-  db.prepare(
-    `INSERT INTO records (id, form_id, form_version, data, version, deleted, updated_at, updated_by, seq)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET data = excluded.data, version = excluded.version, deleted = excluded.deleted,
-       updated_at = excluded.updated_at, updated_by = excluded.updated_by, seq = excluded.seq`,
-  ).run(id, formId, formVersion, dataJson, version, deleted ? 1 : 0, now, updatedBy, seq);
-  db.prepare(
-    `INSERT INTO record_history (record_id, version, data, deleted, updated_at, updated_by) VALUES (?, ?, ?, ?, ?, ?)`,
-  ).run(id, version, dataJson, deleted ? 1 : 0, now, updatedBy);
-
-  const saved = db.prepare(`SELECT * FROM records WHERE id = ?`).get(id) as unknown as RecordRow;
-  return { status: currentVersion === 0 ? 201 : 200, body: toRecord(saved) };
 }

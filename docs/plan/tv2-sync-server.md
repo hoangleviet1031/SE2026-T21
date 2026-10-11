@@ -8,7 +8,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-01 · Migration + schema multi-tenancy · **Lõi** · **Người làm** (thiết kế)
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-02, TV2-03, TV3-02)
 - **Tuần:** 1–2 · **Phụ thuộc:** không
 - **Spec:** design §6.1, §12 (Migration CSDL server); ADR 0002 §1–2
 - **File:** `server/src/db.ts`, `server/test/db.test.ts` (mới)
@@ -27,7 +27,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-02 · Xác thực, `requireMember`, lớp `ctx` · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-03, TV3-02)
 - **Tuần:** 2 · **Phụ thuộc:** TV2-01
 - **Spec:** design §9, §7.1 (`401`, `403 not_member`, `403 forbidden`); ADR 0002 §2–3
 - **File:** `server/src/auth.ts` (mới), `server/src/repo/` (mới: `records.ts`, `forms.ts`, `memberships.ts`), `server/src/app.ts`, `server/test/auth.test.ts` (mới)
@@ -48,7 +48,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-03 · Route theo dự án + phạm vi pull · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-01, TV2-02; TV3-02 mới làm phần fixture/helper)
 - **Tuần:** 2 · **Phụ thuộc:** TV2-02 · **Làm cùng:** TV3-02 (**một PR**)
 - **Spec:** design §5.5, §7 (bảng "Theo dự án", PUT records); ADR 0001 quy tắc 2, 10; ADR 0002 §3
 - **File:** `server/src/app.ts`, `server/src/routes/records.ts`, `server/src/routes/forms.ts` (chỉ GET), `shared/src/types.ts`, `client/src/sync/api.ts`, `client/src/sync/engine.ts`, `client/src/sync/outbox.ts`
@@ -210,3 +210,23 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 - **File:** `docs/sync-internals.md` (mới), `docs/adr/*`
 
 **Việc:** rà ADR khớp code (sửa ADR nếu có quyết định mới, viết ADR 0003 nếu đổi hướng); tài liệu kỹ thuật: luồng một op từ lúc lưu tới lúc lên server, kèm sơ đồ; cách thêm route theo dự án an toàn.
+
+---
+
+## TV2-13 · Xoá phiếu: logic phía client và đồng bộ · **Lõi**
+
+- **Trạng thái:** —
+- **Tuần:** 5 · **Phụ thuộc:** TV2-05; phần ảnh cần bảng `attachments` phía client (TV3-06), chưa có thì để lại phần ảnh và ghi rõ trong PR
+- **Spec:** design §5.7, §5.2 (gộp op); ADR 0001 quy tắc 6; CLAUDE.md bất biến 1, 2, 3
+- **File:** `client/src/sync/outbox.ts` (`deleteRecordLocally`), `client/src/sync/engine.ts`, `client/e2e/delete.spec.ts` (mới)
+
+**Việc**
+- `deleteRecordLocally(recordId)` cạnh `saveRecordLocally`, một transaction Dexie gồm `records`, `outbox`, `attachments`. Từ chối (ném lỗi rõ ràng) khi phiếu đang `conflict`.
+- Chưa thể tới server (`baseVersion = 0` và mọi op có `attempts = 0`): xoá hẳn phiếu, mọi op, mọi ảnh; không gửi gì.
+- Có thể đã tới server: `deleted = true`, op xoá theo quy tắc gộp §5.2 (op chưa gửi thì sửa op đó, op đã gửi thì thêm op mới). `data` của op = dữ liệu hợp lệ mới nhất (`baseData` nếu phiếu là nháp).
+- Engine: op xoá được server xác nhận thì xoá phiếu và blob ảnh khỏi máy; ngừng upload ảnh của phiếu `deleted`. `409` khi xoá đi theo luồng conflict có sẵn (C4, TV3-08).
+- Xuất hàm cho TV1-13 dùng; đường xoá cũ `saveRecordLocally({ deleted: true })` trong `FillPage` do TV1-13 thay.
+
+**Xong khi:** E2E **O7**, **O8** (design §10.1).
+
+**Review kỹ (TV1 duyệt):** điều kiện "chưa thể tới server": nhầm sang xoá hẳn khi server đã có bản ghi sẽ để phiếu mồ côi trên server; không sửa `data` của op có `attempts > 0`; transaction bao đủ ba bảng; không xoá gì ngoài phiếu đang xoá.

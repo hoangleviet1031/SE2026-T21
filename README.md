@@ -33,6 +33,28 @@ npm run dev          # API :3001 và web :5173 (web proxy /api sang API)
 
 Mở http://localhost:5173. Để thử offline: DevTools > Network > Offline, rồi tải lại trang.
 
+### Tài khoản demo
+
+Đặt `SEED_DEMO=1` khi chạy server để nạp dữ liệu demo (chỉ dùng dev/test, token cố định): `SEED_DEMO=1 npm run dev` (PowerShell: `$env:SEED_DEMO='1'; npm run dev`).
+
+| Người dùng | Token | Dự án |
+|---|---|---|
+| `lan` | `demo-token-lan` | `demo-yte`: supervisor; `demo-nongnghiep`: surveyor |
+| `minh` | `demo-token-minh` | `demo-yte`: surveyor |
+| `admin` | `demo-token-admin` | quản trị hệ thống, chưa là thành viên dự án nào |
+
+Nhập token ở màn hình đăng nhập. E2E tự bật `SEED_DEMO=1`. Muốn nạp vào file DB mà không chạy server: `npm run seed:demo -w server` (từ chối khi `NODE_ENV=production`).
+
+### Quản trị người dùng
+
+Không có tự đăng ký: quản trị tạo tài khoản bằng lệnh rồi gửi token cho người dùng (design §12). Lệnh dùng cùng `DB_PATH` với server.
+
+```bash
+npm run user:add -w server -- --name "Lan" [--admin]     # in userId và token, token chỉ hiện một lần
+npm run user:rotate-token -w server -- --user u_xxxxxxxx  # cấp token mới, token cũ hết hiệu lực
+npm run user:disable -w server -- --user u_xxxxxxxx       # khoá tài khoản
+```
+
 ## Kiểm thử
 
 ```bash
