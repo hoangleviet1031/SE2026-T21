@@ -36,7 +36,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | Ticket | Tên | Trạng thái |
 |---|---|---|
 | TV1-01 | Staging HTTPS | — |
-| TV1-02 | Màn hình nhập mã đăng nhập | — |
+| TV1-02 | Màn hình nhập mã đăng nhập | ✅ PR #6 |
 | TV1-03 | Validate form + `POST P/forms` | — |
 | TV1-04 | Form builder | — |
 | TV1-05 | Validate phiếu + nháp | — |
