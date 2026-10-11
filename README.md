@@ -43,7 +43,17 @@ Mở http://localhost:5173. Để thử offline: DevTools > Network > Offline, r
 | `minh` | `demo-token-minh` | `demo-yte`: surveyor |
 | `admin` | `demo-token-admin` | quản trị hệ thống, chưa là thành viên dự án nào |
 
-Nhập token ở màn hình đăng nhập. E2E tự bật `SEED_DEMO=1`.
+Nhập token ở màn hình đăng nhập. E2E tự bật `SEED_DEMO=1`. Muốn nạp vào file DB mà không chạy server: `npm run seed:demo -w server` (từ chối khi `NODE_ENV=production`).
+
+### Quản trị người dùng
+
+Không có tự đăng ký: quản trị tạo tài khoản bằng lệnh rồi gửi token cho người dùng (design §12). Lệnh dùng cùng `DB_PATH` với server.
+
+```bash
+npm run user:add -w server -- --name "Lan" [--admin]     # in userId và token, token chỉ hiện một lần
+npm run user:rotate-token -w server -- --user u_xxxxxxxx  # cấp token mới, token cũ hết hiệu lực
+npm run user:disable -w server -- --user u_xxxxxxxx       # khoá tài khoản
+```
 
 ## Kiểm thử
 

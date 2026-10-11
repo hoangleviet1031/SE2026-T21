@@ -60,7 +60,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | TV2-11 | Hiệu năng pull | — |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ⏳ `feat/tv3-01-ci-test-routes` |
-| TV3-02 | CLI quản trị, fixture, sửa test theo API mới | ⏳ `feat/tv2-multi-tenancy-core` (đã có fixture, helper E2E, `SEED_DEMO`; còn CLI `user:*`) |
+| TV3-02 | CLI quản trị, fixture, sửa test theo API mới | ⏳ `feat/tv3-02-cli-fixtures` (đủ CLI, fixture, helper E2E; chờ PR chung với TV2-03) |
 | TV3-03 | Nén ảnh | — |
 | TV3-04 | Test cách ly T1–T5 | — |
 | TV3-05 | Upload ảnh theo chunk (server) | — |
