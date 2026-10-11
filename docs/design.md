@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.5 (2026-10-11)
+- **Phiên bản:** 0.4.6 (2026-10-11)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -20,6 +20,7 @@
 | 0.4.3 | 2026-10-08 | TV2-01: chốt schema server sau migration 2 (§6.1): `record_history` có `project_id` (khớp ADR 0002), thêm index `memberships(user_id)`, `idempotency(created_at)`, khoá ngoại và `CHECK` vai trò; `attachments` để TV3-05 thêm ở migration 3 |
 | 0.4.4 | 2026-10-11 | TV2-03: `P/forms`, `P/records` (pull, history, PUT) chạy theo dự án và có xác thực (§7); `PullResponse.scope` thêm, `PushRecordRequest` bỏ `updatedBy` (§6.2); server dev/E2E nạp tài khoản demo khi `SEED_DEMO=1` |
 | 0.4.5 | 2026-10-11 | TV3-02: `seed:demo` từ chối chạy khi `NODE_ENV=production` (§12); `user:add` sinh `userId` dạng `u_` + 8 ký tự a-z0-9 |
+| 0.4.6 | 2026-10-10 | `FieldDef.hidden` và `validateRecord` đã có code (§4.1, §6.2; TV1-05 phần thuần) |
 
 ## Mục lục
 
@@ -145,7 +146,7 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
 ```
 
 - **Phiên bản hoá:** mỗi lần lưu form, server tạo dòng mới `(id, version+1)`, không sửa bản cũ. Bản ghi lưu `formVersion` và luôn hiển thị bằng đúng phiên bản đó.
-- **Quy tắc đổi form an toàn:** được thêm trường, đổi nhãn, thêm option. Không đổi `id` hay `type` của trường đã có (tạo trường mới thay vì sửa). Không xoá trường khỏi mảng `fields`; muốn bỏ thì đặt `hidden: true` (thêm vào `FieldDef`, code chưa làm). Trường ẩn không hiện khi tạo phiếu mới nhưng vẫn có cột khi export.
+- **Quy tắc đổi form an toàn:** được thêm trường, đổi nhãn, thêm option. Không đổi `id` hay `type` của trường đã có (tạo trường mới thay vì sửa). Không xoá trường khỏi mảng `fields`; muốn bỏ thì đặt `hidden: true` (`FieldDef.hidden`). Trường ẩn không hiện khi tạo phiếu mới nhưng vẫn có cột khi export.
 - **Form thuộc một dự án;** `id` form chỉ cần duy nhất trong dự án. Muốn dùng lại form của dự án khác: xuất form ra JSON rồi nhập vào (nút "Xuất form"/"Nhập form" trong builder).
 - **Validate ở server khi lưu form** (`POST /api/projects/:projectId/forms`, trả `400 invalid_form` kèm danh sách lỗi):
   - `id` trường duy nhất và khớp `^[a-zA-Z][a-zA-Z0-9_]*$`.

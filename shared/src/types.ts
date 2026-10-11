@@ -10,6 +10,8 @@ export interface FieldDef {
   required?: boolean;
   /** Chỉ dùng cho select / multiselect */
   options?: string[];
+  /** Thay cho xoá trường: không hiện khi tạo phiếu mới, vẫn có cột khi export (design §4.1) */
+  hidden?: boolean;
 }
 
 export interface FormSchema {
