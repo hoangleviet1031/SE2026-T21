@@ -289,3 +289,19 @@ describe('seed', () => {
     expect((db.prepare(`SELECT COUNT(*) AS n FROM users`).get() as { n: number }).n).toBe(0);
   });
 });
+
+describe('khoá ngoại', () => {
+  // node:sqlite bật khoá ngoại mặc định; test này giữ cho ai đổi cấu hình phải biết (ADR 0002).
+  it('đang bật trên kết nối từ openDb', () => {
+    const db = openDb(':memory:');
+    expect((db.prepare('PRAGMA foreign_keys').get() as { foreign_keys: number }).foreign_keys).toBe(1);
+  });
+
+  it('từ chối thành viên trỏ tới dự án không tồn tại', () => {
+    const db = openDb(':memory:');
+    db.prepare(`INSERT INTO users (id, name, token_hash, is_admin, disabled, created_at) VALUES ('u1', 'A', 'h', 0, 0, 'now')`).run();
+    expect(() =>
+      db.prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES ('khong-co', 'u1', 'surveyor', 'now')`).run(),
+    ).toThrow(/FOREIGN KEY/i);
+  });
+});
