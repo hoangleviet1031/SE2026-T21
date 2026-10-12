@@ -1,4 +1,4 @@
-import type { FormSchema, PullResponse, PushRecordRequest } from '@field-survey/shared';
+import type { FormSchema, MeResponse, PullResponse, PushRecordRequest } from '@field-survey/shared';
 
 import { clearToken, getToken } from '../auth';
 
@@ -36,6 +36,13 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** Người dùng hiện tại và các dự án đang là thành viên (design §7). */
+export async function fetchMe(): Promise<MeResponse> {
+  const res = await request('/api/me');
+  if (!res.ok) throw new Error(`GET /api/me ${res.status}`);
+  return res.json();
 }
 
 export async function fetchForms(projectId: string): Promise<FormSchema[]> {
