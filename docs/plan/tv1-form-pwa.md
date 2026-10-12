@@ -51,7 +51,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-03 · Validate form + `POST P/forms`
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #19 (`validateFormSchema` + unit test, `POST P/forms` + integration, A3 phần forms, A5 phần supervisor/surveyor; A5 phần Owner chờ TV2-14)
 - **Tuần:** 2 (phần thuần) → 3 (route, sau TV2-03)
 - **Phụ thuộc:** TV2-03 cho phần route
 - **Spec:** design §4.1 (Validate ở server khi lưu form), §7, §7.1 `invalid_form`

@@ -46,7 +46,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 |---|---|---|
 | TV1-01 | Staging HTTPS | ✅ PR #12 |
 | TV1-02 | Màn hình nhập mã đăng nhập | ✅ PR #6 · ⚠ bản cũ, sẽ thay bởi TV1-14 |
-| TV1-03 | Validate form + `POST P/forms` | — |
+| TV1-03 | Validate form + `POST P/forms` | ✅ PR #19 |
 | TV1-04 | Form builder | — |
 | TV1-05 | Validate phiếu + nháp | ✅ PR #7 (`validateRecord`), PR #17 (client) |
 | TV1-06 | Bộ chọn dự án | — · 🆕 cập nhật theo ADR 0003 |

@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.2 (2026-10-12)
+- **Phiên bản:** 0.5.3 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -36,6 +36,7 @@
 | 0.5 | 2026-10-12 | Chấp nhận ADR 0003 (PR #21, P9 chuyển sang "Đã chốt"). Spec đổi theo, **chưa có code**, đánh dấu 🆕/🕘: tài khoản tên + mật khẩu và bảng `sessions` (§4.7, §6.1, §9), vai trò `owner` (§2, §6.2), yêu cầu mở tổ chức do admin duyệt, tổ chức công khai chỉ hiện tên (§4.7), trang quản trị `/admin/` tách khỏi PWA (§2, §3, §4.3, §4.9), API và mã lỗi mới (§7, §7.1), ca kiểm thử U, Q, D, M, A5–A8 (§10.1), CLI (§12) |
 | 0.5.1 | 2026-10-12 | TV1-05 client: phiếu không hợp lệ lưu thành `draft` kèm `validationErrors`, không tạo, sửa hay xoá op; op chưa gửi và op `failed` có sẵn được giữ; push xong op cũ vẫn giữ `draft`; pull bỏ qua `draft` (§4.1, §5.1, ADR 0001 quy tắc 8). O5 có test (§10.1) |
 | 0.5.2 | 2026-10-12 | TV1-07 phần 1: trang Cài đặt (tên, `userId`, dung lượng) và Đăng xuất có code (§4.7); `account.user` ghi sau mỗi lần gọi `/me` (§4.2). 🆕 Spec mới (tên đăng nhập, `/auth/logout`) làm sau TV2-14/TV2-16 |
+| 0.5.3 | 2026-10-12 | TV1-03: `POST P/forms` có code (§7): thân `SaveFormRequest` (§6.2), `version` do server đặt, `invalid_body`/`invalid_form`; luật lưu form thêm: `id` form cùng mẫu id trường, `title` không trống, option không trống, `options` ở trường không phải select bỏ qua (§4.1); `validateFormSchema` trong `shared/`; A3 phần forms và A5 phần supervisor/surveyor có test (§10.1); Owner chờ TV2-14 |
 
 ## Mục lục
 
@@ -182,8 +183,8 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
 - **Quy tắc đổi form an toàn:** được thêm trường, đổi nhãn, thêm option. Không đổi `id` hay `type` của trường đã có (tạo trường mới thay vì sửa). Không xoá trường khỏi mảng `fields`; muốn bỏ thì đặt `hidden: true` (`FieldDef.hidden`). Trường ẩn không hiện khi tạo phiếu mới nhưng vẫn có cột khi export.
 - **Form thuộc một dự án;** `id` form chỉ cần duy nhất trong dự án. Muốn dùng lại form của dự án khác: xuất form ra JSON rồi nhập vào (nút "Xuất form"/"Nhập form" trong builder).
 - **Validate ở server khi lưu form** (`POST /api/projects/:projectId/forms`, trả `400 invalid_form` kèm danh sách lỗi):
-  - `id` trường duy nhất và khớp `^[a-zA-Z][a-zA-Z0-9_]*$`.
-  - select/multiselect phải có ít nhất 1 option, option không trùng.
+  - `id` trường duy nhất và khớp `^[a-zA-Z][a-zA-Z0-9_]*$`; `id` form khớp cùng mẫu, `title` không để trống.
+  - select/multiselect phải có ít nhất 1 option, option không trùng, không để trống. `options` ở trường loại khác thì bỏ qua.
   - So với phiên bản trước: mọi trường cũ vẫn còn (có thể `hidden`), không đổi `type`, không bỏ option (option bỏ đi thì giữ lại, dữ liệu cũ vẫn hiển thị được).
 - **Builder UI:** danh sách trường có nút lên/xuống để đổi thứ tự (không làm kéo thả), panel thuộc tính cho trường đang chọn, nút xem trước dùng chính `FormRenderer`.
 - **Validate phiếu:** chạy ở client khi bấm Lưu (required, kiểu số, định dạng ngày). Phiếu không hợp lệ vẫn lưu được, ở trạng thái **nháp** (`draft`, xem §5.1): không tạo op trong outbox, không đồng bộ, hiện nhãn "Nháp" và danh sách lỗi khi mở lại. Lần lưu hợp lệ tiếp theo chuyển sang `pending` và tạo op.
@@ -508,7 +509,7 @@ Mọi truy vấn dữ liệu dự án đi qua lớp truy cập nhận `ctx = { u
 
 ### 6.2 Kiểu dùng chung
 
-Định nghĩa ở `shared/src/types.ts`: `FormSchema`, `FieldDef` (thêm `hidden?: boolean`), `FieldValue`, `ServerRecord`, `RecordHistoryEntry`, `PushRecordRequest` (bỏ `updatedBy`), `ConflictResponse`, `PullResponse` (thêm `scope`, `hasMore`), `ApiError`, `Role`, `MeResponse`, `ProjectSummary`, `AdminProject`, `CreateProjectRequest`, `UpdateProjectRequest`, `Member`.
+Định nghĩa ở `shared/src/types.ts`: `FormSchema`, `FieldDef` (thêm `hidden?: boolean`), `FieldValue`, `ServerRecord`, `RecordHistoryEntry`, `SaveFormRequest`, `PushRecordRequest` (bỏ `updatedBy`), `ConflictResponse`, `PullResponse` (thêm `scope`, `hasMore`), `ApiError`, `Role`, `MeResponse`, `ProjectSummary`, `AdminProject`, `CreateProjectRequest`, `UpdateProjectRequest`, `Member`.
 
 **Thay đổi ở bản 0.4:**
 
@@ -604,7 +605,7 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | PATCH | `P/settings` | `{ name?, public? }` | owner | 🆕 TODO TV1-08 |
 | GET | `P/forms` | Phiên bản mới nhất của mỗi form | thành viên | Có |
 | GET | `P/forms/:id/versions/:v` | Một phiên bản form | thành viên | Có |
-| POST | `P/forms` | Lưu form từ builder, tự tăng version | supervisor (🆕 owner đi qua theo thứ hạng) | TODO TV1 |
+| POST | `P/forms` | Lưu form từ builder. Thân `SaveFormRequest` (`{ id, title, fields }`; `version` client gửi bị bỏ qua), server đặt `version` = bản mới nhất + 1 trong cùng transaction, trả `201` + `FormSchema`. Sai kiểu `400 invalid_body`, sai luật §4.1 `400 invalid_form` | supervisor (🆕 owner đi qua theo thứ hạng) | Có |
 | GET | `P/records?since=&limit=` | Pull theo cursor, lọc theo phạm vi §5.5; trả thêm `scope` | thành viên | Có (chưa có `hasMore`) |
 | GET | `P/records/:id/history` | Lịch sử phiên bản | thành viên (trong phạm vi) | Có |
 | PUT | `P/records/:id` | Ghi có điều kiện, cần `Idempotency-Key` | thành viên (trong phạm vi) | Có |
@@ -824,9 +825,9 @@ Phạm vi đồ án giữ đơn giản:
 |---|---|---|---|
 | A1 | Không có token | `401` | Có (`server/test/auth.test.ts` ở mức middleware, `server/test/records.test.ts` ở route thật) |
 | A2 | Surveyor pull | Chỉ nhận phiếu mình tạo | Có (`server/test/records.test.ts`) |
-| A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | TODO |
+| A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | Một phần: `POST P/forms` có (`server/test/forms.test.ts`); export TODO |
 | A4 | Rút hoặc hạ giám sát viên cuối cùng | `409 last_supervisor` | 🕘 Thay bằng A7 (`last_owner`) |
-| A5 🆕 | Supervisor và Owner `POST P/forms`; surveyor | `201`; `403 forbidden` | TODO TV1-03 |
+| A5 🆕 | Supervisor và Owner `POST P/forms`; surveyor | `201`; `403 forbidden` | Một phần: supervisor `201`, surveyor `403` có (`server/test/forms.test.ts`); Owner chờ TV2-14 (chưa có vai trò `owner`) |
 | A6 🆕 | Một người là `owner` ở A, `surveyor` ở B: sửa form, `PATCH P/settings` ở A và B | `2xx` ở A; `403 forbidden` ở B | TODO TV1-08 |
 | A7 🆕 | Rút/hạ Owner cuối cùng | `409 last_owner` | TODO TV1-08 |
 | A8 🆕 | Admin chỉ định Owner bằng tên đăng nhập; người thường gọi | `200`; `403 forbidden` | TODO TV2-15 |

@@ -37,6 +37,9 @@ export function createApp(db: Db, opts: { enableTestRoutes?: boolean } = {}) {
   app.use('/api/admin', requireAuth, requireAdmin, adminRouter(db));
 
   const asMember = [requireAuth, requireMember('surveyor')];
+  // Lưu form chỉ cho giám sát viên; qua được thì đi tiếp xuống formsRouter như các route forms khác.
+  // Chặn ở đây vì router con không thấy :projectId mà requireMember cần.
+  app.post('/api/projects/:projectId/forms', requireAuth, requireMember('supervisor'));
   app.use('/api/projects/:projectId/forms', ...asMember, formsRouter(db));
   app.use('/api/projects/:projectId/records', ...asMember, recordsRouter(db));
   app.use('/api/attachments', attachmentsRouter());
