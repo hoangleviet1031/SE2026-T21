@@ -14,6 +14,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
 .form { display: grid; gap: 14px; }
 .field { display: grid; gap: 4px; }
+.field-error { color: #b91c1c; font-size: 14px; }
+.draft-notice { padding: 8px 12px; border-radius: 6px; background: #fef3c7; color: #92400e; }
 .field input:not([type=checkbox]):not([type=radio]), .field select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
 .checks { display: flex; flex-wrap: wrap; gap: 12px; }
 .actions { display: flex; gap: 8px; margin-top: 20px; }

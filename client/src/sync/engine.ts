@@ -150,10 +150,12 @@ async function onPushed(db: ProjectDb, op: OutboxOp, saved: ServerRecord) {
   await db.transaction('rw', db.outbox, db.records, async () => {
     await db.outbox.delete(op.seq!);
     const remaining = await db.outbox.where('recordId').equals(op.recordId).count();
+    const record = await db.records.get(op.recordId);
     await db.records.update(op.recordId, {
       baseData: saved.data,
       baseVersion: saved.version,
-      syncState: remaining === 0 ? 'synced' : 'pending',
+      // Op vừa gửi là bản hợp lệ cũ; phiếu đã sửa thành nháp sau đó thì vẫn là nháp (TV1-05)
+      syncState: record?.syncState === 'draft' ? 'draft' : remaining === 0 ? 'synced' : 'pending',
       lastError: undefined,
     });
   });
@@ -241,8 +243,9 @@ async function pullAll(db: ProjectDb): Promise<void> {
       for (const remote of page.records) {
         const local = await db.records.get(remote.id);
         const hasOps = (await db.outbox.where('recordId').equals(remote.id).count()) > 0;
-        // Bản ghi đang có thay đổi cục bộ: để nguyên, lần push tới sẽ nhận 409 và merge
-        if (local && (hasOps || local.syncState === 'conflict')) continue;
+        // Bản ghi đang có thay đổi cục bộ (kể cả nháp chưa có op): để nguyên, lần push tới
+        // sẽ nhận 409 và merge (ADR 0001 quy tắc 8)
+        if (local && (hasOps || local.syncState === 'conflict' || local.syncState === 'draft')) continue;
         if (local && local.baseVersion >= remote.version) continue;
         await db.records.put({
           id: remote.id,
