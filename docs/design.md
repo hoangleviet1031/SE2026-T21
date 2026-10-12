@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.10 (2026-10-12)
+- **Phiên bản:** 0.4.11 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -25,6 +25,7 @@
 | 0.4.8 | 2026-10-12 | TV2-05: client tách `field-survey-account` và `field-survey-p-<projectId>` (§4.2); `ProjectDb` version 1 gồm `draft`, `validationErrors`, `attachments.nextAttemptAt`; CSDL `field-survey` cũ bị xoá khi khởi động; `api.ts` nhận `projectId` bắt buộc |
 | 0.4.9 | 2026-10-12 | TV2-06: vòng đồng bộ chạy trong Web Lock `field-survey-sync`, gọi `/me`, đồng bộ mọi dự án `active` (đang chọn trước), ghi số đếm "cần xử lý" (`conflict` + `error`) và "chưa đồng bộ" (`pending` + `draft`) vào `field-survey-account` (§4.2, §5.3); O6 có E2E (§10.1) |
 | 0.4.10 | 2026-10-12 | TV2-07: `meta.pull = { cursor, scope }` và quy tắc phạm vi rộng/hẹp (§5.5); dự án bị rút hoặc hạ vai trò chỉ bị xoá dữ liệu khi không còn gì chưa gửi; `403 not_member` dừng dự án; route kiểm thử `/api/__test/memberships` (§10.1) |
+| 0.4.11 | 2026-10-12 | TV2-08: `request_hash` = SHA-256 của JSON chuẩn hoá (khoá sắp xếp) gồm `projectId`, `recordId` và các trường `PushRecordRequest`; khác hash thì `422`; dọn key quá 30 ngày khi khởi động và mỗi 24 giờ; fault `drop` cắt kết nối sau khi ghi, thêm `drop-before` (§10.1); R2, R3, R6 có test |
 
 ## Mục lục
 
@@ -651,11 +652,11 @@ Phạm vi đồ án giữ đơn giản:
 | # | Ca | Kỳ vọng | Trạng thái |
 |---|---|---|---|
 | R1 | Server trả 500 hai lần | Retry theo backoff, đúng một bản ghi | Có (`offline.spec.ts`) |
-| R2 | Timeout (server giữ request 15s) | Hủy sau 10s, retry, không trùng | TODO (dùng `mode: "timeout"`) |
-| R3 | Server ghi xong nhưng kết nối bị cắt trước response | Gửi lại cùng key, server trả `Idempotent-Replayed` | Integration có; E2E TODO (`mode: "drop"` cần sửa để cắt **sau** khi ghi) |
+| R2 | Timeout (server giữ request 15s) | Hủy sau 10s, retry, không trùng | Có (`retry.spec.ts`) |
+| R3 | Server ghi xong nhưng kết nối bị cắt trước response | Gửi lại cùng key, server trả `Idempotent-Replayed` | Có (integration `server/test/idempotency.test.ts`, E2E `retry.spec.ts`) |
 | R4 | Mất mạng giữa lúc upload ảnh | Tiếp tục từ chunk thiếu | TODO |
 | R5 | `400` | Phiếu "Lỗi", không retry vô hạn | TODO |
-| R6 | Cùng `Idempotency-Key`, khác nội dung | `422 idempotency_key_reused` | Integration TODO |
+| R6 | Cùng `Idempotency-Key`, khác nội dung | `422 idempotency_key_reused` | Có (`server/test/records.test.ts`) |
 
 **Phân quyền** (integration)
 

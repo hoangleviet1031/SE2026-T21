@@ -106,7 +106,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-06 · Sync nhiều dự án + Web Locks · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-06-multi-project-sync` (PR: chưa mở; chồng lên TV2-05)
+- **Trạng thái:** ✅ PR #13
 - **Tuần:** 3 · **Phụ thuộc:** TV2-05
 - **Spec:** design §5.3 (Nhiều dự án, Nhiều tab); ADR 0001 (Nhiều tab)
 - **File:** `client/src/sync/engine.ts`, `client/e2e/tabs.spec.ts` (mới)
@@ -122,7 +122,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-07 · Cursor theo scope + thay đổi thành viên · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-07-membership` (PR: chưa mở; chồng lên TV2-06). T7 mới kiểm phần dữ liệu, banner do TV1-06
+- **Trạng thái:** ✅ PR #14. T7 mới kiểm phần dữ liệu, banner do TV1-06
 - **Tuần:** 4 · **Phụ thuộc:** TV2-06
 - **Spec:** ADR 0001 quy tắc 10; ADR 0002 §5–6
 - **File:** `client/src/sync/engine.ts`, `client/src/sync/membership.ts` (mới), `client/e2e/membership.spec.ts` (mới)
@@ -143,7 +143,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-08 · Idempotency hash, dọn key, fault `drop` sau khi ghi · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-08-idempotency` (PR: chưa mở)
 - **Tuần:** 4 · **Phụ thuộc:** TV2-03
 - **Spec:** ADR 0001 quy tắc 3; design §10.1 R2, R3, R6
 - **File:** `server/src/routes/records.ts`, `server/src/routes/faults.ts` (phối hợp TV3), `server/src/index.ts` (job dọn), `server/test/records.test.ts`, `client/e2e/retry.spec.ts` (mới)
