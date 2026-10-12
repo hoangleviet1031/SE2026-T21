@@ -53,9 +53,9 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | TV2-03 | Route theo dự án + phạm vi pull | ✅ `feat/tv2-multi-tenancy-core` |
 | TV2-04 | `/api/me`, `/api/admin/projects` | ✅ PR #9 |
 | TV2-05 | CSDL account + CSDL theo dự án, `api.ts` | ✅ PR #10 |
-| TV2-06 | Sync nhiều dự án + Web Locks | ✅ `feat/tv2-06-multi-project-sync` |
-| TV2-07 | Cursor theo scope + thay đổi thành viên | ✅ `feat/tv2-07-membership` |
-| TV2-08 | Idempotency hash, dọn key, fault `drop` | — |
+| TV2-06 | Sync nhiều dự án + Web Locks | ✅ PR #13 |
+| TV2-07 | Cursor theo scope + thay đổi thành viên | ✅ PR #14 |
+| TV2-08 | Idempotency hash, dọn key, fault `drop` | ✅ `feat/tv2-08-idempotency` |
 | TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | — |
 | TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | — |
 | TV2-11 | Hiệu năng pull | — |

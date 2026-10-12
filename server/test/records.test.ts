@@ -168,6 +168,51 @@ describe('GET /api/projects/:projectId/records/:id/history', () => {
   });
 });
 
+describe('Idempotency-Key gắn với nội dung request (R6, ADR 0001 quy tắc 3)', () => {
+  it('cùng key, cùng phiếu nhưng khác nội dung trả 422, phiếu không đổi', async () => {
+    const body = { baseVersion: 0, data: { householdName: 'Gốc' } };
+    expect((await push(t.projects.yte, t.tokens.minh, 'r-r6', body, 'k-r6')).status).toBe(201);
+
+    const reused = await push(t.projects.yte, t.tokens.minh, 'r-r6', { ...body, data: { householdName: 'Khác' } }, 'k-r6');
+    expect(reused.status).toBe(422);
+    expect((await reused.json()).error).toBe('idempotency_key_reused');
+    expect(reused.headers.get('Idempotent-Replayed')).toBeNull();
+    const row = t.db.prepare(`SELECT version, data FROM records WHERE id = 'r-r6'`).get() as {
+      version: number;
+      data: string;
+    };
+    expect(row.version).toBe(1);
+    expect(JSON.parse(row.data)).toEqual({ householdName: 'Gốc' });
+  });
+
+  it('cùng nội dung nhưng thứ tự khoá JSON khác vẫn được replay', async () => {
+    const send = (json: string) =>
+      fetch(`${recordsUrl(t.projects.yte)}/r-order`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${t.tokens.minh}`,
+          'Idempotency-Key': 'k-order',
+        },
+        body: json,
+      });
+    const first = '{"formId":"household-survey","formVersion":1,"baseVersion":0,"data":{"householdName":"An","members":3},"deleted":false}';
+    const reordered = '{"deleted":false,"data":{"members":3,"householdName":"An"},"baseVersion":0,"formVersion":1,"formId":"household-survey"}';
+    expect((await send(first)).status).toBe(201);
+    const replay = await send(reordered);
+    expect(replay.status).toBe(201);
+    expect(replay.headers.get('Idempotent-Replayed')).toBe('true');
+  });
+
+  it('trường lạ ngoài PushRecordRequest không làm đổi hash (server vốn bỏ qua chúng)', async () => {
+    const body = { baseVersion: 0, data: { householdName: 'Lạ' } };
+    expect((await push(t.projects.yte, t.tokens.minh, 'r-extra', body, 'k-extra')).status).toBe(201);
+    const replay = await push(t.projects.yte, t.tokens.minh, 'r-extra', { ...body, updatedBy: 'ai-do' }, 'k-extra');
+    expect(replay.status).toBe(201);
+    expect(replay.headers.get('Idempotent-Replayed')).toBe('true');
+  });
+});
+
 describe('GET /api/projects/:projectId/forms', () => {
   it('thành viên lấy được form của dự án', async () => {
     const res = await get(`${t.base}/api/projects/${t.projects.yte}/forms`, t.tokens.minh);
