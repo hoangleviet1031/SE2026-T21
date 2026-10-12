@@ -132,8 +132,8 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-07 · Cập nhật SW, Cài đặt, kiểm tra trình duyệt
 
-- **Trạng thái:** —
-- 🆕 **Cập nhật theo ADR 0003:** trang Cài đặt hiện **tên đăng nhập** (thay `userId`) để gửi cho giám sát viên; Đăng xuất gọi `logout` của TV2-16. Cấu hình SW: thêm `/admin/` vào `navigateFallbackDenylist` nếu TV1-16 chưa làm.
+- **Trạng thái:** ⏳ PR #20 – xong phần 1 (trang Cài đặt: tên, `userId`, dung lượng, Đăng xuất); còn `registerType: 'prompt'` + `UpdatePrompt`, `storage.persist()`, `browserSupport.ts`, icon PNG, hướng dẫn cài
+- 🆕 **Cập nhật theo ADR 0003:** trang Cài đặt hiện **tên đăng nhập** (thay `userId`) để gửi cho giám sát viên; Đăng xuất gọi `logout` của TV2-16. Cấu hình SW: thêm `/admin/` vào `navigateFallbackDenylist` nếu TV1-16 chưa làm. Phần 1 (PR #20) theo bản đang chạy: hiện `userId`, Đăng xuất chưa gọi `/auth/logout`.
 - **Tuần:** 4 · **Phụ thuộc:** không
 - **Spec:** design §4.2 (Chống bị xoá dữ liệu), §4.3, §11.1
 - **File:** `client/vite.config.ts`, `client/src/main.tsx`, `client/src/components/UpdatePrompt.tsx` (mới), `client/src/pages/SettingsPage.tsx` (mới), `client/src/browserSupport.ts` (mới), `client/public/icon-192.png`, `icon-512.png`

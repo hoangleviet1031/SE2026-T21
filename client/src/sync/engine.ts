@@ -7,7 +7,7 @@ import {
   type RecordData,
   type ServerRecord,
 } from '@field-survey/shared';
-import { accountDb, type AccountProject } from '../db/accountDb';
+import { accountDb, setAccountValue, type AccountProject } from '../db/accountDb';
 import { getCurrentProjectId, openProjectDb } from '../db/current';
 import { formKey, getMeta, setMeta, type OutboxOp, type ProjectDb, type SyncState } from '../db/projectDb';
 import { NetworkError, NotMemberError, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
@@ -22,7 +22,7 @@ let running: Promise<void> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
 // Một khoá cho cả thiết bị: mọi tab dùng chung IndexedDB nên chung outbox (ADR 0001, Nhiều tab).
-const SYNC_LOCK = 'field-survey-sync';
+export const SYNC_LOCK = 'field-survey-sync';
 
 // Số đếm cho bộ chọn dự án (design §4.7): cần người dùng làm gì đó / chưa lên server.
 const NEEDS_ATTENTION: SyncState[] = ['conflict', 'error'];
@@ -92,9 +92,10 @@ async function refreshProjects(): Promise<AccountProject[]> {
     throw err;
   }
   const projects = me.projects;
-  return accountDb.transaction('rw', accountDb.projects, async () => {
+  return accountDb.transaction('rw', accountDb.projects, accountDb.account, async () => {
     const merged = mergeMeIntoProjects(await accountDb.projects.toArray(), projects);
     await accountDb.projects.bulkPut(merged);
+    await setAccountValue('user', me.user);
     return merged;
   });
 }

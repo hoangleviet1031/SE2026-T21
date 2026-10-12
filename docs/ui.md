@@ -1,6 +1,6 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
@@ -243,7 +243,34 @@ Supervisor chỉ thấy thao tác với điều tra viên. Rút người hỏi x
 
 ## 8. Cài đặt
 
-Chưa phác chi tiết; nội dung theo design §4.2, §4.7 và ticket TV1-07. 🆕 Hiện thêm tên đăng nhập (để gửi cho giám sát viên). Phác xong thì thêm vào đây trước khi làm ticket.
+🕘 Bản đang chạy (TV1-07 phần 1). 🆕 Theo ADR 0003: dòng "Mã người dùng" thay bằng **tên đăng nhập** (sau TV2-14/TV2-16); Đăng xuất gọi thêm `POST /api/auth/logout` khi online.
+
+Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng được khi offline.
+
+```
+┌────────────────────────────────┐
+│ ← Cài đặt                      │
+├────────────────────────────────┤
+│ Tài khoản                      │
+│ Dương                          │
+│ Mã người dùng: u_ovwt7i59      │  settings-user-id
+│ (Gửi mã này cho giám sát viên  │
+│  để được thêm vào dự án)       │
+├────────────────────────────────┤
+│ Dung lượng                     │
+│ Đã dùng 1,2 MB / 2,0 GB        │  settings-storage
+├────────────────────────────────┤
+│ [Đăng xuất]                    │  logout-button
+│ Còn 3 phiếu chưa gửi ở dự án   │  logout-blocked (khi bị khoá)
+│ "Y tế xã Tân Lập". Đồng bộ     │
+│ xong mới đăng xuất được.       │
+└────────────────────────────────┘
+```
+
+- Chưa có `userId` (chưa gọi được `/me` lần nào): hiện "Chưa có, cần kết nối mạng một lần".
+- Trình duyệt không có `storage.estimate`: ẩn dòng dung lượng.
+- **Đăng xuất** chỉ bật khi mọi dự án không còn dữ liệu chưa gửi (`hasUnsentData`). Bấm → hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." [Huỷ] [Đăng xuất]. Đồng ý → xoá mọi CSDL dự án và token, về màn hình 1.
+- Phần TV1-07 còn lại (hướng dẫn cài lên màn hình chính) thêm vào màn hình này sau.
 
 ## 9. Tổ chức 🆕 (TV1-15)
 

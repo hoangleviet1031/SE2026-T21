@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.1 (2026-10-12)
+- **Phiên bản:** 0.5.2 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -35,6 +35,7 @@
 | 0.4.13 | 2026-10-12 | Thêm đề xuất P9 ([ADR 0003](adr/0003-accounts-and-owner-role.md), chưa chốt): tự tạo tài khoản bằng tên + mật khẩu, tổ chức công khai (chỉ hiện tên), vai trò `owner` của tổ chức, yêu cầu mở tổ chức do admin duyệt, trang quản trị riêng. Các mục spec khác chưa đổi (§14) |
 | 0.5 | 2026-10-12 | Chấp nhận ADR 0003 (PR #21, P9 chuyển sang "Đã chốt"). Spec đổi theo, **chưa có code**, đánh dấu 🆕/🕘: tài khoản tên + mật khẩu và bảng `sessions` (§4.7, §6.1, §9), vai trò `owner` (§2, §6.2), yêu cầu mở tổ chức do admin duyệt, tổ chức công khai chỉ hiện tên (§4.7), trang quản trị `/admin/` tách khỏi PWA (§2, §3, §4.3, §4.9), API và mã lỗi mới (§7, §7.1), ca kiểm thử U, Q, D, M, A5–A8 (§10.1), CLI (§12) |
 | 0.5.1 | 2026-10-12 | TV1-05 client: phiếu không hợp lệ lưu thành `draft` kèm `validationErrors`, không tạo, sửa hay xoá op; op chưa gửi và op `failed` có sẵn được giữ; push xong op cũ vẫn giữ `draft`; pull bỏ qua `draft` (§4.1, §5.1, ADR 0001 quy tắc 8). O5 có test (§10.1) |
+| 0.5.2 | 2026-10-12 | TV1-07 phần 1: trang Cài đặt (tên, `userId`, dung lượng) và Đăng xuất có code (§4.7); `account.user` ghi sau mỗi lần gọi `/me` (§4.2). 🆕 Spec mới (tên đăng nhập, `/auth/logout`) làm sau TV2-14/TV2-16 |
 
 ## Mục lục
 
@@ -215,7 +216,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 
 | Bảng | Khoá | Nội dung |
 |---|---|---|
-| `account` | `key` | token, `userId`, tên, `isAdmin`, dự án đang chọn. 🆕 Token là token **phiên** của máy này (ADR 0003 §1), thêm `username`; tài khoản `isAdmin` không được lưu (bị chặn khi đăng nhập, §4.9) |
+| `account` | `key` | `token`; `user` = `{ id, name, isAdmin }` (bản sao `MeResponse.user`, ghi sau mỗi lần gọi `/me`); `currentProjectId` (dự án đang chọn). 🆕 Token là token **phiên** của máy này (ADR 0003 §1), thêm `username`; tài khoản `isAdmin` không được lưu (bị chặn khi đăng nhập, §4.9) |
 | `projects` | `id` | Bản sao `GET /api/me`: tên dự án, vai trò, trạng thái (`active` / `removed`), số phiếu cần xử lý (`needsAttention`: `conflict` + `error`) và chưa đồng bộ (`unsynced`: `pending` + `draft`), cập nhật sau mỗi vòng đồng bộ |
 
 **`field-survey-p-<projectId>`** (mỗi dự án một CSDL, cùng schema)
@@ -326,7 +327,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
   - Cùng người (mã được cấp lại bằng `user:rotate-token`): chỉ thay token, giữ nguyên mọi CSDL, đồng bộ tiếp.
   - Khác người và máy **không** còn dữ liệu chưa gửi ở mọi dự án (định nghĩa như `hasUnsentData`, ADR 0002 §6): xoá mọi CSDL dự án của người cũ rồi đăng nhập người mới.
   - Khác người và máy **còn** dữ liệu chưa gửi: từ chối, hiện "Máy này còn N phiếu chưa gửi của <tên người cũ>. Nhập lại mã của người đó để gửi, hoặc xuất JSON trước." kèm nút "Xuất JSON". Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
-- **Đăng xuất** (trang Cài đặt) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án.
+- **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Có code.
 
 **Tiêu chí chấp nhận:** đủ các ca T1–T10 ở ADR 0002; 🆕 thêm U1–U7, Q1–Q9, Q11, D1–D2, M1–M3, A5–A8 ở ADR 0003 (§10.1).
 

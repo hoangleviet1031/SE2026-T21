@@ -5,7 +5,8 @@ import type { Role } from '@field-survey/shared';
 // Dữ liệu khảo sát nằm ở CSDL riêng của từng dự án (projectDb.ts). Xem design §4.2, ADR 0002 §4.
 
 /** Khoá trong bảng `account`. Thêm khoá mới ở đây để mọi chỗ đọc/ghi dùng cùng một tên. */
-export type AccountKey = 'token' | 'currentProjectId';
+// `user`: bản sao `MeResponse.user` lần gọi /me gần nhất, để trang Cài đặt hiện `userId` cả khi offline.
+export type AccountKey = 'token' | 'currentProjectId' | 'user';
 
 export interface AccountEntry {
   key: AccountKey;

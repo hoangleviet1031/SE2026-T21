@@ -12,6 +12,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-12 | TV1-07 | feat | Phần 1: trang Cài đặt `#/settings` (tên, `userId`, dung lượng), Đăng xuất chỉ khi mọi dự án không còn dữ liệu chưa gửi, chạy trong Web Lock đồng bộ; lưu `me.user` vào `field-survey-account`; phác ui.md màn hình 8; E2E `settings.spec.ts`, unit `formatBytes` | PR #20 | xong |
 | 2026-10-12 | TV1-05 | feat | Phiếu thiếu/sai lưu thành nháp, không tạo op, lỗi hiện dưới từng trường; engine giữ nháp sau push và pull không ghi đè nháp; E2E O5 | PR #17 | xong |
 | 2026-10-12 | TV1-02 | fix | Nút trên iPhone trống chữ (Safari dùng màu chữ mặc định trùng nền trắng): đặt `color: inherit` cho `button` | PR #18 | xong |
 | 2026-10-12 | TV1-01 | test | Cả 3 người cài app staging (Dương, Hoàng Android; Đại iPhone), tắt mạng mở lại vẫn chạy; iOS: icon chữ cái (thiếu PNG), nút "Tiếp tục" trống chữ | `feat/tv1-01-staging` | xong |
