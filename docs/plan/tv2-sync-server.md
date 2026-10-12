@@ -106,7 +106,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-06 · Sync nhiều dự án + Web Locks · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-06-multi-project-sync` (PR: chưa mở; chồng lên TV2-05)
 - **Tuần:** 3 · **Phụ thuộc:** TV2-05
 - **Spec:** design §5.3 (Nhiều dự án, Nhiều tab); ADR 0001 (Nhiều tab)
 - **File:** `client/src/sync/engine.ts`, `client/e2e/tabs.spec.ts` (mới)
