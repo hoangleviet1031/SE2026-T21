@@ -82,3 +82,36 @@ export interface PullResponse {
 
 /** Vai trò trong một dự án (ADR 0002 §2). `admin` là cờ toàn hệ thống, không phải vai trò dự án. */
 export type Role = 'surveyor' | 'supervisor';
+
+/** Một dự án mình đang là thành viên, như trong `GET /api/me` (design §7). Dự án đã lưu trữ không có ở đây. */
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  role: Role;
+}
+
+/** Thân response `GET /api/me` */
+export interface MeResponse {
+  user: { id: string; name: string; isAdmin: boolean };
+  projects: ProjectSummary[];
+}
+
+/** Dự án theo góc nhìn admin (`/api/admin/projects`): có cả dự án đã lưu trữ */
+export interface AdminProject {
+  id: string;
+  name: string;
+  archived: boolean;
+  createdAt: string;
+}
+
+/** Thân request `POST /api/admin/projects`. `id` do admin đặt, dùng trong URL và tên IndexedDB */
+export interface CreateProjectRequest {
+  id: string;
+  name: string;
+}
+
+/** Thân request `PATCH /api/admin/projects/:projectId`; cần ít nhất một trường */
+export interface UpdateProjectRequest {
+  name?: string;
+  archived?: boolean;
+}

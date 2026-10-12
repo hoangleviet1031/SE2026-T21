@@ -51,7 +51,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | TV2-01 | Migration + schema multi-tenancy | ✅ `feat/tv2-multi-tenancy-core` |
 | TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ `feat/tv2-multi-tenancy-core` |
 | TV2-03 | Route theo dự án + phạm vi pull | ✅ `feat/tv2-multi-tenancy-core` |
-| TV2-04 | `/api/me`, `/api/admin/projects` | — |
+| TV2-04 | `/api/me`, `/api/admin/projects` | ✅ `feat/tv2-04-me-admin` |
 | TV2-05 | CSDL account + CSDL theo dự án, `api.ts` | — |
 | TV2-06 | Sync nhiều dự án + Web Locks | — |
 | TV2-07 | Cursor theo scope + thay đổi thành viên | — |

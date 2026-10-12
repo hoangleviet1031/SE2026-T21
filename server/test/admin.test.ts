@@ -1,0 +1,214 @@
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { AdminProject, MeResponse } from '@field-survey/shared';
+import { DEMO_USER_IDS } from '../src/seedDemo';
+import { createTestServer, type TestServer } from './fixtures';
+
+let t: TestServer;
+
+beforeAll(async () => {
+  t = await createTestServer();
+});
+afterAll(() => t.close());
+
+function call(method: string, path: string, token?: string, body?: object) {
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (body) headers['Content-Type'] = 'application/json';
+  return fetch(`${t.base}/api${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+}
+
+async function me(token: string): Promise<MeResponse> {
+  const res = await call('GET', '/me', token);
+  expect(res.status).toBe(200);
+  return (await res.json()) as MeResponse;
+}
+
+describe('GET /api/me', () => {
+  it('trả người dùng và các dự án kèm vai trò', async () => {
+    expect(await me(t.tokens.lan)).toEqual({
+      user: { id: DEMO_USER_IDS.lan, name: 'lan', isAdmin: false },
+      projects: [
+        { id: t.projects.nongnghiep, name: 'Nông nghiệp (demo)', role: 'surveyor' },
+        { id: t.projects.yte, name: expect.any(String), role: 'supervisor' },
+      ],
+    });
+  });
+
+  it('admin không là thành viên dự án nào thì danh sách rỗng', async () => {
+    expect(await me(t.tokens.admin)).toEqual({
+      user: { id: DEMO_USER_IDS.admin, name: 'admin', isAdmin: true },
+      projects: [],
+    });
+  });
+
+  it('không có token hoặc token sai trả 401', async () => {
+    expect((await call('GET', '/me')).status).toBe(401);
+    expect((await call('GET', '/me', 'sai')).status).toBe(401);
+  });
+
+  it('không chứa dự án đã bị rút', async () => {
+    t.db.prepare(`INSERT INTO projects (id, name, created_at) VALUES ('rut', 'Sẽ rút', 'now')`).run();
+    t.db
+      .prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES ('rut', ?, 'surveyor', 'now')`)
+      .run(DEMO_USER_IDS.minh);
+    expect((await me(t.tokens.minh)).projects.map((p) => p.id)).toContain('rut');
+
+    t.db.prepare(`DELETE FROM memberships WHERE project_id = 'rut' AND user_id = ?`).run(DEMO_USER_IDS.minh);
+    expect((await me(t.tokens.minh)).projects.map((p) => p.id)).not.toContain('rut');
+  });
+
+  it('không chứa dự án đã lưu trữ', async () => {
+    t.db.prepare(`INSERT INTO projects (id, name, created_at) VALUES ('luu-tru', 'Sẽ lưu trữ', 'now')`).run();
+    t.db
+      .prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES ('luu-tru', ?, 'surveyor', 'now')`)
+      .run(DEMO_USER_IDS.minh);
+    const res = await call('PATCH', '/admin/projects/luu-tru', t.tokens.admin, { archived: true });
+    expect(res.status).toBe(200);
+    expect((await me(t.tokens.minh)).projects.map((p) => p.id)).not.toContain('luu-tru');
+  });
+});
+
+describe('/api/admin/projects', () => {
+  it('người thường gọi mọi route admin trả 403 forbidden', async () => {
+    const calls = [
+      call('GET', '/admin/projects', t.tokens.lan),
+      call('POST', '/admin/projects', t.tokens.lan, { id: 'cua-lan', name: 'Của Lan' }),
+      call('PATCH', `/admin/projects/${t.projects.yte}`, t.tokens.lan, { name: 'Đổi' }),
+      call('PUT', `/admin/projects/${t.projects.yte}/members/${DEMO_USER_IDS.minh}`, t.tokens.lan),
+    ];
+    for (const res of await Promise.all(calls)) {
+      expect(res.status).toBe(403);
+      expect((await res.json()).error).toBe('forbidden');
+    }
+    // Không có gì bị đổi
+    const row = t.db.prepare(`SELECT name FROM projects WHERE id = ?`).get(t.projects.yte) as { name: string };
+    expect(row.name).not.toBe('Đổi');
+    expect(t.db.prepare(`SELECT 1 FROM projects WHERE id = 'cua-lan'`).get()).toBeUndefined();
+    const role = t.db
+      .prepare(`SELECT role FROM memberships WHERE project_id = ? AND user_id = ?`)
+      .get(t.projects.yte, DEMO_USER_IDS.minh) as { role: string };
+    expect(role.role).toBe('surveyor');
+  });
+
+  it('không có token trả 401', async () => {
+    expect((await call('GET', '/admin/projects')).status).toBe(401);
+  });
+
+  it('GET liệt kê mọi dự án, kể cả đã lưu trữ', async () => {
+    t.db.prepare(`INSERT INTO projects (id, name, archived, created_at) VALUES ('da-dong', 'Đã đóng', 1, 'now')`).run();
+    const res = await call('GET', '/admin/projects', t.tokens.admin);
+    expect(res.status).toBe(200);
+    const list = (await res.json()) as AdminProject[];
+    expect(list).toContainEqual({ id: 'da-dong', name: 'Đã đóng', archived: true, createdAt: 'now' });
+    expect(list.map((p) => p.id)).toEqual(expect.arrayContaining([t.projects.yte, t.projects.nongnghiep]));
+  });
+
+  it('POST tạo dự án; trùng id trả 409 project_exists', async () => {
+    const res = await call('POST', '/admin/projects', t.tokens.admin, { id: 'giao-duc', name: '  Giáo dục  ' });
+    expect(res.status).toBe(201);
+    const created = (await res.json()) as AdminProject;
+    expect(created).toMatchObject({ id: 'giao-duc', name: 'Giáo dục', archived: false });
+    expect(Number.isNaN(Date.parse(created.createdAt))).toBe(false);
+
+    const again = await call('POST', '/admin/projects', t.tokens.admin, { id: 'giao-duc', name: 'Khác' });
+    expect(again.status).toBe(409);
+    expect((await again.json()).error).toBe('project_exists');
+  });
+
+  it('POST thân sai trả 400 invalid_body', async () => {
+    const bad = [
+      {},
+      { id: 'ok-id' },
+      { id: 'ok-id', name: '   ' },
+      { id: 'Chu-Hoa', name: 'x' },
+      { id: 'co khoang trang', name: 'x' },
+      { id: 'a', name: 'x' },
+      { id: '-dau-gach', name: 'x' },
+      { id: 123, name: 'x' },
+    ];
+    for (const body of bad) {
+      const res = await call('POST', '/admin/projects', t.tokens.admin, body);
+      expect(res.status, JSON.stringify(body)).toBe(400);
+      expect((await res.json()).error).toBe('invalid_body');
+    }
+  });
+
+  it('T4: admin tạo dự án nhưng không là thành viên thì đọc phiếu trả 403 not_member', async () => {
+    const res = await call('POST', '/admin/projects', t.tokens.admin, { id: 'cua-admin', name: 'Của admin' });
+    expect(res.status).toBe(201);
+    const pull = await call('GET', '/projects/cua-admin/records?since=0', t.tokens.admin);
+    expect(pull.status).toBe(403);
+    expect((await pull.json()).error).toBe('not_member');
+  });
+
+  it('PATCH đổi tên, lưu trữ và mở lại', async () => {
+    await call('POST', '/admin/projects', t.tokens.admin, { id: 'doi-ten', name: 'Tên cũ' });
+
+    const renamed = await call('PATCH', '/admin/projects/doi-ten', t.tokens.admin, { name: 'Tên mới' });
+    expect(renamed.status).toBe(200);
+    expect(await renamed.json()).toMatchObject({ id: 'doi-ten', name: 'Tên mới', archived: false });
+
+    const archived = await call('PATCH', '/admin/projects/doi-ten', t.tokens.admin, { archived: true });
+    expect(await archived.json()).toMatchObject({ name: 'Tên mới', archived: true });
+
+    const reopened = await call('PATCH', '/admin/projects/doi-ten', t.tokens.admin, { archived: false });
+    expect(await reopened.json()).toMatchObject({ archived: false });
+  });
+
+  it('PATCH thân sai trả 400, dự án không có trả 404', async () => {
+    for (const body of [{}, { name: '' }, { archived: 'yes' }, { name: 5 }]) {
+      const res = await call('PATCH', `/admin/projects/${t.projects.yte}`, t.tokens.admin, body);
+      expect(res.status, JSON.stringify(body)).toBe(400);
+      expect((await res.json()).error).toBe('invalid_body');
+    }
+    const missing = await call('PATCH', '/admin/projects/khong-co', t.tokens.admin, { name: 'x' });
+    expect(missing.status).toBe(404);
+    expect((await missing.json()).error).toBe('not_found');
+  });
+
+  it('PUT members chỉ định giám sát viên; người đó vào được dự án với vai trò supervisor', async () => {
+    await call('POST', '/admin/projects', t.tokens.admin, { id: 'moi-lap', name: 'Mới lập' });
+    expect((await call('GET', '/projects/moi-lap/records?since=0', t.tokens.minh)).status).toBe(403);
+
+    const res = await call('PUT', `/admin/projects/moi-lap/members/${DEMO_USER_IDS.minh}`, t.tokens.admin);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ projectId: 'moi-lap', userId: DEMO_USER_IDS.minh, role: 'supervisor' });
+
+    const pull = await call('GET', '/projects/moi-lap/records?since=0', t.tokens.minh);
+    expect(pull.status).toBe(200);
+    expect((await pull.json()).scope).toBe('all');
+    expect((await me(t.tokens.minh)).projects).toContainEqual({ id: 'moi-lap', name: 'Mới lập', role: 'supervisor' });
+
+    // Gọi lại không đổi gì (idempotent)
+    expect((await call('PUT', `/admin/projects/moi-lap/members/${DEMO_USER_IDS.minh}`, t.tokens.admin)).status).toBe(
+      200,
+    );
+  });
+
+  it('PUT members nâng surveyor đang có lên supervisor', async () => {
+    await call('POST', '/admin/projects', t.tokens.admin, { id: 'nang-cap', name: 'Nâng cấp' });
+    t.db
+      .prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES ('nang-cap', ?, 'surveyor', 'now')`)
+      .run(DEMO_USER_IDS.lan);
+    const res = await call('PUT', `/admin/projects/nang-cap/members/${DEMO_USER_IDS.lan}`, t.tokens.admin);
+    expect(res.status).toBe(200);
+    expect((await me(t.tokens.lan)).projects).toContainEqual({ id: 'nang-cap', name: 'Nâng cấp', role: 'supervisor' });
+  });
+
+  it('PUT members với người dùng hoặc dự án không có trả 404', async () => {
+    const noUser = await call('PUT', `/admin/projects/${t.projects.yte}/members/u_khongco`, t.tokens.admin);
+    expect(noUser.status).toBe(404);
+    expect((await noUser.json()).error).toBe('not_found');
+    const noProject = await call('PUT', `/admin/projects/khong-co/members/${DEMO_USER_IDS.minh}`, t.tokens.admin);
+    expect(noProject.status).toBe(404);
+    expect((await noProject.json()).error).toBe('not_found');
+  });
+
+  it('PUT members vẫn chạy với dự án đã lưu trữ (chuẩn bị trước khi mở lại)', async () => {
+    t.db.prepare(`INSERT INTO projects (id, name, archived, created_at) VALUES ('tam-dong', 'Tạm đóng', 1, 'now')`).run();
+    const res = await call('PUT', `/admin/projects/tam-dong/members/${DEMO_USER_IDS.minh}`, t.tokens.admin);
+    expect(res.status).toBe(200);
+    // Vẫn không vào được khi dự án còn lưu trữ
+    expect((await call('GET', '/projects/tam-dong/records?since=0', t.tokens.minh)).status).toBe(403);
+  });
+});

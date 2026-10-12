@@ -71,13 +71,13 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-04 · `/api/me`, `/api/admin/projects` · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-04-me-admin` (PR: chưa mở)
 - **Tuần:** 3 · **Phụ thuộc:** TV2-03
 - **Spec:** design §7 (bảng "Không theo dự án"); ADR 0002 §2
 - **File:** `server/src/routes/me.ts`, `server/src/routes/admin.ts` (mới), `shared/src/types.ts` (`MeResponse`, `ProjectSummary`, `Role`), `server/test/admin.test.ts` (mới)
 
 **Việc**
-- `GET /api/me` → `{ user: { id, name, isAdmin }, projects: [{ id, name, role, archived }] }`.
+- `GET /api/me` → `{ user: { id, name, isAdmin }, projects: [{ id, name, role }] }` (theo design §7: dự án lưu trữ không có trong `/me`, nên không cần `archived`; `archived` chỉ có ở `AdminProject`).
 - `/api/admin/projects` (GET, POST), `PATCH /api/admin/projects/:projectId` (tên, `archived`), `PUT /api/admin/projects/:projectId/members/:userId` (chỉ để chỉ định supervisor). Chỉ `isAdmin`.
 
 **Xong khi:** test **T4** (admin không là thành viên đọc phiếu → 403 `not_member`), người thường gọi `/admin/*` → 403 `forbidden`, `/me` không chứa dự án đã bị rút.
