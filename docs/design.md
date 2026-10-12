@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.9 (2026-10-12)
+- **Phiên bản:** 0.4.10 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -24,6 +24,7 @@
 | 0.4.7 | 2026-10-12 | TV2-04: `GET /me` và `/admin/projects` có code (§7); chốt định dạng API admin (id dự án do admin đặt, `PUT .../members/:userId` không có thân); thêm kiểu `AdminProject`, `CreateProjectRequest`, `UpdateProjectRequest` (§6.2) và mã `409 project_exists` (§7.1) |
 | 0.4.8 | 2026-10-12 | TV2-05: client tách `field-survey-account` và `field-survey-p-<projectId>` (§4.2); `ProjectDb` version 1 gồm `draft`, `validationErrors`, `attachments.nextAttemptAt`; CSDL `field-survey` cũ bị xoá khi khởi động; `api.ts` nhận `projectId` bắt buộc |
 | 0.4.9 | 2026-10-12 | TV2-06: vòng đồng bộ chạy trong Web Lock `field-survey-sync`, gọi `/me`, đồng bộ mọi dự án `active` (đang chọn trước), ghi số đếm "cần xử lý" (`conflict` + `error`) và "chưa đồng bộ" (`pending` + `draft`) vào `field-survey-account` (§4.2, §5.3); O6 có E2E (§10.1) |
+| 0.4.10 | 2026-10-12 | TV2-07: `meta.pull = { cursor, scope }` và quy tắc phạm vi rộng/hẹp (§5.5); dự án bị rút hoặc hạ vai trò chỉ bị xoá dữ liệu khi không còn gì chưa gửi; `403 not_member` dừng dự án; route kiểm thử `/api/__test/memberships` (§10.1) |
 
 ## Mục lục
 
@@ -198,7 +199,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 | `outbox` | `++seq`, unique `opId`, index `recordId`, `nextAttemptAt` | Thao tác chờ gửi (§5.2) |
 | `conflicts` | `recordId` | Bản server, lịch sử, kết quả merge chờ người dùng |
 | `attachments` | `id`, index `recordId`, `uploadState`, `nextAttemptAt` | Blob ảnh, chunk đã upload, trạng thái retry (§5.6) |
-| `meta` | `key` | `pull: { cursor, scope }`, ... |
+| `meta` | `key` | `pull: { cursor, scope }` (§5.5), ... |
 
 - **Dự án đang chọn:** lưu trong `account` (`currentProjectId`). Chưa có `/me` trong vòng đồng bộ và bộ chọn dự án (TV2-06, TV1-06) thì mặc định `demo-yte` (code tạm).
 - **Đổi dự án:** UI đóng CSDL cũ, mở CSDL của dự án mới; mọi `liveQuery` chỉ chạy trên CSDL đang mở, nên không thể hiển thị lẫn dữ liệu hai dự án.
@@ -374,7 +375,10 @@ Server có bộ đếm toàn cục `seq`, tăng mỗi lần ghi bất kỳ phi�
 - `surveyor`: chỉ nhận phiếu do chính mình tạo (`created_by` = người dùng của token). Giám sát viên sửa phiếu đó thì điều tra viên vẫn nhận được.
 - `supervisor`: nhận mọi phiếu của dự án.
 
-Response có `scope: 'own' | 'all'`. Client lưu cursor theo từng dự án kèm `scope`; vai trò đổi làm `scope` đổi thì cursor về 0 (ADR 0001 quy tắc 10).
+Response có `scope: 'own' | 'all'`. Client lưu `meta.pull = { cursor, scope }` theo từng dự án; vai trò đổi làm `scope` đổi thì cursor về 0 (ADR 0001 quy tắc 10).
+
+- `scope` đã lưu là phạm vi **rộng nhất** mà dữ liệu trên máy đang có. Rộng ra (`own` → `all`): pull lại từ cursor 0. Hẹp lại (`all` → `own`, bị hạ vai trò): không còn dữ liệu chưa gửi thì xoá dữ liệu dự án trên máy rồi pull lại từ 0; còn thì giữ `all` và xét lại ở vòng sau, phiếu của người khác tạm còn trên máy (ADR 0002 §6, `client/src/sync/membership.ts`).
+- `403 not_member` khi push/pull: ngừng đồng bộ dự án đó, đánh dấu `removed`; vòng sau xử lý như bị rút.
 
 Lý do: không tải dữ liệu cá nhân (tên chủ hộ, GPS, ảnh) của người khác về điện thoại, và giới hạn dung lượng mỗi máy. Hệ quả: hai điều tra viên cùng đến một hộ sẽ tạo hai phiếu riêng (trùng lặp nghiệp vụ, giám sát viên xử lý khi xuất), không phải xung đột. Xung đột thực tế chủ yếu là giữa điều tra viên và giám sát viên.
 
@@ -662,7 +666,7 @@ Phạm vi đồ án giữ đơn giản:
 | A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | TODO |
 | A4 | Rút hoặc hạ giám sát viên cuối cùng | `409 last_supervisor` | TODO |
 
-**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm.
+**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm. E2E T7, T8, T9 và hạ vai trò có trong `client/e2e/membership.spec.ts`; T7 mới kiểm phần dữ liệu (phiếu còn, `removed`, không request), banner và nút "Xuất JSON" chờ TV1-06.
 
 **API kiểm thử** (chỉ đăng ký khi `ENABLE_TEST_ROUTES=1`, file `server/src/routes/faults.ts`):
 
@@ -672,6 +676,8 @@ Phạm vi đồ án giữ đơn giản:
 | DELETE | `/api/__test/faults` | Tắt mọi lỗi đang chờ |
 | GET | `/api/__test/stats` | `{ "requests": [{ "method", "path", "idempotencyKey"?, "status" }] }`: nhật ký request kể từ lần reset |
 | DELETE | `/api/__test/stats` | Xoá nhật ký |
+| PUT | `/api/__test/memberships/:projectId/:userId` | `{ "role": "surveyor" \| "supervisor" }`: thêm hoặc đổi vai trò, không cần token (E2E T7–T9). Có code |
+| DELETE | `/api/__test/memberships/:projectId/:userId` | Rút khỏi dự án. Có code |
 
 | `mode` | Hành vi | Dùng cho |
 |---|---|---|
