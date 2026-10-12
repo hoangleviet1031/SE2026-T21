@@ -1,8 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type SyncState } from '../db/db';
+import { useCurrentProjectDb } from '../db/current';
+import type { ProjectDb, SyncState } from '../db/projectDb';
+import { syncNow } from '../sync/engine';
+import { exportRecordJson } from '../sync/exportJson';
+import { retryFailed } from '../sync/outbox';
+import { staleWarnings } from '../sync/staleWarnings';
 import { navigate } from '../useHashRoute';
 
 const STATE_LABEL: Record<SyncState, string> = {
+  draft: 'Nháp',
   synced: 'Đã đồng bộ',
   pending: 'Chờ đồng bộ',
   conflict: 'Cần xử lý xung đột',
@@ -10,14 +16,27 @@ const STATE_LABEL: Record<SyncState, string> = {
 };
 
 export function HomePage() {
-  const forms = useLiveQuery(() => db.forms.toArray(), []) ?? [];
-  const records = useLiveQuery(() => db.records.orderBy('updatedAt').reverse().toArray(), []) ?? [];
+  const db = useCurrentProjectDb();
+  const forms = useLiveQuery(async () => db?.forms.toArray(), [db]) ?? [];
+  const records = useLiveQuery(async () => db?.records.orderBy('updatedAt').reverse().toArray(), [db]) ?? [];
+  // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
+  const warnings = useLiveQuery(async () => (db ? staleWarnings(await db.outbox.toArray(), Date.now()) : undefined), [db]);
   const latestForms = Object.values(
     Object.fromEntries(forms.sort((a, b) => a.version - b.version).map((f) => [f.id, f])),
   );
 
   return (
     <>
+      {warnings?.staleRecords ? (
+        <p className="warning" role="status">
+          ⚠ Có {warnings.staleRecords} phiếu chưa đồng bộ hơn 1 ngày
+        </p>
+      ) : null}
+      {warnings?.serverFailing && (
+        <p className="warning" role="status">
+          ⚠ Máy chủ đang lỗi, sẽ thử lại
+        </p>
+      )}
       <section>
         <h2>Biểu mẫu</h2>
         {latestForms.length === 0 && <p>Chưa có biểu mẫu. Kết nối mạng một lần để tải về.</p>}
@@ -47,10 +66,34 @@ export function HomePage() {
                     {STATE_LABEL[r.syncState]}
                   </span>
                 )}
+                {r.syncState === 'error' && db && (
+                  <div className="record-error">
+                    <span data-testid="sync-error">{r.lastError ?? 'Máy chủ từ chối phiếu này'}</span>
+                    <button onClick={() => void retry(db, r.id)}>Thử lại</button>
+                    <button onClick={() => void downloadRecord(db, r.id)}>Xuất JSON phiếu này</button>
+                  </div>
+                )}
               </li>
             ))}
         </ul>
       </section>
     </>
   );
+}
+
+async function retry(db: ProjectDb, recordId: string) {
+  await retryFailed(db, recordId);
+  void syncNow();
+}
+
+/** Tải phiếu về máy dưới dạng file .json (design §8, phiếu "Lỗi"). */
+async function downloadRecord(db: ProjectDb, recordId: string) {
+  const json = await exportRecordJson(db, recordId);
+  const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `phieu-${recordId}.json`;
+  a.click();
+  // Thu hồi ở lượt sau: một số trình duyệt (Safari) huỷ tải nếu URL bị thu hồi ngay sau click
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }

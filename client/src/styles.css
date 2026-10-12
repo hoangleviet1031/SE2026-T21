@@ -11,7 +11,9 @@ button:disabled { opacity: 0.5; cursor: default; }
 .badge.off, .badge.pending { background: #fef3c7; color: #92400e; }
 .badge.conflict, .badge.error { background: #fee2e2; color: #991b1b; }
 .list { list-style: none; padding: 0; }
-.list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+.list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+.record-error { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; font-size: 13px; color: #991b1b; }
+.warning { background: #fef3c7; color: #92400e; padding: 8px 12px; border-radius: 6px; }
 .form { display: grid; gap: 14px; }
 .field { display: grid; gap: 4px; }
 .field input:not([type=checkbox]):not([type=radio]), .field select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }

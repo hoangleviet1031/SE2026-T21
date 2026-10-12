@@ -1,7 +1,9 @@
 import type { FieldDef, FieldValue, FormSchema, GpsValue, RecordData } from '@field-survey/shared';
-import { db } from '../db/db';
+import type { ProjectDb } from '../db/projectDb';
 
 interface Props {
+  /** CSDL của dự án đang chọn, trang cha lấy qua useCurrentProjectDb */
+  db: ProjectDb;
   form: FormSchema;
   recordId: string;
   value: RecordData;
@@ -9,7 +11,7 @@ interface Props {
 }
 
 // TODO(Thành viên 1): validate (required, kiểu số), hiển thị lỗi theo trường, điều kiện hiển thị.
-export function FormRenderer({ form, recordId, value, onChange }: Props) {
+export function FormRenderer({ db, form, recordId, value, onChange }: Props) {
   const set = (field: string, v: FieldValue) => onChange({ ...value, [field]: v });
   return (
     <div className="form">
@@ -19,7 +21,7 @@ export function FormRenderer({ form, recordId, value, onChange }: Props) {
             {f.label}
             {f.required && ' *'}
           </span>
-          <FieldInput field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
+          <FieldInput db={db} field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
         </label>
       ))}
     </div>
@@ -27,11 +29,13 @@ export function FormRenderer({ form, recordId, value, onChange }: Props) {
 }
 
 function FieldInput({
+  db,
   field,
   recordId,
   value,
   onChange,
 }: {
+  db: ProjectDb;
   field: FieldDef;
   recordId: string;
   value: FieldValue;

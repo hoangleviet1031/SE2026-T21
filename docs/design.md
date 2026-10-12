@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.7 (2026-10-12)
+- **Phiên bản:** 0.4.12 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -22,6 +22,11 @@
 | 0.4.5 | 2026-10-11 | TV3-02: `seed:demo` từ chối chạy khi `NODE_ENV=production` (§12); `user:add` sinh `userId` dạng `u_` + 8 ký tự a-z0-9 |
 | 0.4.6 | 2026-10-10 | `FieldDef.hidden` và `validateRecord` đã có code (§4.1, §6.2; TV1-05 phần thuần) |
 | 0.4.7 | 2026-10-12 | TV2-04: `GET /me` và `/admin/projects` có code (§7); chốt định dạng API admin (id dự án do admin đặt, `PUT .../members/:userId` không có thân); thêm kiểu `AdminProject`, `CreateProjectRequest`, `UpdateProjectRequest` (§6.2) và mã `409 project_exists` (§7.1) |
+| 0.4.8 | 2026-10-12 | TV2-05: client tách `field-survey-account` và `field-survey-p-<projectId>` (§4.2); `ProjectDb` version 1 gồm `draft`, `validationErrors`, `attachments.nextAttemptAt`; CSDL `field-survey` cũ bị xoá khi khởi động; `api.ts` nhận `projectId` bắt buộc |
+| 0.4.9 | 2026-10-12 | TV2-06: vòng đồng bộ chạy trong Web Lock `field-survey-sync`, gọi `/me`, đồng bộ mọi dự án `active` (đang chọn trước), ghi số đếm "cần xử lý" (`conflict` + `error`) và "chưa đồng bộ" (`pending` + `draft`) vào `field-survey-account` (§4.2, §5.3); O6 có E2E (§10.1) |
+| 0.4.10 | 2026-10-12 | TV2-07: `meta.pull = { cursor, scope }` và quy tắc phạm vi rộng/hẹp (§5.5); dự án bị rút hoặc hạ vai trò chỉ bị xoá dữ liệu khi không còn gì chưa gửi; `403 not_member` dừng dự án; route kiểm thử `/api/__test/memberships` (§10.1) |
+| 0.4.11 | 2026-10-12 | TV2-08: `request_hash` = SHA-256 của JSON chuẩn hoá (khoá sắp xếp) gồm `projectId`, `recordId` và các trường `PushRecordRequest`; khác hash thì `422`; dọn key quá 30 ngày khi khởi động và mỗi 24 giờ; fault `drop` cắt kết nối sau khi ghi, thêm `drop-before` (§10.1); R2, R3, R6 có test |
+| 0.4.12 | 2026-10-12 | TV2-09: op `failed` (4xx tính một lần gửi), sửa phiếu lỗi tạo op mới thay vì sửa op đã gửi, "Thử lại" giữ `opId` và `attempts` (§5.1); `createdAt` của op và quy tắc cảnh báo tồn lâu (§5.2); fault mode `"400"` và R5 có test (§10.1) |
 
 ## Mục lục
 
@@ -178,14 +183,14 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
 
 ### 4.2 Lưu trữ offline (IndexedDB)
 
-Dexie, định nghĩa trong `client/src/db/db.ts`. Theo ADR 0002 có hai loại CSDL:
+Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/projectDb.ts`; mở CSDL của dự án đang chọn qua `client/src/db/current.ts` (`openProjectDb`, `useCurrentProjectDb`, `setCurrentProject`). Theo ADR 0002 có hai loại CSDL:
 
 **`field-survey-account`** (một CSDL cho cả thiết bị)
 
 | Bảng | Khoá | Nội dung |
 |---|---|---|
 | `account` | `key` | token, `userId`, tên, `isAdmin`, dự án đang chọn |
-| `projects` | `id` | Bản sao `GET /api/me`: tên dự án, vai trò, trạng thái (`active` / `removed`), số phiếu cần xử lý và chưa đồng bộ (cập nhật sau mỗi vòng đồng bộ) |
+| `projects` | `id` | Bản sao `GET /api/me`: tên dự án, vai trò, trạng thái (`active` / `removed`), số phiếu cần xử lý (`needsAttention`: `conflict` + `error`) và chưa đồng bộ (`unsynced`: `pending` + `draft`), cập nhật sau mỗi vòng đồng bộ |
 
 **`field-survey-p-<projectId>`** (mỗi dự án một CSDL, cùng schema)
 
@@ -196,8 +201,9 @@ Dexie, định nghĩa trong `client/src/db/db.ts`. Theo ADR 0002 có hai loại 
 | `outbox` | `++seq`, unique `opId`, index `recordId`, `nextAttemptAt` | Thao tác chờ gửi (§5.2) |
 | `conflicts` | `recordId` | Bản server, lịch sử, kết quả merge chờ người dùng |
 | `attachments` | `id`, index `recordId`, `uploadState`, `nextAttemptAt` | Blob ảnh, chunk đã upload, trạng thái retry (§5.6) |
-| `meta` | `key` | `pull: { cursor, scope }`, ... |
+| `meta` | `key` | `pull: { cursor, scope }` (§5.5), ... |
 
+- **Dự án đang chọn:** lưu trong `account` (`currentProjectId`). Chưa có `/me` trong vòng đồng bộ và bộ chọn dự án (TV2-06, TV1-06) thì mặc định `demo-yte` (code tạm).
 - **Đổi dự án:** UI đóng CSDL cũ, mở CSDL của dự án mới; mọi `liveQuery` chỉ chạy trên CSDL đang mở, nên không thể hiển thị lẫn dữ liệu hai dự án.
 - **Rút khỏi dự án:** xoá cả CSDL bằng `Dexie.delete`, chỉ khi không còn dữ liệu chưa gửi (ADR 0002 §6).
 
@@ -318,12 +324,12 @@ stateDiagram-v2
 ```
 
 - `conflict`: phiếu chỉ đọc cho tới khi giải quyết (§4.5).
-- `error`: op ở trạng thái `failed`; sửa phiếu thì thay dữ liệu của op đó và đặt lại `queued`.
+- `error`: op ở trạng thái `failed` (lần bị `4xx` tính là một lần gửi, `attempts + 1`). Sửa phiếu thì op `failed` bị bỏ và dữ liệu mới đi trong một op mới với `opId` mới, không dùng lại key cho dữ liệu khác (CLAUDE.md bất biến 3; an toàn vì server không lưu key cho response lỗi). Bấm "Thử lại" thì gửi lại đúng op đó (cùng `opId`, cùng dữ liệu, giữ `attempts`).
 - Nhãn hiển thị tách khỏi `syncState`: phiếu `synced` nhưng còn ảnh chưa lên hiện "Đang tải ảnh (n)" (§5.6).
 
 ### 5.2 Outbox
 
-Mỗi op: `{ seq, opId, recordId, data, deleted, attempts, nextAttemptAt, status, lastError }`.
+Mỗi op: `{ seq, opId, recordId, data, deleted, attempts, nextAttemptAt, status, lastError, createdAt }`. `createdAt` là lúc phiếu bắt đầu có thay đổi chưa lên server (giờ thiết bị, chỉ để hiển thị cảnh báo tồn lâu); giữ nguyên khi gộp hoặc thay op.
 
 | `status` | Ý nghĩa |
 |---|---|
@@ -335,15 +341,15 @@ Mỗi op: `{ seq, opId, recordId, data, deleted, attempts, nextAttemptAt, status
 - **Gộp op:** sửa phiếu khi op cuối của nó **chưa từng gửi** (`attempts = 0`) thì cập nhật op đó. Nếu op đã gửi ít nhất một lần (có thể server đã ghi nhưng response bị mất) thì giữ nguyên `opId` và thêm op mới phía sau. Nhờ vậy idempotency key không bao giờ bị dùng cho dữ liệu khác.
 - **Thứ tự:** FIFO theo `seq`, tuần tự trong từng phiếu: op sau chỉ chạy khi op trước xong. Phiếu khác nhau không chặn nhau.
 - `baseVersion` đọc từ phiếu **lúc gửi**, không lưu trong op, vì op trước thành công sẽ nâng `baseVersion`.
-- **Op tồn lâu:** op `queued` có `attempts ≥ 5` hiện cảnh báo "Máy chủ đang lỗi, sẽ thử lại"; phiếu chưa lên server quá 24 giờ hiện cảnh báo ở đầu trang "Có n phiếu chưa đồng bộ hơn 1 ngày".
+- **Op tồn lâu:** op `queued` có `attempts ≥ 5` hiện cảnh báo "Máy chủ đang lỗi, sẽ thử lại"; phiếu có op với `createdAt` từ 24 giờ trở lên (kể cả op `failed`) hiện cảnh báo ở đầu trang "Có n phiếu chưa đồng bộ hơn 1 ngày". Phiếu nháp không có op nên không tính.
 
 ### 5.3 Vòng đồng bộ
 
 `syncNow()` được gọi khi: app mở, sự kiện `online`, mỗi 30 giây, sau mỗi lần lưu, khi hết thời gian backoff. Các lần gọi chồng nhau trong cùng tab gộp làm một.
 
-**Nhiều dự án:** đầu mỗi vòng gọi `GET /api/me` để cập nhật danh sách dự án và vai trò (offline thì dùng bản đã lưu), xử lý thay đổi thành viên theo ADR 0002 §6, rồi chạy các bước dưới cho từng dự án đang `active`, dự án đang chọn trước. Mọi đường dẫn dưới đây đều có tiền tố `/api/projects/:projectId`.
+**Nhiều dự án:** đầu mỗi vòng gọi `GET /api/me` để cập nhật danh sách dự án và vai trò (offline thì dùng bản đã lưu), xử lý thay đổi thành viên theo ADR 0002 §6 (hiện mới đánh dấu `removed` cho dự án không còn trong `/me` và ngừng đồng bộ nó; phần còn lại ở TV2-07), rồi chạy các bước dưới cho từng dự án đang `active`, dự án đang chọn trước. Mọi đường dẫn dưới đây đều có tiền tố `/api/projects/:projectId`.
 
-**Nhiều tab:** mỗi vòng đồng bộ (gồm mọi dự án) chạy trong `navigator.locks.request('field-survey-sync', { ifAvailable: true }, ...)`; tab không lấy được khoá thì bỏ qua lần đó. Nhờ vậy chỉ một tab gửi request tại một thời điểm (code chưa làm). Tab khác vẫn thấy kết quả ngay vì UI đọc IndexedDB qua `liveQuery`.
+**Nhiều tab:** mỗi vòng đồng bộ (gồm mọi dự án) chạy trong `navigator.locks.request('field-survey-sync', { ifAvailable: true }, ...)`; tab không lấy được khoá thì bỏ qua lần đó. Nhờ vậy chỉ một tab gửi request tại một thời điểm. Trình duyệt chưa có Web Locks thì chạy không khoá; gửi trùng vẫn an toàn nhờ idempotency key (ADR 0001). Tab khác vẫn thấy kết quả ngay vì UI đọc IndexedDB qua `liveQuery`.
 
 1. Offline thì dừng.
 2. **Push:** với mỗi op đến hạn, `PUT .../records/:id` kèm `Idempotency-Key: opId`.
@@ -371,7 +377,10 @@ Server có bộ đếm toàn cục `seq`, tăng mỗi lần ghi bất kỳ phi�
 - `surveyor`: chỉ nhận phiếu do chính mình tạo (`created_by` = người dùng của token). Giám sát viên sửa phiếu đó thì điều tra viên vẫn nhận được.
 - `supervisor`: nhận mọi phiếu của dự án.
 
-Response có `scope: 'own' | 'all'`. Client lưu cursor theo từng dự án kèm `scope`; vai trò đổi làm `scope` đổi thì cursor về 0 (ADR 0001 quy tắc 10).
+Response có `scope: 'own' | 'all'`. Client lưu `meta.pull = { cursor, scope }` theo từng dự án; vai trò đổi làm `scope` đổi thì cursor về 0 (ADR 0001 quy tắc 10).
+
+- `scope` đã lưu là phạm vi **rộng nhất** mà dữ liệu trên máy đang có. Rộng ra (`own` → `all`): pull lại từ cursor 0. Hẹp lại (`all` → `own`, bị hạ vai trò): không còn dữ liệu chưa gửi thì xoá dữ liệu dự án trên máy rồi pull lại từ 0; còn thì giữ `all` và xét lại ở vòng sau, phiếu của người khác tạm còn trên máy (ADR 0002 §6, `client/src/sync/membership.ts`).
+- `403 not_member` khi push/pull: ngừng đồng bộ dự án đó, đánh dấu `removed`; vòng sau xử lý như bị rút.
 
 Lý do: không tải dữ liệu cá nhân (tên chủ hộ, GPS, ảnh) của người khác về điện thoại, và giới hạn dung lượng mỗi máy. Hệ quả: hai điều tra viên cùng đến một hộ sẽ tạo hai phiếu riêng (trùng lặp nghiệp vụ, giám sát viên xử lý khi xuất), không phải xung đột. Xung đột thực tế chủ yếu là giữa điều tra viên và giám sát viên.
 
@@ -622,7 +631,7 @@ Phạm vi đồ án giữ đơn giản:
 | O3 | Phiếu có ảnh khi offline, online thì ảnh lên đủ, nhãn chỉ thành "Đã đồng bộ" khi ảnh xong | TODO |
 | O4 | Đóng tab khi còn op, mở lại thì vẫn đồng bộ | TODO |
 | O5 | Lưu phiếu thiếu trường bắt buộc: thành "Nháp", không lên server; sửa đủ thì đồng bộ | TODO |
-| O6 | Hai tab cùng mở: mỗi op chỉ được gửi từ một tab | TODO |
+| O6 | Hai tab cùng mở: mỗi op chỉ được gửi từ một tab | Có (`tabs.spec.ts`) |
 | O7 | Xoá phiếu chưa từng gửi (tạo khi offline): bấm "Huỷ" thì phiếu còn; xác nhận thì phiếu, op, ảnh biến khỏi máy, online lên không có request nào cho phiếu đó (§5.7) | TODO |
 | O8 | Xoá phiếu đã đồng bộ: phiếu biến khỏi danh sách, server có `deleted: true`, máy khác pull thấy tombstone; phiếu bị xoá khỏi máy sau khi op xoá được xác nhận (§5.7) | TODO |
 
@@ -644,11 +653,11 @@ Phạm vi đồ án giữ đơn giản:
 | # | Ca | Kỳ vọng | Trạng thái |
 |---|---|---|---|
 | R1 | Server trả 500 hai lần | Retry theo backoff, đúng một bản ghi | Có (`offline.spec.ts`) |
-| R2 | Timeout (server giữ request 15s) | Hủy sau 10s, retry, không trùng | TODO (dùng `mode: "timeout"`) |
-| R3 | Server ghi xong nhưng kết nối bị cắt trước response | Gửi lại cùng key, server trả `Idempotent-Replayed` | Integration có; E2E TODO (`mode: "drop"` cần sửa để cắt **sau** khi ghi) |
+| R2 | Timeout (server giữ request 15s) | Hủy sau 10s, retry, không trùng | Có (`retry.spec.ts`) |
+| R3 | Server ghi xong nhưng kết nối bị cắt trước response | Gửi lại cùng key, server trả `Idempotent-Replayed` | Có (integration `server/test/idempotency.test.ts`, E2E `retry.spec.ts`) |
 | R4 | Mất mạng giữa lúc upload ảnh | Tiếp tục từ chunk thiếu | TODO |
-| R5 | `400` | Phiếu "Lỗi", không retry vô hạn | TODO |
-| R6 | Cùng `Idempotency-Key`, khác nội dung | `422 idempotency_key_reused` | Integration TODO |
+| R5 | `400` | Phiếu "Lỗi", không retry vô hạn | Có (`errors.spec.ts`, fault mode `"400"`) |
+| R6 | Cùng `Idempotency-Key`, khác nội dung | `422 idempotency_key_reused` | Có (`server/test/records.test.ts`) |
 
 **Phân quyền** (integration)
 
@@ -659,7 +668,7 @@ Phạm vi đồ án giữ đơn giản:
 | A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | TODO |
 | A4 | Rút hoặc hạ giám sát viên cuối cùng | `409 last_supervisor` | TODO |
 
-**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm.
+**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm. E2E T7, T8, T9 và hạ vai trò có trong `client/e2e/membership.spec.ts`; T7 mới kiểm phần dữ liệu (phiếu còn, `removed`, không request), banner và nút "Xuất JSON" chờ TV1-06.
 
 **API kiểm thử** (chỉ đăng ký khi `ENABLE_TEST_ROUTES=1`, file `server/src/routes/faults.ts`):
 
@@ -669,6 +678,8 @@ Phạm vi đồ án giữ đơn giản:
 | DELETE | `/api/__test/faults` | Tắt mọi lỗi đang chờ |
 | GET | `/api/__test/stats` | `{ "requests": [{ "method", "path", "idempotencyKey"?, "status" }] }`: nhật ký request kể từ lần reset |
 | DELETE | `/api/__test/stats` | Xoá nhật ký |
+| PUT | `/api/__test/memberships/:projectId/:userId` | `{ "role": "surveyor" \| "supervisor" }`: thêm hoặc đổi vai trò, không cần token (E2E T7–T9). Có code |
+| DELETE | `/api/__test/memberships/:projectId/:userId` | Rút khỏi dự án. Có code |
 
 | `mode` | Hành vi | Dùng cho |
 |---|---|---|
