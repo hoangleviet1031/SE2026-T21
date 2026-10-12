@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.6 (2026-10-11)
+- **Phiên bản:** 0.4.7 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -21,6 +21,7 @@
 | 0.4.4 | 2026-10-11 | TV2-03: `P/forms`, `P/records` (pull, history, PUT) chạy theo dự án và có xác thực (§7); `PullResponse.scope` thêm, `PushRecordRequest` bỏ `updatedBy` (§6.2); server dev/E2E nạp tài khoản demo khi `SEED_DEMO=1` |
 | 0.4.5 | 2026-10-11 | TV3-02: `seed:demo` từ chối chạy khi `NODE_ENV=production` (§12); `user:add` sinh `userId` dạng `u_` + 8 ký tự a-z0-9 |
 | 0.4.6 | 2026-10-10 | `FieldDef.hidden` và `validateRecord` đã có code (§4.1, §6.2; TV1-05 phần thuần) |
+| 0.4.7 | 2026-10-12 | TV2-04: `GET /me` và `/admin/projects` có code (§7); chốt định dạng API admin (id dự án do admin đặt, `PUT .../members/:userId` không có thân); thêm kiểu `AdminProject`, `CreateProjectRequest`, `UpdateProjectRequest` (§6.2) và mã `409 project_exists` (§7.1) |
 
 ## Mục lục
 
@@ -420,7 +421,7 @@ Mọi truy vấn dữ liệu dự án đi qua lớp truy cập nhận `ctx = { u
 
 ### 6.2 Kiểu dùng chung
 
-Định nghĩa ở `shared/src/types.ts`: `FormSchema`, `FieldDef` (thêm `hidden?: boolean`), `FieldValue`, `ServerRecord`, `RecordHistoryEntry`, `PushRecordRequest` (bỏ `updatedBy`), `ConflictResponse`, `PullResponse` (thêm `scope`, `hasMore`), `ApiError`, `Role`, `MeResponse`, `ProjectSummary`, `Member`.
+Định nghĩa ở `shared/src/types.ts`: `FormSchema`, `FieldDef` (thêm `hidden?: boolean`), `FieldValue`, `ServerRecord`, `RecordHistoryEntry`, `PushRecordRequest` (bỏ `updatedBy`), `ConflictResponse`, `PullResponse` (thêm `scope`, `hasMore`), `ApiError`, `Role`, `MeResponse`, `ProjectSummary`, `AdminProject`, `CreateProjectRequest`, `UpdateProjectRequest`, `Member`.
 
 **Thay đổi ở bản 0.4:**
 
@@ -455,10 +456,10 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | Method | Đường dẫn | Mô tả | Vai trò | Trạng thái |
 |---|---|---|---|---|
 | GET | `/health` | Kiểm tra sống | – | Có |
-| GET | `/me` | Người dùng hiện tại và danh sách dự án kèm vai trò | mọi | TODO TV2 |
-| GET/POST | `/admin/projects` | Liệt kê / tạo dự án | admin | TODO TV2 |
-| PATCH | `/admin/projects/:projectId` | Đổi tên, lưu trữ | admin | TODO TV2 |
-| PUT | `/admin/projects/:projectId/members/:userId` | Chỉ định giám sát viên | admin | TODO TV2 |
+| GET | `/me` | Người dùng hiện tại và danh sách dự án kèm vai trò | mọi | Có |
+| GET/POST | `/admin/projects` | Liệt kê / tạo dự án | admin | Có |
+| PATCH | `/admin/projects/:projectId` | Đổi tên, lưu trữ | admin | Có |
+| PUT | `/admin/projects/:projectId/members/:userId` | Chỉ định giám sát viên | admin | Có |
 | POST/DELETE | `/__test/faults` | Tiêm lỗi cho kiểm thử | – | Có; chỉ khi `ENABLE_TEST_ROUTES=1` |
 
 **Theo dự án** (`P` = `/projects/:projectId`)
@@ -519,6 +520,21 @@ Content-Type: application/json
 - `401 unauthorized` khi thiếu token, token sai hoặc tài khoản `disabled`.
 - Kiểu: `MeResponse { user: { id; name; isAdmin }; projects: ProjectSummary[] }`, `ProjectSummary { id; name; role: Role }`.
 
+**/api/admin/projects** (chỉ `isAdmin`; người khác nhận `403 forbidden`)
+
+Admin quản lý dự án nhưng **không** vì thế mà thành thành viên: tạo dự án xong vẫn nhận `403 not_member` khi gọi `P/...` (ca T4).
+
+| Method, đường dẫn | Thân request | Kết quả |
+|---|---|---|
+| `GET /admin/projects` | – | `200 AdminProject[]`, gồm cả dự án đã lưu trữ, sắp theo `id` |
+| `POST /admin/projects` | `{ id, name }` | `201 AdminProject`; `id` trùng → `409 project_exists` |
+| `PATCH /admin/projects/:projectId` | `{ name?, archived? }`, ít nhất một trường | `200 AdminProject`; `archived: false` để mở lại; không có dự án → `404` |
+| `PUT /admin/projects/:projectId/members/:userId` | không có | Thêm hoặc nâng người đó thành `supervisor`; `200 { projectId, userId, role: 'supervisor' }`; dự án hoặc người dùng không có → `404`. Chạy được cả khi dự án đang lưu trữ |
+
+- `AdminProject { id; name; archived: boolean; createdAt }`.
+- `id` dự án do admin đặt: `^[a-z0-9][a-z0-9-]{1,39}$` (như `demo-yte`), vì nằm trong URL và tên IndexedDB `field-survey-p-<id>` (§4.2). `name` cắt khoảng trắng hai đầu, 1–100 ký tự. Sai → `400 invalid_body`.
+- Thêm surveyor, đổi vai trò, rút thành viên là việc của giám sát viên qua `P/members`, không qua API admin.
+
 **GET /api/projects/:projectId/records?since=&limit=** (pull)
 
 ```json
@@ -543,6 +559,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | 403 | `not_member` | Không (còn) là thành viên dự án, hoặc dự án đã lưu trữ | dừng dự án, xử lý như bị rút (ADR 0002 §6) |
 | 403 | `forbidden` | Là thành viên nhưng sai vai trò (vd. surveyor gọi export) | hiện lỗi; ẩn nút tương ứng |
 | 404 | `not_found` | Không có tài nguyên, ngoài phạm vi, hoặc thuộc dự án khác (không phân biệt để không lộ thông tin) | op `failed` |
+| 409 | `project_exists` | Admin tạo dự án với `id` đã có | hiện lỗi ở màn hình Dự án |
 | 409 | `last_supervisor` | Rút hoặc hạ vai trò giám sát viên cuối cùng | hiện lỗi |
 | 409 | `version_conflict` | `baseVersion` lệch | merge (§5.3) |
 | 409 | `missing_chunks` | `complete` khi còn thiếu chunk (`details`: chỉ số thiếu) | upload phần thiếu |
@@ -642,7 +659,7 @@ Phạm vi đồ án giữ đơn giản:
 | A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | TODO |
 | A4 | Rút hoặc hạ giám sát viên cuối cùng | `409 last_supervisor` | TODO |
 
-**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2); T5 chưa làm.
+**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm.
 
 **API kiểm thử** (chỉ đăng ký khi `ENABLE_TEST_ROUTES=1`, file `server/src/routes/faults.ts`):
 

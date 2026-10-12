@@ -51,6 +51,7 @@ export function getCtx(req: Request): Ctx {
 export function createAuth(db: Db): {
   requireAuth: RequestHandler;
   requireMember: (minRole: Role) => RequestHandler;
+  requireAdmin: RequestHandler;
 } {
   const findUser = db.prepare(
     `SELECT id, name, token_hash, is_admin FROM users WHERE token_hash = ? AND disabled = 0`,
@@ -87,5 +88,13 @@ export function createAuth(db: Db): {
       next();
     };
 
-  return { requireAuth, requireMember };
+  // Admin quản lý dự án nhưng không vì thế mà đọc được dữ liệu dự án: route theo dự án vẫn chỉ
+  // xét memberships (ADR 0002 §2, ca T4).
+  const requireAdmin: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) return void res.status(401).json({ error: 'unauthorized' });
+    if (!req.user.isAdmin) return void res.status(403).json({ error: 'forbidden' });
+    next();
+  };
+
+  return { requireAuth, requireMember, requireAdmin };
 }

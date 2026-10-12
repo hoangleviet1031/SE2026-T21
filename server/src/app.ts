@@ -3,6 +3,8 @@ import cors from 'cors';
 import type { Db } from './db';
 import { createAuth } from './auth';
 import { formsRouter } from './routes/forms';
+import { meRouter } from './routes/me';
+import { adminRouter } from './routes/admin';
 import { recordsRouter } from './routes/records';
 import { attachmentsRouter } from './routes/attachments';
 import { exportRouter } from './routes/export';
@@ -28,7 +30,10 @@ export function createApp(db: Db, opts: { enableTestRoutes?: boolean } = {}) {
   }
 
   // Route theo dự án: xác thực rồi kiểm thành viên (ADR 0002 §3). projectId chỉ lấy từ đường dẫn.
-  const { requireAuth, requireMember } = createAuth(db);
+  const { requireAuth, requireMember, requireAdmin } = createAuth(db);
+  app.use('/api/me', requireAuth, meRouter(db));
+  app.use('/api/admin', requireAuth, requireAdmin, adminRouter(db));
+
   const asMember = [requireAuth, requireMember('surveyor')];
   app.use('/api/projects/:projectId/forms', ...asMember, formsRouter(db));
   app.use('/api/projects/:projectId/records', ...asMember, recordsRouter(db));
