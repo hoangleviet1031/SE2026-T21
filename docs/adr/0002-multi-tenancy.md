@@ -1,6 +1,6 @@
 # ADR 0002: Nhiều tổ chức trên một hệ thống (multi-tenancy theo dự án)
 
-- **Trạng thái:** Đã chấp nhận
+- **Trạng thái:** Đã chấp nhận. **Thay thế một phần bởi [ADR 0003](0003-accounts-and-owner-role.md)** (2026-10-12): §2 (tạo người dùng, vai trò, thêm thành viên) và mục tự đăng ký ở §7. Các mục khác vẫn hiệu lực. Code hiện tại vẫn chạy theo §2 bản cũ cho tới khi các ticket "Theo ADR 0003" xong
 - **Ngày:** 2026-10-07
 - **Người phụ trách:** Thành viên 2 (Sync & Server)
 - **Liên quan:** [design.md](../design.md) §2, §5.5, §6, §7, §9; [ADR 0001 – Mô hình nhất quán](0001-consistency-model.md)
@@ -34,6 +34,8 @@ Rủi ro chính của B (quên lọc) được giảm bằng cách lấy `projec
 - `id` form chỉ cần duy nhất trong dự án: khoá chính `forms(project_id, id, version)`. Hai dự án có thể cùng có form `household-survey`.
 
 ### 2. Người dùng và vai trò
+
+> **Bản cũ, đang chạy.** Mục này đã được [ADR 0003](0003-accounts-and-owner-role.md) §1–3 thay thế: đăng nhập bằng tên + mật khẩu, vai trò `owner`, mở tổ chức qua yêu cầu được admin duyệt, admin không là thành viên tổ chức. Giữ nguyên văn dưới đây để đối chiếu với code hiện tại.
 
 | Vai trò | Phạm vi | Quyền |
 |---|---|---|
@@ -92,6 +94,8 @@ Mỗi vòng đồng bộ (vẫn trong một Web Lock duy nhất cho cả thiết
 
 ### 7. Ngoài phạm vi
 
+> "Tự đăng ký" đã được đưa vào phạm vi bởi [ADR 0003](0003-accounts-and-owner-role.md) §1; các mục còn lại vẫn ngoài phạm vi.
+
 Tổ chức nhiều cấp (tổ chức → dự án), tự đăng ký, mời qua email, SSO, chia sẻ form giữa các dự án (thay bằng xuất/nhập JSON form), chuyển phiếu giữa dự án, nhiều tài khoản trên một thiết bị, giới hạn dung lượng theo dự án, giao phiếu theo khu vực cho nhiều điều tra viên.
 
 ## Hệ quả
@@ -108,6 +112,7 @@ Tổ chức nhiều cấp (tổ chức → dự án), tự đăng ký, mời qua
 - Thiết bị tham gia nhiều dự án tốn dung lượng tương ứng; chỉ tiêu dung lượng ở design §11.2 tính cho tổng các dự án.
 
 **Việc phát sinh trong code**
+- *(Ghi chú 2026-10-12: CLI token và `project:add` ở dòng dưới đã được ADR 0003 thay bằng tự tạo tài khoản và yêu cầu mở tổ chức.)*
 - Server: bảng `projects`, `users`, `memberships`; thêm `project_id` vào `forms`, `records`, `record_history`, `idempotency`, `attachments`; index `(project_id, seq)`, `(project_id, created_by, seq)`; middleware; CLI `user:add`, `user:rotate-token`, `project:add`; route `/api/me`, `/api/admin/projects`, `/api/projects/:projectId/members`.
 - Client: CSDL `field-survey-account`; mở CSDL theo dự án; sync engine nhận CSDL làm tham số; bộ chọn dự án; màn hình Thành viên (supervisor) và Dự án (admin); banner khi bị rút.
 - Seed: hai dự án mẫu (`demo-yte`, `demo-nongnghiep`), mỗi dự án một form, để demo cách ly.

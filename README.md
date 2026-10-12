@@ -35,6 +35,8 @@ Mở http://localhost:5173. Để thử offline: DevTools > Network > Offline, r
 
 ### Tài khoản demo
 
+> 🕘 Đăng nhập bằng mã (token) là cách **đang chạy**. Theo [ADR 0003](docs/adr/0003-accounts-and-owner-role.md) sẽ đổi sang tên đăng nhập + mật khẩu, tự tạo tài khoản và trang quản trị `/admin/` (ticket TV2-14, TV3-12 sẽ cập nhật mục này).
+
 Đặt `SEED_DEMO=1` khi chạy server để nạp dữ liệu demo (chỉ dùng dev/test, token cố định): `SEED_DEMO=1 npm run dev` (PowerShell: `$env:SEED_DEMO='1'; npm run dev`).
 
 | Người dùng | Token | Dự án |
