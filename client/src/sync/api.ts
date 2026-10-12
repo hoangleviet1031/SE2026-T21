@@ -4,8 +4,7 @@ import { clearToken, getToken } from '../auth';
 
 const TIMEOUT_MS = 10_000;
 
-// Tạm dùng dự án mặc định cho tới TV2-05 (mỗi dự án một CSDL, bộ chọn dự án ở TV1-06).
-export const DEFAULT_PROJECT_ID = 'demo-yte';
+// Mọi route dữ liệu nằm dưới /api/projects/:projectId (design §7); projectId luôn do nơi gọi truyền vào.
 const projectPath = (projectId: string) => `/api/projects/${encodeURIComponent(projectId)}`;
 
 export class NetworkError extends Error {}
@@ -39,18 +38,13 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
   }
 }
 
-export async function fetchForms(projectId = DEFAULT_PROJECT_ID): Promise<FormSchema[]> {
+export async function fetchForms(projectId: string): Promise<FormSchema[]> {
   const res = await request(`${projectPath(projectId)}/forms`);
   if (!res.ok) throw new Error(`GET /api/forms ${res.status}`);
   return res.json();
 }
 
-export async function pushRecord(
-  id: string,
-  body: PushRecordRequest,
-  idempotencyKey: string,
-  projectId = DEFAULT_PROJECT_ID,
-) {
+export async function pushRecord(projectId: string, id: string, body: PushRecordRequest, idempotencyKey: string) {
   const res = await request(`${projectPath(projectId)}/records/${encodeURIComponent(id)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
@@ -59,7 +53,7 @@ export async function pushRecord(
   return { status: res.status, body: await res.json().catch(() => null) };
 }
 
-export async function pullRecords(since: number, projectId = DEFAULT_PROJECT_ID): Promise<PullResponse> {
+export async function pullRecords(projectId: string, since: number): Promise<PullResponse> {
   const res = await request(`${projectPath(projectId)}/records?since=${since}`);
   if (!res.ok) throw new Error(`GET /api/records ${res.status}`);
   return res.json();

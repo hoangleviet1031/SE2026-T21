@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.7 (2026-10-12)
+- **Phiên bản:** 0.4.8 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -22,6 +22,7 @@
 | 0.4.5 | 2026-10-11 | TV3-02: `seed:demo` từ chối chạy khi `NODE_ENV=production` (§12); `user:add` sinh `userId` dạng `u_` + 8 ký tự a-z0-9 |
 | 0.4.6 | 2026-10-10 | `FieldDef.hidden` và `validateRecord` đã có code (§4.1, §6.2; TV1-05 phần thuần) |
 | 0.4.7 | 2026-10-12 | TV2-04: `GET /me` và `/admin/projects` có code (§7); chốt định dạng API admin (id dự án do admin đặt, `PUT .../members/:userId` không có thân); thêm kiểu `AdminProject`, `CreateProjectRequest`, `UpdateProjectRequest` (§6.2) và mã `409 project_exists` (§7.1) |
+| 0.4.8 | 2026-10-12 | TV2-05: client tách `field-survey-account` và `field-survey-p-<projectId>` (§4.2); `ProjectDb` version 1 gồm `draft`, `validationErrors`, `attachments.nextAttemptAt`; CSDL `field-survey` cũ bị xoá khi khởi động; `api.ts` nhận `projectId` bắt buộc |
 
 ## Mục lục
 
@@ -178,7 +179,7 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
 
 ### 4.2 Lưu trữ offline (IndexedDB)
 
-Dexie, định nghĩa trong `client/src/db/db.ts`. Theo ADR 0002 có hai loại CSDL:
+Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/projectDb.ts`; mở CSDL của dự án đang chọn qua `client/src/db/current.ts` (`openProjectDb`, `useCurrentProjectDb`, `setCurrentProject`). Theo ADR 0002 có hai loại CSDL:
 
 **`field-survey-account`** (một CSDL cho cả thiết bị)
 
@@ -198,6 +199,7 @@ Dexie, định nghĩa trong `client/src/db/db.ts`. Theo ADR 0002 có hai loại 
 | `attachments` | `id`, index `recordId`, `uploadState`, `nextAttemptAt` | Blob ảnh, chunk đã upload, trạng thái retry (§5.6) |
 | `meta` | `key` | `pull: { cursor, scope }`, ... |
 
+- **Dự án đang chọn:** lưu trong `account` (`currentProjectId`). Chưa có `/me` trong vòng đồng bộ và bộ chọn dự án (TV2-06, TV1-06) thì mặc định `demo-yte` (code tạm).
 - **Đổi dự án:** UI đóng CSDL cũ, mở CSDL của dự án mới; mọi `liveQuery` chỉ chạy trên CSDL đang mở, nên không thể hiển thị lẫn dữ liệu hai dự án.
 - **Rút khỏi dự án:** xoá cả CSDL bằng `Dexie.delete`, chỉ khi không còn dữ liệu chưa gửi (ADR 0002 §6).
 

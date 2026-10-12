@@ -71,7 +71,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-04 · `/api/me`, `/api/admin/projects` · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-04-me-admin` (PR: chưa mở)
+- **Trạng thái:** ✅ PR #9
 - **Tuần:** 3 · **Phụ thuộc:** TV2-03
 - **Spec:** design §7 (bảng "Không theo dự án"); ADR 0002 §2
 - **File:** `server/src/routes/me.ts`, `server/src/routes/admin.ts` (mới), `shared/src/types.ts` (`MeResponse`, `ProjectSummary`, `Role`), `server/test/admin.test.ts` (mới)
@@ -86,7 +86,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-05 · CSDL account + CSDL theo dự án, `api.ts` · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-05-project-db` (PR: chưa mở). Dự án đang chọn tạm mặc định `demo-yte` tới TV2-06/TV1-06
 - **Tuần:** 3 · **Phụ thuộc:** TV2-04
 - **Spec:** design §4.2; ADR 0002 §4
 - **File:** `client/src/db/accountDb.ts` (mới), `client/src/db/projectDb.ts` (đổi từ `db.ts`), `client/src/db/current.ts` (mới), `client/src/auth.ts` (chuyển sang accountDb, giữ chữ ký), `client/src/sync/api.ts`, mọi chỗ import `db`

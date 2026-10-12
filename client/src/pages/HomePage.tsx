@@ -1,8 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type SyncState } from '../db/db';
+import { useCurrentProjectDb } from '../db/current';
+import type { SyncState } from '../db/projectDb';
 import { navigate } from '../useHashRoute';
 
 const STATE_LABEL: Record<SyncState, string> = {
+  draft: 'Nháp',
   synced: 'Đã đồng bộ',
   pending: 'Chờ đồng bộ',
   conflict: 'Cần xử lý xung đột',
@@ -10,8 +12,9 @@ const STATE_LABEL: Record<SyncState, string> = {
 };
 
 export function HomePage() {
-  const forms = useLiveQuery(() => db.forms.toArray(), []) ?? [];
-  const records = useLiveQuery(() => db.records.orderBy('updatedAt').reverse().toArray(), []) ?? [];
+  const db = useCurrentProjectDb();
+  const forms = useLiveQuery(async () => db?.forms.toArray(), [db]) ?? [];
+  const records = useLiveQuery(async () => db?.records.orderBy('updatedAt').reverse().toArray(), [db]) ?? [];
   const latestForms = Object.values(
     Object.fromEntries(forms.sort((a, b) => a.version - b.version).map((f) => [f.id, f])),
   );

@@ -1,17 +1,20 @@
 import type { RecordData } from '@field-survey/shared';
-import { db, type LocalRecord } from '../db/db';
+import type { LocalRecord, ProjectDb } from '../db/projectDb';
 
 /**
  * Lưu bản ghi cục bộ và đưa vào outbox trong cùng một transaction,
  * nên không bao giờ có bản ghi đã sửa mà không có op tương ứng.
  */
-export async function saveRecordLocally(input: {
-  id: string;
-  formId: string;
-  formVersion: number;
-  data: RecordData;
-  deleted?: boolean;
-}): Promise<void> {
+export async function saveRecordLocally(
+  db: ProjectDb,
+  input: {
+    id: string;
+    formId: string;
+    formVersion: number;
+    data: RecordData;
+    deleted?: boolean;
+  },
+): Promise<void> {
   await db.transaction('rw', db.records, db.outbox, async () => {
     const existing = await db.records.get(input.id);
     const now = new Date().toISOString();

@@ -6,7 +6,8 @@ import {
   type RecordData,
   type ServerRecord,
 } from '@field-survey/shared';
-import { db, formKey, getMeta, setMeta, type OutboxOp } from '../db/db';
+import { getCurrentProjectDb } from '../db/current';
+import { formKey, getMeta, setMeta, type OutboxOp, type ProjectDb } from '../db/projectDb';
 import { NetworkError, fetchForms, pullRecords, pushRecord } from './api';
 
 // Sync engine: push outbox (FIFO theo từng bản ghi) rồi pull thay đổi từ server.
@@ -36,19 +37,21 @@ export function startSyncLoop(intervalMs = 30_000): () => void {
 }
 
 async function runSync(): Promise<void> {
+  // Chỉ dự án đang chọn; TV2-06 sẽ chạy lần lượt mọi dự án (ADR 0002 §5).
+  const db = await getCurrentProjectDb();
   try {
     if (!navigator.onLine) return;
     // Push trước: dữ liệu người dùng quan trọng hơn danh sách form
-    await pushAll();
-    await pullAll();
-    await syncForms();
+    await pushAll(db);
+    await pullAll(db);
+    await syncForms(db);
   } finally {
-    await scheduleNextRetry();
+    await scheduleNextRetry(db);
   }
 }
 
 /** Hẹn giờ chạy lại đúng lúc op sớm nhất hết thời gian backoff */
-async function scheduleNextRetry() {
+async function scheduleNextRetry(db: ProjectDb) {
   clearTimeout(retryTimer);
   // Offline thì chờ sự kiện 'online'; chỉ hẹn giờ cho op đang trong thời gian backoff
   if (!navigator.onLine) return;
@@ -62,12 +65,12 @@ async function scheduleNextRetry() {
   retryTimer = setTimeout(() => void syncNow().catch((e) => console.warn('sync failed', e)), delay);
 }
 
-async function syncForms(): Promise<void> {
-  const forms = await fetchForms();
+async function syncForms(db: ProjectDb): Promise<void> {
+  const forms = await fetchForms(db.projectId);
   await db.forms.bulkPut(forms.map((f) => ({ ...f, key: formKey(f.id, f.version) })));
 }
 
-async function pushAll(): Promise<void> {
+async function pushAll(db: ProjectDb): Promise<void> {
   const ops = await db.outbox.orderBy('seq').toArray();
   const blockedRecords = new Set<string>();
   for (const op of ops) {
@@ -77,13 +80,13 @@ async function pushAll(): Promise<void> {
       blockedRecords.add(op.recordId);
       continue;
     }
-    const done = await pushOne(op);
+    const done = await pushOne(db, op);
     if (!done) blockedRecords.add(op.recordId);
   }
 }
 
 /** Trả về true nếu op đã xong (thành công hoặc đã được thay thế). */
-async function pushOne(op: OutboxOp): Promise<boolean> {
+async function pushOne(db: ProjectDb, op: OutboxOp): Promise<boolean> {
   const record = await db.records.get(op.recordId);
   if (!record) {
     await db.outbox.delete(op.seq!);
@@ -93,6 +96,7 @@ async function pushOne(op: OutboxOp): Promise<boolean> {
   let res: { status: number; body: unknown };
   try {
     res = await pushRecord(
+      db.projectId,
       record.id,
       {
         formId: record.formId,
@@ -105,22 +109,22 @@ async function pushOne(op: OutboxOp): Promise<boolean> {
     );
   } catch (err) {
     if (err instanceof NetworkError) {
-      await scheduleRetry(op, err.message);
+      await scheduleRetry(db, op, err.message);
       return false;
     }
     throw err;
   }
 
   if (res.status === 200 || res.status === 201) {
-    await onPushed(op, res.body as ServerRecord);
+    await onPushed(db, op, res.body as ServerRecord);
     return true;
   }
   if (res.status === 409) {
-    await onConflict(op, res.body as ConflictResponse);
+    await onConflict(db, op, res.body as ConflictResponse);
     return true;
   }
   if (res.status >= 500 || res.status === 408 || res.status === 429) {
-    await scheduleRetry(op, `HTTP ${res.status}`);
+    await scheduleRetry(db, op, `HTTP ${res.status}`);
     return false;
   }
   // 403: không còn là thành viên dự án. Giữ op trong outbox, không đánh dấu lỗi (bất biến 1);
@@ -134,7 +138,7 @@ async function pushOne(op: OutboxOp): Promise<boolean> {
   return false;
 }
 
-async function scheduleRetry(op: OutboxOp, error: string) {
+async function scheduleRetry(db: ProjectDb, op: OutboxOp, error: string) {
   await db.outbox.update(op.seq!, {
     attempts: op.attempts + 1,
     nextAttemptAt: Date.now() + nextRetryDelay(op.attempts),
@@ -142,7 +146,7 @@ async function scheduleRetry(op: OutboxOp, error: string) {
   });
 }
 
-async function onPushed(op: OutboxOp, saved: ServerRecord) {
+async function onPushed(db: ProjectDb, op: OutboxOp, saved: ServerRecord) {
   await db.transaction('rw', db.outbox, db.records, async () => {
     await db.outbox.delete(op.seq!);
     const remaining = await db.outbox.where('recordId').equals(op.recordId).count();
@@ -160,7 +164,7 @@ async function onPushed(op: OutboxOp, saved: ServerRecord) {
  *   base = record.baseData, local = record.data (mới nhất), remote = server.current.
  * Không có trường xung đột -> tự gộp và gửi lại ngay. Có -> chờ người dùng.
  */
-async function onConflict(op: OutboxOp, conflict: ConflictResponse) {
+async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictResponse) {
   await db.transaction('rw', db.outbox, db.records, db.conflicts, async () => {
     const record = (await db.records.get(op.recordId))!;
     const remote = conflict.current;
@@ -199,7 +203,7 @@ async function onConflict(op: OutboxOp, conflict: ConflictResponse) {
 }
 
 /** Người dùng đã chọn giá trị cho từng trường ở màn hình conflict. */
-export async function resolveConflict(recordId: string, resolved: RecordData, deleted: boolean) {
+export async function resolveConflict(db: ProjectDb, recordId: string, resolved: RecordData, deleted: boolean) {
   await db.transaction('rw', db.outbox, db.records, db.conflicts, async () => {
     const c = await db.conflicts.get(recordId);
     if (!c) return;
@@ -229,10 +233,10 @@ function newOp(recordId: string, data: RecordData, deleted: boolean): OutboxOp {
   };
 }
 
-async function pullAll(): Promise<void> {
-  let cursor = await getMeta<number>('pullCursor', 0);
+async function pullAll(db: ProjectDb): Promise<void> {
+  let cursor = await getMeta<number>(db, 'pullCursor', 0);
   for (;;) {
-    const page = await pullRecords(cursor);
+    const page = await pullRecords(db.projectId, cursor);
     await db.transaction('rw', db.records, db.outbox, db.meta, async () => {
       for (const remote of page.records) {
         const local = await db.records.get(remote.id);
@@ -252,7 +256,7 @@ async function pullAll(): Promise<void> {
           updatedAt: remote.updatedAt,
         });
       }
-      await setMeta('pullCursor', page.cursor);
+      await setMeta(db, 'pullCursor', page.cursor);
     });
     if (page.cursor === cursor || page.records.length === 0) break;
     cursor = page.cursor;
