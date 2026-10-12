@@ -48,7 +48,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-02 | Màn hình nhập mã đăng nhập | ✅ PR #6 · ⚠ bản cũ, sẽ thay bởi TV1-14 |
 | TV1-03 | Validate form + `POST P/forms` | — |
 | TV1-04 | Form builder | — |
-| TV1-05 | Validate phiếu + nháp | ⏳ PR #7 (`validateRecord`), còn phần client |
+| TV1-05 | Validate phiếu + nháp | ✅ PR #7 (`validateRecord`), PR #17 (client) |
 | TV1-06 | Bộ chọn dự án | — · 🆕 cập nhật theo ADR 0003 |
 | TV1-07 | Cập nhật SW, Cài đặt, kiểm tra trình duyệt | — · 🆕 cập nhật theo ADR 0003 |
 | TV1-08 | Thành viên dự án (API + màn hình) | — · 🆕 cập nhật theo ADR 0003 |
