@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.12 (2026-10-12)
+- **Phiên bản:** 0.4.13 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -27,6 +27,7 @@
 | 0.4.10 | 2026-10-12 | TV2-07: `meta.pull = { cursor, scope }` và quy tắc phạm vi rộng/hẹp (§5.5); dự án bị rút hoặc hạ vai trò chỉ bị xoá dữ liệu khi không còn gì chưa gửi; `403 not_member` dừng dự án; route kiểm thử `/api/__test/memberships` (§10.1) |
 | 0.4.11 | 2026-10-12 | TV2-08: `request_hash` = SHA-256 của JSON chuẩn hoá (khoá sắp xếp) gồm `projectId`, `recordId` và các trường `PushRecordRequest`; khác hash thì `422`; dọn key quá 30 ngày khi khởi động và mỗi 24 giờ; fault `drop` cắt kết nối sau khi ghi, thêm `drop-before` (§10.1); R2, R3, R6 có test |
 | 0.4.12 | 2026-10-12 | TV2-09: op `failed` (4xx tính một lần gửi), sửa phiếu lỗi tạo op mới thay vì sửa op đã gửi, "Thử lại" giữ `opId` và `attempts` (§5.1); `createdAt` của op và quy tắc cảnh báo tồn lâu (§5.2); fault mode `"400"` và R5 có test (§10.1) |
+| 0.4.13 | 2026-10-12 | Thêm đề xuất P9 ([ADR 0003](adr/0003-accounts-and-owner-role.md), chưa chốt): tự tạo tài khoản bằng tên + mật khẩu, tổ chức công khai (chỉ hiện tên), vai trò `owner` của tổ chức, yêu cầu mở tổ chức do admin duyệt, trang quản trị riêng. Các mục spec khác chưa đổi (§14) |
 
 ## Mục lục
 
@@ -793,6 +794,14 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 | Nhập mã người khác khi còn phiếu chưa gửi (P5)? | Từ chối, chỉ cho xuất JSON (§4.7; nhóm, 2026-10-10) |
 | Xoá phiếu (P6)? | Xoá hẳn nếu chưa thể tới server, tombstone nếu có thể đã tới (§5.7). Phân công: TV2-13 (logic và đồng bộ, Hoàng), TV1-13 (nút xoá và hộp xác nhận, Dương) (nhóm, 2026-10-10) |
 | API kiểm thử chung (P8)? | Một API dùng chung gồm `match`, `chunkIndex`, `400`, `stats` (§10.1); không ticket nào tự thêm mode riêng vào `faults.ts` (TV2 và TV3, 2026-10-10) |
+
+**Đang đề xuất** (chưa chốt; spec ở các mục trên chưa đổi theo)
+
+| # | Đề xuất | Người đề xuất | Chi tiết |
+|---|---|---|---|
+| P9 | Tự tạo tài khoản (tên đăng nhập + mật khẩu, mỗi máy một phiên); tổ chức công khai chỉ hiện tên trong danh sách, không có xin tham gia; giám sát viên/Owner thêm người bằng tên đăng nhập; thêm vai trò `owner` (người đứng ra tạo tổ chức và sở hữu dữ liệu: sửa form, chỉ định giám sát viên, bật/tắt công khai); người dùng gửi yêu cầu mở tổ chức, admin (người kiểm soát app) duyệt; admin không xem được dữ liệu tổ chức và có trang quản trị riêng `/admin/`; một tài khoản thuộc được nhiều tổ chức với vai trò khác nhau. Thay thế một phần ADR 0002 §2, §7 | Hoàng, 2026-10-12 | [ADR 0003](adr/0003-accounts-and-owner-role.md); Hoàng đã chốt nội dung, chờ Dương và Đại duyệt |
+
+Khi P9 được chốt: đổi trạng thái ADR 0003, ghi "Thay thế một phần bởi ADR 0003" ở ADR 0002, cập nhật §1, §2, §4.7, §6, §7, §7.1, §9, §10.1, §12 và [ui.md](ui.md), rồi tách ticket trong [plan/](plan/README.md).
 
 **Còn mở**
 
