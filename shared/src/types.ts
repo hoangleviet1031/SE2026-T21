@@ -55,6 +55,9 @@ export interface RecordHistoryEntry {
   updatedBy: string;
 }
 
+/** Thân request POST P/forms: server tự đặt `version` (bản mới nhất + 1), không nhận từ client */
+export type SaveFormRequest = Omit<FormSchema, 'version'>;
+
 /** Thân request PUT /api/records/:id */
 export interface PushRecordRequest {
   formId: string;
