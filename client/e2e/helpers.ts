@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type APIRequestContext, type Page } from '@playwright/test';
 
 // Hàm dùng chung cho E2E. Token và dự án khớp server/src/seedDemo.ts (server E2E chạy với SEED_DEMO=1).
 
@@ -47,4 +47,39 @@ export function readStore(page: Page, dbName: string, store: string): Promise<un
       }),
     { dbName, store },
   );
+}
+
+/** Ghi một dòng vào bảng có sẵn bằng API gốc. App không thấy thay đổi này cho tới khi tải lại trang. */
+export function putRow(page: Page, dbName: string, store: string, row: unknown): Promise<void> {
+  return page.evaluate(
+    ({ dbName, store, row }) =>
+      new Promise<void>((resolve, reject) => {
+        const open = indexedDB.open(dbName);
+        open.onupgradeneeded = () => open.transaction?.abort();
+        open.onerror = () => reject(open.error ?? new Error(`chưa có CSDL ${dbName}`));
+        open.onsuccess = () => {
+          const db = open.result;
+          const tx = db.transaction(store, 'readwrite');
+          tx.objectStore(store).put(row);
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+    { dbName, store, row },
+  );
+}
+
+/** Đổi thành viên qua route kiểm thử (server E2E chạy với ENABLE_TEST_ROUTES=1). `null` = rút khỏi dự án. */
+export async function setMembership(
+  request: APIRequestContext,
+  projectId: string,
+  userId: string,
+  role: 'surveyor' | 'supervisor' | null,
+) {
+  const url = `http://localhost:3001/api/__test/memberships/${projectId}/${userId}`;
+  const res = role ? await request.put(url, { data: { role } }) : await request.delete(url);
+  expect(res.ok()).toBe(true);
 }

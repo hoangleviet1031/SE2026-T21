@@ -10,8 +10,9 @@ import {
 import { accountDb, type AccountProject } from '../db/accountDb';
 import { getCurrentProjectId, openProjectDb } from '../db/current';
 import { formKey, getMeta, setMeta, type OutboxOp, type ProjectDb, type SyncState } from '../db/projectDb';
-import { NetworkError, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
-import { mergeMeIntoProjects, projectsToSync } from './accountSync';
+import { NetworkError, NotMemberError, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
+import { mergeMeIntoProjects, projectsToSync, pullStateAfterPage, type PullState } from './accountSync';
+import { applyMembershipChanges, markRemoved } from './membership';
 
 // Sync engine: push outbox (FIFO theo từng bản ghi) rồi pull thay đổi từ server.
 // Xem docs/design.md §5 và docs/adr/0001-consistency-model.md.
@@ -59,15 +60,18 @@ async function runSync(): Promise<void> {
 async function syncAllProjects(): Promise<void> {
   if (!navigator.onLine) return;
   const projects = await refreshProjects();
+  await applyMembershipChanges(projects);
   const dbs = projectsToSync(projects, await getCurrentProjectId()).map(openProjectDb);
   try {
     for (const db of dbs) {
-      // Push trước: dữ liệu người dùng quan trọng hơn danh sách form
-      await pushAll(db);
-      await uploadAttachments(db);
-      await pullAll(db);
-      await syncForms(db);
-      await updateCounts(db);
+      try {
+        await syncProject(db);
+      } catch (err) {
+        if (!(err instanceof NotMemberError)) throw err;
+        // Bị rút giữa hai lần gọi /me: ngừng gửi cho dự án này, giữ nguyên dữ liệu; vòng sau
+        // applyMembershipChanges xử lý như dự án bị rút (ADR 0002 §6).
+        await markRemoved(db.projectId);
+      }
     }
   } finally {
     await scheduleNextRetry(dbs);
@@ -92,6 +96,15 @@ async function refreshProjects(): Promise<AccountProject[]> {
     await accountDb.projects.bulkPut(merged);
     return merged;
   });
+}
+
+async function syncProject(db: ProjectDb): Promise<void> {
+  // Push trước: dữ liệu người dùng quan trọng hơn danh sách form
+  await pushAll(db);
+  await uploadAttachments(db);
+  await pullAll(db);
+  await syncForms(db);
+  await updateCounts(db);
 }
 
 // TODO(TV3-06): upload ảnh của dự án (design §5.6). Đặt giữa push và pull theo §5.3.
@@ -184,8 +197,8 @@ async function pushOne(db: ProjectDb, op: OutboxOp): Promise<boolean> {
     await scheduleRetry(db, op, `HTTP ${res.status}`);
     return false;
   }
-  // 403: không còn là thành viên dự án. Giữ op trong outbox, không đánh dấu lỗi (bất biến 1);
-  // việc xử lý như bị rút khỏi dự án thuộc TV2-07. 401 đã được api.ts xử lý (AuthError).
+  // 403 forbidden (sai vai trò): giữ op trong outbox, không đánh dấu lỗi (bất biến 1).
+  // 403 not_member và 401 đã được api.ts ném thành NotMemberError / AuthError.
   if (res.status === 403) return false;
   // 4xx khác: lỗi dữ liệu, retry cũng vô ích
   await db.transaction('rw', db.outbox, db.records, async () => {
@@ -291,9 +304,17 @@ function newOp(recordId: string, data: RecordData, deleted: boolean): OutboxOp {
 }
 
 async function pullAll(db: ProjectDb): Promise<void> {
-  let cursor = await getMeta<number>(db, 'pullCursor', 0);
+  let state = await getMeta<PullState>(db, 'pull', { cursor: 0, scope: null });
   for (;;) {
+    const cursor = state.cursor;
     const page = await pullRecords(db.projectId, cursor);
+    const next = pullStateAfterPage(state, page.scope);
+    if (next.restart) {
+      // Phạm vi rộng ra: phiếu người khác có seq nhỏ hơn cursor cũ, phải pull lại từ 0 (§5.5)
+      state = { cursor: 0, scope: next.scope };
+      await setMeta(db, 'pull', state);
+      continue;
+    }
     await db.transaction('rw', db.records, db.outbox, db.meta, async () => {
       for (const remote of page.records) {
         const local = await db.records.get(remote.id);
@@ -313,9 +334,9 @@ async function pullAll(db: ProjectDb): Promise<void> {
           updatedAt: remote.updatedAt,
         });
       }
-      await setMeta(db, 'pullCursor', page.cursor);
+      state = { cursor: page.cursor, scope: next.scope };
+      await setMeta(db, 'pull', state);
     });
     if (page.cursor === cursor || page.records.length === 0) break;
-    cursor = page.cursor;
   }
 }

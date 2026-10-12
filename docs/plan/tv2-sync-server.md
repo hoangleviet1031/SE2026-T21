@@ -86,7 +86,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-05 · CSDL account + CSDL theo dự án, `api.ts` · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-05-project-db` (PR: chưa mở). Dự án đang chọn tạm mặc định `demo-yte` tới TV2-06/TV1-06
+- **Trạng thái:** ✅ PR #10. Dự án đang chọn tạm mặc định `demo-yte` tới TV2-06/TV1-06
 - **Tuần:** 3 · **Phụ thuộc:** TV2-04
 - **Spec:** design §4.2; ADR 0002 §4
 - **File:** `client/src/db/accountDb.ts` (mới), `client/src/db/projectDb.ts` (đổi từ `db.ts`), `client/src/db/current.ts` (mới), `client/src/auth.ts` (chuyển sang accountDb, giữ chữ ký), `client/src/sync/api.ts`, mọi chỗ import `db`
@@ -122,7 +122,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-07 · Cursor theo scope + thay đổi thành viên · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-07-membership` (PR: chưa mở; chồng lên TV2-06). T7 mới kiểm phần dữ liệu, banner do TV1-06
 - **Tuần:** 4 · **Phụ thuộc:** TV2-06
 - **Spec:** ADR 0001 quy tắc 10; ADR 0002 §5–6
 - **File:** `client/src/sync/engine.ts`, `client/src/sync/membership.ts` (mới), `client/e2e/membership.spec.ts` (mới)
