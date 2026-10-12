@@ -28,6 +28,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 ## TV2-02 · Xác thực, `requireMember`, lớp `ctx` · **Lõi**
 
 - **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-03, TV3-02)
+- ⚠ **ADR 0003:** `requireAuth` tra `users.token_hash` là **bản cũ, vẫn đang chạy**; TV2-14 đổi sang bảng `sessions` và thêm vai trò `owner` vào `requireMember`. Nội dung dưới đây giữ nguyên như lúc làm.
 - **Tuần:** 2 · **Phụ thuộc:** TV2-01
 - **Spec:** design §9, §7.1 (`401`, `403 not_member`, `403 forbidden`); ADR 0002 §2–3
 - **File:** `server/src/auth.ts` (mới), `server/src/repo/` (mới: `records.ts`, `forms.ts`, `memberships.ts`), `server/src/app.ts`, `server/test/auth.test.ts` (mới)
@@ -72,6 +73,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 ## TV2-04 · `/api/me`, `/api/admin/projects` · **Lõi**
 
 - **Trạng thái:** ✅ PR #9
+- ⚠ **ADR 0003:** `POST /admin/projects`, `PATCH` đổi tên và `PUT /admin/projects/:id/members/:userId` là **bản cũ, vẫn đang chạy**; TV2-15 bỏ chúng (tổ chức chỉ tạo khi admin duyệt yêu cầu, admin chỉ định Owner bằng tên đăng nhập). `GET /me` giữ, TV2-14 thêm `username`. Nội dung dưới đây giữ nguyên như lúc làm.
 - **Tuần:** 3 · **Phụ thuộc:** TV2-03
 - **Spec:** design §7 (bảng "Không theo dự án"); ADR 0002 §2
 - **File:** `server/src/routes/me.ts`, `server/src/routes/admin.ts` (mới), `shared/src/types.ts` (`MeResponse`, `ProjectSummary`, `Role`), `server/test/admin.test.ts` (mới)
@@ -230,3 +232,85 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 **Xong khi:** E2E **O7**, **O8** (design §10.1).
 
 **Review kỹ (TV1 duyệt):** điều kiện "chưa thể tới server": nhầm sang xoá hẳn khi server đã có bản ghi sẽ để phiếu mồ côi trên server; không sửa `data` của op có `attempts > 0`; transaction bao đủ ba bảng; không xoá gì ngoài phiếu đang xoá.
+
+---
+
+# Theo ADR 0003 (bản mới)
+
+Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-role.md) và các mục 🆕 trong design.md. Code hiện tại (TV2-02, TV2-04) vẫn chạy theo bản cũ cho tới khi các ticket này xong; khi xong thì xoá đoạn 🕘 tương ứng trong design.md cùng PR.
+
+---
+
+## TV2-14 · Migration 3, tài khoản + phiên, vai trò `owner` (server) · **Lõi**
+
+- **Trạng thái:** —
+- **Tuần:** 3 · **Phụ thuộc:** không · **Làm cùng:** TV3-12 (**một PR**, vì đổi đăng nhập làm vỡ mọi test đang dùng token)
+- **Spec:** ADR 0003 §1, §2, §5; design §6.1 (migration 3), §6.2, §7 (`/auth/*`), §7.1, §9
+- **File:** `docs/deploy.md` (bước nâng cấp), `server/src/db.ts`, `server/src/auth.ts`, `server/src/password.ts` (mới, `scrypt`), `server/src/rateLimit.ts` (mới), `server/src/routes/auth.ts` (mới), `server/src/routes/me.ts`, `server/src/repo/memberships.ts`, `server/src/repo/records.ts` (`scopeOf` cho `owner`), `server/src/routes/testMemberships.ts` (nhận `owner`), `shared/src/types.ts`, `server/test/db.test.ts`, `server/test/auth.test.ts`, `server/test/accounts.test.ts` (mới)
+
+**Việc**
+- Migration 3 theo design §6.1: `users.username`, `users.password_hash`, bảng `sessions` (chép `users.token_hash` cũ thành phiên), `projects.public`, **tạo lại `memberships`** (chép dữ liệu, `CHECK` có `owner`, thêm `added_by`). Bảng `project_requests` để TV2-15.
+- **Dữ liệu cũ (ADR 0003 §5):** bước đầu của migration 3 kiểm tra tài khoản `is_admin = 1` có membership; có thì ném lỗi liệt kê `username`/`userId`, `projectId`, vai trò → transaction rollback, `user_version` giữ 2, server không khởi động. Không tự chọn Owner cho tổ chức cũ; `requireMember` và luật `last_owner` phải chạy đúng với tổ chức chưa có Owner.
+- `password.ts`: `hashPassword`, `verifyPassword` bằng `scrypt` + `timingSafeEqual`; hàm thuần, có unit test.
+- `POST /api/auth/register`, `/login`, `/logout` (design §7). Giới hạn tần suất trong bộ nhớ: 10 lần sai/15 phút theo tên hoặc IP, 5 đăng ký/giờ/IP.
+- `requireAuth` tra `sessions` (không còn `users.token_hash`), cập nhật `last_seen_at`; `disabled` → `401`.
+- `Role` thêm `owner`; `ROLE_RANK` `surveyor < supervisor < owner`; `scopeOf(owner) = 'all'`; `/me` trả `username`.
+
+**Xong khi**
+- Test **U1–U6** (design §10.1).
+- `db.test.ts`: **MG1** (admin là thành viên → lỗi, rollback, dữ liệu không đổi) và **MG2** (lên 3 không mất membership nào; vai trò cũ giữ nguyên; token cũ vẫn đăng nhập được qua `sessions`; supervisor dùng được `P/...` khi chưa có Owner).
+- `docs/deploy.md`: thêm bước kiểm tra trước khi nâng cấp staging (truy vấn admin có membership) và chỉ định Owner sau khi nâng cấp.
+- Test cũ của `auth.test.ts`, `records.test.ts` … vẫn xanh sau khi TV3-12 đổi fixture (không nới assertion).
+
+**Review kỹ:** migration tạo lại `memberships` trong transaction, đếm số dòng trước/sau; không log mật khẩu hay token; so sánh hằng thời gian; sai tên và sai mật khẩu trả cùng lỗi.
+
+---
+
+## TV2-15 · Yêu cầu mở tổ chức, danh bạ công khai, API admin mới (server) · **Lõi**
+
+- **Trạng thái:** —
+- **Tuần:** 3–4 · **Phụ thuộc:** TV2-14
+- **Spec:** ADR 0003 §3, §4, §6; design §6.1 (`project_requests`), §7, §7.1
+- **File:** `server/src/db.ts` (bảng `project_requests` trong migration 3 nếu TV2-14 chưa merge, hoặc migration 4), `server/src/repo/projectRequests.ts` (mới), `server/src/repo/projects.ts`, `server/src/routes/projectRequests.ts` (mới), `server/src/routes/directory.ts` (mới), `server/src/routes/admin.ts`, `server/test/projectRequests.test.ts` (mới), `server/test/admin.test.ts`
+
+**Việc**
+- `/api/project-requests` (GET, POST, DELETE) và `/api/admin/project-requests` (GET, POST duyệt/từ chối). Duyệt: **một transaction** tạo dự án (`id` = `p-` + 8 ký tự), membership `owner` cho người gửi (`added_by` = admin), cập nhật yêu cầu. Admin không có membership.
+- Giới hạn: 1 yêu cầu đang chờ, Owner của tối đa 3 tổ chức chưa lưu trữ → `409 project_limit_reached`.
+- `GET /api/directory`: chỉ `id`, `name` của tổ chức `public = 1`, chưa lưu trữ, mình chưa thuộc.
+- `/api/admin/projects`: GET thêm `ownerUsernames`, `memberCount`; `PATCH` chỉ còn `archived`; thêm `PUT …/owners/:username`; **bỏ** `POST /admin/projects` và `PUT …/members/:userId` (sửa test cũ trong `admin.test.ts` cho đúng spec mới, ghi lý do trong PR).
+
+**Xong khi:** test **Q1–Q7**, **D1**, **A8**; T4 vẫn xanh.
+
+**Review kỹ:** duyệt yêu cầu không bao giờ thêm admin vào `memberships`; route `/directory`, `/project-requests` không chạm form/phiếu; `projectId` mới do server sinh, không đọc từ thân.
+
+---
+
+## TV2-16 · Client: đăng nhập bằng phiên, vai trò `owner`, chặn tài khoản admin · **Lõi**
+
+- **Trạng thái:** —
+- **Tuần:** 4 · **Phụ thuộc:** TV2-14
+- **Spec:** ADR 0003 §1, §8; design §4.2, §4.7, §4.9
+- **File:** `client/src/sync/api.ts` (`register`, `login`, `logout`), `client/src/auth.ts`, `client/src/db/accountDb.ts` (`username`), `client/src/sync/accountSync.ts` (vai trò `owner`), `client/src/sync/engine.ts`, `client/src/sync/*.test.ts`
+
+**Việc**
+- `api.ts`: `register`, `login` trả `{ token, user }`; `logout` gọi `/auth/logout` rồi xoá token. Giữ chữ ký `getToken/setToken/clearToken` để màn hình của TV1-14 dùng.
+- Đăng nhập bằng tài khoản `isAdmin`: không lưu token, báo lỗi `AdminAccountError` để màn hình hiện "Tài khoản quản trị dùng trang /admin"; không tạo CSDL nào.
+- `needsRescope` và phạm vi pull hiểu `owner` (như `supervisor`); unit test.
+- Logic "đăng nhập tài khoản khác khi còn dữ liệu chưa gửi" (design §4.7) chạy sau `login`.
+
+**Xong khi:** unit test cho `owner`; E2E **Q11**; mọi E2E hiện có xanh với helper mới của TV3-12.
+
+**Review kỹ:** không có đường nào xoá CSDL dự án khi đăng nhập tài khoản khác mà còn dữ liệu chưa gửi (bất biến 1).
+
+---
+
+## TV2-17 · API quản lý tài khoản cho màn hình A3 · **Cắt được**
+
+- **Trạng thái:** —
+- **Tuần:** 6 · **Phụ thuộc:** TV2-15
+- **Spec:** ADR 0003 §8 (A3); design §7
+- **File:** `server/src/routes/admin.ts`, `server/src/repo/users.ts` (mới, dùng chung với CLI của TV3-12), `server/test/admin.test.ts`
+
+**Việc:** `GET /api/admin/users?q=`, `POST /api/admin/users/:id/disable | reset-password | revoke-sessions`; cùng hành vi với CLI (dùng chung hàm trong `repo/users.ts`).
+
+**Xong khi:** integration: admin làm được ba thao tác; người thường → `403`; mật khẩu tạm chỉ trả một lần, DB chỉ có hash.

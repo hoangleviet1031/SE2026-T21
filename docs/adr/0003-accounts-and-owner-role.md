@@ -1,6 +1,6 @@
 # ADR 0003: Tự tạo tài khoản, tổ chức công khai và vai trò Owner
 
-- **Trạng thái:** Đề xuất. Hoàng đã chốt toàn bộ nội dung ngày 2026-10-12; chờ Dương và Đại duyệt qua PR (thay thế một phần ADR 0002 nên cần cả nhóm); chưa có code
+- **Trạng thái:** Đã chấp nhận (2026-10-12, PR #21, Dương và Đại duyệt). **Chưa có code**: các ticket thực hiện ở [plan/README.md](../plan/README.md), nhóm "Theo ADR 0003"
 - **Ngày:** 2026-10-12
 - **Người phụ trách:** Hoàng (TV2)
 - **Thay thế một phần:** [ADR 0002](0002-multi-tenancy.md) §2 (tạo người dùng, thêm thành viên, vai trò) và §7 (tự đăng ký nằm ngoài phạm vi). Phần còn lại của ADR 0002 (cách ly theo dự án, `requireMember`, mỗi dự án một IndexedDB, thay đổi thành viên khi offline) giữ nguyên.
@@ -159,7 +159,16 @@ Mỗi tổ chức luôn có ít nhất một Owner: không rút/hạ được Ow
 | `sessions` *(mới)* | `token_hash` PK, `user_id` FK `users`, `created_at`, `last_seen_at`; index `(user_id)`. Migration chép `users.token_hash` cũ thành một phiên, để máy đang đăng nhập bằng token cũ (staging) không bị đẩy ra |
 | `projects` | Thêm `public INTEGER NOT NULL DEFAULT 0` |
 | `project_requests` *(mới)* | `id` PK (UUID), `user_id` FK `users`, `name`, `note`, `status` ∈ `pending`, `approved`, `rejected`, `cancelled` (`CHECK`), `created_at`, `decided_at`, `decided_by`, `reason` (lý do từ chối), `project_id` (có khi đã duyệt); index `(status, created_at)`, `(user_id, status)` |
-| `memberships` | **Tạo lại bảng và chép nguyên dữ liệu** (SQLite không sửa được `CHECK`): `CHECK (role IN ('surveyor', 'supervisor', 'owner'))`, thêm `added_by`. Supervisor hiện có giữ nguyên vai trò; mỗi tổ chức đang có dữ liệu phải được admin chỉ định ít nhất một Owner sau khi nâng cấp. Đây là ngoại lệ thứ hai so với luật "chỉ thêm cột/bảng" (design §12); nhóm chấp nhận vì dữ liệu được chép nguyên vẹn và vai trò nằm một chỗ dễ kiểm tra hơn so với bảng `project_owners` riêng |
+| `memberships` | **Tạo lại bảng và chép nguyên dữ liệu** (SQLite không sửa được `CHECK`): `CHECK (role IN ('surveyor', 'supervisor', 'owner'))`, thêm `added_by`. Supervisor hiện có giữ nguyên vai trò. Đây là ngoại lệ thứ hai so với luật "chỉ thêm cột/bảng" (design §12); nhóm chấp nhận vì dữ liệu được chép nguyên vẹn và vai trò nằm một chỗ dễ kiểm tra hơn so với bảng `project_owners` riêng |
+
+**Dữ liệu cũ khi nâng cấp lên migration 3** (chốt 2026-10-12):
+
+1. **Tài khoản admin đang là thành viên tổ chức** (được phép ở bản cũ, ví dụ admin tự chỉ định mình làm supervisor trên staging): migration **dừng ngay từ đầu, không đổi gì** (rollback, `user_version` giữ 2) và báo lỗi liệt kê từng cặp `username`/`userId` – `projectId` – vai trò. Server không khởi động cho tới khi người vận hành tự xử lý, bằng một trong hai cách:
+   - bỏ cờ admin của tài khoản đó (`UPDATE users SET is_admin = 0 …`, hoặc lệnh CLI nếu có), giữ nguyên vai trò trong tổ chức; tạo tài khoản admin riêng bằng `user:add --admin`;
+   - hoặc rút tài khoản admin khỏi tổ chức (chỉ khi tổ chức còn supervisor khác).
+
+   Lý do: không tự động xoá quyền hay membership của ai (phương án đã cân nhắc và bỏ: tự gỡ cờ admin; tự xoá membership của admin, có thể làm tổ chức mất người quản lý duy nhất). Kiểm tra này chạy **trước** khi tạo lại `memberships`, trong cùng transaction của migration.
+2. **Tổ chức chưa có Owner:** mọi tổ chức có từ trước đều không có Owner sau migration. Migration không tự chọn Owner. Admin chỉ định bằng `PUT /api/admin/projects/:projectId/owners/:username` (hoặc màn hình A2). Trong lúc chưa có Owner, tổ chức vẫn chạy bình thường với supervisor (thêm/rút điều tra viên, form, phiếu); chỉ các việc dành cho Owner (thêm supervisor, công khai, đổi tên) chưa làm được. A2 đánh dấu tổ chức "Chưa có Owner". Luật `last_owner` chỉ chặn việc **làm mất** Owner cuối cùng, không chặn tổ chức chưa từng có Owner.
 
 ### 6. API
 
@@ -315,6 +324,8 @@ Mã ca mới: `U` (tài khoản), `Q` (yêu cầu mở tổ chức), `D` (danh s
 | U5 | Integration | Đăng nhập hai lần (hai máy), cả hai token gửi phiếu | Cả hai được; đăng xuất một máy không ảnh hưởng máy kia |
 | U6 | Integration | DB chỉ chứa hash | Không có mật khẩu hay token gốc trong `users`, `sessions` |
 | U7 | E2E | Tạo tài khoản trên app, tải lại trang | Vẫn đăng nhập; offline lần đầu thì báo cần mạng |
+| MG1 | Integration | DB ở `user_version = 2` có tài khoản `is_admin = 1` là thành viên một tổ chức → `openDb` | Ném lỗi liệt kê đúng tài khoản và tổ chức; `user_version` vẫn 2, `memberships` không đổi |
+| MG2 | Integration | DB ở `user_version = 2` không có admin là thành viên → `openDb` | Lên 3; số membership và vai trò giữ nguyên; token cũ đăng nhập được qua `sessions`; mọi tổ chức chưa có Owner nhưng supervisor vẫn dùng được `P/...` |
 | Q1 | Integration | Người dùng gửi yêu cầu mở tổ chức | `201 pending`; chưa có tổ chức nào được tạo; `/me` vẫn `projects: []` |
 | Q2 | Integration | Admin duyệt | Tổ chức được tạo với `id` dạng `p-xxxxxxxx`, người gửi là `owner`, `/me` của người gửi có tổ chức; admin **không** có membership |
 | Q3 | Integration | Admin từ chối kèm lý do; từ chối không có lý do | Người gửi đọc được lý do, không có tổ chức; `400 invalid_body` |
