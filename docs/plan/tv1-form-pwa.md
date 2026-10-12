@@ -8,7 +8,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-01 · Staging HTTPS · **Người làm**
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv1-01-staging` – staging chạy, `docs/deploy.md` + `scripts/deploy.sh`; Dương, Hoàng đã thử trên Android (cài app, chế độ máy bay vẫn mở); chờ Đại thử trên iPhone
 - **Tuần:** 1–2 · **Phụ thuộc:** không
 - **Spec:** design §12
 - **File:** `docs/deploy.md` (mới), `scripts/deploy.sh` hoặc `Caddyfile` (mới)
