@@ -8,7 +8,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-01 · Staging HTTPS · **Người làm**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #12 – Dương, Hoàng (Android), Đại (iPhone) cài app, tắt mạng mở lại vẫn chạy
 - **Tuần:** 1–2 · **Phụ thuộc:** không
 - **Spec:** design §12
 - **File:** `docs/deploy.md` (mới), `scripts/deploy.sh` hoặc `Caddyfile` (mới)
