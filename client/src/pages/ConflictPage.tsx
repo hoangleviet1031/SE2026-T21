@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { FieldValue, RecordData } from '@field-survey/shared';
-import { db } from '../db/db';
+import { useCurrentProjectDb } from '../db/current';
 import { resolveConflict } from '../sync/engine';
 import { navigate } from '../useHashRoute';
 
 // Màn hình giải thích conflict: với mỗi trường, ai sửa, lúc nào, giá trị gốc / của bạn / trên máy chủ.
 // TODO(Thành viên 3): xử lý recordLevel (xoá vs sửa), so sánh ảnh, "giữ cả hai" cho multiselect.
 export function ConflictPage({ recordId }: { recordId: string }) {
-  const conflict = useLiveQuery(() => db.conflicts.get(recordId), [recordId]);
-  const record = useLiveQuery(() => db.records.get(recordId), [recordId]);
+  const db = useCurrentProjectDb();
+  const conflict = useLiveQuery(() => db?.conflicts.get(recordId), [db, recordId]);
+  const record = useLiveQuery(() => db?.records.get(recordId), [db, recordId]);
   const [choices, setChoices] = useState<Record<string, 'local' | 'remote'>>({});
 
+  if (!db) return null;
   if (!conflict || !record) return <p>Không có xung đột cho phiếu này.</p>;
 
   const lastEdit = conflict.history[conflict.history.length - 1];
@@ -25,7 +27,7 @@ export function ConflictPage({ recordId }: { recordId: string }) {
       if (v === undefined) delete resolved[c.field];
       else resolved[c.field] = v;
     }
-    await resolveConflict(recordId, resolved, record.deleted && conflict.server.deleted);
+    await resolveConflict(db, recordId, resolved, record.deleted && conflict.server.deleted);
     navigate();
   };
 

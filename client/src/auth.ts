@@ -1,18 +1,16 @@
-import { db, getMeta, setMeta } from './db/db';
+import { accountDb, getAccountValue, setAccountValue } from './db/accountDb';
 
-// Tạm lưu mã trong bảng `meta` của CSDL hiện có. TV2-05 sẽ chuyển sang
-// `field-survey-account` (design §5.1) nhưng giữ nguyên chữ ký ba hàm này,
-// vì TV2-03 (gửi token) và e2e/helpers.ts dựa vào chúng.
-const TOKEN_KEY = 'authToken';
+// Mã đăng nhập nằm trong `field-survey-account` (design §4.2), dùng chung cho mọi dự án.
+// Giữ nguyên chữ ký ba hàm vì api.ts, App.tsx và LoginPage dựa vào chúng.
 
 export function getToken(): Promise<string | null> {
-  return getMeta<string | null>(TOKEN_KEY, null);
+  return getAccountValue<string | null>('token', null);
 }
 
 export async function setToken(token: string): Promise<void> {
-  await setMeta(TOKEN_KEY, token);
+  await setAccountValue('token', token);
 }
 
 export async function clearToken(): Promise<void> {
-  await db.meta.delete(TOKEN_KEY);
+  await accountDb.account.delete('token');
 }
