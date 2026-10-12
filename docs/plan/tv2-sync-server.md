@@ -86,7 +86,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-05 · CSDL account + CSDL theo dự án, `api.ts` · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-05-project-db` (PR: chưa mở). Dự án đang chọn tạm mặc định `demo-yte` tới TV2-06/TV1-06
+- **Trạng thái:** ✅ PR #10. Dự án đang chọn tạm mặc định `demo-yte` tới TV2-06/TV1-06
 - **Tuần:** 3 · **Phụ thuộc:** TV2-04
 - **Spec:** design §4.2; ADR 0002 §4
 - **File:** `client/src/db/accountDb.ts` (mới), `client/src/db/projectDb.ts` (đổi từ `db.ts`), `client/src/db/current.ts` (mới), `client/src/auth.ts` (chuyển sang accountDb, giữ chữ ký), `client/src/sync/api.ts`, mọi chỗ import `db`
@@ -106,7 +106,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-06 · Sync nhiều dự án + Web Locks · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #13
 - **Tuần:** 3 · **Phụ thuộc:** TV2-05
 - **Spec:** design §5.3 (Nhiều dự án, Nhiều tab); ADR 0001 (Nhiều tab)
 - **File:** `client/src/sync/engine.ts`, `client/e2e/tabs.spec.ts` (mới)
@@ -122,7 +122,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-07 · Cursor theo scope + thay đổi thành viên · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #14. T7 mới kiểm phần dữ liệu, banner do TV1-06
 - **Tuần:** 4 · **Phụ thuộc:** TV2-06
 - **Spec:** ADR 0001 quy tắc 10; ADR 0002 §5–6
 - **File:** `client/src/sync/engine.ts`, `client/src/sync/membership.ts` (mới), `client/e2e/membership.spec.ts` (mới)
@@ -143,7 +143,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-08 · Idempotency hash, dọn key, fault `drop` sau khi ghi · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-08-idempotency` (PR: chưa mở)
 - **Tuần:** 4 · **Phụ thuộc:** TV2-03
 - **Spec:** ADR 0001 quy tắc 3; design §10.1 R2, R3, R6
 - **File:** `server/src/routes/records.ts`, `server/src/routes/faults.ts` (phối hợp TV3), `server/src/index.ts` (job dọn), `server/test/records.test.ts`, `client/e2e/retry.spec.ts` (mới)
@@ -159,14 +159,14 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-09 · Op `failed`, thử lại, cảnh báo tồn lâu
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-09-failed-ops` (PR: chưa mở; chồng lên TV2-08)
 - **Tuần:** 5 · **Phụ thuộc:** TV2-06
 - **Spec:** design §5.1 (`error → pending`), §5.2 (Op tồn lâu), §8
 - **File:** `client/src/sync/engine.ts`, `client/src/sync/outbox.ts`, `client/src/pages/HomePage.tsx` (phối hợp TV1), `client/e2e/errors.spec.ts` (mới)
 
 **Việc**
-- `retryFailed(recordId)`: op `failed` → `queued`, `attempts = 0`; phiếu → `pending`.
-- Sửa phiếu `error` → thay `data` của op `failed` (op chưa từng được server chấp nhận nên được phép) và `queued`.
+- `retryFailed(recordId)`: op `failed` → `queued`; phiếu → `pending`. *Đã chốt khi làm:* giữ `attempts` (4xx tính một lần gửi) thay vì đặt về 0, để sửa phiếu sau đó không gộp vào op đã gửi (bất biến 3).
+- Sửa phiếu `error` → *đã chốt khi làm:* bỏ op `failed`, gửi dữ liệu mới trong op mới với `opId` mới, thay vì sửa `data` của op cũ (bất biến 3). Kết quả với server như nhau.
 - Nút "Thử lại", "Xuất JSON phiếu này" trên phiếu lỗi.
 - Cảnh báo `attempts ≥ 5` và phiếu chưa lên server > 24 giờ.
 

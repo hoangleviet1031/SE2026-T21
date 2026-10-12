@@ -36,6 +36,12 @@ export interface OutboxOp {
   nextAttemptAt: number;
   status: 'queued' | 'blocked' | 'failed';
   lastError?: string;
+  /**
+   * Lúc phiếu bắt đầu có thay đổi chưa lên server (ms, giờ thiết bị, chỉ để hiển thị cảnh báo
+   * "chưa đồng bộ hơn 1 ngày", design §5.2). Giữ nguyên khi gộp hoặc thay op. Op tạo trước
+   * TV2-09 không có trường này.
+   */
+  createdAt?: number;
 }
 
 /** Conflict cần người dùng quyết định */

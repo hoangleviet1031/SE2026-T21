@@ -6,14 +6,15 @@ Quy ước ở [README.md](README.md).
 
 | Việc | Chặn bởi | Ghi chú |
 |---|---|---|
-| TV1-01: Staging HTTPS (tuần 1, đang trễ) | — | Bắt đầu bằng `/ticket TV1-01` |
 | TV1-13: nút xoá phiếu và hộp xác nhận | TV2-13 (Hoàng) | design §5.7 |
 
 ## Nhật ký
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-12 | TV1-02 | fix | Nút trên iPhone trống chữ (Safari dùng màu chữ mặc định trùng nền trắng): đặt `color: inherit` cho `button` | `fix/tv1-02-ios-button` | chờ review |
+| 2026-10-12 | TV1-02 | fix | Nút trên iPhone trống chữ (Safari dùng màu chữ mặc định trùng nền trắng): đặt `color: inherit` cho `button` | PR #18 | chờ review |
+| 2026-10-12 | TV1-01 | test | Cả 3 người cài app staging (Dương, Hoàng Android; Đại iPhone), tắt mạng mở lại vẫn chạy; iOS: icon chữ cái (thiếu PNG), nút "Tiếp tục" trống chữ | `feat/tv1-01-staging` | xong |
+| 2026-10-12 | TV1-01 | feat | Staging HTTPS trên Azure + Caddy chạy `main`; `docs/deploy.md`, `scripts/deploy.sh` (sao lưu CSDL trước khi khởi động lại, kiểm `__test` 404). AI soạn tài liệu theo uỷ quyền của Dương | PR #12 | xong |
 | 2026-10-11 | TV2-01, TV2-02, TV2-03 | review | Review nhánh lõi @7c5417a: typecheck, 109 test, 5 E2E xanh; SQL đều lọc `project_id`, `projectId` chỉ từ đường dẫn; 3 góp ý nhỏ (idempotency, `form_version`, `formId`) | `feat/tv2-multi-tenancy-core` | xong |
 | 2026-10-10 | TV1-05 | feat | `validateRecord` trong `shared/` theo bảng §4.1 (7 loại trường, sai kiểu, ngày không tồn tại) + 45 unit test; thêm `FieldDef.hidden` | PR #7 | chờ review |
 | 2026-10-10 | TV1-02 | feat | Màn hình nhập mã (stub): `auth.ts` get/set/clearToken trên bảng `meta`, chặn app khi chưa có mã, báo cần mạng khi offline; E2E `login.spec.ts`, `e2e/helpers.ts` `login()` | PR #6 | chờ review |
