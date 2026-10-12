@@ -13,7 +13,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-12 | TV1-07 | feat | Phần 1: trang Cài đặt `#/settings` (tên, `userId`, dung lượng), Đăng xuất chỉ khi mọi dự án không còn dữ liệu chưa gửi, chạy trong Web Lock đồng bộ; lưu `me.user` vào `field-survey-account`; phác ui.md màn hình 8; E2E `settings.spec.ts`, unit `formatBytes` | `feat/tv1-07-settings-logout` | chờ review |
+| 2026-10-12 | TV1-07 | feat | Phần 1: trang Cài đặt `#/settings` (tên, `userId`, dung lượng), Đăng xuất chỉ khi mọi dự án không còn dữ liệu chưa gửi, chạy trong Web Lock đồng bộ; lưu `me.user` vào `field-survey-account`; phác ui.md màn hình 8; E2E `settings.spec.ts`, unit `formatBytes` | PR #20 | chờ review |
 | 2026-10-11 | TV2-01, TV2-02, TV2-03 | review | Review nhánh lõi @7c5417a: typecheck, 109 test, 5 E2E xanh; SQL đều lọc `project_id`, `projectId` chỉ từ đường dẫn; 3 góp ý nhỏ (idempotency, `form_version`, `formId`) | `feat/tv2-multi-tenancy-core` | xong |
 | 2026-10-10 | TV1-05 | feat | `validateRecord` trong `shared/` theo bảng §4.1 (7 loại trường, sai kiểu, ngày không tồn tại) + 45 unit test; thêm `FieldDef.hidden` | PR #7 | chờ review |
 | 2026-10-10 | TV1-02 | feat | Màn hình nhập mã (stub): `auth.ts` get/set/clearToken trên bảng `meta`, chặn app khi chưa có mã, báo cần mạng khi offline; E2E `login.spec.ts`, `e2e/helpers.ts` `login()` | PR #6 | chờ review |
