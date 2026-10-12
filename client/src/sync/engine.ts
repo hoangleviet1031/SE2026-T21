@@ -13,6 +13,7 @@ import { formKey, getMeta, setMeta, type OutboxOp, type ProjectDb, type SyncStat
 import { NetworkError, NotMemberError, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
 import { mergeMeIntoProjects, projectsToSync, pullStateAfterPage, type PullState } from './accountSync';
 import { applyMembershipChanges, markRemoved } from './membership';
+import { earliestCreatedAt } from './outbox';
 
 // Sync engine: push outbox (FIFO theo từng bản ghi) rồi pull thay đổi từ server.
 // Xem docs/design.md §5 và docs/adr/0001-consistency-model.md.
@@ -200,9 +201,14 @@ async function pushOne(db: ProjectDb, op: OutboxOp): Promise<boolean> {
   // 403 forbidden (sai vai trò): giữ op trong outbox, không đánh dấu lỗi (bất biến 1).
   // 403 not_member và 401 đã được api.ts ném thành NotMemberError / AuthError.
   if (res.status === 403) return false;
-  // 4xx khác: lỗi dữ liệu, retry cũng vô ích
+  // 4xx khác: lỗi dữ liệu, tự retry cũng vô ích; chờ người dùng sửa hoặc bấm "Thử lại".
+  // Tính là một lần gửi (attempts + 1): op đã tới server thì không được gộp dữ liệu mới vào nữa.
   await db.transaction('rw', db.outbox, db.records, async () => {
-    await db.outbox.update(op.seq!, { status: 'failed', lastError: `HTTP ${res.status}` });
+    await db.outbox.update(op.seq!, {
+      status: 'failed',
+      attempts: op.attempts + 1,
+      lastError: `HTTP ${res.status}`,
+    });
     await db.records.update(op.recordId, { syncState: 'error', lastError: `HTTP ${res.status}` });
   });
   return false;
@@ -245,6 +251,7 @@ async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictRespons
       { data: remote.data, deleted: remote.deleted },
     );
 
+    const replaced = await db.outbox.where('recordId').equals(op.recordId).toArray();
     await db.outbox.where('recordId').equals(op.recordId).delete();
 
     if (merge.conflicts.length === 0 && recordLevel === 'none') {
@@ -256,7 +263,7 @@ async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictRespons
         baseVersion: remote.version,
         syncState: 'pending',
       });
-      await db.outbox.add(newOp(record.id, merge.merged, deleted));
+      await db.outbox.add(newOp(record.id, merge.merged, deleted, earliestCreatedAt(replaced)));
       return;
     }
 
@@ -291,7 +298,8 @@ export async function resolveConflict(db: ProjectDb, recordId: string, resolved:
   void syncNow();
 }
 
-function newOp(recordId: string, data: RecordData, deleted: boolean): OutboxOp {
+/** Op mới với opId mới. `createdAt` giữ mốc của op bị thay để cảnh báo tồn lâu không bị đặt lại. */
+function newOp(recordId: string, data: RecordData, deleted: boolean, createdAt = Date.now()): OutboxOp {
   return {
     opId: crypto.randomUUID(),
     recordId,
@@ -300,6 +308,7 @@ function newOp(recordId: string, data: RecordData, deleted: boolean): OutboxOp {
     attempts: 0,
     nextAttemptAt: 0,
     status: 'queued',
+    createdAt,
   };
 }
 

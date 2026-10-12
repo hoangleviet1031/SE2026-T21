@@ -1,13 +1,11 @@
 import { accountDb, type AccountProject } from '../db/accountDb';
 import { deleteProjectDb, openProjectDb, projectDbExists, resetProjectDb } from '../db/current';
-import { getMeta, type ConflictEntry, type LocalRecord, type ProjectDb, type SyncState } from '../db/projectDb';
+import { getMeta, type ProjectDb } from '../db/projectDb';
 import { needsRescope, type PullState } from './accountSync';
 
 // Thay đổi thành viên phía client (ADR 0002 §6). Quy tắc chung: không bao giờ tự xoá dữ liệu chưa
 // gửi (CLAUDE.md bất biến 1). Còn dữ liệu chưa gửi thì giữ nguyên CSDL và chờ người dùng quyết
-// định qua banner của TV1-06 (exportUnsentJson, forgetProject).
-
-const UNSENT_STATES: SyncState[] = ['draft', 'pending', 'error', 'conflict'];
+// định qua banner của TV1-06 (exportUnsentJson trong exportJson.ts, forgetProject).
 
 /**
  * Còn thứ gì trên máy chưa lên server: op trong outbox, ảnh chưa upload xong, phiếu nháp hoặc
@@ -59,34 +57,4 @@ export async function applyMembershipChanges(projects: AccountProject[]): Promis
 export async function forgetProject(projectId: string): Promise<void> {
   await deleteProjectDb(projectId);
   await accountDb.projects.delete(projectId);
-}
-
-export interface UnsentExport {
-  projectId: string;
-  exportedAt: string;
-  records: Pick<LocalRecord, 'id' | 'formId' | 'formVersion' | 'data' | 'deleted' | 'syncState' | 'updatedAt'>[];
-  conflicts: ConflictEntry[];
-}
-
-/**
- * JSON các phiếu chưa gửi (nháp, chờ gửi, lỗi, xung đột) và bản server đang xung đột, cho nút
- * "Xuất JSON" khi bị rút khỏi dự án. Ảnh chỉ có id trong `data`, không kèm nội dung ảnh.
- */
-export async function exportUnsentJson(projectId: string): Promise<string> {
-  const result: UnsentExport = { projectId, exportedAt: new Date().toISOString(), records: [], conflicts: [] };
-  if (await projectDbExists(projectId)) {
-    const db = openProjectDb(projectId);
-    const records = await db.records.where('syncState').anyOf(UNSENT_STATES).toArray();
-    result.records = records.map(({ id, formId, formVersion, data, deleted, syncState, updatedAt }) => ({
-      id,
-      formId,
-      formVersion,
-      data,
-      deleted,
-      syncState,
-      updatedAt,
-    }));
-    result.conflicts = await db.conflicts.toArray();
-  }
-  return JSON.stringify(result, null, 2);
 }

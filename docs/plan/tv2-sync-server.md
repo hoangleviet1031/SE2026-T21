@@ -159,14 +159,14 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-09 · Op `failed`, thử lại, cảnh báo tồn lâu
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-09-failed-ops` (PR: chưa mở; chồng lên TV2-08)
 - **Tuần:** 5 · **Phụ thuộc:** TV2-06
 - **Spec:** design §5.1 (`error → pending`), §5.2 (Op tồn lâu), §8
 - **File:** `client/src/sync/engine.ts`, `client/src/sync/outbox.ts`, `client/src/pages/HomePage.tsx` (phối hợp TV1), `client/e2e/errors.spec.ts` (mới)
 
 **Việc**
-- `retryFailed(recordId)`: op `failed` → `queued`, `attempts = 0`; phiếu → `pending`.
-- Sửa phiếu `error` → thay `data` của op `failed` (op chưa từng được server chấp nhận nên được phép) và `queued`.
+- `retryFailed(recordId)`: op `failed` → `queued`; phiếu → `pending`. *Đã chốt khi làm:* giữ `attempts` (4xx tính một lần gửi) thay vì đặt về 0, để sửa phiếu sau đó không gộp vào op đã gửi (bất biến 3).
+- Sửa phiếu `error` → *đã chốt khi làm:* bỏ op `failed`, gửi dữ liệu mới trong op mới với `opId` mới, thay vì sửa `data` của op cũ (bất biến 3). Kết quả với server như nhau.
 - Nút "Thử lại", "Xuất JSON phiếu này" trên phiếu lỗi.
 - Cảnh báo `attempts ≥ 5` và phiếu chưa lên server > 24 giờ.
 
