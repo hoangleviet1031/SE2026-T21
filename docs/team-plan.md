@@ -6,6 +6,8 @@ Khung dự án đã có sẵn phần lõi đồng bộ (outbox, PUT có điều 
 
 Từ bản design 0.3, hệ thống phục vụ nhiều tổ chức theo [ADR 0002](adr/0002-multi-tenancy.md). Phần này thêm khoảng 1,5–2 tuần công và được chia cho cả ba người; bù lại đã cắt builder kéo thả, so sánh ảnh trong màn hình xung đột và export ZIP.
 
+**🆕 Từ bản design 0.5 ([ADR 0003](adr/0003-accounts-and-owner-role.md)):** tự tạo tài khoản, vai trò Owner, mở tổ chức qua admin duyệt, trang quản trị riêng `/admin/`. Thêm khoảng 9–10 ngày công: TV2-14…17 (Hoàng), TV1-14…16 (Dương, TV1-16 thay TV1-09), TV3-12 (Đại). Phân vai dưới đây viết theo bản cũ; ticket mới ở [plan/](plan/README.md#theo-adr-0003-bản-mới). Đề xuất cắt để bù (nhóm chọn): xuất/nhập form JSON, "Gộp cả hai" cho multiselect, đo hiệu năng đầy đủ.
+
 ## Vai trò
 
 ### Thành viên 1: Form, PWA, màn hình dự án và môi trường demo
@@ -43,7 +45,7 @@ Sở hữu: `client/src/pages/ConflictPage.tsx`, `server/src/routes/attachments.
 - Chế độ chỉ đọc khi phiếu đang `conflict` (design §4.5, ADR 0001 quy tắc 7). Việc này sửa trang điền phiếu của TV1, nên làm chung với TV1.
 - Nén ảnh và upload theo chunk có tiếp tục, hàng đợi ảnh và nhãn "Đang tải ảnh" (design §4.4, §5.6), cả client và server, đường dẫn theo dự án.
 - Export CSV/JSON theo dự án (design §4.6).
-- **CLI quản trị** (`user:add`, `user:rotate-token`, `user:disable`, `seed:demo`) và **fixture hai dự án** dùng chung cho mọi test (design §10.1, §12).
+- **CLI quản trị** (`user:add`, `user:rotate-token`, `user:disable`, `seed:demo`) và **fixture hai dự án** dùng chung cho mọi test (design §10.1, §12). 🆕 ADR 0003: đổi sang `--username`, mật khẩu tạm, `user:reset-password`, `user:revoke-sessions`, bỏ `user:rotate-token` (TV3-12).
 - **Bộ test cách ly T1–T5** (ADR 0002), gồm T5 tự liệt kê mọi route; bắt buộc chạy trong CI.
 - Đổi route tiêm lỗi sang bật chủ động bằng `ENABLE_TEST_ROUTES=1` (design §9).
 - Đầu mối kiểm thử: dựng GitHub Actions, giữ ma trận E2E (design §10.1) luôn cập nhật, review test của hai bạn còn lại.
@@ -63,7 +65,7 @@ Sở hữu: `client/src/pages/ConflictPage.tsx`, `server/src/routes/attachments.
 | 8 | Tài liệu người dùng (gồm hướng dẫn cho giám sát viên và quản trị) | Tài liệu kỹ thuật sync và multi-tenancy | Báo cáo kiểm thử | **Demo cuối kỳ**, nộp báo cáo |
 
 Nửa sau tuần 7 là thời gian dự phòng: chỉ sửa lỗi và bù việc trễ. Việc bị cắt trước tiên nếu trễ, theo thứ tự:
-1. Màn hình Dự án cho admin (dùng CLI thay).
+1. ~~Màn hình Dự án cho admin (dùng CLI thay).~~ 🆕 ADR 0003: thay bằng trang quản trị TV1-16; chỉ màn hình A3 (Tài khoản) còn cắt được (dùng CLI thay).
 2. Xuất/nhập form JSON.
 3. "Gộp cả hai" cho multiselect.
 4. Đo hiệu năng đầy đủ (giữ phép đo pull 2.000 phiếu).

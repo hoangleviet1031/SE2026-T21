@@ -206,6 +206,15 @@ Trên điện thoại:
 
 ## Tài khoản
 
+> 🕘 **Mục này là bản đang chạy (ADR 0002).** [ADR 0003](adr/0003-accounts-and-owner-role.md) đổi sang tự tạo tài khoản (tên + mật khẩu), mở tổ chức qua admin duyệt và trang quản trị `/admin/`; TV2-14, TV3-12, TV1-16 sẽ viết lại mục này. Trong lúc chờ:
+> - **Không chỉ định tài khoản admin làm thành viên tổ chức nào** (kể cả chính mình): từ migration 3, server sẽ **từ chối khởi động** nếu còn admin là thành viên (ADR 0003 §5). Muốn thử app khảo sát thì tạo thêm một tài khoản thường.
+> - Đã lỡ làm vậy thì trước khi deploy bản có migration 3, kiểm tra trên máy staging:
+>   ```bash
+>   cd ~/app && node --no-warnings -e "const {DatabaseSync}=require('node:sqlite');const db=new DatabaseSync('server/data/survey.db',{readOnly:true});console.log(db.prepare(\"SELECT u.id,u.name,m.project_id,m.role FROM users u JOIN memberships m ON m.user_id=u.id WHERE u.is_admin=1\").all())"
+>   ```
+>   Kết quả khác `[]` thì xử lý theo ADR 0003 §5 trước khi chạy `deploy.sh`.
+> - Sau khi deploy migration 3: mọi tổ chức cũ chưa có Owner; admin chỉ định Owner (cách làm sẽ ghi ở đây khi TV2-15 xong).
+
 Không có tự đăng ký (ADR 0002). Quản trị chạy lệnh trên máy staging, trong `~/app`; token in ra **một lần**, gửi cho người dùng qua kênh riêng. Lệnh mở cùng file `server/data/survey.db` với server, chạy được khi server đang chạy.
 
 ```bash

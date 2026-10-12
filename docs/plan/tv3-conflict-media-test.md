@@ -25,6 +25,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 ## TV3-02 · CLI quản trị, fixture, sửa test theo API mới
 
 - **Trạng thái:** ⏳ `feat/tv3-02-cli-fixtures` (chờ PR chung với TV2-03)
+- ⚠ **ADR 0003:** CLI theo token (`user:add` in token, `user:rotate-token`) và helper E2E `login(page, token)` là **bản cũ, vẫn đang chạy**; TV3-12 thay. Nội dung dưới đây giữ nguyên như lúc làm.
 - **Tuần:** 2 · **Phụ thuộc:** TV2-02 · **Làm cùng:** TV2-03 (**một PR**)
 - **Spec:** design §12 (Lệnh quản trị), §10.1 (fixture chung)
 - **File:** `server/src/cli/user.ts`, `server/src/cli/seedDemo.ts` (mới), `server/package.json` (scripts), `server/test/fixtures.ts` (mới), `server/test/records.test.ts`, `client/e2e/helpers.ts` (mới), `client/e2e/*.spec.ts`
@@ -174,3 +175,22 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 - **File:** `docs/test-report.md` (mới)
 
 **Việc:** ma trận design §10.1 + ADR 0002 T1–T10 với trạng thái cuối, số liệu CI, kết quả thử trên điện thoại thật (máy, trình duyệt), lỗi đã biết, kết quả `docs/perf.md`.
+
+---
+
+# Theo ADR 0003 (bản mới)
+
+## TV3-12 · CLI, fixture, helper E2E theo tài khoản mới
+
+- **Trạng thái:** —
+- **Tuần:** 3 · **Phụ thuộc:** không · **Làm cùng:** TV2-14 (**một PR**: đổi đăng nhập làm vỡ mọi test đang dùng token)
+- **Spec:** design §12 (🆕 Lệnh quản trị), §10.1; ADR 0003 §1, §5
+- **File:** `server/src/cli/user.ts`, `server/src/seedDemo.ts`, `server/package.json` (scripts), `server/test/cli.test.ts`, `server/test/fixtures.ts`, `client/e2e/helpers.ts`, `client/e2e/*.spec.ts` (chỉ chỗ đăng nhập), `README.md` (mục "Tài khoản demo")
+
+**Việc**
+- CLI: `user:add --username --name [--admin]` in mật khẩu tạm một lần; `user:reset-password --user <username>`; `user:revoke-sessions --user <username>`; `user:disable --user <username>`; bỏ `user:rotate-token`.
+- `seed:demo`: tài khoản `lan`, `minh`, `admin` có mật khẩu cố định (vd. `demo-password`), mỗi dự án demo có một Owner (vd. thêm `chu` là Owner của cả hai dự án), giữ vai trò cũ của `lan`, `minh`. Vẫn từ chối khi `NODE_ENV=production`.
+- `fixtures.ts`: `createTestServer()` trả thêm cách lấy token (đăng nhập bằng API) để test cũ đổi ít nhất.
+- `helpers.ts`: `login(page, username, password)` đi qua màn hình mới của TV1-14 (trước khi TV1-14 xong: đặt token lấy từ `/api/auth/login` vào CSDL account); sửa các spec chỉ ở bước đăng nhập, **không đổi ý nghĩa assertion**.
+
+**Xong khi:** CI xanh với đăng nhập mới; `cli.test.ts` có ca cho ba lệnh mới; README cập nhật bảng tài khoản demo.
