@@ -56,7 +56,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | TV2-06 | Sync nhiều dự án + Web Locks | ✅ PR #13 |
 | TV2-07 | Cursor theo scope + thay đổi thành viên | ✅ PR #14 |
 | TV2-08 | Idempotency hash, dọn key, fault `drop` | ✅ `feat/tv2-08-idempotency` |
-| TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | — |
+| TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | ✅ `feat/tv2-09-failed-ops` |
 | TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | — |
 | TV2-11 | Hiệu năng pull | — |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |

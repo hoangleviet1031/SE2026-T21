@@ -87,3 +87,14 @@ describe('fault drop', () => {
     expect(keyExists('k-drop-before')).toBe(false);
   });
 });
+
+describe('fault 400', () => {
+  it('trả 400 injected_fault, không vào handler, không ghi gì', async () => {
+    expect((await fault('400')).status).toBe(200);
+    const res = await push('r-400', 'k-400');
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('injected_fault');
+    expect(recordVersion('r-400')).toBeUndefined();
+    expect(keyExists('k-400')).toBe(false);
+  });
+});

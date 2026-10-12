@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.11 (2026-10-12)
+- **Phiên bản:** 0.4.12 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -26,6 +26,7 @@
 | 0.4.9 | 2026-10-12 | TV2-06: vòng đồng bộ chạy trong Web Lock `field-survey-sync`, gọi `/me`, đồng bộ mọi dự án `active` (đang chọn trước), ghi số đếm "cần xử lý" (`conflict` + `error`) và "chưa đồng bộ" (`pending` + `draft`) vào `field-survey-account` (§4.2, §5.3); O6 có E2E (§10.1) |
 | 0.4.10 | 2026-10-12 | TV2-07: `meta.pull = { cursor, scope }` và quy tắc phạm vi rộng/hẹp (§5.5); dự án bị rút hoặc hạ vai trò chỉ bị xoá dữ liệu khi không còn gì chưa gửi; `403 not_member` dừng dự án; route kiểm thử `/api/__test/memberships` (§10.1) |
 | 0.4.11 | 2026-10-12 | TV2-08: `request_hash` = SHA-256 của JSON chuẩn hoá (khoá sắp xếp) gồm `projectId`, `recordId` và các trường `PushRecordRequest`; khác hash thì `422`; dọn key quá 30 ngày khi khởi động và mỗi 24 giờ; fault `drop` cắt kết nối sau khi ghi, thêm `drop-before` (§10.1); R2, R3, R6 có test |
+| 0.4.12 | 2026-10-12 | TV2-09: op `failed` (4xx tính một lần gửi), sửa phiếu lỗi tạo op mới thay vì sửa op đã gửi, "Thử lại" giữ `opId` và `attempts` (§5.1); `createdAt` của op và quy tắc cảnh báo tồn lâu (§5.2); fault mode `"400"` và R5 có test (§10.1) |
 
 ## Mục lục
 
@@ -323,12 +324,12 @@ stateDiagram-v2
 ```
 
 - `conflict`: phiếu chỉ đọc cho tới khi giải quyết (§4.5).
-- `error`: op ở trạng thái `failed`; sửa phiếu thì thay dữ liệu của op đó và đặt lại `queued`.
+- `error`: op ở trạng thái `failed` (lần bị `4xx` tính là một lần gửi, `attempts + 1`). Sửa phiếu thì op `failed` bị bỏ và dữ liệu mới đi trong một op mới với `opId` mới, không dùng lại key cho dữ liệu khác (CLAUDE.md bất biến 3; an toàn vì server không lưu key cho response lỗi). Bấm "Thử lại" thì gửi lại đúng op đó (cùng `opId`, cùng dữ liệu, giữ `attempts`).
 - Nhãn hiển thị tách khỏi `syncState`: phiếu `synced` nhưng còn ảnh chưa lên hiện "Đang tải ảnh (n)" (§5.6).
 
 ### 5.2 Outbox
 
-Mỗi op: `{ seq, opId, recordId, data, deleted, attempts, nextAttemptAt, status, lastError }`.
+Mỗi op: `{ seq, opId, recordId, data, deleted, attempts, nextAttemptAt, status, lastError, createdAt }`. `createdAt` là lúc phiếu bắt đầu có thay đổi chưa lên server (giờ thiết bị, chỉ để hiển thị cảnh báo tồn lâu); giữ nguyên khi gộp hoặc thay op.
 
 | `status` | Ý nghĩa |
 |---|---|
@@ -340,7 +341,7 @@ Mỗi op: `{ seq, opId, recordId, data, deleted, attempts, nextAttemptAt, status
 - **Gộp op:** sửa phiếu khi op cuối của nó **chưa từng gửi** (`attempts = 0`) thì cập nhật op đó. Nếu op đã gửi ít nhất một lần (có thể server đã ghi nhưng response bị mất) thì giữ nguyên `opId` và thêm op mới phía sau. Nhờ vậy idempotency key không bao giờ bị dùng cho dữ liệu khác.
 - **Thứ tự:** FIFO theo `seq`, tuần tự trong từng phiếu: op sau chỉ chạy khi op trước xong. Phiếu khác nhau không chặn nhau.
 - `baseVersion` đọc từ phiếu **lúc gửi**, không lưu trong op, vì op trước thành công sẽ nâng `baseVersion`.
-- **Op tồn lâu:** op `queued` có `attempts ≥ 5` hiện cảnh báo "Máy chủ đang lỗi, sẽ thử lại"; phiếu chưa lên server quá 24 giờ hiện cảnh báo ở đầu trang "Có n phiếu chưa đồng bộ hơn 1 ngày".
+- **Op tồn lâu:** op `queued` có `attempts ≥ 5` hiện cảnh báo "Máy chủ đang lỗi, sẽ thử lại"; phiếu có op với `createdAt` từ 24 giờ trở lên (kể cả op `failed`) hiện cảnh báo ở đầu trang "Có n phiếu chưa đồng bộ hơn 1 ngày". Phiếu nháp không có op nên không tính.
 
 ### 5.3 Vòng đồng bộ
 
@@ -655,7 +656,7 @@ Phạm vi đồ án giữ đơn giản:
 | R2 | Timeout (server giữ request 15s) | Hủy sau 10s, retry, không trùng | Có (`retry.spec.ts`) |
 | R3 | Server ghi xong nhưng kết nối bị cắt trước response | Gửi lại cùng key, server trả `Idempotent-Replayed` | Có (integration `server/test/idempotency.test.ts`, E2E `retry.spec.ts`) |
 | R4 | Mất mạng giữa lúc upload ảnh | Tiếp tục từ chunk thiếu | TODO |
-| R5 | `400` | Phiếu "Lỗi", không retry vô hạn | TODO |
+| R5 | `400` | Phiếu "Lỗi", không retry vô hạn | Có (`errors.spec.ts`, fault mode `"400"`) |
 | R6 | Cùng `Idempotency-Key`, khác nội dung | `422 idempotency_key_reused` | Có (`server/test/records.test.ts`) |
 
 **Phân quyền** (integration)
