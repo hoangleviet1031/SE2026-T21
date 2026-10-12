@@ -52,6 +52,7 @@ export function SettingsPage() {
       {user === undefined ? null : user ? (
         <>
           <p>{user.name}</p>
+          {/* TODO(TV2-14): hiện tên đăng nhập thay mã người dùng khi /me trả `username` (design §4.7 🆕) */}
           <p>
             Mã người dùng: <code data-testid="settings-user-id">{user.id}</code>
           </p>

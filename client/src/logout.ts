@@ -54,6 +54,7 @@ export async function logout(): Promise<BlockedProject[]> {
       await accountDb.account.delete('user');
       await accountDb.account.delete('currentProjectId');
     });
+    // TODO(TV2-16): online thì gọi `logout` của api.ts để huỷ phiên trên server (design §4.7 🆕)
     // Xoá token sau cùng: App thấy token mất thì về màn hình nhập mã
     await clearToken();
     return [];

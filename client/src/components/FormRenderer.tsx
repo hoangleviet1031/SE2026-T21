@@ -8,10 +8,12 @@ interface Props {
   recordId: string;
   value: RecordData;
   onChange: (next: RecordData) => void;
+  /** Lỗi validate theo id trường (design §4.1), hiện ngay dưới trường đó */
+  errors?: Record<string, string>;
 }
 
-// TODO(Thành viên 1): validate (required, kiểu số), hiển thị lỗi theo trường, điều kiện hiển thị.
-export function FormRenderer({ db, form, recordId, value, onChange }: Props) {
+// TODO(TV1-10): trường `hidden` không hiện khi tạo phiếu mới (design §4.1).
+export function FormRenderer({ db, form, recordId, value, onChange, errors = {} }: Props) {
   const set = (field: string, v: FieldValue) => onChange({ ...value, [field]: v });
   return (
     <div className="form">
@@ -22,6 +24,11 @@ export function FormRenderer({ db, form, recordId, value, onChange }: Props) {
             {f.required && ' *'}
           </span>
           <FieldInput db={db} field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
+          {errors[f.id] && (
+            <span className="field-error" data-testid={`error-${f.id}`}>
+              ⚠ {errors[f.id]}
+            </span>
+          )}
         </label>
       ))}
     </div>

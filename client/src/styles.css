@@ -3,7 +3,8 @@ body { margin: 0; }
 .app { max-width: 720px; margin: 0 auto; padding: 0 16px 48px; }
 header { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
 .brand { font-weight: 700; color: #0f766e; text-decoration: none; margin-right: auto; }
-button { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer; }
+/* Đặt màu chữ rõ ràng: Safari iOS dùng màu mặc định của hệ thống cho nút, có lúc trùng màu nền trắng (nút "Tiếp tục" trống chữ trên iPhone) */
+button { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: inherit; cursor: pointer; }
 button.primary { background: #0f766e; color: #fff; border-color: #0f766e; }
 button:disabled { opacity: 0.5; cursor: default; }
 .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #e2e8f0; }
@@ -16,6 +17,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .warning { background: #fef3c7; color: #92400e; padding: 8px 12px; border-radius: 6px; }
 .form { display: grid; gap: 14px; }
 .field { display: grid; gap: 4px; }
+.field-error { color: #b91c1c; font-size: 14px; }
+.draft-notice { padding: 8px 12px; border-radius: 6px; background: #fef3c7; color: #92400e; }
 .field input:not([type=checkbox]):not([type=radio]), .field select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
 .checks { display: flex; flex-wrap: wrap; gap: 12px; }
 .actions { display: flex; gap: 8px; margin-top: 20px; }
