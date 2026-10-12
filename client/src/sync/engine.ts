@@ -3,12 +3,15 @@ import {
   nextRetryDelay,
   threeWayMerge,
   type ConflictResponse,
+  type MeResponse,
   type RecordData,
   type ServerRecord,
 } from '@field-survey/shared';
-import { getCurrentProjectDb } from '../db/current';
-import { formKey, getMeta, setMeta, type OutboxOp, type ProjectDb } from '../db/projectDb';
-import { NetworkError, fetchForms, pullRecords, pushRecord } from './api';
+import { accountDb, type AccountProject } from '../db/accountDb';
+import { getCurrentProjectId, openProjectDb } from '../db/current';
+import { formKey, getMeta, setMeta, type OutboxOp, type ProjectDb, type SyncState } from '../db/projectDb';
+import { NetworkError, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
+import { mergeMeIntoProjects, projectsToSync } from './accountSync';
 
 // Sync engine: push outbox (FIFO theo từng bản ghi) rồi pull thay đổi từ server.
 // Xem docs/design.md §5 và docs/adr/0001-consistency-model.md.
@@ -16,7 +19,14 @@ import { NetworkError, fetchForms, pullRecords, pushRecord } from './api';
 let running: Promise<void> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-/** Gọi bất cứ lúc nào; các lần gọi chồng nhau được gộp làm một. */
+// Một khoá cho cả thiết bị: mọi tab dùng chung IndexedDB nên chung outbox (ADR 0001, Nhiều tab).
+const SYNC_LOCK = 'field-survey-sync';
+
+// Số đếm cho bộ chọn dự án (design §4.7): cần người dùng làm gì đó / chưa lên server.
+const NEEDS_ATTENTION: SyncState[] = ['conflict', 'error'];
+const UNSYNCED: SyncState[] = ['pending', 'draft'];
+
+/** Gọi bất cứ lúc nào; các lần gọi chồng nhau trong cùng tab được gộp làm một. */
 export function syncNow(): Promise<void> {
   // Reset trong .finally (luôn chạy bất đồng bộ) để không ghi đè sau khi đã reset
   running ??= runSync().finally(() => {
@@ -37,31 +47,78 @@ export function startSyncLoop(intervalMs = 30_000): () => void {
 }
 
 async function runSync(): Promise<void> {
-  // Chỉ dự án đang chọn; TV2-06 sẽ chạy lần lượt mọi dự án (ADR 0002 §5).
-  const db = await getCurrentProjectDb();
+  // Tab không lấy được khoá thì bỏ lượt này: tab đang giữ khoá sẽ gửi, và tab này vẫn thấy kết
+  // quả qua liveQuery (design §5.3). Trình duyệt chưa có Web Locks thì chạy luôn; gửi trùng vẫn
+  // an toàn nhờ idempotency key.
+  if (!('locks' in navigator)) return syncAllProjects();
+  await navigator.locks.request(SYNC_LOCK, { ifAvailable: true }, async (lock) => {
+    if (lock) await syncAllProjects();
+  });
+}
+
+async function syncAllProjects(): Promise<void> {
+  if (!navigator.onLine) return;
+  const projects = await refreshProjects();
+  const dbs = projectsToSync(projects, await getCurrentProjectId()).map(openProjectDb);
   try {
-    if (!navigator.onLine) return;
-    // Push trước: dữ liệu người dùng quan trọng hơn danh sách form
-    await pushAll(db);
-    await pullAll(db);
-    await syncForms(db);
+    for (const db of dbs) {
+      // Push trước: dữ liệu người dùng quan trọng hơn danh sách form
+      await pushAll(db);
+      await uploadAttachments(db);
+      await pullAll(db);
+      await syncForms(db);
+      await updateCounts(db);
+    }
   } finally {
-    await scheduleNextRetry(db);
+    await scheduleNextRetry(dbs);
   }
 }
 
-/** Hẹn giờ chạy lại đúng lúc op sớm nhất hết thời gian backoff */
-async function scheduleNextRetry(db: ProjectDb) {
+/**
+ * Lấy danh sách dự án mới từ /me và lưu vào CSDL account. Mất mạng giữa chừng thì dùng bản đã
+ * lưu (design §5.3). 401 thì api.ts ném AuthError, vòng đồng bộ dừng.
+ */
+async function refreshProjects(): Promise<AccountProject[]> {
+  let me: MeResponse;
+  try {
+    me = await fetchMe();
+  } catch (err) {
+    if (err instanceof NetworkError) return accountDb.projects.toArray();
+    throw err;
+  }
+  const projects = me.projects;
+  return accountDb.transaction('rw', accountDb.projects, async () => {
+    const merged = mergeMeIntoProjects(await accountDb.projects.toArray(), projects);
+    await accountDb.projects.bulkPut(merged);
+    return merged;
+  });
+}
+
+// TODO(TV3-06): upload ảnh của dự án (design §5.6). Đặt giữa push và pull theo §5.3.
+async function uploadAttachments(_db: ProjectDb): Promise<void> {}
+
+async function updateCounts(db: ProjectDb): Promise<void> {
+  const needsAttention = await db.records.where('syncState').anyOf(NEEDS_ATTENTION).count();
+  const unsynced = await db.records.where('syncState').anyOf(UNSYNCED).count();
+  await accountDb.projects.update(db.projectId, { needsAttention, unsynced });
+}
+
+/** Hẹn giờ chạy lại đúng lúc op sớm nhất (trên mọi dự án) hết thời gian backoff */
+async function scheduleNextRetry(dbs: ProjectDb[]) {
   clearTimeout(retryTimer);
   // Offline thì chờ sự kiện 'online'; chỉ hẹn giờ cho op đang trong thời gian backoff
   if (!navigator.onLine) return;
-  const next = await db.outbox
-    .where('nextAttemptAt')
-    .above(Date.now())
-    .filter((op) => op.status === 'queued')
-    .first();
-  if (!next) return;
-  const delay = Math.max(0, next.nextAttemptAt - Date.now());
+  let earliest = Infinity;
+  for (const db of dbs) {
+    const next = await db.outbox
+      .where('nextAttemptAt')
+      .above(Date.now())
+      .filter((op) => op.status === 'queued')
+      .first();
+    if (next) earliest = Math.min(earliest, next.nextAttemptAt);
+  }
+  if (earliest === Infinity) return;
+  const delay = Math.max(0, earliest - Date.now());
   retryTimer = setTimeout(() => void syncNow().catch((e) => console.warn('sync failed', e)), delay);
 }
 

@@ -16,3 +16,35 @@ export async function login(page: Page, token: string = TOKENS.minh) {
   await page.getByRole('button', { name: 'Tiếp tục' }).click();
   await expect(page.getByTestId('login-token')).toHaveCount(0);
 }
+
+/** Tên mọi CSDL IndexedDB của origin, đọc bằng API gốc của trình duyệt. */
+export function databaseNames(page: Page): Promise<string[]> {
+  return page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name ?? ''));
+}
+
+/** Đọc mọi dòng của một bảng trong CSDL có sẵn (không tạo CSDL mới nếu chưa có). */
+export function readStore(page: Page, dbName: string, store: string): Promise<unknown[]> {
+  return page.evaluate(
+    ({ dbName, store }) =>
+      new Promise<unknown[]>((resolve, reject) => {
+        const open = indexedDB.open(dbName);
+        // CSDL chưa có thì open sẽ tạo mới; huỷ bước nâng cấp để không tạo CSDL rỗng thay app
+        open.onupgradeneeded = () => open.transaction?.abort();
+        open.onerror = () => reject(open.error ?? new Error(`chưa có CSDL ${dbName}`));
+        open.onsuccess = () => {
+          const db = open.result;
+          if (!db.objectStoreNames.contains(store)) {
+            db.close();
+            return reject(new Error(`CSDL ${dbName} không có bảng ${store}`));
+          }
+          const req = db.transaction(store, 'readonly').objectStore(store).getAll();
+          req.onerror = () => reject(req.error);
+          req.onsuccess = () => {
+            db.close();
+            resolve(req.result);
+          };
+        };
+      }),
+    { dbName, store },
+  );
+}

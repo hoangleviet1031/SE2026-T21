@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.9 (2026-10-12)
+- **Phiên bản:** 0.4.10 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -23,7 +23,8 @@
 | 0.4.6 | 2026-10-10 | `FieldDef.hidden` và `validateRecord` đã có code (§4.1, §6.2; TV1-05 phần thuần) |
 | 0.4.7 | 2026-10-12 | TV2-04: `GET /me` và `/admin/projects` có code (§7); chốt định dạng API admin (id dự án do admin đặt, `PUT .../members/:userId` không có thân); thêm kiểu `AdminProject`, `CreateProjectRequest`, `UpdateProjectRequest` (§6.2) và mã `409 project_exists` (§7.1) |
 | 0.4.8 | 2026-10-12 | TV2-05: client tách `field-survey-account` và `field-survey-p-<projectId>` (§4.2); `ProjectDb` version 1 gồm `draft`, `validationErrors`, `attachments.nextAttemptAt`; CSDL `field-survey` cũ bị xoá khi khởi động; `api.ts` nhận `projectId` bắt buộc |
-| 0.4.9 | 2026-10-12 | TV1-05 client: phiếu không hợp lệ lưu thành `draft` kèm `validationErrors`, không tạo op; op chưa gửi có sẵn được giữ; push xong op cũ vẫn giữ `draft`; pull bỏ qua `draft` (§4.1, §5.1, ADR 0001 quy tắc 8). O5 có test (§10.1) |
+| 0.4.9 | 2026-10-12 | TV2-06: vòng đồng bộ chạy trong Web Lock `field-survey-sync`, gọi `/me`, đồng bộ mọi dự án `active` (đang chọn trước), ghi số đếm "cần xử lý" (`conflict` + `error`) và "chưa đồng bộ" (`pending` + `draft`) vào `field-survey-account` (§4.2, §5.3); O6 có E2E (§10.1) |
+| 0.4.10 | 2026-10-12 | TV1-05 client: phiếu không hợp lệ lưu thành `draft` kèm `validationErrors`, không tạo op; op chưa gửi có sẵn được giữ; push xong op cũ vẫn giữ `draft`; pull bỏ qua `draft` (§4.1, §5.1, ADR 0001 quy tắc 8). O5 có test (§10.1) |
 
 ## Mục lục
 
@@ -187,7 +188,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 | Bảng | Khoá | Nội dung |
 |---|---|---|
 | `account` | `key` | token, `userId`, tên, `isAdmin`, dự án đang chọn |
-| `projects` | `id` | Bản sao `GET /api/me`: tên dự án, vai trò, trạng thái (`active` / `removed`), số phiếu cần xử lý và chưa đồng bộ (cập nhật sau mỗi vòng đồng bộ) |
+| `projects` | `id` | Bản sao `GET /api/me`: tên dự án, vai trò, trạng thái (`active` / `removed`), số phiếu cần xử lý (`needsAttention`: `conflict` + `error`) và chưa đồng bộ (`unsynced`: `pending` + `draft`), cập nhật sau mỗi vòng đồng bộ |
 
 **`field-survey-p-<projectId>`** (mỗi dự án một CSDL, cùng schema)
 
@@ -344,9 +345,9 @@ Mỗi op: `{ seq, opId, recordId, data, deleted, attempts, nextAttemptAt, status
 
 `syncNow()` được gọi khi: app mở, sự kiện `online`, mỗi 30 giây, sau mỗi lần lưu, khi hết thời gian backoff. Các lần gọi chồng nhau trong cùng tab gộp làm một.
 
-**Nhiều dự án:** đầu mỗi vòng gọi `GET /api/me` để cập nhật danh sách dự án và vai trò (offline thì dùng bản đã lưu), xử lý thay đổi thành viên theo ADR 0002 §6, rồi chạy các bước dưới cho từng dự án đang `active`, dự án đang chọn trước. Mọi đường dẫn dưới đây đều có tiền tố `/api/projects/:projectId`.
+**Nhiều dự án:** đầu mỗi vòng gọi `GET /api/me` để cập nhật danh sách dự án và vai trò (offline thì dùng bản đã lưu), xử lý thay đổi thành viên theo ADR 0002 §6 (hiện mới đánh dấu `removed` cho dự án không còn trong `/me` và ngừng đồng bộ nó; phần còn lại ở TV2-07), rồi chạy các bước dưới cho từng dự án đang `active`, dự án đang chọn trước. Mọi đường dẫn dưới đây đều có tiền tố `/api/projects/:projectId`.
 
-**Nhiều tab:** mỗi vòng đồng bộ (gồm mọi dự án) chạy trong `navigator.locks.request('field-survey-sync', { ifAvailable: true }, ...)`; tab không lấy được khoá thì bỏ qua lần đó. Nhờ vậy chỉ một tab gửi request tại một thời điểm (code chưa làm). Tab khác vẫn thấy kết quả ngay vì UI đọc IndexedDB qua `liveQuery`.
+**Nhiều tab:** mỗi vòng đồng bộ (gồm mọi dự án) chạy trong `navigator.locks.request('field-survey-sync', { ifAvailable: true }, ...)`; tab không lấy được khoá thì bỏ qua lần đó. Nhờ vậy chỉ một tab gửi request tại một thời điểm. Trình duyệt chưa có Web Locks thì chạy không khoá; gửi trùng vẫn an toàn nhờ idempotency key (ADR 0001). Tab khác vẫn thấy kết quả ngay vì UI đọc IndexedDB qua `liveQuery`.
 
 1. Offline thì dừng.
 2. **Push:** với mỗi op đến hạn, `PUT .../records/:id` kèm `Idempotency-Key: opId`.
@@ -625,7 +626,7 @@ Phạm vi đồ án giữ đơn giản:
 | O3 | Phiếu có ảnh khi offline, online thì ảnh lên đủ, nhãn chỉ thành "Đã đồng bộ" khi ảnh xong | TODO |
 | O4 | Đóng tab khi còn op, mở lại thì vẫn đồng bộ | TODO |
 | O5 | Lưu phiếu thiếu trường bắt buộc: thành "Nháp", không lên server; sửa đủ thì đồng bộ | Có (`draft.spec.ts`) |
-| O6 | Hai tab cùng mở: mỗi op chỉ được gửi từ một tab | TODO |
+| O6 | Hai tab cùng mở: mỗi op chỉ được gửi từ một tab | Có (`tabs.spec.ts`) |
 | O7 | Xoá phiếu chưa từng gửi (tạo khi offline): bấm "Huỷ" thì phiếu còn; xác nhận thì phiếu, op, ảnh biến khỏi máy, online lên không có request nào cho phiếu đó (§5.7) | TODO |
 | O8 | Xoá phiếu đã đồng bộ: phiếu biến khỏi danh sách, server có `deleted: true`, máy khác pull thấy tombstone; phiếu bị xoá khỏi máy sau khi op xoá được xác nhận (§5.7) | TODO |
 

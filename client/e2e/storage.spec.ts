@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { PROJECT, login } from './helpers';
+import { expect, test } from '@playwright/test';
+import { PROJECT, databaseNames, login, readStore } from './helpers';
 
 // TV2-05, design §4.2 và ADR 0002 §4: một CSDL account cho cả máy, mỗi dự án một CSDL riêng,
 // CSDL `field-survey` của khung cũ bị xoá khi khởi động. Đọc IndexedDB bằng API gốc của trình
@@ -8,35 +8,6 @@ import { PROJECT, login } from './helpers';
 const ACCOUNT_DB = 'field-survey-account';
 const PROJECT_DB = `field-survey-p-${PROJECT}`;
 const LEGACY_DB = 'field-survey';
-
-function databaseNames(page: Page): Promise<string[]> {
-  return page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name ?? ''));
-}
-
-/** Đọc mọi dòng của một bảng trong CSDL có sẵn (không tạo CSDL mới nếu chưa có). */
-function readStore(page: Page, dbName: string, store: string): Promise<unknown[]> {
-  return page.evaluate(
-    ({ dbName, store }) =>
-      new Promise<unknown[]>((resolve, reject) => {
-        const open = indexedDB.open(dbName);
-        open.onerror = () => reject(open.error);
-        open.onsuccess = () => {
-          const db = open.result;
-          if (!db.objectStoreNames.contains(store)) {
-            db.close();
-            return reject(new Error(`CSDL ${dbName} không có bảng ${store}`));
-          }
-          const req = db.transaction(store, 'readonly').objectStore(store).getAll();
-          req.onerror = () => reject(req.error);
-          req.onsuccess = () => {
-            db.close();
-            resolve(req.result);
-          };
-        };
-      }),
-    { dbName, store },
-  );
-}
 
 test('đăng nhập xong có CSDL account và CSDL của dự án, không có CSDL cũ', async ({ page }) => {
   await login(page);
