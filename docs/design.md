@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.4.12 (2026-10-12)
+- **Phiên bản:** 0.4.15 (2026-10-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -27,6 +27,7 @@
 | 0.4.10 | 2026-10-12 | TV2-07: `meta.pull = { cursor, scope }` và quy tắc phạm vi rộng/hẹp (§5.5); dự án bị rút hoặc hạ vai trò chỉ bị xoá dữ liệu khi không còn gì chưa gửi; `403 not_member` dừng dự án; route kiểm thử `/api/__test/memberships` (§10.1) |
 | 0.4.11 | 2026-10-12 | TV2-08: `request_hash` = SHA-256 của JSON chuẩn hoá (khoá sắp xếp) gồm `projectId`, `recordId` và các trường `PushRecordRequest`; khác hash thì `422`; dọn key quá 30 ngày khi khởi động và mỗi 24 giờ; fault `drop` cắt kết nối sau khi ghi, thêm `drop-before` (§10.1); R2, R3, R6 có test |
 | 0.4.12 | 2026-10-12 | TV2-09: op `failed` (4xx tính một lần gửi), sửa phiếu lỗi tạo op mới thay vì sửa op đã gửi, "Thử lại" giữ `opId` và `attempts` (§5.1); `createdAt` của op và quy tắc cảnh báo tồn lâu (§5.2); fault mode `"400"` và R5 có test (§10.1) |
+| 0.4.15 | 2026-10-12 | TV1-07 phần 1: trang Cài đặt (tên, `userId`, dung lượng) và Đăng xuất có code (§4.7); `account.user` ghi sau mỗi lần gọi `/me` (§4.2). Số 0.4.13, 0.4.14 dành cho PR #17 (TV1-05) và nhánh TV1-03 mở trước |
 
 ## Mục lục
 
@@ -189,7 +190,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 
 | Bảng | Khoá | Nội dung |
 |---|---|---|
-| `account` | `key` | token, `userId`, tên, `isAdmin`, dự án đang chọn |
+| `account` | `key` | `token`; `user` = `{ id, name, isAdmin }` (bản sao `MeResponse.user`, ghi sau mỗi lần gọi `/me`); `currentProjectId` (dự án đang chọn) |
 | `projects` | `id` | Bản sao `GET /api/me`: tên dự án, vai trò, trạng thái (`active` / `removed`), số phiếu cần xử lý (`needsAttention`: `conflict` + `error`) và chưa đồng bộ (`unsynced`: `pending` + `draft`), cập nhật sau mỗi vòng đồng bộ |
 
 **`field-survey-p-<projectId>`** (mỗi dự án một CSDL, cùng schema)
@@ -281,7 +282,7 @@ Theo ADR 0002.
   - Cùng người (mã được cấp lại bằng `user:rotate-token`): chỉ thay token, giữ nguyên mọi CSDL, đồng bộ tiếp.
   - Khác người và máy **không** còn dữ liệu chưa gửi ở mọi dự án (định nghĩa như `hasUnsentData`, ADR 0002 §6): xoá mọi CSDL dự án của người cũ rồi đăng nhập người mới.
   - Khác người và máy **còn** dữ liệu chưa gửi: từ chối, hiện "Máy này còn N phiếu chưa gửi của <tên người cũ>. Nhập lại mã của người đó để gửi, hoặc xuất JSON trước." kèm nút "Xuất JSON". Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
-- **Đăng xuất** (trang Cài đặt) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án.
+- **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Có code.
 
 **Tiêu chí chấp nhận:** đủ các ca T1–T10 ở ADR 0002.
 

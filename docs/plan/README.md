@@ -41,7 +41,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | TV1-04 | Form builder | — |
 | TV1-05 | Validate phiếu + nháp | ⏳ PR #7 (`validateRecord`), còn phần client |
 | TV1-06 | Bộ chọn dự án | — |
-| TV1-07 | Cập nhật SW, Cài đặt, kiểm tra trình duyệt | — |
+| TV1-07 | Cập nhật SW, Cài đặt, kiểm tra trình duyệt | ⏳ `feat/tv1-07-settings-logout` (phần 1: Cài đặt + Đăng xuất) |
 | TV1-08 | Thành viên dự án (API + màn hình) | — |
 | TV1-09 | Màn hình Dự án cho admin | — |
 | TV1-10 | `formVersion`, `hidden`, xuất/nhập form | — |
