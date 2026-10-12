@@ -7,7 +7,7 @@ import {
   type RecordData,
   type ServerRecord,
 } from '@field-survey/shared';
-import { accountDb, type AccountProject } from '../db/accountDb';
+import { accountDb, setAccountValue, type AccountProject } from '../db/accountDb';
 import { getCurrentProjectId, openProjectDb } from '../db/current';
 import { formKey, getMeta, setMeta, type OutboxOp, type ProjectDb, type SyncState } from '../db/projectDb';
 import { NetworkError, NotMemberError, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
@@ -22,7 +22,7 @@ let running: Promise<void> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
 // Một khoá cho cả thiết bị: mọi tab dùng chung IndexedDB nên chung outbox (ADR 0001, Nhiều tab).
-const SYNC_LOCK = 'field-survey-sync';
+export const SYNC_LOCK = 'field-survey-sync';
 
 // Số đếm cho bộ chọn dự án (design §4.7): cần người dùng làm gì đó / chưa lên server.
 const NEEDS_ATTENTION: SyncState[] = ['conflict', 'error'];
@@ -92,9 +92,10 @@ async function refreshProjects(): Promise<AccountProject[]> {
     throw err;
   }
   const projects = me.projects;
-  return accountDb.transaction('rw', accountDb.projects, async () => {
+  return accountDb.transaction('rw', accountDb.projects, accountDb.account, async () => {
     const merged = mergeMeIntoProjects(await accountDb.projects.toArray(), projects);
     await accountDb.projects.bulkPut(merged);
+    await setAccountValue('user', me.user);
     return merged;
   });
 }
@@ -226,10 +227,12 @@ async function onPushed(db: ProjectDb, op: OutboxOp, saved: ServerRecord) {
   await db.transaction('rw', db.outbox, db.records, async () => {
     await db.outbox.delete(op.seq!);
     const remaining = await db.outbox.where('recordId').equals(op.recordId).count();
+    const record = await db.records.get(op.recordId);
     await db.records.update(op.recordId, {
       baseData: saved.data,
       baseVersion: saved.version,
-      syncState: remaining === 0 ? 'synced' : 'pending',
+      // Op vừa gửi là bản hợp lệ cũ; phiếu đã sửa thành nháp sau đó thì vẫn là nháp (TV1-05)
+      syncState: record?.syncState === 'draft' ? 'draft' : remaining === 0 ? 'synced' : 'pending',
       lastError: undefined,
     });
   });
@@ -328,8 +331,9 @@ async function pullAll(db: ProjectDb): Promise<void> {
       for (const remote of page.records) {
         const local = await db.records.get(remote.id);
         const hasOps = (await db.outbox.where('recordId').equals(remote.id).count()) > 0;
-        // Bản ghi đang có thay đổi cục bộ: để nguyên, lần push tới sẽ nhận 409 và merge
-        if (local && (hasOps || local.syncState === 'conflict')) continue;
+        // Bản ghi đang có thay đổi cục bộ (kể cả nháp chưa có op): để nguyên, lần push tới
+        // sẽ nhận 409 và merge (ADR 0001 quy tắc 8)
+        if (local && (hasOps || local.syncState === 'conflict' || local.syncState === 'draft')) continue;
         if (local && local.baseVersion >= remote.version) continue;
         await db.records.put({
           id: remote.id,

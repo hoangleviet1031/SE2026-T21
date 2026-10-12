@@ -23,9 +23,13 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const version = record?.formVersion ?? Math.max(...forms.map((f) => f.version));
   const form = forms.find((f) => f.version === version);
   if (!form) return <p>Không tìm thấy biểu mẫu.</p>;
+  // Lỗi lấy từ lần lưu gần nhất (design §4.1: mở lại nháp thì thấy danh sách lỗi)
+  const isDraft = record?.syncState === 'draft';
 
   const save = async () => {
-    await saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data });
+    const errors = await saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data });
+    // Còn lỗi thì ở lại để người dùng thấy trường nào cần sửa; phiếu đã lưu thành nháp
+    if (Object.keys(errors).length > 0) return;
     void syncNow();
     navigate();
   };
@@ -39,7 +43,19 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   return (
     <section>
       <h2>{form.title}</h2>
-      <FormRenderer db={db} form={form} recordId={id} value={data} onChange={setData} />
+      {isDraft && (
+        <p className="draft-notice" data-testid="draft-notice">
+          Đã lưu nháp, chưa đồng bộ. Sửa các trường báo lỗi rồi bấm Lưu.
+        </p>
+      )}
+      <FormRenderer
+        db={db}
+        form={form}
+        recordId={id}
+        value={data}
+        onChange={setData}
+        errors={isDraft ? record.validationErrors : undefined}
+      />
       <div className="actions">
         <button className="primary" onClick={save}>
           Lưu
