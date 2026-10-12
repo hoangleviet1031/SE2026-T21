@@ -14,6 +14,9 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-12 | TV2-09 | feat | Op `failed` (4xx tính một lần gửi), nút "Thử lại", sửa phiếu lỗi tạo op mới, "Xuất JSON phiếu này", cảnh báo tồn lâu; fault `'400'`, E2E R5 | nhánh `feat/tv2-09-failed-ops` | chờ review |
+| 2026-10-12 | TV2-08 | feat | `request_hash` chuẩn hoá và 422 khi khác nội dung, dọn key > 30 ngày, fault `drop` sau khi ghi + `drop-before`; test R2, R3, R6 | nhánh `feat/tv2-08-idempotency` | chờ review |
+| 2026-10-12 | TV2-07 | feat | Cursor theo phạm vi (`meta.pull`), xử lý bị rút/hạ vai trò không xoá dữ liệu chưa gửi, `NotMemberError`, `exportUnsentJson`/`forgetProject`; E2E T7–T9 | nhánh `feat/tv2-07-membership` | chờ review |
 | 2026-10-12 | TV2-06 | feat | Đồng bộ mọi dự án trong Web Lock, `/me` cập nhật `AccountDb.projects` (dự án mất thành `removed`), số đếm theo dự án; E2E O6 | nhánh `feat/tv2-06-multi-project-sync` | chờ review |
 | 2026-10-12 | TV2-05 | feat | Client tách CSDL `field-survey-account` và `field-survey-p-<projectId>`, UI lấy CSDL qua `useCurrentProjectDb`, xoá CSDL cũ; E2E `storage.spec.ts` | nhánh `feat/tv2-05-project-db` | chờ review |
 | 2026-10-12 | TV2-04 | feat | `GET /api/me`, `/api/admin/projects` (tạo, đổi tên, lưu trữ, chỉ định giám sát viên), `requireAdmin`; test T4 và quyền admin | nhánh `feat/tv2-04-me-admin` | chờ review |

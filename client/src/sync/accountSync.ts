@@ -1,8 +1,8 @@
-import type { ProjectSummary } from '@field-survey/shared';
+import type { ProjectSummary, Role } from '@field-survey/shared';
 import type { AccountProject } from '../db/accountDb';
 
-// Hàm thuần cho bước đầu vòng đồng bộ: gộp kết quả GET /api/me vào danh sách dự án đã lưu và
-// chọn thứ tự đồng bộ. Xem design §5.3 (Nhiều dự án), ADR 0002 §5–6.
+// Hàm thuần của vòng đồng bộ nhiều dự án: gộp kết quả GET /api/me vào danh sách dự án đã lưu,
+// chọn thứ tự đồng bộ, và quyết định cursor theo phạm vi. Xem design §5.3, §5.5; ADR 0002 §5–6.
 
 /**
  * Dự án trong /me: active, cập nhật tên và vai trò, giữ số đếm đã lưu.
@@ -35,4 +35,35 @@ export function projectsToSync(projects: AccountProject[], currentProjectId: str
   return active.includes(currentProjectId)
     ? [currentProjectId, ...active.filter((id) => id !== currentProjectId)]
     : active;
+}
+
+export type PullScope = 'own' | 'all';
+
+/**
+ * Trạng thái pull lưu ở `meta.pull` của CSDL dự án. `scope` là phạm vi **rộng nhất** mà dữ liệu
+ * trên máy đang có, không phải phạm vi lần pull cuối: bị hạ vai trò mà còn dữ liệu chưa gửi thì
+ * vẫn giữ "all" cho tới khi xoá được phiếu ngoài phạm vi (needsRescope).
+ */
+export interface PullState {
+  cursor: number;
+  scope: PullScope | null;
+}
+
+/**
+ * Sau khi nhận một trang pull: có cần pull lại từ cursor 0 không, và phạm vi lưu lại là gì.
+ * Phạm vi rộng ra thì phải pull lại từ đầu để lấy phiếu người khác có seq nhỏ hơn cursor
+ * (ADR 0001 quy tắc 10). Phạm vi hẹp lại thì không cần pull lại.
+ */
+export function pullStateAfterPage(
+  stored: PullState,
+  pageScope: PullScope,
+): { restart: boolean; scope: PullScope } {
+  if (stored.scope === 'own' && pageScope === 'all') return { restart: stored.cursor > 0, scope: 'all' };
+  if (stored.scope === 'all') return { restart: false, scope: 'all' };
+  return { restart: false, scope: pageScope };
+}
+
+/** Máy đang giữ phiếu phạm vi "all" nhưng vai trò giờ chỉ được thấy phiếu của mình (ADR 0002 §6). */
+export function needsRescope(storedScope: PullScope | null, role: Role): boolean {
+  return storedScope === 'all' && role === 'surveyor';
 }

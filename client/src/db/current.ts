@@ -1,7 +1,7 @@
 import Dexie from 'dexie';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { getAccountValue, setAccountValue } from './accountDb';
-import { ProjectDb } from './projectDb';
+import { accountDb, getAccountValue, setAccountValue } from './accountDb';
+import { ProjectDb, projectDbName } from './projectDb';
 
 // Dự án đang chọn và CSDL của nó. UI chỉ lấy CSDL qua `useCurrentProjectDb`, nên mọi liveQuery
 // chạy trên đúng một dự án và không thể hiện lẫn dữ liệu hai dự án (design §4.2).
@@ -22,6 +22,33 @@ export function openProjectDb(projectId: string): ProjectDb {
     openDbs.set(projectId, db);
   }
   return db;
+}
+
+export function projectDbExists(projectId: string): Promise<boolean> {
+  return Dexie.exists(projectDbName(projectId));
+}
+
+/**
+ * Xoá hẳn CSDL của một dự án và bỏ khỏi cache. Nơi gọi phải tự kiểm không còn dữ liệu chưa gửi,
+ * hoặc người dùng đã bấm xác nhận (CLAUDE.md bất biến 1). Đang chọn dự án này thì bỏ chọn trước,
+ * để UI chuyển sang CSDL khác thay vì đọc CSDL đã đóng.
+ */
+export async function deleteProjectDb(projectId: string): Promise<void> {
+  if ((await getAccountValue<string | null>('currentProjectId', null)) === projectId) {
+    await accountDb.account.delete('currentProjectId');
+  }
+  const db = openDbs.get(projectId);
+  openDbs.delete(projectId);
+  if (db) await db.delete({ disableAutoOpen: true });
+  else await Dexie.delete(projectDbName(projectId));
+}
+
+/**
+ * Xoá dữ liệu của dự án nhưng giữ đối tượng Dexie: lần dùng sau tự tạo CSDL rỗng cùng schema,
+ * nên trang đang mở dự án này vẫn chạy và pull lại từ đầu.
+ */
+export async function resetProjectDb(projectId: string): Promise<void> {
+  await openProjectDb(projectId).delete({ disableAutoOpen: false });
 }
 
 export async function getCurrentProjectId(): Promise<string> {

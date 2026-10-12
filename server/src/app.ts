@@ -9,6 +9,7 @@ import { recordsRouter } from './routes/records';
 import { attachmentsRouter } from './routes/attachments';
 import { exportRouter } from './routes/export';
 import { faultInjector, faultsRouter } from './routes/faults';
+import { testMembershipsRouter } from './routes/testMemberships';
 
 // Bật chủ động: quên cấu hình thì route tiêm lỗi tắt, kể cả khi quên đặt NODE_ENV. Xem docs/design.md §9.
 export function testRoutesEnabled(env: NodeJS.ProcessEnv): boolean {
@@ -26,6 +27,7 @@ export function createApp(db: Db, opts: { enableTestRoutes?: boolean } = {}) {
 
   if (opts.enableTestRoutes) {
     app.use('/api/__test', faultsRouter());
+    app.use('/api/__test', testMembershipsRouter(db));
     app.use('/api/projects/:projectId/records', faultInjector);
   }
 

@@ -2,7 +2,7 @@ import { Router, type Request } from 'express';
 import type { ConflictResponse, PullResponse, PushRecordRequest } from '@field-survey/shared';
 import { getCtx, type Ctx } from '../auth';
 import { tx, type Db } from '../db';
-import { findResponse, saveResponse } from '../repo/idempotency';
+import { findResponse, requestHash, saveResponse } from '../repo/idempotency';
 import { getHistory, getRecordAccess, pullRecords, writeRecord } from '../repo/records';
 
 // Route theo dự án: chỉ dùng `getCtx(req)`, không đọc projectId/userId từ body hay query.
@@ -78,11 +78,14 @@ export function recordsRouter(db: Db): Router {
     const key = req.header('Idempotency-Key');
     if (!key) return void res.status(400).json({ error: 'missing_idempotency_key' });
 
+    const hash = requestHash(ctx, req.params.id, req.body);
     const result = tx(db, () => {
       const seen = findResponse(db, key);
       if (seen) {
-        // Key của dự án/phiếu khác: không replay (sẽ lộ dữ liệu). Việc so nội dung là của TV2-08.
-        if (seen.projectId !== ctx.projectId || seen.recordId !== req.params.id) {
+        // Key đã dùng cho request khác (khác dự án, khác phiếu hoặc khác nội dung): không replay,
+        // vì replay sẽ trả kết quả của request kia, có thể lộ dữ liệu dự án khác (ADR 0001 quy tắc 3).
+        // Hash đã gồm projectId và recordId; so riêng hai trường cho rõ ý.
+        if (seen.projectId !== ctx.projectId || seen.recordId !== req.params.id || seen.requestHash !== hash) {
           return { status: 422, body: { error: 'idempotency_key_reused' }, replay: false };
         }
         return { status: seen.status, body: seen.body, replay: true };
@@ -90,7 +93,7 @@ export function recordsRouter(db: Db): Router {
 
       const out = applyPush(ctx, db, req.params.id, req.body);
       // Chỉ lưu kết quả thành công; 409 không lưu để client gửi lại sau khi merge (với key mới)
-      if (out.status < 300) saveResponse(ctx, db, key, req.params.id, req.body, out.status, out.body);
+      if (out.status < 300) saveResponse(ctx, db, key, req.params.id, hash, out.status, out.body);
       return { ...out, replay: false };
     });
 
