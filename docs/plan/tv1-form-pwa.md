@@ -113,7 +113,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-06 · Bộ chọn dự án
 
-- **Trạng thái:** ✅ `feat/tv1-06-project-switcher` (phần đang chạy; 🆕 nhãn Owner chờ TV2-16, "Tổ chức khác…" và màn hình 9 chờ TV1-15; nút builder/Xuất/Thành viên chưa có màn hình, dùng `canManageProject` trong `client/src/projects.ts`)
+- **Trạng thái:** ✅ PR #23 (phần đang chạy; 🆕 nhãn Owner chờ TV2-16, "Tổ chức khác…" và màn hình 9 chờ TV1-15; nút builder/Xuất/Thành viên chưa có màn hình, dùng `canManageProject` trong `client/src/projects.ts`)
 - 🆕 **Cập nhật theo ADR 0003:** nhãn vai trò có thêm "Owner"; nút builder, Xuất, Thành viên hiện cho cả `owner`; mục "Tổ chức khác…" mở màn hình 9 (TV1-15); không có tổ chức nào thì vào màn hình 9 thay cho câu "Gửi mã người dùng `<userId>`".
 - **Tuần:** 4 · **Phụ thuộc:** TV2-05, TV2-06
 - **Spec:** design §4.7, ADR 0002 §4
