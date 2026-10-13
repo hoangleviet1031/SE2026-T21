@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { getAccountValue } from '../db/accountDb';
+import { useCurrentProject } from '../db/current';
 import { formatBytes } from '../formatBytes';
 import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
 
@@ -14,6 +15,8 @@ function blockedMessage(blocked: BlockedProject[]): string {
 
 export function SettingsPage() {
   const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
+  // Đã thuộc dự án thì câu hướng dẫn đổi theo: mã chỉ còn cần khi được thêm vào dự án khác
+  const project = useCurrentProject();
   // Tính lại mỗi khi outbox/phiếu của dự án nào đó đổi, nên nút tự bật khi đồng bộ xong
   const blocked = useLiveQuery(projectsBlockingLogout, []);
   const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
@@ -56,7 +59,11 @@ export function SettingsPage() {
           <p>
             Mã người dùng: <code data-testid="settings-user-id">{user.id}</code>
           </p>
-          <p>Gửi mã này cho giám sát viên để được thêm vào dự án.</p>
+          <p>
+            {project === null
+              ? 'Gửi mã này cho giám sát viên để được thêm vào dự án.'
+              : 'Giám sát viên cần mã này nếu muốn thêm bạn vào dự án khác.'}
+          </p>
         </>
       ) : (
         <p data-testid="settings-user-id">Chưa có, cần kết nối mạng một lần.</p>

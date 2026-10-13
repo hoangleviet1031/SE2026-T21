@@ -12,6 +12,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-13 | TV1-04 | fix | Gọn UI sau khi thử staging: màu link, header 360px, builder bấm cả dòng/▲▼/gợi ý, "← Quay lại" ở trang điền phiếu, câu hướng dẫn Cài đặt theo ngữ cảnh; E2E `fill.spec.ts` | PR #26 | xong |
 | 2026-10-13 | TV1-03 | fix | Mã form được có dấu `-`: form mẫu `household-survey` trước đây không lưu được bản mới từ builder; mã trường giữ luật cũ; test shared + server | PR #25 | xong |
 | 2026-10-13 | TV1-04 | feat | Form builder `#/builder/<id>`, `#/builder/new`: 7 loại trường, lên/xuống, mã gợi ý từ nhãn, ẩn/xoá trường mới, xem trước, lưu bản mới qua `saveForm`; E2E `builder.spec.ts` | PR #24 | xong |
 | 2026-10-13 | TV1-06 | feat | Bộ chọn dự án (vai trò, số đếm, "Đã rời", đổi offline ≤ 1 s), bỏ mặc định `demo-yte`, màn hình chưa có dự án, banner bị rút có Xuất JSON/Xoá khỏi máy; E2E `project-switcher.spec.ts`, T7 đủ | PR #23 | xong |

@@ -31,7 +31,31 @@ table.conflict th, table.conflict td { text-align: left; padding: 8px; border-bo
 .project-list li.removed { display: flex; justify-content: space-between; padding: 8px 14px; color: #94a3b8; }
 .banner-removed { flex-direction: column; display: flex; gap: 8px; }
 .banner-removed div { display: flex; flex-wrap: wrap; gap: 8px; }
-.list li.selected { background: #f0fdfa; }
-button.link { border: none; background: none; padding: 0; text-align: left; text-decoration: underline; }
 fieldset.preview { border: 1px dashed #94a3b8; border-radius: 6px; padding: 12px; }
 .builder textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
+/* Link cùng màu app, không dùng màu tím "đã ghé" mặc định của trình duyệt */
+a { color: #0f766e; }
+a:visited { color: #0f766e; }
+.back { display: inline-block; margin-top: 12px; text-decoration: none; }
+.hint { color: #64748b; font-size: 14px; margin: 0; }
+/* Builder: bấm cả dòng để chọn trường, khoảng cách gọn hơn */
+.builder h3 { margin: 8px 0 0; }
+.builder .list { margin: 0; }
+.builder .actions { margin-top: 0; flex-wrap: wrap; }
+.builder select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; background: #fff; }
+.field-row { gap: 8px; flex-wrap: nowrap; }
+.field-row .field-name { flex: 1; border: none; background: none; text-align: left; padding: 8px 6px; }
+.field-row.selected .field-name { font-weight: 600; }
+.field-row .move { display: flex; gap: 4px; }
+.list li.selected { background: #ccfbf1; border-radius: 6px; }
+/* Điện thoại: nút chính rộng hết hàng cho dễ bấm */
+@media (max-width: 480px) {
+  .actions button.primary { flex: 1 1 100%; }
+}
+/* Header ở 360px: mỗi phần tử một dòng, tên app tự rút gọn bằng "…" thay vì đẩy các nút xuống dòng */
+header > * { white-space: nowrap; }
+header .brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 480px) {
+  header { gap: 8px; }
+  header button { padding: 6px 10px; }
+}

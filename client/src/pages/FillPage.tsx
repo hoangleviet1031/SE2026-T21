@@ -42,6 +42,10 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
 
   return (
     <section>
+      {/* Thoát không lưu: giống nút back của máy, phần chưa bấm Lưu không được giữ */}
+      <a href="#/" className="back">
+        ← Quay lại
+      </a>
       <h2>{form.title}</h2>
       {isDraft && (
         <p className="draft-notice" data-testid="draft-notice">

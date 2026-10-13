@@ -15,6 +15,8 @@ test('Cài đặt hiện mã người dùng; Đăng xuất xoá CSDL dự án v�
   await login(page);
   await openSettings(page);
   await expect(page.getByTestId('settings-user-id')).toHaveText('u_minh');
+  // Đã thuộc dự án: câu hướng dẫn nói về dự án khác, không bảo gửi mã để được thêm vào
+  await expect(page.getByText('Giám sát viên cần mã này nếu muốn thêm bạn vào dự án khác.')).toBeVisible();
   await expect(page.getByTestId('settings-storage')).toContainText('Đã dùng');
 
   // Huỷ ở hộp xác nhận thì không đổi gì
