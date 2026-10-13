@@ -122,17 +122,18 @@ function Builder({ db, prev }: { db: ProjectDb; prev?: FormSchema }) {
       <h3>Trường</h3>
       <ul className="list" data-testid="builder-fields">
         {state.fields.map((f, i) => (
-          <li key={f.uid} className={i === selected ? 'selected' : undefined}>
-            <button className="link" aria-pressed={i === selected} onClick={() => setSelected(i)}>
+          <li key={f.uid} className={i === selected ? 'field-row selected' : 'field-row'}>
+            <button className="field-name" aria-pressed={i === selected} onClick={() => setSelected(i)}>
               {f.label || 'Trường mới'} ({FIELD_TYPE_LABEL[f.type]}
               {f.hidden ? ', ẩn' : ''}){f.required ? ' *' : ''}
             </button>
-            <span>
+            {/* ▲▼ thay ↑↓: Windows vẽ ↑↓ bằng phông emoji có màu */}
+            <span className="move">
               <button aria-label="Lên" disabled={i === 0} onClick={() => move(i, -1)}>
-                ↑
-              </button>{' '}
+                ▲
+              </button>
               <button aria-label="Xuống" disabled={i === state.fields.length - 1} onClick={() => move(i, 1)}>
-                ↓
+                ▼
               </button>
             </span>
           </li>
@@ -149,6 +150,9 @@ function Builder({ db, prev }: { db: ProjectDb; prev?: FormSchema }) {
         <button onClick={add}>+ Thêm trường</button>
       </div>
 
+      {!field && state.fields.length > 0 && (
+        <p className="hint">Bấm vào một trường để sửa nhãn, bắt buộc, ẩn, lựa chọn.</p>
+      )}
       {field && selected !== null && (
         <FieldEditor
           key={field.uid}

@@ -1,7 +1,7 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
-- **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
+- **Phiên bản:** 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md; header giữ mỗi phần tử một dòng, tên app tự rút gọn bằng "…"); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
 **App khảo sát (PWA)**
@@ -191,6 +191,8 @@ Hộp thoại xoá vs sửa (ADR 0001 quy tắc 6, không chọn sẵn):
 
 Nhãn trạng thái ở đầu trang dùng cùng hàm `displayState` với danh sách. Phiếu lỗi có thêm "Thử lại" và "Xuất JSON phiếu này".
 
+Code: trang điền phiếu có link "← Quay lại" ở đầu trang (về danh sách, phần chưa bấm Lưu không được giữ); nút "Lưu" rộng hết hàng trên điện thoại.
+
 ## 5. Form builder
 
 ```
@@ -216,6 +218,8 @@ Nhãn trạng thái ở đầu trang dùng cùng hàm `displayState` với danh 
 │ [Xuất form] [Nhập form]        │
 └────────────────────────────────┘
 ```
+
+Code (gọn UI 13/10): bấm cả dòng để chọn trường, dòng đang chọn tô nền; nút ▲ ▼ (không dùng ↑ ↓ vì Windows vẽ thành emoji có màu); chưa chọn trường thì có dòng gợi ý "Bấm vào một trường để sửa…".
 
 Code (TV1-04): mã gợi ý từ nhãn, khoá sau khi lưu ("<mã> (khoá)"); trường chưa lưu có nút "Xoá trường"; lựa chọn nhập mỗi dòng một lựa chọn; chọn loại trường bằng ô "Loại trường" cạnh nút "+ Thêm trường"; "Xem trước" hiện form với ô nhập bị khoá; lỗi hiện ở khung `builder-errors`. Trang chủ: "Sửa form" cạnh mỗi form và "+ Biểu mẫu mới" dưới danh sách, chỉ với giám sát viên. "Xuất form"/"Nhập form" là việc của TV1-10.
 
@@ -258,8 +262,10 @@ Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng 
 │ Tài khoản                      │
 │ Dương                          │
 │ Mã người dùng: u_ovwt7i59      │  settings-user-id
-│ (Gửi mã này cho giám sát viên  │
+│ (Gửi mã này cho giám sát viên  │  chưa thuộc dự án nào
 │  để được thêm vào dự án)       │
+│ (Giám sát viên cần mã này nếu  │  đã thuộc dự án
+│  muốn thêm bạn vào dự án khác) │
 ├────────────────────────────────┤
 │ Dung lượng                     │
 │ Đã dùng 1,2 MB / 2,0 GB        │  settings-storage
