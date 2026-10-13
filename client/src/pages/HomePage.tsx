@@ -1,5 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import type { MeResponse } from '@field-survey/shared';
+import { RemovedProjectBanners } from '../components/RemovedProjectBanners';
+import { getAccountValue } from '../db/accountDb';
 import { useCurrentProjectDb } from '../db/current';
+import { downloadJson } from '../download';
 import type { ProjectDb, SyncState } from '../db/projectDb';
 import { syncNow } from '../sync/engine';
 import { exportRecordJson } from '../sync/exportJson';
@@ -17,10 +21,35 @@ const STATE_LABEL: Record<SyncState, string> = {
 
 export function HomePage() {
   const db = useCurrentProjectDb();
-  const forms = useLiveQuery(async () => db?.forms.toArray(), [db]) ?? [];
-  const records = useLiveQuery(async () => db?.records.orderBy('updatedAt').reverse().toArray(), [db]) ?? [];
+  return (
+    <>
+      <RemovedProjectBanners />
+      {db === null ? <NoProject /> : db && <ProjectHome db={db} />}
+    </>
+  );
+}
+
+/**
+ * Chưa có dự án active nào. Chưa từng nhận /me thì đang tải (vừa nhập mã, hoặc mất mạng ngay sau
+ * đó); đã nhận mà không có dự án thì người dùng phải nhờ giám sát viên thêm vào (design §4.7 🕘).
+ */
+// TODO(TV1-15): bản mới vào màn hình Tổ chức (ui.md màn hình 9) thay cho câu này (ADR 0003)
+function NoProject() {
+  const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
+  if (user === undefined) return null;
+  if (user === null) return <p data-testid="no-project">Đang tải danh sách dự án…</p>;
+  return (
+    <p data-testid="no-project">
+      Bạn chưa được thêm vào dự án nào. Gửi mã người dùng <code>{user.id}</code> cho giám sát viên.
+    </p>
+  );
+}
+
+function ProjectHome({ db }: { db: ProjectDb }) {
+  const forms = useLiveQuery(async () => db.forms.toArray(), [db]) ?? [];
+  const records = useLiveQuery(async () => db.records.orderBy('updatedAt').reverse().toArray(), [db]) ?? [];
   // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
-  const warnings = useLiveQuery(async () => (db ? staleWarnings(await db.outbox.toArray(), Date.now()) : undefined), [db]);
+  const warnings = useLiveQuery(async () => staleWarnings(await db.outbox.toArray(), Date.now()), [db]);
   const latestForms = Object.values(
     Object.fromEntries(forms.sort((a, b) => a.version - b.version).map((f) => [f.id, f])),
   );
@@ -66,7 +95,7 @@ export function HomePage() {
                     {STATE_LABEL[r.syncState]}
                   </span>
                 )}
-                {r.syncState === 'error' && db && (
+                {r.syncState === 'error' && (
                   <div className="record-error">
                     <span data-testid="sync-error">{r.lastError ?? 'Máy chủ từ chối phiếu này'}</span>
                     <button onClick={() => void retry(db, r.id)}>Thử lại</button>
@@ -88,12 +117,5 @@ async function retry(db: ProjectDb, recordId: string) {
 
 /** Tải phiếu về máy dưới dạng file .json (design §8, phiếu "Lỗi"). */
 async function downloadRecord(db: ProjectDb, recordId: string) {
-  const json = await exportRecordJson(db, recordId);
-  const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `phieu-${recordId}.json`;
-  a.click();
-  // Thu hồi ở lượt sau: một số trình duyệt (Safari) huỷ tải nếu URL bị thu hồi ngay sau click
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+  downloadJson(`phieu-${recordId}.json`, await exportRecordJson(db, recordId));
 }

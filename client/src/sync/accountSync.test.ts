@@ -49,6 +49,10 @@ describe('projectsToSync', () => {
   it('dự án đang chọn không active thì không đồng bộ nó', () => {
     expect(projectsToSync(list, 'c')).toEqual(['a', 'b', 'd']);
   });
+
+  it('chưa có dự án đang chọn thì giữ thứ tự', () => {
+    expect(projectsToSync(list, null)).toEqual(['a', 'b', 'd']);
+  });
 });
 
 describe('pullStateAfterPage', () => {

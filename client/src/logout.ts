@@ -1,6 +1,6 @@
 import { clearToken } from './auth';
 import { accountDb } from './db/accountDb';
-import { deleteProjectDb, getCurrentProjectId, openProjectDb, projectDbExists } from './db/current';
+import { deleteProjectDb, openProjectDb, projectDbExists } from './db/current';
 import { SYNC_LOCK } from './sync/engine';
 import { hasUnsentData } from './sync/membership';
 
@@ -14,18 +14,13 @@ export interface BlockedProject {
 }
 
 /**
- * Mọi dự án có CSDL trên máy: dự án đã biết từ /me (kể cả đã rời) và dự án đang chọn (có thể
- * chưa có trong danh sách nếu chưa gọi được /me lần nào). Chỉ lấy CSDL đã tồn tại, để việc kiểm
- * tra không tự tạo CSDL rỗng.
+ * Mọi dự án có CSDL trên máy: dự án đã biết từ /me, kể cả đã rời. Dự án đang chọn luôn nằm trong
+ * danh sách này (current.ts chỉ chọn trong `projects`). Chỉ lấy CSDL đã tồn tại, để việc kiểm tra
+ * không tự tạo CSDL rỗng.
  */
 async function projectsOnDevice(): Promise<BlockedProject[]> {
-  const known = await accountDb.projects.toArray();
-  const all = new Map(known.map((p) => [p.id, p.name]));
-  const current = await getCurrentProjectId();
-  if (!all.has(current)) all.set(current, current);
-
   const result: BlockedProject[] = [];
-  for (const [id, name] of all) {
+  for (const { id, name } of await accountDb.projects.toArray()) {
     if (await projectDbExists(id)) result.push({ id, name });
   }
   return result;

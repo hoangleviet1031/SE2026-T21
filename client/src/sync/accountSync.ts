@@ -30,9 +30,9 @@ export function mergeMeIntoProjects(saved: AccountProject[], me: ProjectSummary[
 }
 
 /** Id các dự án cần đồng bộ: chỉ dự án active, dự án đang chọn trước (design §5.3). */
-export function projectsToSync(projects: AccountProject[], currentProjectId: string): string[] {
+export function projectsToSync(projects: AccountProject[], currentProjectId: string | null): string[] {
   const active = projects.filter((p) => p.status === 'active').map((p) => p.id);
-  return active.includes(currentProjectId)
+  return currentProjectId !== null && active.includes(currentProjectId)
     ? [currentProjectId, ...active.filter((id) => id !== currentProjectId)]
     : active;
 }
