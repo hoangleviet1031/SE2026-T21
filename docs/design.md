@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.3 (2026-10-12)
+- **Phiên bản:** 0.5.4 (2026-10-13)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -37,6 +37,7 @@
 | 0.5.1 | 2026-10-12 | TV1-05 client: phiếu không hợp lệ lưu thành `draft` kèm `validationErrors`, không tạo, sửa hay xoá op; op chưa gửi và op `failed` có sẵn được giữ; push xong op cũ vẫn giữ `draft`; pull bỏ qua `draft` (§4.1, §5.1, ADR 0001 quy tắc 8). O5 có test (§10.1) |
 | 0.5.2 | 2026-10-12 | TV1-07 phần 1: trang Cài đặt (tên, `userId`, dung lượng) và Đăng xuất có code (§4.7); `account.user` ghi sau mỗi lần gọi `/me` (§4.2). 🆕 Spec mới (tên đăng nhập, `/auth/logout`) làm sau TV2-14/TV2-16 |
 | 0.5.3 | 2026-10-12 | TV1-03: `POST P/forms` có code (§7): thân `SaveFormRequest` (§6.2), `version` do server đặt, `invalid_body`/`invalid_form`; luật lưu form thêm: `id` form cùng mẫu id trường, `title` không trống, option không trống, `options` ở trường không phải select bỏ qua (§4.1); `validateFormSchema` trong `shared/`; A3 phần forms và A5 phần supervisor/surveyor có test (§10.1); Owner chờ TV2-14 |
+| 0.5.4 | 2026-10-13 | TV1-06: bộ chọn dự án có code (§4.7): chưa chọn lần nào hoặc dự án đã chọn đã rời thì vào dự án active đầu tiên theo thứ tự `/me`, bỏ mặc định `demo-yte` (§4.2); dự án "Đã rời" không chọn được; banner bị rút ở trang chủ, N đếm phiếu nháp/chờ/lỗi/xung đột, "Xoá khỏi máy" hỏi xác nhận; màn hình chưa có dự án. T7 đủ phần banner (§10.1). 🆕 Owner, "Tổ chức khác…" chờ TV2-16, TV1-15 |
 
 ## Mục lục
 
@@ -231,7 +232,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 | `attachments` | `id`, index `recordId`, `uploadState`, `nextAttemptAt` | Blob ảnh, chunk đã upload, trạng thái retry (§5.6) |
 | `meta` | `key` | `pull: { cursor, scope }` (§5.5), ... |
 
-- **Dự án đang chọn:** lưu trong `account` (`currentProjectId`). Chưa có `/me` trong vòng đồng bộ và bộ chọn dự án (TV2-06, TV1-06) thì mặc định `demo-yte` (code tạm).
+- **Dự án đang chọn:** lưu trong `account` (`currentProjectId`). Chưa chọn lần nào, hoặc dự án đã chọn không còn active (đã rời), thì dùng dự án active đầu tiên trong `projects` (thứ tự `/me`); không có dự án active nào thì không mở CSDL dự án nào (`client/src/projects.ts`, `resolveCurrentProjectId`).
 - **Đổi dự án:** UI đóng CSDL cũ, mở CSDL của dự án mới; mọi `liveQuery` chỉ chạy trên CSDL đang mở, nên không thể hiển thị lẫn dữ liệu hai dự án.
 - **Rút khỏi dự án:** xoá cả CSDL bằng `Dexie.delete`, chỉ khi không còn dữ liệu chưa gửi (ADR 0002 §6).
 
@@ -301,8 +302,8 @@ Khi sync engine nhận `409` và merge còn xung đột trường hoặc xung đ
 Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
 
 **Chung cho hai bản**
-- **Bộ chọn dự án** ở thanh trên cùng: tên dự án đang chọn, mở ra thấy mọi dự án của mình kèm vai trò và số phiếu cần xử lý / chưa đồng bộ của từng dự án. Đổi dự án được khi offline với dự án đã tải.
-- **Bị rút khỏi dự án:** dự án hiện mờ trong bộ chọn với nhãn "Đã rời". Còn phiếu chưa gửi thì có banner "Bạn không còn thuộc dự án X. N phiếu chưa gửi được" với nút "Xuất JSON" và "Xoá khỏi máy". Tổ chức bị admin khoá cũng đi luồng này.
+- **Bộ chọn dự án** ở thanh trên cùng: tên dự án đang chọn, mở ra thấy mọi dự án của mình kèm vai trò và số phiếu cần xử lý / chưa đồng bộ của từng dự án (số lưu sau vòng đồng bộ gần nhất, §4.2). Đổi dự án được khi offline với dự án đã tải; đổi xong về danh sách phiếu của dự án mới. Chỉ có một dự án thì chỉ hiện tên. Có code (`client/src/components/ProjectSwitcher.tsx`).
+- **Bị rút khỏi dự án:** dự án hiện mờ trong bộ chọn với nhãn "Đã rời" và **không chọn được**; đang chọn dự án đó thì app chuyển sang dự án active đầu tiên. Còn phiếu chưa gửi thì trang chủ có banner "Bạn không còn thuộc dự án X. N phiếu chưa gửi được" (mỗi dự án một banner, dù đang chọn dự án nào) với nút "Xuất JSON" và "Xoá khỏi máy". N là số phiếu nháp, chờ đồng bộ, lỗi, xung đột, cùng tập với file Xuất JSON. "Xoá khỏi máy" hỏi "Xoá N phiếu chưa gửi của dự án X khỏi máy? Không khôi phục được.", xoá trong Web Lock `field-survey-sync` và không xoá nếu dự án vừa được thêm lại. Tổ chức bị admin khoá cũng đi luồng này. Có code (`client/src/components/RemovedProjectBanners.tsx`).
 
 **🆕 Bản mới (ADR 0003, chưa có code)**
 - **Tài khoản:** màn hình đầu có hai tab "Đăng nhập" / "Tạo tài khoản" (cần mạng). Tạo tài khoản: tên đăng nhập (`^[a-z0-9._]{3,32}$`, không đổi được), tên hiển thị, mật khẩu (8–128 ký tự), nhập lại mật khẩu; tạo xong là đăng nhập luôn. Sai tên hoặc mật khẩu: "Sai tên đăng nhập hoặc mật khẩu". Mỗi lần đăng nhập server cấp một **phiên** riêng cho máy đó, không tự hết hạn (ADR 0003 §1).
@@ -320,7 +321,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
 - **Đăng xuất** như bản cũ, thêm: gọi `POST /api/auth/logout` để huỷ phiên của máy này nếu đang online.
 
 **🕘 Bản cũ (đang chạy, ADR 0002)**
-- **Lần đầu mở app:** màn hình nhập mã đăng nhập (token do quản trị tạo bằng CLI, §12). Sau đó nếu chỉ thuộc một dự án thì vào thẳng dự án đó; nếu chưa thuộc dự án nào: "Bạn chưa được thêm vào dự án nào. Gửi mã người dùng `<userId>` cho giám sát viên."
+- **Lần đầu mở app:** màn hình nhập mã đăng nhập (token do quản trị tạo bằng CLI, §12). Sau đó nếu chỉ thuộc một dự án thì vào thẳng dự án đó; nhiều dự án thì vào dự án đầu tiên theo thứ tự `/me`, lần sau vào dự án đã chọn lần trước; chưa nhận được `/me` lần nào thì hiện "Đang tải danh sách dự án…"; nếu chưa thuộc dự án nào: "Bạn chưa được thêm vào dự án nào. Gửi mã người dùng `<userId>` cho giám sát viên."
 - **Màn hình Thành viên** (`supervisor`, cần online): danh sách thành viên và vai trò; thêm bằng `userId`; đổi vai trò; rút khỏi dự án (có hỏi xác nhận). Không cho tự rút giám sát viên cuối cùng. *(Chưa có code; TV1-08 sẽ làm theo bản mới.)*
 - **Màn hình Dự án** (`admin`, cần online, trong PWA): tạo dự án, đổi tên, lưu trữ; chỉ định giám sát viên đầu tiên. *(Chưa có code; thay bằng trang quản trị §4.9.)*
 - **Tạo người dùng** không có UI: quản trị chạy CLI ở server (§12).
@@ -862,7 +863,7 @@ Phạm vi đồ án giữ đơn giản:
 | M2 | Integration | Owner thêm supervisor, Owner; tên không có; người đã là thành viên | `201`; `404`; `409 already_member` | TV1-08 |
 | M3 | E2E | Owner thêm người bằng tên đăng nhập → sau một vòng đồng bộ người đó thấy tổ chức, gửi được phiếu | Như T6 | TV1-15 |
 
-**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm. E2E T7, T8, T9 và hạ vai trò có trong `client/e2e/membership.spec.ts`; T7 mới kiểm phần dữ liệu (phiếu còn, `removed`, không request), banner và nút "Xuất JSON" chờ TV1-06.
+**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm. E2E T7, T8, T9 và hạ vai trò có trong `client/e2e/membership.spec.ts`; T7 kiểm cả banner, file Xuất JSON và "Xoá khỏi máy" (TV1-06). Bộ chọn dự án và đổi dự án offline ≤ 1 s (§11.2) ở `client/e2e/project-switcher.spec.ts`; T10 đầy đủ vẫn là việc của TV1-11.
 
 **API kiểm thử** (chỉ đăng ký khi `ENABLE_TEST_ROUTES=1`, file `server/src/routes/faults.ts`):
 

@@ -2,13 +2,10 @@ import Dexie from 'dexie';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { accountDb, getAccountValue, setAccountValue } from './accountDb';
 import { ProjectDb, projectDbName } from './projectDb';
+import { resolveCurrentProjectId } from '../projects';
 
 // Dự án đang chọn và CSDL của nó. UI chỉ lấy CSDL qua `useCurrentProjectDb`, nên mọi liveQuery
 // chạy trên đúng một dự án và không thể hiện lẫn dữ liệu hai dự án (design §4.2).
-
-// TODO(TV2-06, TV1-06): khi /me và bộ chọn dự án có, dự án mặc định lấy từ danh sách dự án
-// của người dùng thay vì cố định. Tạm dùng dự án demo mà mọi tài khoản demo đều thuộc.
-export const DEFAULT_PROJECT_ID = 'demo-yte';
 
 const LEGACY_DB_NAME = 'field-survey';
 
@@ -51,22 +48,28 @@ export async function resetProjectDb(projectId: string): Promise<void> {
   await openProjectDb(projectId).delete({ disableAutoOpen: false });
 }
 
-export async function getCurrentProjectId(): Promise<string> {
-  return (await getAccountValue<string | null>('currentProjectId', null)) ?? DEFAULT_PROJECT_ID;
-}
-
-export async function getCurrentProjectDb(): Promise<ProjectDb> {
-  return openProjectDb(await getCurrentProjectId());
+/**
+ * Dự án đang chọn, `null` khi chưa có dự án active nào (chưa gọi được /me lần nào, hoặc chưa được
+ * thêm vào dự án nào). Đã lưu mà dự án đó đã rời thì trả dự án active đầu tiên (projects.ts).
+ */
+export async function getCurrentProjectId(): Promise<string | null> {
+  const stored = await getAccountValue<string | null>('currentProjectId', null);
+  return resolveCurrentProjectId(await accountDb.projects.toArray(), stored);
 }
 
 export async function setCurrentProject(projectId: string): Promise<void> {
   await setAccountValue('currentProjectId', projectId);
 }
 
-/** CSDL của dự án đang chọn; `undefined` trong lúc đang đọc dự án đang chọn từ IndexedDB. */
-export function useCurrentProjectDb(): ProjectDb | undefined {
+/**
+ * CSDL của dự án đang chọn; `undefined` trong lúc đang đọc IndexedDB, `null` khi chưa có dự án
+ * nào để chọn. liveQuery đọc cả `account` và `projects` nên tự đổi CSDL khi chọn dự án khác hoặc
+ * dự án đang chọn bị rút.
+ */
+export function useCurrentProjectDb(): ProjectDb | null | undefined {
   const projectId = useLiveQuery(getCurrentProjectId, []);
-  return projectId === undefined ? undefined : openProjectDb(projectId);
+  if (projectId === undefined) return undefined;
+  return projectId === null ? null : openProjectDb(projectId);
 }
 
 /**

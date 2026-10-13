@@ -7,6 +7,7 @@ import { FillPage } from './pages/FillPage';
 import { ConflictPage } from './pages/ConflictPage';
 import { LoginPage } from './pages/LoginPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ProjectSwitcher } from './components/ProjectSwitcher';
 import { syncNow } from './sync/engine';
 
 export function App() {
@@ -45,6 +46,8 @@ export function App() {
         </button>
         <a href="#/settings">Cài đặt</a>
       </header>
+      {/* Hàng riêng dưới header: header đã kín chỗ ở bề ngang 360px */}
+      <ProjectSwitcher />
       <main>
         {page === 'fill' && args[0] ? (
           <FillPage formId={args[0]} recordId={args[1]} />

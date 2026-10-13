@@ -12,6 +12,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-13 | TV1-06 | feat | Bộ chọn dự án (vai trò, số đếm, "Đã rời", đổi offline ≤ 1 s), bỏ mặc định `demo-yte`, màn hình chưa có dự án, banner bị rút có Xuất JSON/Xoá khỏi máy; E2E `project-switcher.spec.ts`, T7 đủ | `feat/tv1-06-project-switcher` | xong |
 | 2026-10-12 | TV1-03 | feat | `validateFormSchema` trong `shared/` (id trường/form, option, so với bản trước) + 20 unit test; `POST P/forms` chỉ giám sát viên, version tự tăng trong transaction, `invalid_body`/`invalid_form`; 15 integration test gồm A3; thêm `SaveFormRequest`, design 0.4.14 | PR #19 | xong |
 | 2026-10-12 | TV1-07 | feat | Phần 1: trang Cài đặt `#/settings` (tên, `userId`, dung lượng), Đăng xuất chỉ khi mọi dự án không còn dữ liệu chưa gửi, chạy trong Web Lock đồng bộ; lưu `me.user` vào `field-survey-account`; phác ui.md màn hình 8; E2E `settings.spec.ts`, unit `formatBytes` | PR #20 | xong |
 | 2026-10-12 | TV1-05 | feat | Phiếu thiếu/sai lưu thành nháp, không tạo op, lỗi hiện dưới từng trường; engine giữ nháp sau push và pull không ghi đè nháp; E2E O5 | PR #17 | xong |

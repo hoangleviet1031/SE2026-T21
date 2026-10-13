@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { TOKENS, authHeaders, databaseNames, login, putRow, readStore, setMembership } from './helpers';
+import { TOKENS, authHeaders, databaseNames, login, readStore, setMembership } from './helpers';
 
 // TV2-07: thay đổi thành viên khi thiết bị có thể đang offline (ADR 0002 §6, ca T7–T9) và
 // cursor theo phạm vi (ADR 0001 quy tắc 10, design §5.5). Dùng dự án demo-nongnghiep (có form
@@ -62,10 +62,10 @@ test('T7: bị rút khi còn phiếu chưa gửi: phiếu còn trên máy, khôn
   await setMembership(request, OTHER, MINH, 'surveyor');
   await loginAndLoadOther(page);
 
-  // Chưa có bộ chọn dự án (TV1-06): chọn dự án bằng cách ghi thẳng vào CSDL account
-  await putRow(page, ACCOUNT_DB, 'account', { key: 'currentProjectId', value: OTHER });
-  await page.reload();
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  const switcher = page.getByTestId('project-switcher');
+  await switcher.getByRole('button', { expanded: false }).click();
+  await switcher.getByRole('listitem').getByRole('button', { name: /Nông nghiệp \(demo\)/ }).click();
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Nông nghiệp (demo) ▾');
 
   const name = `Hộ T7 ${crypto.randomUUID().slice(0, 8)}`;
   await context.setOffline(true);
@@ -88,8 +88,47 @@ test('T7: bị rút khi còn phiếu chưa gửi: phiếu còn trên máy, khôn
     .toBe('removed');
   expect(await localNames(page)).toContain(name);
   expect((await readStore(page, OTHER_DB, 'outbox')).length).toBeGreaterThan(0);
+
+  // TV1-06: banner kèm Xuất JSON; dự án mờ "Đã rời" trong bộ chọn, app chuyển sang dự án còn lại
+  const banner = page.getByTestId('removed-project-banner');
+  await expect(banner).toContainText('Bạn không còn thuộc dự án Nông nghiệp (demo). 1 phiếu chưa gửi được');
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Y tế xã (demo) ▾');
+  await switcher.getByRole('button', { expanded: false }).click();
+  await expect(switcher.getByRole('listitem').filter({ hasText: 'Nông nghiệp (demo)' })).toContainText('Đã rời');
+  await expect(switcher.getByRole('listitem').getByRole('button', { name: /Nông nghiệp/ })).toHaveCount(0);
+
+  const downloadPromise = page.waitForEvent('download');
+  await banner.getByRole('button', { name: 'Xuất JSON' }).click();
+  const download = await downloadPromise;
+  const exported = JSON.parse(await streamText(await download.createReadStream())) as {
+    projectId: string;
+    records: RecordRow[];
+  };
+  expect(exported.projectId).toBe(OTHER);
+  expect(exported.records.map((r) => r.data.householdName)).toEqual([name]);
+
+  // Huỷ ở hộp xác nhận thì không xoá gì
+  page.once('dialog', (d) => void d.dismiss());
+  await banner.getByRole('button', { name: 'Xoá khỏi máy' }).click();
+  await expect(banner).toBeVisible();
+  expect(await localNames(page)).toContain(name);
+
+  page.once('dialog', (d) => {
+    expect(d.message()).toBe('Xoá 1 phiếu chưa gửi của dự án Nông nghiệp (demo) khỏi máy? Không khôi phục được.');
+    void d.accept();
+  });
+  await banner.getByRole('button', { name: 'Xoá khỏi máy' }).click();
+  await expect(banner).toHaveCount(0);
+  await expect.poll(() => databaseNames(page)).not.toContain(OTHER_DB);
+  expect((await accountProjects(page)).map((p) => p.id)).not.toContain(OTHER);
   expect(toOther).toEqual([]);
 });
+
+async function streamText(stream: NodeJS.ReadableStream): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  return Buffer.concat(chunks).toString('utf8');
+}
 
 test('T8: bị rút khi không còn gì chưa gửi: CSDL dự án bị xoá, dự án biến khỏi danh sách', async ({
   page,

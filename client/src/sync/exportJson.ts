@@ -5,7 +5,7 @@ import type { ConflictEntry, LocalRecord, ProjectDb, SyncState } from '../db/pro
 // dự án (nút "Xuất JSON", TV1-06) hoặc phiếu "Lỗi" (nút "Xuất JSON phiếu này", design §8).
 // Ảnh chỉ có id trong `data`, không kèm nội dung ảnh.
 
-const UNSENT_STATES: SyncState[] = ['draft', 'pending', 'error', 'conflict'];
+export const UNSENT_STATES: SyncState[] = ['draft', 'pending', 'error', 'conflict'];
 
 export type ExportedRecord = Pick<
   LocalRecord,

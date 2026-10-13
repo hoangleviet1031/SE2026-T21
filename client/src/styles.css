@@ -24,3 +24,10 @@ button:disabled { opacity: 0.5; cursor: default; }
 .actions { display: flex; gap: 8px; margin-top: 20px; }
 table.conflict { width: 100%; border-collapse: collapse; margin: 16px 0; }
 table.conflict th, table.conflict td { text-align: left; padding: 8px; border-bottom: 1px solid #e2e8f0; }
+.project-switcher { padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+.project-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 4px; }
+.project-list button { width: 100%; display: grid; gap: 2px; text-align: left; }
+.project-list small { color: #475569; }
+.project-list li.removed { display: flex; justify-content: space-between; padding: 8px 14px; color: #94a3b8; }
+.banner-removed { flex-direction: column; display: flex; gap: 8px; }
+.banner-removed div { display: flex; flex-wrap: wrap; gap: 8px; }

@@ -1,6 +1,6 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
@@ -122,6 +122,8 @@ Bộ chọn dự án mở ra:
 ```
 
 Banner khi bị rút còn dữ liệu: "Bạn không còn thuộc dự án X. N phiếu chưa gửi được [Xuất JSON] [Xoá khỏi máy]".
+
+Code (TV1-06): bộ chọn nằm ở một hàng riêng ngay dưới header (header đã có tên app, trạng thái mạng, Đồng bộ, Cài đặt; không đủ chỗ ở 360px); danh sách mở ra đẩy nội dung xuống. Dòng "Đã rời" không bấm được. Chưa có dự án active: "Đang tải danh sách dự án…" (chưa nhận `/me`) hoặc "Bạn chưa được thêm vào dự án nào. Gửi mã người dùng `<userId>` cho giám sát viên." (`data-testid="no-project"`; 🆕 thay bằng màn hình 9).
 
 ## 3. Xung đột
 
