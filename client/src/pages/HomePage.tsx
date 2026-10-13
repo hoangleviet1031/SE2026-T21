@@ -2,7 +2,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { RemovedProjectBanners } from '../components/RemovedProjectBanners';
 import { getAccountValue } from '../db/accountDb';
-import { useCurrentProjectDb } from '../db/current';
+import { useCurrentProject, useCurrentProjectDb } from '../db/current';
+import { canManageProject } from '../projects';
 import { downloadJson } from '../download';
 import type { ProjectDb, SyncState } from '../db/projectDb';
 import { syncNow } from '../sync/engine';
@@ -46,6 +47,9 @@ function NoProject() {
 }
 
 function ProjectHome({ db }: { db: ProjectDb }) {
+  const project = useCurrentProject();
+  // Sửa form chỉ cho giám sát viên (ui.md màn hình 2); server cũng chặn (403 forbidden)
+  const canManage = project ? canManageProject(project.role) : false;
   const forms = useLiveQuery(async () => db.forms.toArray(), [db]) ?? [];
   const records = useLiveQuery(async () => db.records.orderBy('updatedAt').reverse().toArray(), [db]) ?? [];
   // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
@@ -73,10 +77,14 @@ function ProjectHome({ db }: { db: ProjectDb }) {
           {latestForms.map((f) => (
             <li key={f.key}>
               <span>{f.title}</span>
-              <button onClick={() => navigate('fill', f.id, crypto.randomUUID())}>Tạo phiếu mới</button>
+              <span>
+                {canManage && <a href={`#/builder/${encodeURIComponent(f.id)}`}>Sửa form</a>}{' '}
+                <button onClick={() => navigate('fill', f.id, crypto.randomUUID())}>Tạo phiếu mới</button>
+              </span>
             </li>
           ))}
         </ul>
+        {canManage && <a href="#/builder/new">+ Biểu mẫu mới</a>}
       </section>
       <section>
         <h2>Phiếu đã nhập</h2>

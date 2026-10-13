@@ -72,7 +72,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-04 · Form builder
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv1-04-form-builder` (🆕 hiện cho `owner` chờ TV2-16; Xuất/Nhập form ở TV1-10)
 - **Tuần:** 3 · **Phụ thuộc:** TV1-03
 - **Spec:** design §4.1 (Builder UI, Tiêu chí chấp nhận), [ui.md màn hình 5](../ui.md#5-form-builder)
 - **File:** `client/src/pages/BuilderPage.tsx` (mới), `client/src/components/FieldEditor.tsx` (mới), `client/src/App.tsx` (route `#/builder/<formId>` và `#/builder/new`), `client/src/sync/api.ts` (hàm `saveForm`)
