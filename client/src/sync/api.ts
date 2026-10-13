@@ -1,4 +1,4 @@
-import type { FormSchema, MeResponse, PullResponse, PushRecordRequest } from '@field-survey/shared';
+import type { FormSchema, MeResponse, PullResponse, PushRecordRequest, SaveFormRequest } from '@field-survey/shared';
 
 import { clearToken, getToken } from '../auth';
 
@@ -73,6 +73,34 @@ export async function fetchForms(projectId: string): Promise<FormSchema[]> {
   const res = await request(`${projectPath(projectId)}/forms`, {}, projectId);
   if (!res.ok) throw new Error(`GET /api/forms ${res.status}`);
   return res.json();
+}
+
+/** Kết quả lưu form: form server đã lưu (version do server đặt), hoặc lỗi để hiện trong builder. */
+export type SaveFormResult = { ok: true; form: FormSchema } | { ok: false; errors: string[] };
+
+/**
+ * Lưu form thành phiên bản mới (design §7, `POST P/forms`). Mất mạng thì ném NetworkError để
+ * builder báo "Cần kết nối để lưu form"; lỗi người dùng sửa được (§7.1) trả về thành danh sách.
+ */
+export async function saveForm(projectId: string, body: SaveFormRequest): Promise<SaveFormResult> {
+  const res = await request(
+    `${projectPath(projectId)}/forms`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+    projectId,
+  );
+  if (res.status === 201) return { ok: true, form: await res.json() };
+  const code = await errorCode(res);
+  if (code === 'invalid_form') {
+    const payload: unknown = await res.json();
+    const details =
+      typeof payload === 'object' && payload !== null && 'details' in payload && Array.isArray(payload.details)
+        ? payload.details.filter((d): d is string => typeof d === 'string')
+        : [];
+    return { ok: false, errors: details.length > 0 ? details : ['Biểu mẫu không hợp lệ'] };
+  }
+  if (code === 'forbidden') return { ok: false, errors: ['Chỉ giám sát viên được lưu biểu mẫu'] };
+  if (code === 'invalid_body') return { ok: false, errors: ['Biểu mẫu không đúng định dạng'] };
+  throw new Error(`POST forms ${res.status}`);
 }
 
 export async function pushRecord(projectId: string, id: string, body: PushRecordRequest, idempotencyKey: string) {

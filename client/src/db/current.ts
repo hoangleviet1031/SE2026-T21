@@ -1,6 +1,6 @@
 import Dexie from 'dexie';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { accountDb, getAccountValue, setAccountValue } from './accountDb';
+import { accountDb, getAccountValue, setAccountValue, type AccountProject } from './accountDb';
 import { ProjectDb, projectDbName } from './projectDb';
 import { resolveCurrentProjectId } from '../projects';
 
@@ -70,6 +70,14 @@ export function useCurrentProjectDb(): ProjectDb | null | undefined {
   const projectId = useLiveQuery(getCurrentProjectId, []);
   if (projectId === undefined) return undefined;
   return projectId === null ? null : openProjectDb(projectId);
+}
+
+/** Dòng của dự án đang chọn trong CSDL account (tên, vai trò); `null` khi chưa có dự án nào. */
+export function useCurrentProject(): AccountProject | null | undefined {
+  return useLiveQuery(async () => {
+    const id = await getCurrentProjectId();
+    return id === null ? null : ((await accountDb.projects.get(id)) ?? null);
+  }, []);
 }
 
 /**
