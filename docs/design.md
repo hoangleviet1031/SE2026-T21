@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.5 (2026-10-13)
+- **Phiên bản:** 0.5.6 (2026-10-13)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -39,6 +39,7 @@
 | 0.5.3 | 2026-10-12 | TV1-03: `POST P/forms` có code (§7): thân `SaveFormRequest` (§6.2), `version` do server đặt, `invalid_body`/`invalid_form`; luật lưu form thêm: `id` form cùng mẫu id trường, `title` không trống, option không trống, `options` ở trường không phải select bỏ qua (§4.1); `validateFormSchema` trong `shared/`; A3 phần forms và A5 phần supervisor/surveyor có test (§10.1); Owner chờ TV2-14 |
 | 0.5.4 | 2026-10-13 | TV1-06: bộ chọn dự án có code (§4.7): chưa chọn lần nào hoặc dự án đã chọn đã rời thì vào dự án active đầu tiên theo thứ tự `/me`, bỏ mặc định `demo-yte` (§4.2); dự án "Đã rời" không chọn được; banner bị rút ở trang chủ, N đếm phiếu nháp/chờ/lỗi/xung đột, "Xoá khỏi máy" hỏi xác nhận; màn hình chưa có dự án. T7 đủ phần banner (§10.1). 🆕 Owner, "Tổ chức khác…" chờ TV2-16, TV1-15 |
 | 0.5.5 | 2026-10-13 | TV1-04: form builder có code (§4.1): mã form/trường gợi ý từ nhãn và khoá sau khi lưu, chỉ xoá được trường chưa lưu, xem trước khoá ô nhập, lưu xong ghi form vào IndexedDB, builder báo trường thiếu nhãn; offline "Cần kết nối để lưu form"; hai người cùng sửa: bản lưu sau thành version mới (§13) |
+| 0.5.6 | 2026-10-13 | Sửa lỗi TV1-03: `id` form được có dấu `-` (`^[a-zA-Z][a-zA-Z0-9_-]*$`), vì form mẫu `household-survey` không lưu được bản mới; `id` trường giữ mẫu cũ (§4.1) |
 
 ## Mục lục
 
@@ -185,7 +186,7 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
 - **Quy tắc đổi form an toàn:** được thêm trường, đổi nhãn, thêm option. Không đổi `id` hay `type` của trường đã có (tạo trường mới thay vì sửa). Không xoá trường khỏi mảng `fields`; muốn bỏ thì đặt `hidden: true` (`FieldDef.hidden`). Trường ẩn không hiện khi tạo phiếu mới nhưng vẫn có cột khi export.
 - **Form thuộc một dự án;** `id` form chỉ cần duy nhất trong dự án. Muốn dùng lại form của dự án khác: xuất form ra JSON rồi nhập vào (nút "Xuất form"/"Nhập form" trong builder).
 - **Validate ở server khi lưu form** (`POST /api/projects/:projectId/forms`, trả `400 invalid_form` kèm danh sách lỗi):
-  - `id` trường duy nhất và khớp `^[a-zA-Z][a-zA-Z0-9_]*$`; `id` form khớp cùng mẫu, `title` không để trống.
+  - `id` trường duy nhất và khớp `^[a-zA-Z][a-zA-Z0-9_]*$` (là tên cột khi export); `id` form khớp `^[a-zA-Z][a-zA-Z0-9_-]*$` (thêm `-`, vd. `household-survey`), `title` không để trống.
   - select/multiselect phải có ít nhất 1 option, option không trùng, không để trống. `options` ở trường loại khác thì bỏ qua.
   - So với phiên bản trước: mọi trường cũ vẫn còn (có thể `hidden`), không đổi `type`, không bỏ option (option bỏ đi thì giữ lại, dữ liệu cũ vẫn hiển thị được).
 - **Builder UI:** danh sách trường có nút lên/xuống để đổi thứ tự (không làm kéo thả), panel thuộc tính cho trường đang chọn, nút xem trước dùng chính `FormRenderer`. Có code (`client/src/pages/BuilderPage.tsx`, hàm thuần ở `client/src/builder.ts`), chỉ hiện với `supervisor` (🆕 và `owner`):

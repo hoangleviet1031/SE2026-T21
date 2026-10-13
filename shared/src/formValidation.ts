@@ -4,8 +4,14 @@ import type { FieldDef, FormSchema } from './types';
 // "Quy tắc đổi form an toàn"). Hàm chỉ kiểm luật; kiểu dữ liệu sai (thiếu `fields`, `type` lạ) là
 // việc của nơi đọc request (400 invalid_body), không phải ở đây.
 
-/** Mẫu cho id trường và id form: dùng làm khoá trong `data` của phiếu và cột khi export. */
-export const FORM_ID_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+/** Mẫu cho id trường: dùng làm khoá trong `data` của phiếu và tên cột khi export. */
+export const FIELD_ID_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+
+/**
+ * Mẫu cho id form: thêm được dấu `-` (vd. form mẫu `household-survey`), vì id form chỉ nằm trong
+ * đường dẫn và `formId` của phiếu, không thành tên cột (design §4.1).
+ */
+export const FORM_ID_PATTERN = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
 
 /**
  * Trả danh sách lỗi tiếng Việt; mảng rỗng nghĩa là hợp lệ.
@@ -15,12 +21,12 @@ export const FORM_ID_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 export function validateFormSchema(next: FormSchema, prev?: FormSchema): string[] {
   const errors: string[] = [];
 
-  if (!FORM_ID_PATTERN.test(next.id)) errors.push(`Mã biểu mẫu "${next.id}" không hợp lệ (chữ cái đầu, chỉ chữ, số, _)`);
+  if (!FORM_ID_PATTERN.test(next.id)) errors.push(`Mã biểu mẫu "${next.id}" không hợp lệ (chữ cái đầu, chỉ chữ, số, _, -)`);
   if (next.title.trim() === '') errors.push('Tên biểu mẫu không được để trống');
 
   const seen = new Set<string>();
   for (const field of next.fields) {
-    if (!FORM_ID_PATTERN.test(field.id)) {
+    if (!FIELD_ID_PATTERN.test(field.id)) {
       errors.push(`Mã trường "${field.id}" không hợp lệ (chữ cái đầu, chỉ chữ, số, _)`);
     }
     if (seen.has(field.id)) errors.push(`Mã trường "${field.id}" bị trùng`);
