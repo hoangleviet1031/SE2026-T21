@@ -63,6 +63,12 @@ describe('validateFormSchema: một phiên bản (design §4.1)', () => {
     expect(validateFormSchema({ ...form(name), id: 'hộ-1' })).toEqual([expect.stringContaining('Mã biểu mẫu')]);
     expect(validateFormSchema({ ...form(name), title: '  ' })).toEqual(['Tên biểu mẫu không được để trống']);
   });
+
+  it('mã biểu mẫu được có dấu -, mã trường thì không', () => {
+    expect(validateFormSchema({ ...form(name), id: 'household-survey' })).toEqual([]);
+    expect(validateFormSchema({ ...form(name), id: '-survey' })).toEqual([expect.stringContaining('Mã biểu mẫu')]);
+    expect(validateFormSchema(form({ ...name, id: 'ten-chu-ho' }))).toEqual([expect.stringContaining('Mã trường')]);
+  });
 });
 
 describe('validateFormSchema: so với phiên bản trước', () => {

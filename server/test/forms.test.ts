@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { FieldDef, FormSchema, SaveFormRequest } from '@field-survey/shared';
+import { SAMPLE_FORM } from '../src/db';
 import { DEMO_USER_IDS } from '../src/seedDemo';
 import { createTestServer, type TestServer } from './fixtures';
 
@@ -55,6 +56,13 @@ describe('POST P/forms', () => {
     expect(latest.find((f) => f.id === v1.id)).toEqual({ ...v2, version: 2 });
     const old = await call('GET', `${formsPath(t.projects.yte)}/${v1.id}/versions/1`, t.tokens.minh);
     expect(await old.json()).toEqual({ ...v1, version: 1 });
+  });
+
+  it('sửa form mẫu household-survey (id có dấu -) thành bản mới được', async () => {
+    const { version: _version, ...sample } = SAMPLE_FORM;
+    const res = await save({ ...sample, title: 'Khảo sát hộ gia đình (sửa)' });
+    expect(res.status).toBe(201);
+    expect(((await res.json()) as FormSchema).version).toBe(SAMPLE_FORM.version + 1);
   });
 
   it('bỏ qua version client gửi, server tự đặt', async () => {

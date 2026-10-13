@@ -53,7 +53,7 @@ export function fromForm(form: FormSchema): BuilderState {
 
 /**
  * Mã gợi ý từ nhãn: bỏ dấu tiếng Việt, ghép kiểu camelCase, thêm "f" nếu bắt đầu bằng số, thêm số
- * nếu trùng mã đã có ("Tên chủ hộ" → "tenChuHo"). Kết quả khớp FORM_ID_PATTERN hoặc là chuỗi rỗng.
+ * nếu trùng mã đã có ("Tên chủ hộ" → "tenChuHo"). Kết quả khớp FIELD_ID_PATTERN (nên cũng khớp FORM_ID_PATTERN) hoặc là chuỗi rỗng.
  */
 export function suggestId(text: string, taken: ReadonlySet<string> = new Set()): string {
   const words = text
