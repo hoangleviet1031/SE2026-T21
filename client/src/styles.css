@@ -31,6 +31,7 @@ table.conflict th, table.conflict td { text-align: left; padding: 8px; border-bo
 .project-list li.removed { display: flex; justify-content: space-between; padding: 8px 14px; color: #94a3b8; }
 .banner-removed { flex-direction: column; display: flex; gap: 8px; }
 .banner-removed div { display: flex; flex-wrap: wrap; gap: 8px; }
+.update-prompt { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
 fieldset.preview { border: 1px dashed #94a3b8; border-radius: 6px; padding: 12px; }
 .builder textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
 /* Link cùng màu app, không dùng màu tím "đã ghé" mặc định của trình duyệt */

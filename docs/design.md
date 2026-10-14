@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.6 (2026-10-13)
+- **Phiên bản:** 0.5.7 (2026-10-14)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -40,6 +40,7 @@
 | 0.5.4 | 2026-10-13 | TV1-06: bộ chọn dự án có code (§4.7): chưa chọn lần nào hoặc dự án đã chọn đã rời thì vào dự án active đầu tiên theo thứ tự `/me`, bỏ mặc định `demo-yte` (§4.2); dự án "Đã rời" không chọn được; banner bị rút ở trang chủ, N đếm phiếu nháp/chờ/lỗi/xung đột, "Xoá khỏi máy" hỏi xác nhận; màn hình chưa có dự án. T7 đủ phần banner (§10.1). 🆕 Owner, "Tổ chức khác…" chờ TV2-16, TV1-15 |
 | 0.5.5 | 2026-10-13 | TV1-04: form builder có code (§4.1): mã form/trường gợi ý từ nhãn và khoá sau khi lưu, chỉ xoá được trường chưa lưu, xem trước khoá ô nhập, lưu xong ghi form vào IndexedDB, builder báo trường thiếu nhãn; offline "Cần kết nối để lưu form"; hai người cùng sửa: bản lưu sau thành version mới (§13) |
 | 0.5.6 | 2026-10-13 | Sửa lỗi TV1-03: `id` form được có dấu `-` (`^[a-zA-Z][a-zA-Z0-9_-]*$`), vì form mẫu `household-survey` không lưu được bản mới; `id` trường giữ mẫu cũ (§4.1) |
+| 0.5.7 | 2026-10-14 | TV1-07 phần 2a: SW `registerType: 'prompt'` có code, dải "Có phiên bản mới" + [Tải lại], hỏi xác nhận khi đang nhập phiếu, kiểm bản mới mỗi 60 phút, `clientsClaim` ở lần cài đầu; runtime cache sửa theo đường dẫn theo dự án; `/admin/` không qua SW; icon PNG 192/512 (maskable) và `apple-touch-icon` (§4.3) |
 
 ## Mục lục
 
@@ -253,10 +254,11 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - `vite-plugin-pwa` chế độ `generateSW`.
 - **Precache** toàn bộ app shell (HTML, JS, CSS, icon). Điều hướng bất kỳ (trừ `/api/`) trả `index.html` khi offline.
 - **Runtime cache** `GET /api/projects/*/forms` và `GET /api/me` theo NetworkFirst (timeout 3s). Dữ liệu phiếu **không** cache qua SW vì nguồn là IndexedDB.
-- 🆕 **Không đụng tới trang quản trị:** `/admin/` nằm trong `navigateFallbackDenylist` và không có trong precache, để trang quản trị luôn lấy bản mới từ server và không chạy offline (§4.9).
-- **Cập nhật phiên bản app:** dùng `registerType: 'prompt'`: khi có SW mới, hiện thông báo "Có phiên bản mới, tải lại"; không tự reload khi người dùng đang nhập (khung hiện dùng `autoUpdate`, đổi ở tuần 4).
+- **Không đụng tới trang quản trị:** `/admin/` nằm trong `navigateFallbackDenylist` (đã có code) và không có trong precache (TV1-16 lo khi thêm `admin/index.html`), để trang quản trị luôn lấy bản mới từ server và không chạy offline (§4.9).
+- **Cập nhật phiên bản app:** dùng `registerType: 'prompt'`: khi có SW mới, hiện dải "Có phiên bản mới" với nút [Tải lại] (`client/src/components/UpdatePrompt.tsx`); không tự reload. Đang ở trang nhập phiếu thì hỏi "Phiếu đang nhập chưa lưu sẽ mất. Tải lại?" trước. Trình duyệt kiểm bản mới khi mở trang; app kiểm thêm mỗi 60 phút vì app đã cài thường mở cả ngày.
+- **Lần cài đầu:** `clientsClaim` để SW nắm luôn trang đang mở (rời mạng ngay sau lần mở đầu vẫn tải lại được). Không có `skipWaiting`, nên bản cập nhật vẫn chờ người dùng bấm Tải lại. Lần deploy đầu tiên sau khi đổi từ `autoUpdate` thì SW cũ vẫn tự thay như trước.
 - **Đồng bộ nền:** sync engine chạy trong trang (§5.3). Background Sync API chỉ có trên Chromium nên là tuỳ chọn nâng cao, không phải yêu cầu.
-- **Manifest:** tên "Khảo sát thực địa", `display: standalone`, icon SVG và icon PNG 192/512 (cần cho Android cũ và iOS).
+- **Manifest:** tên "Khảo sát thực địa", `display: standalone`, icon SVG và icon PNG 192/512 (cần cho Android cũ và iOS); PNG 512 dùng thêm làm `maskable`. iOS không đọc icon trong manifest nên `index.html` có `apple-touch-icon` 180×180. PNG nền vuông kín (hệ điều hành tự bo góc), sinh từ `icon.svg` bằng `client/scripts/make-icons.mjs`.
 
 ### 4.4 Attachments (ảnh)
 

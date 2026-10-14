@@ -9,6 +9,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { BuilderPage } from './pages/BuilderPage';
 import { ProjectSwitcher } from './components/ProjectSwitcher';
+import { UpdatePrompt } from './components/UpdatePrompt';
 import { syncNow } from './sync/engine';
 
 export function App() {
@@ -23,6 +24,7 @@ export function App() {
   if (token === null) {
     return (
       <div className="app">
+        <UpdatePrompt />
         <header>
           <span className="brand">Khảo sát thực địa</span>
         </header>
@@ -35,6 +37,7 @@ export function App() {
 
   return (
     <div className="app">
+      <UpdatePrompt />
       <header>
         <a href="#/" className="brand">
           Khảo sát thực địa
