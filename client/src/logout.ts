@@ -3,6 +3,7 @@ import { accountDb } from './db/accountDb';
 import { deleteProjectDb, openProjectDb, projectDbExists } from './db/current';
 import { SYNC_LOCK } from './sync/engine';
 import { hasUnsentData } from './sync/membership';
+import { RUNTIME_CACHES } from './swCaches';
 
 // Đăng xuất (design §4.7, ui.md màn hình 8): chỉ khi mọi dự án không còn dữ liệu chưa gửi, rồi xoá
 // mọi CSDL dự án và token. Không bao giờ xoá dữ liệu chưa gửi (CLAUDE.md bất biến 1).
@@ -43,6 +44,10 @@ export async function logout(): Promise<BlockedProject[]> {
   const run = async () => {
     const blocked = await projectsBlockingLogout();
     if (blocked.length > 0) return blocked;
+    // Cache /me và form của người vừa đăng xuất không được nằm lại trên máy dùng chung. Xoá trước
+    // CSDL: lỗi giữa chừng thì CSDL và token còn nguyên, bấm lại được. Giữ precache để app vẫn mở
+    // được offline (design §4.7)
+    for (const name of Object.values(RUNTIME_CACHES)) await caches.delete(name);
     for (const p of await projectsOnDevice()) await deleteProjectDb(p.id);
     await accountDb.transaction('rw', accountDb.projects, accountDb.account, async () => {
       await accountDb.projects.clear();

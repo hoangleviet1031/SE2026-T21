@@ -5,6 +5,7 @@ import { useCurrentProjectDb } from '../db/current';
 import { FormRenderer } from '../components/FormRenderer';
 import { saveRecordLocally } from '../sync/outbox';
 import { syncNow } from '../sync/engine';
+import { requestPersistentStorage } from '../persistStorage';
 import { navigate } from '../useHashRoute';
 
 export function FillPage({ formId, recordId }: { formId: string; recordId?: string }) {
@@ -28,6 +29,8 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
 
   const save = async () => {
     const errors = await saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data });
+    // Phiếu đã nằm trên máy (kể cả nháp); xin giữ bộ nhớ không chặn việc lưu hay chuyển trang
+    requestPersistentStorage().catch((e) => console.warn('không xin được bộ nhớ lâu dài', e));
     // Còn lỗi thì ở lại để người dùng thấy trường nào cần sửa; phiếu đã lưu thành nháp
     if (Object.keys(errors).length > 0) return;
     void syncNow();
