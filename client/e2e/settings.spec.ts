@@ -55,3 +55,16 @@ test('còn phiếu chưa gửi: nút Đăng xuất bị khoá; đồng bộ xong
   await expect(page.getByTestId('logout-button')).toBeEnabled({ timeout: 15_000 });
   await expect(page.getByTestId('logout-blocked')).toHaveCount(0);
 });
+
+test('Cài đặt có hướng dẫn cài lên màn hình chính; mở từ app đã cài thì báo đã cài', async ({ page, context }) => {
+  await login(page);
+  await openSettings(page);
+  await expect(page.getByTestId('settings-install')).toContainText('Android:');
+  await expect(page.getByTestId('settings-install')).toContainText('iPhone:');
+  await expect(page.getByTestId('settings-install')).toContainText('Thêm vào màn hình chính');
+
+  // Safari iOS báo app đã cài qua navigator.standalone
+  await context.addInitScript(() => Object.defineProperty(navigator, 'standalone', { value: true }));
+  await page.reload();
+  await expect(page.getByTestId('settings-install')).toHaveText('Đã cài lên màn hình chính.');
+});

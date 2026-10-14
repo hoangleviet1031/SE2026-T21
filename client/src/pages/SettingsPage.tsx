@@ -8,6 +8,12 @@ import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
 
 // Xem docs/ui.md màn hình 8 và design §4.2, §4.7. Chỉ đọc IndexedDB, dùng được khi offline.
 
+// Đang chạy như app đã cài: Android/máy tính báo qua display-mode, Safari iOS qua navigator.standalone
+// (thuộc tính riêng của Safari, không có trong kiểu DOM chuẩn nên đọc bằng Reflect)
+function isInstalled(): boolean {
+  return window.matchMedia('(display-mode: standalone)').matches || Reflect.get(navigator, 'standalone') === true;
+}
+
 function blockedMessage(blocked: BlockedProject[]): string {
   const names = blocked.map((p) => `"${p.name}"`).join(', ');
   return `Còn dữ liệu chưa gửi ở dự án ${names}. Đồng bộ xong mới đăng xuất được.`;
@@ -77,6 +83,23 @@ export function SettingsPage() {
           </p>
         </>
       )}
+
+      <h3>Cài lên màn hình chính</h3>
+      <div data-testid="settings-install">
+        {isInstalled() ? (
+          <p>Đã cài lên màn hình chính.</p>
+        ) : (
+          <>
+            <p>
+              <b>Android:</b> mở bằng Chrome, bấm menu ⋮ rồi chọn "Cài đặt ứng dụng" hoặc "Thêm vào màn hình chính".
+            </p>
+            <p>
+              <b>iPhone:</b> mở bằng Safari, bấm nút Chia sẻ rồi chọn "Thêm vào màn hình chính". Trên iPhone phải
+              cài thì dữ liệu chưa gửi mới không bị xoá sau 7 ngày không mở.
+            </p>
+          </>
+        )}
+      </div>
 
       <div className="actions">
         <button

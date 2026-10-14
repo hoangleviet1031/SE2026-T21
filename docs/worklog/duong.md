@@ -12,6 +12,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-14 | TV1-07 | feat | Phần 2b: màn hình "Trình duyệt không được hỗ trợ" khi thiếu API bắt buộc, `storage.persist()` sau khi lưu phiếu, hướng dẫn cài ở Cài đặt; unit + E2E | nhánh `feat/tv1-07-browser-support`, design §4.2, §11.1 | chờ review |
 | 2026-10-14 | TV1-07 | feat | Phần 2a: SW `prompt` + dải "Có phiên bản mới" (hỏi khi đang nhập phiếu), icon PNG/`apple-touch-icon`, runtime cache theo dự án, `/admin/` không qua SW; E2E `update.spec.ts` | PR #27, design §4.3 | xong |
 | 2026-10-13 | TV1-04 | fix | Gọn UI sau khi thử staging: màu link, header 360px, builder bấm cả dòng/▲▼/gợi ý, "← Quay lại" ở trang điền phiếu, câu hướng dẫn Cài đặt theo ngữ cảnh; E2E `fill.spec.ts` | PR #26 | xong |
 | 2026-10-13 | TV1-03 | fix | Mã form được có dấu `-`: form mẫu `household-survey` trước đây không lưu được bản mới từ builder; mã trường giữ luật cũ; test shared + server | PR #25 | xong |

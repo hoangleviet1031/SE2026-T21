@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.7 (2026-10-14)
+- **Phiên bản:** 0.5.8 (2026-10-14)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -41,6 +41,7 @@
 | 0.5.5 | 2026-10-13 | TV1-04: form builder có code (§4.1): mã form/trường gợi ý từ nhãn và khoá sau khi lưu, chỉ xoá được trường chưa lưu, xem trước khoá ô nhập, lưu xong ghi form vào IndexedDB, builder báo trường thiếu nhãn; offline "Cần kết nối để lưu form"; hai người cùng sửa: bản lưu sau thành version mới (§13) |
 | 0.5.6 | 2026-10-13 | Sửa lỗi TV1-03: `id` form được có dấu `-` (`^[a-zA-Z][a-zA-Z0-9_-]*$`), vì form mẫu `household-survey` không lưu được bản mới; `id` trường giữ mẫu cũ (§4.1) |
 | 0.5.7 | 2026-10-14 | TV1-07 phần 2a: SW `registerType: 'prompt'` có code, dải "Có phiên bản mới" + [Tải lại], hỏi xác nhận khi đang nhập phiếu, kiểm bản mới mỗi 60 phút, `clientsClaim` ở lần cài đầu; runtime cache sửa theo đường dẫn theo dự án; `/admin/` không qua SW; icon PNG 192/512 (maskable) và `apple-touch-icon` (§4.3) |
+| 0.5.8 | 2026-10-14 | TV1-07 phần 2b: kiểm tra API bắt buộc khi mở app và màn hình "Trình duyệt không được hỗ trợ" có code (§11.1); `storage.persist()` gọi sau mỗi lần lưu phiếu kể cả nháp, bỏ qua nếu đã được cấp (§4.2); hướng dẫn cài lên màn hình chính ở trang Cài đặt (§4.3) |
 
 ## Mục lục
 
@@ -247,7 +248,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - **ID phía client:** `crypto.randomUUID()` cho phiếu và ảnh, nên tạo được khi offline và không đụng nhau.
 - **Ghi nguyên tử:** lưu phiếu và thêm op vào outbox trong cùng một transaction Dexie (`saveRecordLocally`), không bao giờ có phiếu đã sửa mà thiếu op (trừ phiếu nháp, vốn không có op).
 - **Nâng cấp schema:** thêm `this.version(n+1).stores(...).upgrade(...)`, không sửa version cũ. Mọi CSDL dự án dùng chung một lớp `ProjectDb` nên được nâng cấp giống nhau khi mở. CSDL `field-survey` của khung hiện tại không chuyển dữ liệu sang (chưa có người dùng thật), chỉ xoá.
-- **Chống bị xoá dữ liệu:** gọi `navigator.storage.persist()` sau lần lưu phiếu đầu tiên; hiển thị dung lượng đã dùng qua `navigator.storage.estimate()` ở trang Cài đặt.
+- **Chống bị xoá dữ liệu:** gọi `navigator.storage.persist()` sau lần lưu phiếu đầu tiên, kể cả phiếu nháp (`client/src/persistStorage.ts`: gọi sau mỗi lần lưu nhưng bỏ qua khi `persisted()` đã là `true`, nên trình duyệt từ chối thì lần lưu sau xin lại; không có API thì bỏ qua); hiển thị dung lượng đã dùng qua `navigator.storage.estimate()` ở trang Cài đặt.
 
 ### 4.3 Service worker và cài đặt PWA
 
@@ -258,6 +259,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - **Cập nhật phiên bản app:** dùng `registerType: 'prompt'`: khi có SW mới, hiện dải "Có phiên bản mới" với nút [Tải lại] (`client/src/components/UpdatePrompt.tsx`); không tự reload. Đang ở trang nhập phiếu thì hỏi "Phiếu đang nhập chưa lưu sẽ mất. Tải lại?" trước. Trình duyệt kiểm bản mới khi mở trang; app kiểm thêm mỗi 60 phút vì app đã cài thường mở cả ngày.
 - **Lần cài đầu:** `clientsClaim` để SW nắm luôn trang đang mở (rời mạng ngay sau lần mở đầu vẫn tải lại được). Không có `skipWaiting`, nên bản cập nhật vẫn chờ người dùng bấm Tải lại. Lần deploy đầu tiên sau khi đổi từ `autoUpdate` thì SW cũ vẫn tự thay như trước.
 - **Đồng bộ nền:** sync engine chạy trong trang (§5.3). Background Sync API chỉ có trên Chromium nên là tuỳ chọn nâng cao, không phải yêu cầu.
+- **Hướng dẫn cài:** trang Cài đặt có mục "Cài lên màn hình chính" cho Android (Chrome) và iPhone (Safari); app đang chạy ở chế độ đã cài (`display-mode: standalone` hoặc `navigator.standalone` trên iOS) thì chỉ ghi "Đã cài lên màn hình chính." (ui.md màn hình 8).
 - **Manifest:** tên "Khảo sát thực địa", `display: standalone`, icon SVG và icon PNG 192/512 (cần cho Android cũ và iOS); PNG 512 dùng thêm làm `maskable`. iOS không đọc icon trong manifest nên `index.html` có `apple-touch-icon` 180×180. PNG nền vuông kín (hệ điều hành tự bo góc), sinh từ `icon.svg` bằng `client/scripts/make-icons.mjs`.
 
 ### 4.4 Attachments (ảnh)
@@ -915,7 +917,7 @@ GitHub Actions: `npm ci`, `npm run typecheck`, `npm test`, `npx playwright insta
 | Máy tính, Chrome/Edge | 120 | Cho giám sát viên |
 | Firefox, Safari macOS | best-effort | Không chạy E2E |
 
-Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks, `crypto.subtle` (SHA-256). Nếu trình duyệt thiếu, app hiện thông báo "Trình duyệt không được hỗ trợ" thay vì chạy sai.
+Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks, `crypto.subtle` (SHA-256). Nếu trình duyệt thiếu, app hiện thông báo "Trình duyệt không được hỗ trợ" thay vì chạy sai: kiểm khi mở app (`client/src/browserSupport.ts`), thiếu thì không chạy đồng bộ, không mở IndexedDB, không đăng ký SW, và ghi tên API thiếu để người dùng chụp gửi nhóm. Service Worker và `crypto.subtle` chỉ có trên HTTPS hoặc `localhost`, nên mở bản dev qua `http://<IP LAN>` cũng ra màn hình này.
 
 ### 11.2 Chỉ tiêu
 
