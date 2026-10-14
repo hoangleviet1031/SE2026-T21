@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { RUNTIME_CACHES } from './src/swCaches';
 
 const apiProxy = { '/api': 'http://localhost:3001' };
 
@@ -41,12 +42,12 @@ export default defineConfig({
           {
             urlPattern: ({ url }) => /^\/api\/projects\/[^/]+\/forms$/.test(url.pathname),
             handler: 'NetworkFirst',
-            options: { cacheName: 'forms', networkTimeoutSeconds: 3 },
+            options: { cacheName: RUNTIME_CACHES.forms, networkTimeoutSeconds: 3 },
           },
           {
             urlPattern: ({ url }) => url.pathname === '/api/me',
             handler: 'NetworkFirst',
-            options: { cacheName: 'me', networkTimeoutSeconds: 3 },
+            options: { cacheName: RUNTIME_CACHES.me, networkTimeoutSeconds: 3 },
           },
         ],
       },

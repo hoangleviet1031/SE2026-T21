@@ -68,3 +68,53 @@ test('Cài đặt có hướng dẫn cài lên màn hình chính; mở từ app 
   await page.reload();
   await expect(page.getByTestId('settings-install')).toHaveText('Đã cài lên màn hình chính.');
 });
+
+/** Tên các cache của SW, đọc bằng API gốc của trình duyệt. */
+const cacheNames = (page: Page) => page.evaluate(() => caches.keys());
+
+/** Chờ SW nắm trang rồi đồng bộ, để /me và form đi qua SW và nằm trong cache runtime. */
+async function fillRuntimeCaches(page: Page) {
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) {
+      await new Promise((r) => navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }));
+    }
+  });
+  await page.getByRole('button', { name: 'Đồng bộ' }).click();
+  await expect.poll(() => cacheNames(page), { timeout: 15_000 }).toEqual(expect.arrayContaining(['me', 'forms']));
+}
+
+test('Đăng xuất xoá cache me và forms của SW, giữ precache nên offline vẫn mở được app', async ({ page, context }) => {
+  await login(page);
+  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await fillRuntimeCaches(page);
+  await openSettings(page);
+
+  page.once('dialog', (d) => void d.accept());
+  await page.getByTestId('logout-button').click();
+  await expect(page.getByTestId('login-token')).toBeVisible();
+
+  const names = await cacheNames(page);
+  expect(names).not.toContain('me');
+  expect(names).not.toContain('forms');
+  expect(names.some((n) => n.startsWith('workbox-precache'))).toBe(true);
+
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByTestId('login-token')).toBeVisible();
+});
+
+test('Đăng xuất bị chặn vì còn phiếu chưa gửi thì cache me và forms còn nguyên', async ({ page, context }) => {
+  await login(page);
+  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await fillRuntimeCaches(page);
+
+  await context.setOffline(true);
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await page.locator('input[name=householdName]').fill('Hộ giữ cache');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await openSettings(page);
+  await expect(page.getByTestId('logout-button')).toBeDisabled();
+
+  expect(await cacheNames(page)).toEqual(expect.arrayContaining(['me', 'forms']));
+});

@@ -1,6 +1,6 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính"; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md; header giữ mỗi phần tử một dòng, tên app tự rút gọn bằng "…"); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
@@ -316,7 +316,7 @@ Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng 
 
 - Chưa có `userId` (chưa gọi được `/me` lần nào): hiện "Chưa có, cần kết nối mạng một lần".
 - Trình duyệt không có `storage.estimate`: ẩn dòng dung lượng.
-- **Đăng xuất** chỉ bật khi mọi dự án không còn dữ liệu chưa gửi (`hasUnsentData`). Bấm → hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." [Huỷ] [Đăng xuất]. Đồng ý → xoá mọi CSDL dự án và token, về màn hình 1.
+- **Đăng xuất** chỉ bật khi mọi dự án không còn dữ liệu chưa gửi (`hasUnsentData`). Bấm → hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." [Huỷ] [Đăng xuất]. Đồng ý → xoá mọi CSDL dự án, cache `me`/`forms` của SW và token, về màn hình 1.
 - Đang mở từ app đã cài (design §4.3): mục cài chỉ ghi "Đã cài lên màn hình chính."
 
 ## 9. Tổ chức 🆕 (TV1-15)

@@ -41,7 +41,7 @@
 | 0.5.5 | 2026-10-13 | TV1-04: form builder có code (§4.1): mã form/trường gợi ý từ nhãn và khoá sau khi lưu, chỉ xoá được trường chưa lưu, xem trước khoá ô nhập, lưu xong ghi form vào IndexedDB, builder báo trường thiếu nhãn; offline "Cần kết nối để lưu form"; hai người cùng sửa: bản lưu sau thành version mới (§13) |
 | 0.5.6 | 2026-10-13 | Sửa lỗi TV1-03: `id` form được có dấu `-` (`^[a-zA-Z][a-zA-Z0-9_-]*$`), vì form mẫu `household-survey` không lưu được bản mới; `id` trường giữ mẫu cũ (§4.1) |
 | 0.5.7 | 2026-10-14 | TV1-07 phần 2a: SW `registerType: 'prompt'` có code, dải "Có phiên bản mới" + [Tải lại], hỏi xác nhận khi đang nhập phiếu, kiểm bản mới mỗi 60 phút, `clientsClaim` ở lần cài đầu; runtime cache sửa theo đường dẫn theo dự án; `/admin/` không qua SW; icon PNG 192/512 (maskable) và `apple-touch-icon` (§4.3) |
-| 0.5.8 | 2026-10-14 | TV1-07 phần 2b: kiểm tra API bắt buộc khi mở app và màn hình "Trình duyệt không được hỗ trợ" có code (§11.1); `storage.persist()` gọi sau mỗi lần lưu phiếu kể cả nháp, bỏ qua nếu đã được cấp (§4.2); hướng dẫn cài lên màn hình chính ở trang Cài đặt (§4.3) |
+| 0.5.8 | 2026-10-14 | TV1-07 phần 2b: kiểm tra API bắt buộc khi mở app và màn hình "Trình duyệt không được hỗ trợ" có code (§11.1); `storage.persist()` gọi sau mỗi lần lưu phiếu kể cả nháp, bỏ qua nếu đã được cấp (§4.2); hướng dẫn cài lên màn hình chính ở trang Cài đặt (§4.3); Đăng xuất xoá cache runtime `me`, `forms` của SW, giữ precache (§4.7) |
 
 ## Mục lục
 
@@ -340,7 +340,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
   - Cùng người (mã được cấp lại bằng `user:rotate-token`): chỉ thay token, giữ nguyên mọi CSDL, đồng bộ tiếp.
   - Khác người và máy **không** còn dữ liệu chưa gửi ở mọi dự án (định nghĩa như `hasUnsentData`, ADR 0002 §6): xoá mọi CSDL dự án của người cũ rồi đăng nhập người mới.
   - Khác người và máy **còn** dữ liệu chưa gửi: từ chối, hiện "Máy này còn N phiếu chưa gửi của <tên người cũ>. Nhập lại mã của người đó để gửi, hoặc xuất JSON trước." kèm nút "Xuất JSON". Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
-- **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Có code.
+- **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Đăng xuất xoá cả cache runtime `me` và `forms` của SW (§4.3; tên ở `client/src/swCaches.ts`) để dữ liệu của người cũ không nằm lại trên máy dùng chung, nhưng giữ precache để app vẫn mở được offline. Có code.
 
 **Tiêu chí chấp nhận:** đủ các ca T1–T10 ở ADR 0002; 🆕 thêm U1–U7, Q1–Q9, Q11, D1–D2, M1–M3, A5–A8 ở ADR 0003 (§10.1).
 
