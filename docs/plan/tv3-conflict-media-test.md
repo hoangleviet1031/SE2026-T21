@@ -8,7 +8,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-01 · CI, `ENABLE_TEST_ROUTES`, unit test client
 
-- **Trạng thái:** ⏳ `feat/tv3-01-ci-test-routes`
+- **Trạng thái:** ✅ PR #2
 - **Tuần:** 1 · **Phụ thuộc:** không
 - **Spec:** design §9 (Route tiêm lỗi), §10.2
 - **File:** `.github/workflows/ci.yml` (đã có bản đầu), `server/src/index.ts`, `server/src/app.ts`, `client/playwright.config.ts`, `client/package.json`, `client/vitest.config.ts` (mới), `package.json`
@@ -24,7 +24,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-02 · CLI quản trị, fixture, sửa test theo API mới
 
-- **Trạng thái:** ⏳ `feat/tv3-02-cli-fixtures` (chờ PR chung với TV2-03)
+- **Trạng thái:** ✅ PR #8
 - ⚠ **ADR 0003:** CLI theo token (`user:add` in token, `user:rotate-token`) và helper E2E `login(page, token)` là **bản cũ, vẫn đang chạy**; TV3-12 thay. Nội dung dưới đây giữ nguyên như lúc làm.
 - **Tuần:** 2 · **Phụ thuộc:** TV2-02 · **Làm cùng:** TV2-03 (**một PR**)
 - **Spec:** design §12 (Lệnh quản trị), §10.1 (fixture chung)
@@ -58,7 +58,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-04 · Test cách ly T1–T5 · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv3-04-isolation-tests`
 - **Tuần:** 3 · **Phụ thuộc:** TV2-03, TV3-02
 - **Spec:** ADR 0002 Kiểm chứng T1–T5
 - **File:** `server/test/isolation.test.ts` (mới)

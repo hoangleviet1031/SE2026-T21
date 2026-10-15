@@ -13,6 +13,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-15 | TV3-04 | test | `isolation.test.ts`: T1–T4; T5 tự liệt kê mọi route `P/...`, đòi đúng `403 not_member`/`401`; thử bỏ `requireMember` thì T5 đỏ | nhánh `feat/tv3-04-isolation-tests` | chờ review |
+| 2026-10-15 | TV3-02 | docs | PR #8 đã merge (cùng TV2-01→03); ghi ✅ cho TV3-01 (PR #2), TV3-02 (PR #8) trong plan | PR #8 | xong |
 | 2026-10-11 | TV3-02 | feat | CLI `user:add`, `user:rotate-token`, `user:disable`, `seed:demo` (chặn khi production), 14 ca test | nhánh `feat/tv3-02-cli-fixtures` | chờ review |
 | 2026-10-09 | TV3-01 | feat | Route tiêm lỗi chỉ bật khi `ENABLE_TEST_ROUTES=1`; thêm Vitest cho client; cập nhật design §9, §10 | PR #2 | xong |
 | 2026-10-08 | — | docs | Ghi tên thành viên thay cho TV1/TV2/TV3 trong plan | 94fd618, PR #1 | xong |
