@@ -1,5 +1,6 @@
 import type { FieldDef, FieldValue, FormSchema, GpsValue, RecordData } from '@field-survey/shared';
 import type { ProjectDb } from '../db/projectDb';
+import { PhotoField } from './PhotoField';
 
 interface Props {
   /** CSDL của dự án đang chọn, trang cha lấy qua useCurrentProjectDb */
@@ -17,20 +18,25 @@ export function FormRenderer({ db, form, recordId, value, onChange, errors = {} 
   const set = (field: string, v: FieldValue) => onChange({ ...value, [field]: v });
   return (
     <div className="form">
-      {form.fields.map((f) => (
-        <label key={f.id} className="field">
-          <span>
-            {f.label}
-            {f.required && ' *'}
-          </span>
-          <FieldInput db={db} field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
-          {errors[f.id] && (
-            <span className="field-error" data-testid={`error-${f.id}`}>
-              ⚠ {errors[f.id]}
+      {form.fields.map((f) => {
+        // Trường ảnh có nhiều nút bên trong: bọc bằng <label> thì bấm vào tên trường sẽ bấm nhầm nút đầu tiên.
+        const Wrapper = f.type === 'photo' ? 'div' : 'label';
+        const groupProps = f.type === 'photo' ? { role: 'group', 'aria-label': f.label } : {};
+        return (
+          <Wrapper key={f.id} className="field" {...groupProps}>
+            <span>
+              {f.label}
+              {f.required && ' *'}
             </span>
-          )}
-        </label>
-      ))}
+            <FieldInput db={db} field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
+            {errors[f.id] && (
+              <span className="field-error" data-testid={`error-${f.id}`}>
+                ⚠ {errors[f.id]}
+              </span>
+            )}
+          </Wrapper>
+        );
+      })}
     </div>
   );
 }
@@ -88,35 +94,16 @@ function FieldInput({
         </div>
       );
     }
-    case 'photo': {
-      const ids = (value as string[]) ?? [];
+    case 'photo':
       return (
-        <div>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              // TODO(Thành viên 3): nén ảnh (canvas, ~1600px, JPEG 0.8) trước khi lưu
-              const id = crypto.randomUUID();
-              await db.attachments.add({
-                id,
-                recordId,
-                fieldId: field.id,
-                blob: file,
-                mimeType: file.type,
-                uploadedChunks: [],
-                uploadState: 'pending',
-              });
-              onChange([...ids, id]);
-            }}
-          />
-          {ids.length > 0 && <small>{ids.length} ảnh</small>}
-        </div>
+        <PhotoField
+          db={db}
+          fieldId={field.id}
+          recordId={recordId}
+          ids={(value as string[] | null) ?? []}
+          onChange={onChange}
+        />
       );
-    }
     case 'gps': {
       const gps = value as GpsValue | null;
       return (
