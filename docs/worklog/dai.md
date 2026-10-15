@@ -13,6 +13,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-15 | TV3-03 | feat | Nén ảnh khi chọn/chụp: xoay theo EXIF, cạnh dài ≤ 1600, JPEG ≤ 600 KB, bỏ EXIF/GPS; thumbnail + nút bỏ ảnh; báo bộ nhớ đầy, ảnh không đọc được; E2E `photo.spec.ts` | nhánh `feat/tv3-03-compress-photo` | chờ review |
+| 2026-10-15 | TV3-05 | docs | PR #30 đã merge; ghi ✅ trong plan | PR #30 | xong |
 | 2026-10-15 | TV3-05 | feat | Upload ảnh theo chunk: migration 3 bảng `attachments`, 4 route `P/attachments/*`, kiểm SHA-256/magic bytes/giới hạn, dọn chunk 7 ngày; 23 ca test | nhánh `feat/tv3-05-attachments` | chờ review |
 | 2026-10-15 | TV3-04 | docs | PR #29 đã merge; ghi ✅ trong plan | PR #29 | xong |
 | 2026-10-15 | TV3-04 | test | `isolation.test.ts`: T1–T4; T5 tự liệt kê mọi route `P/...`, đòi đúng `403 not_member`/`401`; thử bỏ `requireMember` thì T5 đỏ | nhánh `feat/tv3-04-isolation-tests` | chờ review |

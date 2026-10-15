@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.9 (2026-10-15)
+- **Phiên bản:** 0.5.10 (2026-10-15)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -43,6 +43,7 @@
 | 0.5.7 | 2026-10-14 | TV1-07 phần 2a: SW `registerType: 'prompt'` có code, dải "Có phiên bản mới" + [Tải lại], hỏi xác nhận khi đang nhập phiếu, kiểm bản mới mỗi 60 phút, `clientsClaim` ở lần cài đầu; runtime cache sửa theo đường dẫn theo dự án; `/admin/` không qua SW; icon PNG 192/512 (maskable) và `apple-touch-icon` (§4.3) |
 | 0.5.8 | 2026-10-14 | TV1-07 phần 2b: kiểm tra API bắt buộc khi mở app và màn hình "Trình duyệt không được hỗ trợ" có code (§11.1); `storage.persist()` gọi sau mỗi lần lưu phiếu kể cả nháp, bỏ qua nếu đã được cấp (§4.2); hướng dẫn cài lên màn hình chính ở trang Cài đặt (§4.3); Đăng xuất xoá cache runtime `me`, `forms` của SW, giữ precache (§4.7) |
 | 0.5.9 | 2026-10-15 | TV3-05: `P/attachments/*` có code (§7): dạng response của `status`, `chunks`, `complete`; bảng `attachments` là migration 3, file ở `uploads/<projectId>/<id>/` (§6.1). Bước ADR 0003 (TV2-14) lấy số migration kế tiếp |
+| 0.5.10 | 2026-10-15 | TV3-03: nén ảnh có code (§4.4): JPEG 0.8, vượt 600 KB thì 0.7, 0.6, vẫn vượt thì vẫn lưu; §8 thêm dòng ảnh không đọc được; §11.2 kích thước ảnh sau nén đo bằng E2E `photo.spec.ts` |
 
 ## Mục lục
 
@@ -267,7 +268,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 
 **Ở client**
 1. Chọn/chụp ảnh qua `<input type="file" accept="image/*" capture="environment">`.
-2. **Nén** bằng canvas: cạnh dài tối đa 1600px, JPEG chất lượng 0.8 (ảnh 4–6 MB còn khoảng 300–500 KB). Bỏ EXIF trừ hướng xoay.
+2. **Nén** bằng canvas: cạnh dài tối đa 1600px, JPEG chất lượng 0.8 (ảnh 4–6 MB còn khoảng 300–500 KB). Bỏ EXIF trừ hướng xoay. Ảnh nhiều chi tiết vượt 600 KB thì nén lại ở 0.7, rồi 0.6; vẫn vượt thì vẫn lưu (không làm mất ảnh). Ảnh nhỏ vẫn đi qua canvas để bỏ EXIF.
 3. Lưu Blob vào bảng `attachments`; giá trị trường photo là danh sách `attachmentId`.
 
 **Upload theo chunk (resumable)**
@@ -762,6 +763,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | `4xx` khác | Dừng op | "Lỗi" kèm chi tiết, nút "Thử lại" và "Xuất JSON phiếu này" |
 | Ảnh lỗi không retry được | Dừng ảnh đó | "Lỗi ảnh", nút "Thử lại" / "Bỏ ảnh này" |
 | IndexedDB đầy (`QuotaExceededError`) | Không lưu ảnh mới | "Bộ nhớ đầy: đồng bộ rồi dọn ảnh đã tải lên" |
+| Trình duyệt không giải mã được ảnh (vd. HEIC trên Chrome Android) | Không lưu ảnh | "Không đọc được ảnh này. Hãy chụp lại hoặc chọn ảnh JPEG/PNG" |
 | Phiếu dùng form version chưa có trên máy | Pull form version đó | Nếu offline: "Cần kết nối để mở phiếu này" |
 | Phiếu chưa đồng bộ quá 24 giờ | Không đổi hành vi | Cảnh báo đầu trang (§5.2) |
 
@@ -933,7 +935,7 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 | Dung lượng mỗi máy | Thiết kế cho tổng 2.000 phiếu + 500 ảnh (khoảng 250 MB) trên mọi dự án | `storage.estimate()` |
 | Đổi dự án (đã tải) | ≤ 1 s, kể cả offline | Playwright |
 | Số dự án mỗi người dùng | Tối đa 10 | Thiết kế |
-| Kích thước ảnh sau nén | ≤ 600 KB | Unit test hàm nén |
+| Kích thước ảnh sau nén | ≤ 600 KB | E2E `photo.spec.ts` (canvas chỉ có trong trình duyệt); unit test `fitWithin` |
 
 ## 12. Triển khai
 
