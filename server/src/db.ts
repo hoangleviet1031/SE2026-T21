@@ -147,6 +147,27 @@ export const migrations: Migration[] = [
       CREATE INDEX idempotency_created_at ON idempotency(created_at);
     `);
   },
+  // 3: ảnh đã ghép xong (TV3-05, design §6.1). Chunk đang tải lên chỉ nằm trên đĩa; dòng ở đây
+  // tạo lúc `complete`, khi đã biết ảnh thuộc phiếu nào. `id` là khoá toàn hệ thống như id phiếu,
+  // để phát hiện id đang thuộc dự án khác (ADR 0002 §3). Như bảng records: không có FK từ
+  // created_by tới users (người bị vô hiệu hoá vẫn giữ ảnh).
+  (db) => {
+    db.exec(`
+      CREATE TABLE attachments (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL REFERENCES projects(id),
+        record_id TEXT NOT NULL REFERENCES records(id),
+        mime_type TEXT NOT NULL CHECK (mime_type IN ('image/jpeg', 'image/png', 'image/webp')),
+        size INTEGER NOT NULL,
+        sha256 TEXT NOT NULL,
+        total_chunks INTEGER NOT NULL,
+        created_by TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        completed_at TEXT NOT NULL
+      );
+      CREATE INDEX attachments_record ON attachments(project_id, record_id);
+    `);
+  },
 ];
 
 /**

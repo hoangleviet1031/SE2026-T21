@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { DatabaseSync } from 'node:sqlite';
 import { migrate, migrations, openDb, seed, type Db } from '../src/db';
 
-// Schema đích sau migration 2, theo bản nháp đã duyệt cho TV2-01 (docs/design.md §6.1, ADR 0002).
+// Schema đích sau migration 2, theo bản nháp đã duyệt cho TV2-01 (docs/design.md §6.1, ADR 0002),
+// cộng bảng attachments của migration 3 (TV3-05).
 // Viết tường minh thay vì suy ra từ code để test bắt được cột bị thiếu hay thừa.
 const EXPECTED_COLUMNS: Record<string, string[]> = {
   projects: ['id', 'name', 'archived', 'created_at'],
@@ -25,6 +26,18 @@ const EXPECTED_COLUMNS: Record<string, string[]> = {
   record_history: ['record_id', 'project_id', 'version', 'data', 'deleted', 'updated_at', 'updated_by'],
   idempotency: ['key', 'project_id', 'record_id', 'request_hash', 'status', 'body', 'created_at'],
   meta: ['k', 'v'],
+  attachments: [
+    'id',
+    'project_id',
+    'record_id',
+    'mime_type',
+    'size',
+    'sha256',
+    'total_chunks',
+    'created_by',
+    'created_at',
+    'completed_at',
+  ],
 };
 
 const EXPECTED_PRIMARY_KEYS: Record<string, string[]> = {
@@ -36,6 +49,7 @@ const EXPECTED_PRIMARY_KEYS: Record<string, string[]> = {
   record_history: ['record_id', 'version'],
   idempotency: ['key'],
   meta: ['k'],
+  attachments: ['id'],
 };
 
 // Tên index tự đặt -> danh sách cột theo thứ tự. Index tự sinh (sqlite_autoindex_*) kiểm riêng.
@@ -45,6 +59,7 @@ const EXPECTED_INDEXES: Record<string, string[]> = {
   records_project_creator_seq: ['project_id', 'created_by', 'seq'],
   record_history_project_record: ['project_id', 'record_id'],
   idempotency_created_at: ['created_at'],
+  attachments_record: ['project_id', 'record_id'],
 };
 
 // "bảng.cột -> bảng cha"
@@ -54,6 +69,8 @@ const EXPECTED_FOREIGN_KEYS = [
   'forms.project_id -> projects',
   'records.project_id -> projects',
   'record_history.record_id -> records',
+  'attachments.project_id -> projects',
+  'attachments.record_id -> records',
 ];
 
 interface ColumnInfo {
