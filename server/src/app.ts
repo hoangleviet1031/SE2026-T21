@@ -7,6 +7,7 @@ import { meRouter } from './routes/me';
 import { adminRouter } from './routes/admin';
 import { recordsRouter } from './routes/records';
 import { attachmentsRouter } from './routes/attachments';
+import { createUploadStore } from './uploads';
 import { exportRouter } from './routes/export';
 import { faultInjector, faultsRouter } from './routes/faults';
 import { testMembershipsRouter } from './routes/testMemberships';
@@ -16,7 +17,7 @@ export function testRoutesEnabled(env: NodeJS.ProcessEnv): boolean {
   return env.ENABLE_TEST_ROUTES === '1';
 }
 
-export function createApp(db: Db, opts: { enableTestRoutes?: boolean } = {}) {
+export function createApp(db: Db, opts: { enableTestRoutes?: boolean; uploadDir?: string } = {}) {
   const app = express();
   app.use(cors());
   app.use(express.json({ limit: '2mb' }));
@@ -42,7 +43,9 @@ export function createApp(db: Db, opts: { enableTestRoutes?: boolean } = {}) {
   app.post('/api/projects/:projectId/forms', requireAuth, requireMember('supervisor'));
   app.use('/api/projects/:projectId/forms', ...asMember, formsRouter(db));
   app.use('/api/projects/:projectId/records', ...asMember, recordsRouter(db));
-  app.use('/api/attachments', attachmentsRouter());
+  // Thư mục ảnh: UPLOAD_DIR (design §12); test truyền thư mục tạm.
+  const uploads = createUploadStore(opts.uploadDir ?? 'uploads');
+  app.use('/api/projects/:projectId/attachments', ...asMember, attachmentsRouter(db, uploads));
   app.use('/api/export', exportRouter(db));
   return app;
 }

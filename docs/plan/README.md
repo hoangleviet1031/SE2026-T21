@@ -73,8 +73,8 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ✅ PR #2 |
 | TV3-02 | CLI quản trị, fixture, sửa test theo API mới | ✅ PR #8 · ⚠ CLI token và helper `login(token)` là bản cũ, TV3-12 thay |
 | TV3-03 | Nén ảnh | — |
-| TV3-04 | Test cách ly T1–T5 | ⏳ `feat/tv3-04-isolation-tests` |
-| TV3-05 | Upload ảnh theo chunk (server) | — |
+| TV3-04 | Test cách ly T1–T5 | ✅ PR #29 |
+| TV3-05 | Upload ảnh theo chunk (server) | ⏳ `feat/tv3-05-attachments` |
 | TV3-06 | Hàng đợi upload ảnh (client) | — |
 | TV3-07 | Màn hình conflict đầy đủ + chỉ đọc | — |
 | TV3-08 | Xoá vs sửa | — |

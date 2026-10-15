@@ -274,5 +274,5 @@ Dòng `ExperimentalWarning: SQLite is an experimental feature` trong log là bì
 ## Việc chưa làm
 
 - **Sao lưu hằng ngày** (design §12): hiện chỉ sao lưu khi triển khai lại. Muốn đủ thì thêm cron gọi `scripts/backup-db.mjs` mỗi ngày.
-- **Ảnh:** khi có upload (TV3-05), đặt `UPLOAD_DIR` ra ngoài repo (vd. `/home/azureuser/survey-data/uploads`) và sao lưu cùng CSDL. `uploads/` hiện chưa có trong `.gitignore`.
+- **Ảnh:** khi có upload (TV3-05), đặt `UPLOAD_DIR` ra ngoài repo (vd. `/home/azureuser/survey-data/uploads`) và sao lưu cùng CSDL. `server/uploads/` (mặc định khi không đặt `UPLOAD_DIR`) đã có trong `.gitignore`.
 - **Icon PNG 192/512** cho iOS và Android cũ: TV1-07.

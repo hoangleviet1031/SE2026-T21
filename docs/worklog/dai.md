@@ -13,6 +13,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-15 | TV3-05 | feat | Upload ảnh theo chunk: migration 3 bảng `attachments`, 4 route `P/attachments/*`, kiểm SHA-256/magic bytes/giới hạn, dọn chunk 7 ngày; 23 ca test | nhánh `feat/tv3-05-attachments` | chờ review |
+| 2026-10-15 | TV3-04 | docs | PR #29 đã merge; ghi ✅ trong plan | PR #29 | xong |
 | 2026-10-15 | TV3-04 | test | `isolation.test.ts`: T1–T4; T5 tự liệt kê mọi route `P/...`, đòi đúng `403 not_member`/`401`; thử bỏ `requireMember` thì T5 đỏ | nhánh `feat/tv3-04-isolation-tests` | chờ review |
 | 2026-10-15 | TV3-02 | docs | PR #8 đã merge (cùng TV2-01→03); ghi ✅ cho TV3-01 (PR #2), TV3-02 (PR #8) trong plan | PR #8 | xong |
 | 2026-10-11 | TV3-02 | feat | CLI `user:add`, `user:rotate-token`, `user:disable`, `seed:demo` (chặn khi production), 14 ca test | nhánh `feat/tv3-02-cli-fixtures` | chờ review |

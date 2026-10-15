@@ -2,6 +2,7 @@ node_modules/
 dist/
 dev-dist/
 server/data/
+server/uploads/
 test-results/
 playwright-report/
 *.log
