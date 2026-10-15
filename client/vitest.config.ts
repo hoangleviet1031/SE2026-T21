@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.ts'],
     environment: 'node',
-    // Chưa có test client nào; TV3-03 (nén ảnh) và TV1-05 (validate) sẽ thêm
+    // Giữ để workspace không có test vẫn xanh (vd. khi tách test ra file khác)
     passWithNoTests: true,
   },
 });

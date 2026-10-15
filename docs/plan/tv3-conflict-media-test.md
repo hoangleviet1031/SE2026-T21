@@ -42,7 +42,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-03 · Nén ảnh
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv3-03-compress-photo`
 - **Tuần:** 2 · **Phụ thuộc:** không
 - **Spec:** design §4.4 (Ở client), §11.2 (≤ 600 KB)
 - **File:** `client/src/media/compress.ts` (mới), `client/src/components/FormRenderer.tsx` (nhánh `photo`), `client/e2e/photo.spec.ts` (mới), `client/e2e/fixtures/photo-4mb.jpg`
@@ -75,7 +75,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-05 · Upload ảnh theo chunk (server) · **Lõi**
 
-- **Trạng thái:** ⏳ `feat/tv3-05-attachments`
+- **Trạng thái:** ✅ PR #30
 - **Tuần:** 3 · **Phụ thuộc:** TV2-03
 - **Spec:** design §4.4 (Upload theo chunk), §5.6 (Dọn rác), §7, §7.1, §9 (Upload)
 - **File:** `server/src/routes/attachments.ts`, `server/src/db.ts` (migration bảng `attachments`, phối hợp TV2), `server/test/attachments.test.ts` (mới)
