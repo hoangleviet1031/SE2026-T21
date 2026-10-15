@@ -3,9 +3,11 @@ import { openDb, seed } from './db';
 import { seedDemo } from './seedDemo';
 import { createApp, testRoutesEnabled } from './app';
 import { deleteExpiredKeys } from './repo/idempotency';
+import { cleanupStaleChunks } from './uploads';
 
 const port = Number(process.env.PORT ?? 3001);
 const dbPath = process.env.DB_PATH ?? 'data/survey.db';
+const uploadDir = process.env.UPLOAD_DIR ?? 'uploads';
 if (dbPath !== ':memory:') mkdirSync('data', { recursive: true });
 
 const db = openDb(dbPath);
@@ -18,10 +20,17 @@ const cleanKeys = () => {
   const removed = deleteExpiredKeys(db, new Date());
   if (removed > 0) console.log(`Đã dọn ${removed} idempotency key quá 30 ngày`);
 };
+// Ảnh tải dở (chưa complete) quá 7 ngày thì xoá chunk, cùng lịch (design §5.6).
+const cleanChunks = () => {
+  const removed = cleanupStaleChunks(uploadDir, new Date());
+  if (removed > 0) console.log(`Đã dọn ${removed} ảnh tải dở quá 7 ngày`);
+};
 cleanKeys();
+cleanChunks();
 setInterval(cleanKeys, 24 * 60 * 60 * 1000).unref();
+setInterval(cleanChunks, 24 * 60 * 60 * 1000).unref();
 
-const app = createApp(db, { enableTestRoutes: testRoutesEnabled(process.env) });
+const app = createApp(db, { enableTestRoutes: testRoutesEnabled(process.env), uploadDir });
 app.listen(port, () => {
   console.log(`API chạy tại http://localhost:${port}`);
 });
