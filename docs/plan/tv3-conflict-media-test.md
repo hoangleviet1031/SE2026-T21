@@ -58,7 +58,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-04 · Test cách ly T1–T5 · **Lõi**
 
-- **Trạng thái:** ⏳ `feat/tv3-04-isolation-tests`
+- **Trạng thái:** ✅ PR #29
 - **Tuần:** 3 · **Phụ thuộc:** TV2-03, TV3-02
 - **Spec:** ADR 0002 Kiểm chứng T1–T5
 - **File:** `server/test/isolation.test.ts` (mới)
@@ -75,7 +75,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-05 · Upload ảnh theo chunk (server) · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv3-05-attachments`
 - **Tuần:** 3 · **Phụ thuộc:** TV2-03
 - **Spec:** design §4.4 (Upload theo chunk), §5.6 (Dọn rác), §7, §7.1, §9 (Upload)
 - **File:** `server/src/routes/attachments.ts`, `server/src/db.ts` (migration bảng `attachments`, phối hợp TV2), `server/test/attachments.test.ts` (mới)

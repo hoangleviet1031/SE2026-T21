@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.8 (2026-10-14)
+- **Phiên bản:** 0.5.9 (2026-10-15)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -42,6 +42,7 @@
 | 0.5.6 | 2026-10-13 | Sửa lỗi TV1-03: `id` form được có dấu `-` (`^[a-zA-Z][a-zA-Z0-9_-]*$`), vì form mẫu `household-survey` không lưu được bản mới; `id` trường giữ mẫu cũ (§4.1) |
 | 0.5.7 | 2026-10-14 | TV1-07 phần 2a: SW `registerType: 'prompt'` có code, dải "Có phiên bản mới" + [Tải lại], hỏi xác nhận khi đang nhập phiếu, kiểm bản mới mỗi 60 phút, `clientsClaim` ở lần cài đầu; runtime cache sửa theo đường dẫn theo dự án; `/admin/` không qua SW; icon PNG 192/512 (maskable) và `apple-touch-icon` (§4.3) |
 | 0.5.8 | 2026-10-14 | TV1-07 phần 2b: kiểm tra API bắt buộc khi mở app và màn hình "Trình duyệt không được hỗ trợ" có code (§11.1); `storage.persist()` gọi sau mỗi lần lưu phiếu kể cả nháp, bỏ qua nếu đã được cấp (§4.2); hướng dẫn cài lên màn hình chính ở trang Cài đặt (§4.3); Đăng xuất xoá cache runtime `me`, `forms` của SW, giữ precache (§4.7) |
+| 0.5.9 | 2026-10-15 | TV3-05: `P/attachments/*` có code (§7): dạng response của `status`, `chunks`, `complete`; bảng `attachments` là migration 3, file ở `uploads/<projectId>/<id>/` (§6.1). Bước ADR 0003 (TV2-14) lấy số migration kế tiếp |
 
 ## Mục lục
 
@@ -497,12 +498,12 @@ Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu
 | `records` | `id`, `project_id`, `form_id`, `form_version`, `data` (JSON), `version`, `deleted`, `created_by`, `updated_at`, `updated_by`, `seq` | Bản hiện tại; `id` duy nhất toàn hệ thống (để PUT vào id của dự án khác trả `404`); FK `project_id`; index `(project_id, seq)`, `(project_id, created_by, seq)`. Không FK tới `forms` (phiếu offline có thể tham chiếu phiên bản form chưa pull) và không FK từ `created_by`/`updated_by` tới `users` (người bị vô hiệu hoá vẫn giữ phiếu) |
 | `record_history` | `record_id`, `project_id`, `version`, `data`, `deleted`, `updated_at`, `updated_by` | PK `(record_id, version)`; FK `record_id` → `records`; `project_id` nhắc lại từ `records` để mọi truy vấn dữ liệu dự án đều lọc cùng một cách; index `(project_id, record_id)` |
 | `idempotency` | `key`, `project_id`, `record_id`, `request_hash`, `status`, `body`, `created_at` | PK chỉ là `key` (dùng lại key ở dự án khác phải bị phát hiện và trả `422`); index `(created_at)` để dọn sau 30 ngày |
-| `attachments` *(sẽ thêm ở TV3-05)* | `id`, `project_id`, `record_id`, `mime_type`, `size`, `sha256`, `total_chunks`, `created_by`, `created_at`, `completed_at` | File nằm ở `uploads/<projectId>/` |
+| `attachments` *(migration 3, TV3-05)* | `id`, `project_id`, `record_id`, `mime_type`, `size`, `sha256`, `total_chunks`, `created_by`, `created_at`, `completed_at` | Dòng tạo lúc `complete`. Chunk tạm ở `uploads/<projectId>/<id>/<i>.part`, ghép xong thành `uploads/<projectId>/<id>/file`; `created_by` không có FK (như `records`) |
 | `meta` | `k`, `v` | Bộ đếm `seq` |
 
 Mọi truy vấn dữ liệu dự án đi qua lớp truy cập nhận `ctx = { userId, projectId, role }` bắt buộc (ADR 0002 §3). Bảng trên là **🕘 bản đang chạy** (migration 2, TV2-01; lớp `repo/` và middleware ở TV2-02).
 
-**🆕 Migration 3 (ADR 0003 §5, ticket TV2-14, TV2-15; chưa có code)**
+**🆕 Migration 3 (ADR 0003 §5, ticket TV2-14, TV2-15; chưa có code)** Số 3 đã dùng cho bảng `attachments` (TV3-05); bước này lấy số kế tiếp khi merge.
 
 | Bảng | Thay đổi |
 |---|---|
@@ -582,7 +583,7 @@ interface AdminProject {                                      // thêm ownerUser
 
 ## 7. REST API
 
-Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <token>` (§9). Route theo dự án nằm dưới `/api/projects/:projectId` (viết tắt `P` trong bảng) và đi qua middleware kiểm tra thành viên (ADR 0002 §3). Các route `forms` và `records` đã theo dự án và có xác thực (TV2-03); `attachments` và `export` vẫn dùng đường dẫn cũ, chưa xác thực.
+Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <token>` (§9). Route theo dự án nằm dưới `/api/projects/:projectId` (viết tắt `P` trong bảng) và đi qua middleware kiểm tra thành viên (ADR 0002 §3). Các route `forms`, `records` (TV2-03) và `attachments` (TV3-05) đã theo dự án và có xác thực; `export` vẫn dùng đường dẫn cũ, chưa xác thực.
 
 **Không theo dự án**
 
@@ -621,10 +622,10 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | GET | `P/records?since=&limit=` | Pull theo cursor, lọc theo phạm vi §5.5; trả thêm `scope` | thành viên | Có (chưa có `hasMore`) |
 | GET | `P/records/:id/history` | Lịch sử phiên bản | thành viên (trong phạm vi) | Có |
 | PUT | `P/records/:id` | Ghi có điều kiện, cần `Idempotency-Key` | thành viên (trong phạm vi) | Có |
-| GET | `P/attachments/:id/status` | Chunk đã nhận | thành viên | TODO TV3 |
-| PUT | `P/attachments/:id/chunks/:i` | Upload một chunk (`application/octet-stream`, ≤ 256 KB) | thành viên | TODO TV3 |
-| POST | `P/attachments/:id/complete` | Ghép file, kiểm SHA-256 | thành viên | TODO TV3 |
-| GET | `P/attachments/:id` | Tải ảnh | thành viên (trong phạm vi) | TODO TV3 |
+| GET | `P/attachments/:id/status` | Chunk đã nhận: `{ received: number[] }` (ảnh đã ghép thì đủ mọi chỉ số) | thành viên (trong phạm vi) | Có |
+| PUT | `P/attachments/:id/chunks/:i` | Upload một chunk (`application/octet-stream`, ≤ 256 KB, `i` < 40). Chunk mới `201`, đã có `200` không ghi lại | thành viên | Có |
+| POST | `P/attachments/:id/complete` | `{ recordId, totalChunks, mimeType, sha256 }` → ghép, kiểm SHA-256 và magic bytes, `201 { id, recordId, mimeType, size, sha256 }`; gọi lại cùng hash `200` | thành viên (phiếu trong phạm vi) | Có |
+| GET | `P/attachments/:id` | Tải ảnh | thành viên (trong phạm vi) | Có |
 | GET | `P/export/:formId?format=` | Xuất CSV/JSON | supervisor | TODO TV3 |
 
 **PUT /api/projects/:projectId/records/:id**
