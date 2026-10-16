@@ -107,6 +107,31 @@ test('phiếu ở bản form đã ẩn trường mà vẫn có giá trị: trư�
   expect(records.find((r) => r.id === id)?.data).toEqual({ ten: 'Hộ A sửa', ghiChu: 'giá trị cũ' });
 });
 
+test('trường ẩn có giá trị sai định dạng: lưu thành nháp, trường mở cho sửa, sửa xong thì đồng bộ', async ({
+  page,
+  request,
+}) => {
+  const soNguoi: Field = { id: 'soNguoi', type: 'number', label: 'Số người' };
+  await saveForm(request, [ten, soNguoi]);
+  await saveForm(request, [ten, { ...soNguoi, hidden: true }]);
+  // Dữ liệu lên server không qua validate của client (vd. máy cũ, nhập tay), nên có thể sai kiểu
+  await putRecord(request, 2, { ten: 'Hộ B', soNguoi: 'abc' });
+
+  await login(page, TOKENS.lan);
+  await recordLink(page, 'Hộ B').click();
+  await expect(page.locator('input[name=soNguoi]')).toBeDisabled();
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await expect(page.getByTestId('draft-notice')).toBeVisible();
+  await expect(page.getByTestId('error-soNguoi')).toBeVisible();
+  await expect(page.getByText('Số người (đã ẩn)')).toBeVisible();
+
+  await page.locator('input[name=soNguoi]').fill('3');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await expect(
+    page.getByTestId('records').getByRole('listitem').filter({ hasText: 'Hộ B' }).getByTestId('sync-state'),
+  ).toHaveText('Đã đồng bộ', { timeout: 15_000 });
+});
+
 test('máy chưa có bản form của phiếu: offline báo cần kết nối, có mạng thì tải về và mở được', async ({
   page,
   context,

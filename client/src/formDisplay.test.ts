@@ -23,4 +23,10 @@ describe('fieldMode', () => {
     expect(fieldMode({ ...hidden, type: 'number' }, 0)).toBe('readonly');
     expect(fieldMode({ ...hidden, type: 'multiselect' }, ['A'])).toBe('readonly');
   });
+
+  it('trường ẩn có giá trị đang báo lỗi thì cho sửa để phiếu ra khỏi nháp', () => {
+    expect(fieldMode({ ...hidden, type: 'number' }, 'abc', true)).toBe('edit');
+    expect(fieldMode(hidden, undefined, true)).toBe('hidden');
+    expect(fieldMode(text, 'An', true)).toBe('edit');
+  });
 });

@@ -218,7 +218,7 @@ Nhãn trạng thái ở đầu trang dùng cùng hàm `displayState` với danh 
 
 Code: trang điền phiếu có link "← Quay lại" ở đầu trang (về danh sách, phần chưa bấm Lưu không được giữ); nút "Lưu" rộng hết hàng trên điện thoại.
 
-Code (TV1-10): trường ẩn không hiện ở phiếu mới; phiếu đã có giá trị ở trường ẩn thì trường hiện với ô bị khoá, nhãn kèm "(đã ẩn)". Máy chưa có bản form của phiếu: "Đang tải biểu mẫu…" rồi mở phiếu; offline hoặc tải không được: "Cần kết nối để mở phiếu này" kèm "← Quay lại".
+Code (TV1-10): trường ẩn không hiện ở phiếu mới; phiếu đã có giá trị ở trường ẩn thì trường hiện với ô bị khoá, nhãn kèm "(đã ẩn)"; giá trị sai định dạng (phiếu nháp báo lỗi ở trường đó) thì ô mở cho sửa. Máy chưa có bản form của phiếu: "Đang tải biểu mẫu…" rồi mở phiếu; offline hoặc tải không được: "Cần kết nối để mở phiếu này" kèm "← Quay lại".
 
 ## 5. Form builder
 

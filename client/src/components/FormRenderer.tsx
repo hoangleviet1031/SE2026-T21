@@ -19,7 +19,7 @@ export function FormRenderer({ db, form, recordId, value, onChange, errors = {} 
   return (
     <div className="form">
       {form.fields.map((f) => {
-        const mode = fieldMode(f, value[f.id]);
+        const mode = fieldMode(f, value[f.id], errors[f.id] !== undefined);
         if (mode === 'hidden') return null;
         const input = (
           <FieldInput db={db} field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
@@ -32,7 +32,7 @@ export function FormRenderer({ db, form, recordId, value, onChange, errors = {} 
             <span>
               {f.label}
               {f.required && !f.hidden && ' *'}
-              {mode === 'readonly' && ' (đã ẩn)'}
+              {f.hidden && ' (đã ẩn)'}
             </span>
             {/* fieldset khoá được cả các nút bên trong (trường ảnh, GPS), không chỉ ô nhập */}
             {mode === 'readonly' ? (
