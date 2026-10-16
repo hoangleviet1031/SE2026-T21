@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import type { RecordData } from '@field-survey/shared';
 import { useCurrentProjectDb } from '../db/current';
 import { FormRenderer } from '../components/FormRenderer';
-import { RecordInConflictError, saveRecordLocally } from '../sync/outbox';
+import { RecordInConflictError, deleteRecordLocally, saveRecordLocally } from '../sync/outbox';
 import { syncNow } from '../sync/engine';
 import { requestPersistentStorage } from '../persistStorage';
 import { navigate } from '../useHashRoute';
@@ -60,9 +60,9 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
 
   // Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7): không lưu, báo người dùng đi xử lý xung đột.
   // Phần đang nhập vẫn trên màn hình. Banner và chế độ chỉ đọc đầy đủ là việc của TV3-07.
-  const saveLocally = async (deleted: boolean): Promise<Record<string, string> | undefined> => {
+  const unlessInConflict = async <T,>(write: () => Promise<T>): Promise<T | undefined> => {
     try {
-      return await saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data, deleted });
+      return await write();
     } catch (err) {
       if (!(err instanceof RecordInConflictError)) throw err;
       setInConflict(true);
@@ -71,7 +71,9 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   };
 
   const save = async () => {
-    const errors = await saveLocally(false);
+    const errors = await unlessInConflict(() =>
+      saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data }),
+    );
     if (!errors) return;
     // Phiếu đã nằm trên máy (kể cả nháp); xin giữ bộ nhớ không chặn việc lưu hay chuyển trang
     requestPersistentStorage().catch((e) => console.warn('không xin được bộ nhớ lâu dài', e));
@@ -82,7 +84,10 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   };
 
   const remove = async () => {
-    if (!(await saveLocally(true))) return;
+    // Phiếu chưa từng gửi bị xoá hẳn khỏi máy, nên phải hỏi trước (bất biến 1, design §5.7).
+    // TODO(TV1-13): thay confirm() của trình duyệt bằng ConfirmDialog, giữ nguyên câu chữ.
+    if (!window.confirm('Xoá phiếu này? Không hoàn tác được trên máy.')) return;
+    if (!(await unlessInConflict(() => deleteRecordLocally(db, id)))) return;
     void syncNow();
     navigate();
   };

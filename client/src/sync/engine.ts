@@ -275,9 +275,16 @@ async function scheduleRetry(db: ProjectDb, op: OutboxOp, error: string) {
 }
 
 async function onPushed(db: ProjectDb, op: OutboxOp, saved: ServerRecord) {
-  await db.transaction('rw', db.outbox, db.records, async () => {
+  await db.transaction('rw', db.outbox, db.records, db.attachments, async () => {
     await db.outbox.delete(op.seq!);
     const remaining = await db.outbox.where('recordId').equals(op.recordId).count();
+    // Op xoá đã được server xác nhận và không còn gì chờ gửi: tombstone đã nằm trên server, máy
+    // không cần giữ phiếu và ảnh nữa (design §5.7). Ảnh chưa upload cũng bỏ, vì phiếu đã xoá.
+    if (saved.deleted && remaining === 0) {
+      await db.attachments.where('recordId').equals(op.recordId).delete();
+      await db.records.delete(op.recordId);
+      return;
+    }
     const record = await db.records.get(op.recordId);
     await db.records.update(op.recordId, {
       baseData: saved.data,
@@ -392,6 +399,9 @@ async function pullAll(db: ProjectDb): Promise<void> {
         // sẽ nhận 409 và merge (ADR 0001 quy tắc 8)
         if (local && (hasOps || local.syncState === 'conflict' || local.syncState === 'draft')) continue;
         if (local && local.baseVersion >= remote.version) continue;
+        // Tombstone của phiếu máy không có (chưa từng tải, hoặc vừa xoá xong khỏi máy sau khi op xoá
+        // được xác nhận): không có gì để ẩn, không chèn lại (design §5.7)
+        if (!local && remote.deleted) continue;
         await db.records.put({
           id: remote.id,
           formId: remote.formId,

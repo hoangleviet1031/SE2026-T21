@@ -234,7 +234,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 **Việc**
 - Nút "Xoá phiếu" ở trang phiếu, hộp xác nhận đúng câu chữ "Xoá phiếu này? Không hoàn tác được trên máy." Bấm "Huỷ" thì không đổi gì.
 - Ẩn nút với surveyor khi phiếu không do mình tạo; khoá nút khi phiếu đang `conflict`.
-- Gọi `deleteRecordLocally` (TV2-13), thay đường xoá cũ `saveRecordLocally({ deleted: true })`.
+- Gọi `deleteRecordLocally` (TV2-13). Đã có: TV2-13 đã đổi nút "Xoá phiếu" hiện có sang gọi hàm này (kèm bắt `RecordInConflictError`), hỏi trước bằng `window.confirm` đúng câu chữ, và có E2E O7 (cả ca Huỷ), O8. Ticket này thay `window.confirm` bằng `ConfirmDialog`; sửa helper `clickDelete` trong `delete.spec.ts` (đang trả lời hộp thoại của trình duyệt) sang bấm nút trong hộp thoại.
 - Danh sách phiếu không hiện phiếu `deleted`.
 
 **Xong khi:** phần UI của E2E **O7**: bấm "Huỷ" thì phiếu còn; bấm "Xoá" thì phiếu biến khỏi danh sách.

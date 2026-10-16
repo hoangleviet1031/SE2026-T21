@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.13 (2026-10-16)
+- **Phiên bản:** 0.5.14 (2026-10-16)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -45,6 +45,7 @@
 | 0.5.9 | 2026-10-15 | TV3-05: `P/attachments/*` có code (§7): dạng response của `status`, `chunks`, `complete`; bảng `attachments` là migration 3, file ở `uploads/<projectId>/<id>/` (§6.1). Bước ADR 0003 (TV2-14) lấy số migration kế tiếp |
 | 0.5.10 | 2026-10-15 | TV3-03: nén ảnh có code (§4.4): JPEG 0.8, vượt 600 KB thì 0.7, 0.6, vẫn vượt thì vẫn lưu; §8 thêm dòng ảnh không đọc được; §11.2 kích thước ảnh sau nén đo bằng E2E `photo.spec.ts` |
 | 0.5.11 | 2026-10-16 | TV1-10 phần 1: trường ẩn có code: phiếu mới không hiện, phiếu đã có giá trị thì hiện chỉ đọc kèm "(đã ẩn)", có lỗi định dạng thì mở cho sửa (§4.1); vòng đồng bộ tải bản form mà phiếu trên máy đang dùng nếu máy chưa có (§5.3 bước 5); trang điền phiếu thiếu bản form thì gọi đồng bộ, offline hoặc tải không được thì "Cần kết nối để mở phiếu này" (§8). Xuất/nhập form làm ở phần 2 |
+| 0.5.14 | 2026-10-16 | TV2-13: `deleteRecordLocally` có code (§5.7): xoá hẳn khi phiếu chưa thể tới server, xoá mềm và op xoá khi có thể đã tới; op xoá của phiếu nháp mang bản hợp lệ cuối cùng (op chưa gửi nếu còn, không thì `baseData`) và phiếu nhận luôn bản đó; op xoá được xác nhận thì xoá phiếu và ảnh khỏi máy; pull bỏ qua tombstone của phiếu máy không có. Nút "Xoá phiếu" hiện có gọi hàm này sau `confirm()` của trình duyệt với đúng câu chữ (TV1-13 thay bằng hộp thoại của app). O7, O8 có E2E (§10.1) |
 | 0.5.13 | 2026-10-16 | TV2-10: phiếu `conflict` không lưu, không xoá được ở tầng dữ liệu (`saveRecordLocally` ném `RecordInConflictError`), trang điền phiếu báo "Phiếu này cần xử lý xung đột trước" kèm link (§4.5); bỏ op `blocked` (§5.2); 409 tự gộp được thì gửi lại ngay trong cùng vòng, tối đa 3 lần mỗi phiếu (§5.3). C1, C6, C8 và pull bỏ qua nháp có E2E (§10.1) |
 | 0.5.12 | 2026-10-16 | TV1-10 phần 2: Xuất/Nhập form trong builder có code (§4.1): xuất `<id>-v<version>.json`, nhập nạp vào builder thành form mới; form mới trùng mã form đã có báo "Mã biểu mẫu đã có trong dự án"; kiểm kiểu thân lưu form chuyển sang `shared/` (`parseSaveFormRequest`), server dùng chung; §8 thêm dòng file nhập không hợp lệ |
 
@@ -487,9 +488,12 @@ Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu
 | Chưa bao giờ có thể đã tới server | `baseVersion = 0` và mọi op của phiếu có `attempts = 0` (kể cả phiếu nháp không có op) | Xoá hẳn trên máy: xoá phiếu, mọi op, mọi ảnh của phiếu. Không gửi gì lên server |
 | Có thể đã tới server | `baseVersion > 0`, hoặc có op đã gửi ít nhất một lần (server có thể đã ghi mà mất response) | Đặt `deleted = true`, tạo op xoá theo quy tắc gộp §5.2 (op chưa gửi thì sửa op đó, op đã gửi thì thêm op mới phía sau). Phiếu biến khỏi danh sách; giữ trong IndexedDB tới khi op xoá được server xác nhận |
 
-- **Dữ liệu trong op xoá:** `deleted: true`, `data` = dữ liệu hợp lệ mới nhất (`baseData` nếu phiếu đang là nháp), để server không nhận dữ liệu chưa qua validate.
+- **Dữ liệu trong op xoá:** `deleted: true`, `data` = dữ liệu hợp lệ mới nhất, để server không nhận dữ liệu chưa qua validate. Phiếu nháp: `data` của op chưa gửi nếu còn (mới hơn `baseData`), không thì `baseData`. Phiếu cũng nhận bản này và thôi là nháp, để nếu op xoá nhận `409` thì merge dùng bản hợp lệ chứ không dùng dữ liệu nháp.
+- **Op cũ:** op `failed` bị bỏ (server đã từ chối, không lưu key), như khi sửa phiếu lỗi (§5.1).
 - **Xung đột:** server đã có người sửa trong lúc mình xoá thì nhận `409` và đi theo ADR 0001 quy tắc 6 (hỏi giữ hay xoá, §4.5). Không tự quyết.
-- **Ảnh của phiếu đã xoá:** ngừng upload; blob chưa upload được xoá cùng lúc op xoá được server xác nhận.
+- **Ảnh của phiếu đã xoá:** ngừng upload (hàng đợi upload của TV3-06 phải bỏ qua phiếu `deleted`); blob chưa upload được xoá cùng lúc op xoá được server xác nhận, trong cùng transaction với việc xoá phiếu.
+- **Sau khi xác nhận:** op xoá nhận `200/201` và phiếu không còn op nào thì phiếu và ảnh bị xoá khỏi máy. Pull sau đó nhận lại tombstone của chính phiếu này; pull **bỏ qua tombstone của phiếu máy không có** để không chèn lại. Phiếu máy đang có (không có thay đổi chưa gửi) thì vẫn nhận tombstone và bị ẩn khỏi danh sách.
+- **Code:** `deleteRecordLocally` trong `client/src/sync/outbox.ts` (TV2-13); nút "Xoá phiếu" ở trang phiếu hỏi bằng `confirm()` của trình duyệt (đúng câu chữ trên) rồi gọi hàm này; TV1-13 thay bằng hộp thoại của app.
 - Khôi phục phiếu đã xoá (bỏ tombstone) ngoài phạm vi MVP, trừ trường hợp người dùng chọn "Khôi phục" trong màn hình xung đột.
 
 ## 6. Mô hình dữ liệu
@@ -814,8 +818,8 @@ Phạm vi đồ án giữ đơn giản:
 | O4 | Đóng tab khi còn op, mở lại thì vẫn đồng bộ | TODO |
 | O5 | Lưu phiếu thiếu trường bắt buộc: thành "Nháp", không lên server; sửa đủ thì đồng bộ | Có (`draft.spec.ts`) |
 | O6 | Hai tab cùng mở: mỗi op chỉ được gửi từ một tab | Có (`tabs.spec.ts`) |
-| O7 | Xoá phiếu chưa từng gửi (tạo khi offline): bấm "Huỷ" thì phiếu còn; xác nhận thì phiếu, op, ảnh biến khỏi máy, online lên không có request nào cho phiếu đó (§5.7) | TODO |
-| O8 | Xoá phiếu đã đồng bộ: phiếu biến khỏi danh sách, server có `deleted: true`, máy khác pull thấy tombstone; phiếu bị xoá khỏi máy sau khi op xoá được xác nhận (§5.7) | TODO |
+| O7 | Xoá phiếu chưa từng gửi (tạo khi offline): bấm "Huỷ" thì phiếu còn; xác nhận thì phiếu, op, ảnh biến khỏi máy, online lên không có request nào cho phiếu đó (§5.7) | Có (`delete.spec.ts`; hộp xác nhận hiện là `confirm()` của trình duyệt) |
+| O8 | Xoá phiếu đã đồng bộ: phiếu biến khỏi danh sách, server có `deleted: true`, máy khác pull thấy tombstone; phiếu bị xoá khỏi máy sau khi op xoá được xác nhận (§5.7) | Có (`delete.spec.ts`) |
 
 **Conflict**
 

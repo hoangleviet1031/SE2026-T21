@@ -69,7 +69,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | ✅ `feat/tv2-10-conflict-engine` |
 | TV2-11 | Hiệu năng pull | — |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
-| TV2-13 | Xoá phiếu: logic client + đồng bộ | — |
+| TV2-13 | Xoá phiếu: logic client + đồng bộ | ✅ `feat/tv2-13-delete-sync` |
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ✅ PR #2 |
 | TV3-02 | CLI quản trị, fixture, sửa test theo API mới | ✅ PR #8 · ⚠ CLI token và helper `login(token)` là bản cũ, TV3-12 thay |
 | TV3-03 | Nén ảnh | ✅ PR #31 |
