@@ -54,7 +54,7 @@ test('tạo phiếu ở v1, ẩn một trường tạo v2: phiếu cũ vẫn th�
   request,
 }) => {
   await saveForm(request, [ten, ghiChu]);
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   const form = page.getByRole('listitem').filter({ hasText: 'Hộ dân' });
 
   await form.getByRole('button', { name: 'Tạo phiếu mới' }).click();
@@ -90,7 +90,7 @@ test('phiếu ở bản form đã ẩn trường mà vẫn có giá trị: trư�
   await saveForm(request, [ten, { ...ghiChu, hidden: true }]);
   const id = await putRecord(request, 2, { ten: 'Hộ A', ghiChu: 'giá trị cũ' });
 
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   await recordLink(page, 'Hộ A').click();
   await expect(page.getByText('Ghi chú (đã ẩn)')).toBeVisible();
   await expect(page.locator('input[name=ghiChu]')).toHaveValue('giá trị cũ');
@@ -117,7 +117,7 @@ test('trường ẩn có giá trị sai định dạng: lưu thành nháp, trư�
   // Dữ liệu lên server không qua validate của client (vd. máy cũ, nhập tay), nên có thể sai kiểu
   await putRecord(request, 2, { ten: 'Hộ B', soNguoi: 'abc' });
 
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   await recordLink(page, 'Hộ B').click();
   await expect(page.locator('input[name=soNguoi]')).toBeDisabled();
   await page.getByRole('button', { name: 'Lưu' }).click();
@@ -144,7 +144,7 @@ test('máy chưa có bản form của phiếu: offline báo cần kết nối, c
   // Máy mới chỉ nhận bản mới nhất qua GET forms; chặn tải bản cũ để giữ máy ở trạng thái thiếu
   const blockVersions = '**/forms/ho/versions/**';
   await page.route(blockVersions, (route) => route.abort());
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   await expect(recordLink(page, 'Phiếu máy khác')).toBeVisible();
 
   await context.setOffline(true);
