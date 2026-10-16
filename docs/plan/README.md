@@ -53,7 +53,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-07 | Cập nhật SW, Cài đặt, kiểm tra trình duyệt | ✅ phần 1 PR #20 (Cài đặt + Đăng xuất) · ✅ phần 2a PR #27 (cập nhật SW, icon PNG) · ✅ phần 2b PR #28 (kiểm tra trình duyệt, `persist()`, hướng dẫn cài, Đăng xuất xoá cache SW) · 🆕 cập nhật theo ADR 0003 |
 | TV1-08 | Thành viên dự án (API + màn hình) | — · 🆕 cập nhật theo ADR 0003 |
 | TV1-09 | ~~Màn hình Dự án cho admin~~ | ❌ Bỏ, thay bởi TV1-16 |
-| TV1-10 | `formVersion`, `hidden`, xuất/nhập form | ⏳ PR #32 (phần 1) |
+| TV1-10 | `formVersion`, `hidden`, xuất/nhập form | ✅ PR #32 (phần 1), PR #33 (phần 2) |
 | TV1-11 | E2E O2, O4, T6, T10 | — |
 | TV1-12 | Hoàn thiện UI, tài liệu người dùng | — |
 | TV1-13 | Nút xoá phiếu + hộp xác nhận | — |
