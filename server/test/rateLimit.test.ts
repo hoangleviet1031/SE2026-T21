@@ -34,6 +34,30 @@ describe('createRateLimiter (ADR 0003 §1)', () => {
     expect(rl.isBlocked('ip', 20 * MIN)).toBe(false);
   });
 
+  it('release bỏ đúng một lần đã ghi (giữ chỗ rồi hoá ra không tính)', () => {
+    const rl = createRateLimiter({ limit: 2, windowMs: MIN });
+    rl.hit('lan', 10);
+    rl.hit('lan', 20);
+    expect(rl.isBlocked('lan', 30)).toBe(true);
+    rl.release('lan', 20);
+    expect(rl.isBlocked('lan', 30)).toBe(false);
+    // Bỏ lần không có thì không đổi gì
+    rl.release('lan', 999);
+    rl.release('khac', 10);
+    rl.hit('lan', 40);
+    expect(rl.isBlocked('lan', 50)).toBe(true);
+  });
+
+  it('release khi cùng một mốc thời gian có hai lần thì chỉ bỏ một', () => {
+    const rl = createRateLimiter({ limit: 2, windowMs: MIN });
+    rl.hit('ip', 5);
+    rl.hit('ip', 5);
+    rl.release('ip', 5);
+    expect(rl.isBlocked('ip', 6)).toBe(false);
+    rl.hit('ip', 6);
+    expect(rl.isBlocked('ip', 7)).toBe(true);
+  });
+
   it('khoá không còn lần nào trong cửa sổ thì bị dọn khỏi bộ nhớ', () => {
     const rl = createRateLimiter({ limit: 2, windowMs: MIN });
     rl.hit('a', 0);

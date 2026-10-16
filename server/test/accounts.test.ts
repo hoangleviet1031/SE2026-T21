@@ -175,6 +175,44 @@ describe('POST /api/auth/login', () => {
   });
 });
 
+// Kẻ đoán mật khẩu gửi nhiều request cùng lúc: scrypt chạy bất đồng bộ nên mọi request có thể
+// qua bước kiểm trước khi lần sai đầu tiên kịp ghi. Lượt phải được giữ chỗ trước khi chờ scrypt.
+describe('giới hạn tần suất khi gửi song song', () => {
+  it('15 lần đăng nhập sai cùng lúc: tối đa 10 lần được kiểm mật khẩu, còn lại 429; sau đó mật khẩu đúng cũng 429', async () => {
+    await register('hoa', { ip: '10.3.0.9' });
+    const results = await Promise.all(
+      Array.from({ length: 15 }, (_, i) => login('hoa', `sai-${i}`, `10.3.1.${i}`)),
+    );
+    const statuses = results.map((r) => r.status);
+    expect(statuses.filter((s) => s === 401)).toHaveLength(10);
+    expect(statuses.filter((s) => s === 429)).toHaveLength(5);
+    expect((await login('hoa', PASSWORD, '10.3.2.1')).status).toBe(429);
+  });
+
+  it('8 lần đăng ký cùng lúc từ một IP: đúng 5 tài khoản được tạo', async () => {
+    const results = await Promise.all(Array.from({ length: 8 }, (_, i) => register(`song${i}`, { ip: '10.4.0.1' })));
+    const statuses = results.map((r) => r.status);
+    expect(statuses.filter((s) => s === 201)).toHaveLength(5);
+    expect(statuses.filter((s) => s === 429)).toHaveLength(3);
+    const created = t.db.prepare(`SELECT COUNT(*) AS n FROM users WHERE username LIKE 'song%'`).get() as { n: number };
+    expect(created.n).toBe(5);
+  });
+
+  it('đăng nhập đúng không chiếm lượt sai: 9 lần sai, 3 lần đúng, thêm 1 lần sai vẫn được kiểm', async () => {
+    await register('hoa', { ip: '10.5.0.9' });
+    for (let i = 0; i < 9; i++) expect((await login('hoa', `sai-${i}`, `10.5.1.${i}`)).status).toBe(401);
+    for (let i = 0; i < 3; i++) expect((await login('hoa', PASSWORD, `10.5.2.${i}`)).status).toBe(200);
+    expect((await login('hoa', 'sai-cuoi', '10.5.3.1')).status).toBe(401);
+    expect((await login('hoa', PASSWORD, '10.5.3.2')).status).toBe(429);
+  });
+
+  it('đăng ký trùng tên cùng lúc không chiếm lượt đăng ký', async () => {
+    const results = await Promise.all(Array.from({ length: 4 }, () => register('trung', { ip: '10.6.0.1' })));
+    expect(results.map((r) => r.status).sort()).toEqual([201, 409, 409, 409]);
+    for (let i = 0; i < 4; i++) expect((await register(`khac${i}`, { ip: '10.6.0.1' })).status).toBe(201);
+  });
+});
+
 describe('phiên theo máy', () => {
   it('U5: hai phiên cùng gửi phiếu; đăng xuất một máy không ảnh hưởng máy kia', async () => {
     const reg = (await (await register('hoa')).json()) as AuthResponse;

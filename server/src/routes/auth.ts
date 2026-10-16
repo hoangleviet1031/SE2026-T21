@@ -4,7 +4,14 @@ import { tx, type Db } from '../db';
 import { toAuthUser } from '../auth';
 import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from '../password';
 import { createRateLimiter } from '../rateLimit';
-import { deleteSession, findUserByUsername, insertSession, insertUser, newSessionToken } from '../repo/users';
+import {
+  deleteSession,
+  findUserByUsername,
+  insertSession,
+  insertUser,
+  newSessionToken,
+  type LoginUserRow,
+} from '../repo/users';
 
 // Tự tạo tài khoản, đăng nhập, đăng xuất (ADR 0003 §1, design §7). Không bao giờ ghi log mật khẩu
 // hay token; DB chỉ giữ scrypt của mật khẩu và SHA-256 của token phiên.
@@ -27,23 +34,31 @@ export function authRouter(db: Db, requireAuth: RequestHandler): Router {
     const body = parseRegisterRequest(req.body);
     if (!body) return void res.status(400).json({ error: 'invalid_body' });
     const ip = clientIp(req);
-    if (registrations.isBlocked(ip, Date.now())) return void res.status(429).json({ error: 'too_many_requests' });
+    // Giữ chỗ một lượt trước khi chờ scrypt (xem rateLimit.ts); không tạo được tài khoản thì trả lại,
+    // vì chỉ đăng ký thành công mới tính vào giới hạn.
+    const reservedAt = Date.now();
+    if (registrations.isBlocked(ip, reservedAt)) return void res.status(429).json({ error: 'too_many_requests' });
+    registrations.hit(ip, reservedAt);
 
-    // Băm trước khi mở transaction: scrypt chạy bất đồng bộ, không được nằm giữa BEGIN và COMMIT.
-    const passwordHash = await hashPassword(body.password);
-    const token = newSessionToken();
-    const now = new Date().toISOString();
-    const userId = tx(db, () => {
-      // Kiểm rồi ghi trong cùng một BEGIN IMMEDIATE nên hai request cùng tên không lọt cả hai.
-      if (findUserByUsername(db, body.username)) return undefined;
-      const id = insertUser(db, { username: body.username, name: body.name, passwordHash, now });
-      insertSession(db, id, token, now);
-      return id;
-    });
+    let userId: string | undefined;
+    let token = '';
+    try {
+      // Băm trước khi mở transaction: scrypt chạy bất đồng bộ, không được nằm giữa BEGIN và COMMIT.
+      const passwordHash = await hashPassword(body.password);
+      token = newSessionToken();
+      const now = new Date().toISOString();
+      userId = tx(db, () => {
+        // Kiểm rồi ghi trong cùng một BEGIN IMMEDIATE nên hai request cùng tên không lọt cả hai.
+        if (findUserByUsername(db, body.username)) return undefined;
+        const id = insertUser(db, { username: body.username, name: body.name, passwordHash, now });
+        insertSession(db, id, token, now);
+        return id;
+      });
+    } finally {
+      if (!userId) registrations.release(ip, reservedAt);
+    }
     if (!userId) return void res.status(409).json({ error: 'username_taken' });
 
-    // Chỉ đăng ký thành công mới tính vào giới hạn.
-    registrations.hit(ip, Date.now());
     const out: AuthResponse = {
       token,
       user: { id: userId, username: body.username, name: body.name, isAdmin: false },
@@ -58,26 +73,39 @@ export function authRouter(db: Db, requireAuth: RequestHandler): Router {
     const userKey = `u:${body.username}`;
     const ipKey = `ip:${ip}`;
     // Đang bị chặn thì trả 429 kể cả khi mật khẩu đúng (ca U4), và không chạy scrypt.
-    if (loginFailures.isBlocked(userKey, Date.now()) || loginFailures.isBlocked(ipKey, Date.now())) {
+    const reservedAt = Date.now();
+    if (loginFailures.isBlocked(userKey, reservedAt) || loginFailures.isBlocked(ipKey, reservedAt)) {
       return void res.status(429).json({ error: 'too_many_requests' });
     }
+    // Giữ chỗ như một lần sai trước khi chờ scrypt (xem rateLimit.ts): request gửi cùng lúc thấy
+    // lượt này ngay. Đăng nhập đúng thì trả lại, không chiếm lượt sai; lần sai thì giữ đủ 15 phút
+    // (đăng nhập đúng sau đó cũng không xoá các lần sai đã có).
+    loginFailures.hit(userKey, reservedAt);
+    loginFailures.hit(ipKey, reservedAt);
 
-    const user = findUserByUsername(db, body.username);
-    // Không có tên đó, chưa có mật khẩu (tài khoản cũ) hay bị khoá thì vẫn chạy scrypt trên hash giả,
-    // để thời gian trả lời không lộ tên nào đã có. Mọi trường hợp sai đều cùng một lỗi.
-    const stored = user?.password_hash ?? (await DUMMY_PASSWORD_HASH);
-    const passwordOk = await verifyPassword(body.password, stored);
-    if (!user || !user.password_hash || user.disabled === 1 || !passwordOk) {
-      // Đăng nhập đúng không xoá bộ đếm: lần sai nào cũng tính đủ 15 phút.
-      loginFailures.hit(userKey, Date.now());
-      loginFailures.hit(ipKey, Date.now());
-      return void res.status(401).json({ error: 'invalid_credentials' });
+    let ok = false;
+    let user: LoginUserRow | undefined;
+    try {
+      user = findUserByUsername(db, body.username);
+      // Không có tên đó, chưa có mật khẩu (tài khoản cũ) hay bị khoá thì vẫn chạy scrypt trên hash giả,
+      // để thời gian trả lời không lộ tên nào đã có. Mọi trường hợp sai đều cùng một lỗi.
+      const stored = user?.password_hash ?? (await DUMMY_PASSWORD_HASH);
+      const passwordOk = await verifyPassword(body.password, stored);
+      ok = user !== undefined && user.password_hash !== null && user.disabled === 0 && passwordOk;
+    } finally {
+      if (ok) {
+        loginFailures.release(userKey, reservedAt);
+        loginFailures.release(ipKey, reservedAt);
+      }
     }
+    // `ok` đúng thì `user` chắc chắn có; kiểm lại để TypeScript thu hẹp kiểu.
+    const found = user;
+    if (!ok || !found) return void res.status(401).json({ error: 'invalid_credentials' });
 
     // Mỗi máy một phiên; không thu hồi phiên của máy khác (có thể đang giữ phiếu chưa gửi).
     const token = newSessionToken();
-    tx(db, () => insertSession(db, user.id, token, new Date().toISOString()));
-    const out: AuthResponse = { token, user: toAuthUser(user) };
+    tx(db, () => insertSession(db, found.id, token, new Date().toISOString()));
+    const out: AuthResponse = { token, user: toAuthUser(found) };
     res.json(out);
   });
 

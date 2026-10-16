@@ -695,7 +695,7 @@ Content-Type: application/json
 
 - Mọi route theo tổ chức vẫn qua `requireMember`; `/directory`, `/project-requests` không có `:projectId` và không chạm form, phiếu, ảnh. T5 không có ngoại lệ.
 - `requireAuth` tra token trong `sessions` (không còn `users.token_hash`), cập nhật `last_seen_at`; tài khoản `disabled` → `401`. Có code (TV2-14).
-- Tên đăng nhập không tồn tại vẫn chạy scrypt trên một hash giả để thời gian trả lời không lộ tên nào đã có. Bộ đếm giới hạn tần suất nằm trong bộ nhớ tiến trình (khởi động lại thì xoá).
+- Tên đăng nhập không tồn tại vẫn chạy scrypt trên một hash giả để thời gian trả lời không lộ tên nào đã có. Bộ đếm giới hạn tần suất nằm trong bộ nhớ tiến trình (khởi động lại thì xoá). Mỗi lần đăng nhập hoặc đăng ký được giữ chỗ trong bộ đếm ngay sau bước kiểm, trước khi chạy scrypt, nên gửi nhiều request cùng lúc cũng không vượt giới hạn; đăng nhập đúng hoặc đăng ký không thành thì trả lại lượt đó.
 - Tài khoản admin đăng nhập được `/auth/login` để dùng trang quản trị; app khảo sát tự chặn (§4.9). Admin vẫn nhận `403 not_member` ở mọi `P/...` (T4, ADR 0003 Y8).
 
 **🕘 /api/admin/projects bản đang chạy** (chỉ `isAdmin`; người khác nhận `403 forbidden`). TV2-15 sẽ bỏ `POST` và `PUT …/members/:userId`, `PATCH` chỉ còn `archived` (bảng "Không theo dự án" ở trên).
