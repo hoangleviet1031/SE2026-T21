@@ -34,7 +34,12 @@ export interface OutboxOp {
   deleted: boolean;
   attempts: number;
   nextAttemptAt: number;
-  status: 'queued' | 'blocked' | 'failed';
+  /**
+   * Không còn `blocked`: phiếu đang conflict không sửa được nên không sinh op mới (ADR 0001 quy
+   * tắc 7). Op `blocked` do bản cũ tạo, nếu còn trên máy, vẫn bị pushAll bỏ qua như mọi op không
+   * phải `queued` và bị xoá khi người dùng giải quyết xung đột (design §5.2).
+   */
+  status: 'queued' | 'failed';
   lastError?: string;
   /**
    * Lúc phiếu bắt đầu có thay đổi chưa lên server (ms, giờ thiết bị, chỉ để hiển thị cảnh báo

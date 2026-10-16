@@ -66,7 +66,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-07 | Cursor theo scope + thay đổi thành viên | ✅ PR #14 |
 | TV2-08 | Idempotency hash, dọn key, fault `drop` | ✅ `feat/tv2-08-idempotency` |
 | TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | ✅ `feat/tv2-09-failed-ops` |
-| TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | — |
+| TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | ✅ `feat/tv2-10-conflict-engine` |
 | TV2-11 | Hiệu năng pull | — |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
 | TV2-13 | Xoá phiếu: logic client + đồng bộ | — |

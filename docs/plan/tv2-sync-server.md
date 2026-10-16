@@ -178,7 +178,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-10 · Engine: khoá khi conflict, 409 lặp, bỏ qua nháp · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-10-conflict-engine`. Thêm (được duyệt khi làm): op tự gộp sau 409 gửi lại ngay trong cùng vòng (C1, C8 cần); `FillPage` báo khi bị từ chối lưu. `pullAll` bỏ qua nháp đã có từ TV1-05, ticket này thêm E2E
 - **Tuần:** 5 · **Phụ thuộc:** TV1-05, TV2-06
 - **Spec:** ADR 0001 quy tắc 7, 8; design §4.5, §10.1 C1, C6, C8
 - **File:** `client/src/sync/engine.ts`, `client/src/sync/outbox.ts`, `client/src/db/projectDb.ts`, `client/e2e/conflict.spec.ts`

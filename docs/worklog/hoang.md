@@ -15,6 +15,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-16 | TV2-10 | feat | Phiếu `conflict` không lưu/xoá được (`RecordInConflictError`, FillPage báo kèm link), bỏ op `blocked`; sửa lỗi op tự gộp sau 409 phải chờ vòng sau (gửi lại ngay, tối đa 3 lần); E2E C1, C6, C8 (hai ca), khoá sửa, pull bỏ qua nháp | nhánh `feat/tv2-10-conflict-engine` | chờ review |
 | 2026-10-12 | — | docs | ADR 0003 chấp nhận; design 0.5 và ui.md 0.2 ghi bản mới 🆕 / bản cũ 🕘; ADR 0002 ghi thay thế một phần; ticket TV1-14…16, TV2-14…17, TV3-12 | nhánh `docs/adr-0003-spec` | chờ review |
 | 2026-10-12 | — | quyết định | Chốt ADR 0003 phía mình: mở tổ chức cần admin duyệt, admin không xem dữ liệu, trang quản trị riêng `/admin/`, tài khoản admin không vào tổ chức | `docs/adr/0003-accounts-and-owner-role.md` | chờ review |
 | 2026-10-12 | — | quyết định | ADR 0003 viết lại: vai trò `owner` (khách hàng), admin là người vận hành, bỏ xin tham gia, công khai chỉ hiện tên, tạo lại bảng `memberships` | `docs/adr/0003-accounts-and-owner-role.md`, design §14 P9 | chờ review |
