@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.14 (2026-10-16)
+- **Phiên bản:** 0.5.16 (2026-10-16)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -47,6 +47,8 @@
 | 0.5.11 | 2026-10-16 | TV1-10 phần 1: trường ẩn có code: phiếu mới không hiện, phiếu đã có giá trị thì hiện chỉ đọc kèm "(đã ẩn)", có lỗi định dạng thì mở cho sửa (§4.1); vòng đồng bộ tải bản form mà phiếu trên máy đang dùng nếu máy chưa có (§5.3 bước 5); trang điền phiếu thiếu bản form thì gọi đồng bộ, offline hoặc tải không được thì "Cần kết nối để mở phiếu này" (§8). Xuất/nhập form làm ở phần 2 |
 | 0.5.14 | 2026-10-16 | TV2-13: `deleteRecordLocally` có code (§5.7): xoá hẳn khi phiếu chưa thể tới server, xoá mềm và op xoá khi có thể đã tới; op xoá của phiếu nháp mang bản hợp lệ cuối cùng (op chưa gửi nếu còn, không thì `baseData`) và phiếu nhận luôn bản đó; op xoá được xác nhận thì xoá phiếu và ảnh khỏi máy; pull bỏ qua tombstone của phiếu máy không có. Nút "Xoá phiếu" hiện có gọi hàm này sau `confirm()` của trình duyệt với đúng câu chữ (TV1-13 thay bằng hộp thoại của app). O7, O8 có E2E (§10.1) |
 | 0.5.13 | 2026-10-16 | TV2-10: phiếu `conflict` không lưu, không xoá được ở tầng dữ liệu (`saveRecordLocally` ném `RecordInConflictError`), trang điền phiếu báo "Phiếu này cần xử lý xung đột trước" kèm link (§4.5); bỏ op `blocked` (§5.2); 409 tự gộp được thì gửi lại ngay trong cùng vòng, tối đa 3 lần mỗi phiếu (§5.3). C1, C6, C8 và pull bỏ qua nháp có E2E (§10.1) |
+| 0.5.15 | 2026-10-16 | TV2-14: migration 4 có code (§6.1): `users.username`, `users.password_hash`, bảng `sessions` (chép token cũ thành phiên), `projects.public`, `memberships` tạo lại có `owner` và `added_by`; admin là thành viên thì migration dừng. `POST /auth/register`, `/login`, `/logout` có code, `requireAuth` tra `sessions`, `/me` trả `username`, vai trò `owner` trong `requireMember` và phạm vi pull (§7); trust proxy loopback để giới hạn tần suất đếm đúng IP sau Caddy (§9); tài khoản tự đăng ký ghi `users.token_hash` giữ chỗ (§6.1); kiểu `Role`, `MeResponse`, `RegisterRequest`, `LoginRequest`, `AuthResponse` và `parseRegisterRequest`/`parseLoginRequest` trong `shared/` (§6.2). U1–U6, MG1, MG2, A5 phần Owner có test (§10.1). CLI và `seed:demo` ghi token thành phiên làm cầu nối tới TV3-12 (§12) |
+| 0.5.16 | 2026-10-16 | TV3-12: CLI theo tài khoản có code (§12): `user:add --username`, `user:reset-password`, `user:revoke-sessions`, `user:disable` (khoá và thu hồi phiên), bỏ `user:rotate-token`; `seed:demo` có mật khẩu demo và Owner `chu`, giữ token demo tới TV1-14/TV2-16 |
 | 0.5.12 | 2026-10-16 | TV1-10 phần 2: Xuất/Nhập form trong builder có code (§4.1): xuất `<id>-v<version>.json`, nhập nạp vào builder thành form mới; form mới trùng mã form đã có báo "Mã biểu mẫu đã có trong dự án"; kiểm kiểu thân lưu form chuyển sang `shared/` (`parseSaveFormRequest`), server dùng chung; §8 thêm dòng file nhập không hợp lệ |
 
 ## Mục lục
@@ -346,7 +348,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
 - **Màn hình Dự án** (`admin`, cần online, trong PWA): tạo dự án, đổi tên, lưu trữ; chỉ định giám sát viên đầu tiên. *(Chưa có code; thay bằng trang quản trị §4.9.)*
 - **Tạo người dùng** không có UI: quản trị chạy CLI ở server (§12).
 - **Nhập mã của người khác trên máy đang có dữ liệu** (sau `401`, hoặc người dùng tự nhập lại):** sau khi `GET /api/me` trả về, so `user.id` mới với `userId` đang lưu trong `field-survey-account`.
-  - Cùng người (mã được cấp lại bằng `user:rotate-token`): chỉ thay token, giữ nguyên mọi CSDL, đồng bộ tiếp.
+  - Cùng người (đăng nhập lại, hoặc mã mới sau `user:revoke-sessions`): chỉ thay token, giữ nguyên mọi CSDL, đồng bộ tiếp.
   - Khác người và máy **không** còn dữ liệu chưa gửi ở mọi dự án (định nghĩa như `hasUnsentData`, ADR 0002 §6): xoá mọi CSDL dự án của người cũ rồi đăng nhập người mới.
   - Khác người và máy **còn** dữ liệu chưa gửi: từ chối, hiện "Máy này còn N phiếu chưa gửi của <tên người cũ>. Nhập lại mã của người đó để gửi, hoặc xuất JSON trước." kèm nút "Xuất JSON". Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
 - **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Đăng xuất xoá cả cache runtime `me` và `forms` của SW (§4.3; tên ở `client/src/swCaches.ts`) để dữ liệu của người cũ không nằm lại trên máy dùng chung, nhưng giữ precache để app vẫn mở được offline. Có code.
@@ -502,9 +504,10 @@ Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu
 
 | Bảng | Cột chính | Ghi chú |
 |---|---|---|
-| `projects` | `id`, `name`, `archived`, `created_at` | ADR 0002 |
-| `users` | `id`, `name`, `token_hash`, `is_admin`, `disabled`, `created_at` | Token chỉ lưu SHA-256; `token_hash` duy nhất |
-| `memberships` | `project_id`, `user_id`, `role`, `added_at` | PK `(project_id, user_id)`; `role` ∈ `surveyor`, `supervisor` (`CHECK`); FK tới `projects`, `users`; index `(user_id)` |
+| `projects` | `id`, `name`, `archived`, `created_at`, `public` | ADR 0002; `public` (mặc định 0) từ migration 4, ADR 0003 §3 |
+| `users` | `id`, `username`, `name`, `password_hash`, `token_hash`, `is_admin`, `disabled`, `created_at` | `username` duy nhất (index `users_username`, vì SQLite không cho `ADD COLUMN … UNIQUE`), lưu chữ thường; tài khoản cũ `username = id`. `password_hash` dạng `scrypt$<N>$<salt>$<hash>`, tài khoản cũ để trống (đăng nhập được sau `user:reset-password`). `token_hash` là cột cũ, **không còn đọc**; vẫn `NOT NULL UNIQUE` nên tài khoản tự đăng ký ghi giá trị giữ chỗ `unused:<uuid>` (không phải hex, không bao giờ trùng SHA-256 của token nào) |
+| `sessions` | `token_hash`, `user_id`, `created_at`, `last_seen_at` | Mỗi lần đăng nhập một dòng, chỉ lưu SHA-256 của token (PK); FK `user_id`; index `(user_id)`. Không tự hết hạn; `last_seen_at` cập nhật mỗi request, chỉ để tham khảo |
+| `memberships` | `project_id`, `user_id`, `role`, `added_at`, `added_by` | PK `(project_id, user_id)`; `role` ∈ `surveyor`, `supervisor`, `owner` (`CHECK`); FK tới `projects`, `users`; index `(user_id)`. `added_by`: ai thêm hoặc đổi vai trò lần cuối, không có FK (như `created_by`); dòng có từ trước migration 4 để trống |
 | `forms` | `project_id`, `id`, `version`, `schema` (JSON), `created_at`, `created_by` | PK `(project_id, id, version)`; FK `project_id` |
 | `records` | `id`, `project_id`, `form_id`, `form_version`, `data` (JSON), `version`, `deleted`, `created_by`, `updated_at`, `updated_by`, `seq` | Bản hiện tại; `id` duy nhất toàn hệ thống (để PUT vào id của dự án khác trả `404`); FK `project_id`; index `(project_id, seq)`, `(project_id, created_by, seq)`. Không FK tới `forms` (phiếu offline có thể tham chiếu phiên bản form chưa pull) và không FK từ `created_by`/`updated_by` tới `users` (người bị vô hiệu hoá vẫn giữ phiếu) |
 | `record_history` | `record_id`, `project_id`, `version`, `data`, `deleted`, `updated_at`, `updated_by` | PK `(record_id, version)`; FK `record_id` → `records`; `project_id` nhắc lại từ `records` để mọi truy vấn dữ liệu dự án đều lọc cùng một cách; index `(project_id, record_id)` |
@@ -512,21 +515,15 @@ Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu
 | `attachments` *(migration 3, TV3-05)* | `id`, `project_id`, `record_id`, `mime_type`, `size`, `sha256`, `total_chunks`, `created_by`, `created_at`, `completed_at` | Dòng tạo lúc `complete`. Chunk tạm ở `uploads/<projectId>/<id>/<i>.part`, ghép xong thành `uploads/<projectId>/<id>/file`; `created_by` không có FK (như `records`) |
 | `meta` | `k`, `v` | Bộ đếm `seq` |
 
-Mọi truy vấn dữ liệu dự án đi qua lớp truy cập nhận `ctx = { userId, projectId, role }` bắt buộc (ADR 0002 §3). Bảng trên là **🕘 bản đang chạy** (migration 2, TV2-01; lớp `repo/` và middleware ở TV2-02).
+Mọi truy vấn dữ liệu dự án đi qua lớp truy cập nhận `ctx = { userId, projectId, role }` bắt buộc (ADR 0002 §3). Migration 2 (TV2-01), lớp `repo/` và middleware (TV2-02), migration 3 `attachments` (TV3-05), migration 4 tài khoản (TV2-14).
 
-**🆕 Migration 3 (ADR 0003 §5, ticket TV2-14, TV2-15; chưa có code)** Số 3 đã dùng cho bảng `attachments` (TV3-05); bước này lấy số kế tiếp khi merge.
+**Migration 4 (ADR 0003 §5, TV2-14)** thêm `users.username`, `users.password_hash`, bảng `sessions` (chép mỗi `users.token_hash` cũ thành một phiên để máy đang đăng nhập bằng token cũ không bị đẩy ra), `projects.public`, và **tạo lại `memberships`, chép nguyên dữ liệu** để `CHECK` có `owner` và thêm `added_by`. Đây là ngoại lệ thứ hai so với luật "chỉ thêm cột/bảng" (§12), đã được nhóm chấp nhận; migration đếm số dòng trước/sau và dừng nếu lệch.
 
-| Bảng | Thay đổi |
-|---|---|
-| `users` | Thêm `username TEXT UNIQUE` (tài khoản cũ: đặt bằng `id`), `password_hash TEXT` (`scrypt$<N>$<salt>$<hash>`; tài khoản cũ để trống, đăng nhập được sau `user:reset-password`). `token_hash` giữ lại nhưng không dùng nữa |
-| `sessions` *(mới)* | `token_hash` PK, `user_id` FK `users`, `created_at`, `last_seen_at`; index `(user_id)`. Migration chép `users.token_hash` cũ thành một phiên để máy đang đăng nhập bằng token cũ không bị đẩy ra |
-| `projects` | Thêm `public INTEGER NOT NULL DEFAULT 0` |
-| `memberships` | **Tạo lại bảng, chép nguyên dữ liệu** để `CHECK (role IN ('surveyor', 'supervisor', 'owner'))`; thêm `added_by`. Ngoại lệ thứ hai so với luật "chỉ thêm cột/bảng" (§12), đã được nhóm chấp nhận |
-| `project_requests` *(mới)* | `id` PK, `user_id` FK, `name`, `note`, `status` ∈ `pending`, `approved`, `rejected`, `cancelled`, `created_at`, `decided_at`, `decided_by`, `reason`, `project_id`; index `(status, created_at)`, `(user_id, status)` |
+**🆕 Migration 5 (TV2-15, chưa có code):** bảng `project_requests`: `id` PK, `user_id` FK, `name`, `note`, `status` ∈ `pending`, `approved`, `rejected`, `cancelled`, `created_at`, `decided_at`, `decided_by`, `reason`, `project_id`; index `(status, created_at)`, `(user_id, status)`.
 
-**🆕 Dữ liệu cũ khi nâng cấp** (ADR 0003 §5):
-- **Admin đang là thành viên tổ chức:** migration 3 dừng, rollback (`user_version` giữ 2), báo lỗi liệt kê tài khoản và tổ chức; server không khởi động. Người vận hành tự xử lý (bỏ cờ admin và tạo tài khoản admin riêng, hoặc rút admin khỏi tổ chức) rồi khởi động lại. Không tự xoá quyền hay membership của ai.
-- **Tổ chức chưa có Owner:** migration không tự chọn. Admin chỉ định qua `PUT /admin/projects/:projectId/owners/:username` hoặc màn hình A2 ("Chưa có Owner"). Trong lúc chờ, supervisor vẫn làm việc bình thường; `last_owner` chỉ chặn việc làm mất Owner cuối cùng.
+**Dữ liệu cũ khi nâng cấp** (ADR 0003 §5):
+- **Admin đang là thành viên tổ chức** (kể cả tổ chức đã lưu trữ): migration 4 dừng ngay từ đầu, rollback (`user_version` giữ 3), báo lỗi liệt kê từng `userId (tên) – projectId – vai trò`; server không khởi động. Người vận hành tự xử lý (bỏ cờ admin và tạo tài khoản admin riêng, hoặc rút admin khỏi tổ chức) rồi khởi động lại. Không tự xoá quyền hay membership của ai. Có code.
+- **Tổ chức chưa có Owner:** migration không tự chọn; supervisor vẫn làm việc bình thường (có test MG2). 🆕 Admin chỉ định qua `PUT /admin/projects/:projectId/owners/:username` hoặc màn hình A2 ("Chưa có Owner") (TV2-15); `last_owner` chỉ chặn việc làm mất Owner cuối cùng (TV1-08).
 - Ca kiểm thử MG1, MG2 (§10.1).
 
 **Nếu đổi sang Postgres:** phần lớn SQL dùng lại được, nhưng cursor `seq` **không** còn đúng nếu chỉ dùng sequence: hai transaction song song có thể commit ngược thứ tự `seq`, và client pull giữa hai lần commit sẽ bỏ sót phiếu. Cần tuần tự hoá việc ghi (`pg_advisory_xact_lock` trên một khoá chung, đủ cho quy mô đồ án) hoặc đổi sang cursor dựa trên transaction id. Không nằm trong phạm vi 8 tuần.
@@ -559,10 +556,10 @@ interface RecordHistoryEntry {
 - **"(đã rời dự án)":** client tự thêm khi `createdBy` không có trong danh sách thành viên mà supervisor tải được; surveyor không cần (chỉ thấy phiếu của chính mình).
 - `updatedAt` là ISO 8601 UTC; UI hiển thị theo múi giờ của máy, chỉ để đọc, không dùng để so thứ tự (bất biến 4).
 
-**🆕 Thay đổi theo ADR 0003 (chưa có code):**
+**Thay đổi theo ADR 0003, đã có code (TV2-14):**
 
 ```ts
-type Role = 'surveyor' | 'supervisor' | 'owner';            // 🕘 hiện: 'surveyor' | 'supervisor'
+type Role = 'surveyor' | 'supervisor' | 'owner';            // thứ hạng tăng dần
 
 interface MeResponse {
   user: { id: string; username: string; name: string; isAdmin: boolean };  // thêm username
@@ -572,7 +569,13 @@ interface MeResponse {
 interface RegisterRequest { username: string; name: string; password: string }
 interface LoginRequest { username: string; password: string }
 interface AuthResponse { token: string; user: MeResponse['user'] }
+```
 
+Luật thân request nằm ở `shared/src/accountValidation.ts` để client báo lỗi giống server: `parseRegisterRequest` chuyển `username` về chữ thường rồi kiểm `^[a-z0-9._]{3,32}$`, cắt khoảng trắng hai đầu `name` (1–100 ký tự), `password` 8–128 ký tự, không cắt; `parseLoginRequest` chỉ kiểm kiểu và chuyển `username` về chữ thường.
+
+**🆕 Thay đổi theo ADR 0003, chưa có code (TV2-15, TV1-08):**
+
+```ts
 interface DirectoryEntry { id: string; name: string }        // GET /api/directory
 
 interface ProjectRequest {                                    // yêu cầu mở tổ chức
@@ -601,10 +604,10 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | Method | Đường dẫn | Mô tả | Vai trò | Trạng thái |
 |---|---|---|---|---|
 | GET | `/health` | Kiểm tra sống | – | Có |
-| POST | `/auth/register` | Tạo tài khoản, đăng nhập luôn (ADR 0003 §1) | không cần token | 🆕 TODO TV2-14 |
-| POST | `/auth/login` | Đăng nhập, cấp phiên cho máy này | không cần token | 🆕 TODO TV2-14 |
-| POST | `/auth/logout` | Huỷ phiên hiện tại | mọi | 🆕 TODO TV2-14 |
-| GET | `/me` | Người dùng hiện tại và danh sách dự án kèm vai trò | mọi | Có; 🆕 thêm `username`, vai trò `owner` (TV2-14) |
+| POST | `/auth/register` | Tạo tài khoản, đăng nhập luôn (ADR 0003 §1) | không cần token | Có |
+| POST | `/auth/login` | Đăng nhập, cấp phiên cho máy này | không cần token | Có |
+| POST | `/auth/logout` | Huỷ phiên hiện tại | mọi | Có |
+| GET | `/me` | Người dùng hiện tại và danh sách dự án kèm vai trò (`owner`, `supervisor`, `surveyor`) | mọi | Có |
 | GET | `/directory` | Tên các tổ chức công khai mình chưa thuộc | mọi | 🆕 TODO TV2-15 |
 | GET/POST | `/project-requests` | Yêu cầu mở tổ chức của mình / gửi yêu cầu mới | mọi | 🆕 TODO TV2-15 |
 | DELETE | `/project-requests/:id` | Huỷ yêu cầu đang chờ của mình | mọi | 🆕 TODO TV2-15 |
@@ -666,7 +669,7 @@ Content-Type: application/json
 
 ```json
 {
-  "user": { "id": "u_7f3a...", "name": "Lan", "isAdmin": false },
+  "user": { "id": "u_7f3a...", "username": "lan", "name": "Lan", "isAdmin": false },
   "projects": [
     { "id": "demo-yte", "name": "Y tế xã Tân Lập", "role": "supervisor" },
     { "id": "demo-nongnghiep", "name": "HTX Nông nghiệp", "role": "surveyor" }
@@ -676,15 +679,15 @@ Content-Type: application/json
 
 - Chỉ chứa dự án người dùng **đang** là thành viên và chưa lưu trữ. Dự án bị rút hoặc bị lưu trữ đơn giản là biến khỏi danh sách; client so với bản đã lưu để biết (ADR 0002 §6) và tự gắn trạng thái `removed` ở `field-survey-account`.
 - `401 unauthorized` khi thiếu token, token sai hoặc tài khoản `disabled`.
-- Kiểu: `MeResponse { user: { id; name; isAdmin }; projects: ProjectSummary[] }`, `ProjectSummary { id; name; role: Role }`. 🆕 `user` thêm `username`; `role` có thêm `owner` (§6.2).
+- Kiểu: `MeResponse { user: { id; username; name; isAdmin }; projects: ProjectSummary[] }`, `ProjectSummary { id; name; role: Role }` (§6.2). Tài khoản do CLI cũ tạo mà chưa có `username` thì trả `id` (như migration 4 làm với tài khoản cũ).
 
-**🆕 Tài khoản, yêu cầu mở tổ chức, thành viên (ADR 0003 §6; chưa có code)**
+**Tài khoản, yêu cầu mở tổ chức, thành viên (ADR 0003 §6).** Ba dòng `/auth/*` có code (TV2-14); các dòng còn lại 🆕 chưa có code (TV2-15, TV1-08).
 
 | Method, đường dẫn | Thân request | Kết quả |
 |---|---|---|
-| `POST /auth/register` | `{ username, name, password }` | `201 AuthResponse`; `409 username_taken`; `400 invalid_body`; `429 too_many_requests` (quá 5 tài khoản/giờ/IP) |
-| `POST /auth/login` | `{ username, password }` | `200 AuthResponse`; sai tên hoặc mật khẩu đều `401 invalid_credentials`; `429 too_many_requests` (sai quá 10 lần/15 phút theo tên hoặc IP) |
-| `POST /auth/logout` | – | `204`, xoá phiên của token đang gửi |
+| `POST /auth/register` | `{ username, name, password }` | `201 AuthResponse`; `409 username_taken`; `400 invalid_body`; `429 too_many_requests` (đã có 5 tài khoản tạo thành công trong 60 phút gần nhất từ IP này; đăng ký hỏng không tính) |
+| `POST /auth/login` | `{ username, password }` | `200 AuthResponse`; sai tên, sai mật khẩu, tài khoản chưa có mật khẩu hay bị khoá đều `401 invalid_credentials`; `429 too_many_requests` khi đã sai 10 lần trong 15 phút gần nhất theo tên hoặc theo IP (cửa sổ trượt; đăng nhập đúng không xoá bộ đếm; đang bị chặn thì mật khẩu đúng cũng `429`) |
+| `POST /auth/logout` | – | `204`, xoá phiên của token đang gửi; phiên khác của cùng người giữ nguyên |
 | `GET /directory` | – | `200 DirectoryEntry[]`: tổ chức `public`, chưa lưu trữ, mình chưa là thành viên |
 | `POST /project-requests` | `{ name, note? }` | `201 ProjectRequest`; `409 project_limit_reached` (đang có 1 yêu cầu chờ, hoặc đã là Owner của 3 tổ chức chưa lưu trữ) |
 | `GET /project-requests` | – | `200 ProjectRequest[]` của chính mình |
@@ -697,7 +700,8 @@ Content-Type: application/json
 | `PATCH P/settings` | `{ name?, public? }` | `200 ProjectSettings`; không phải owner → `403 forbidden` |
 
 - Mọi route theo tổ chức vẫn qua `requireMember`; `/directory`, `/project-requests` không có `:projectId` và không chạm form, phiếu, ảnh. T5 không có ngoại lệ.
-- `requireAuth` tra token trong `sessions` (không còn `users.token_hash`), cập nhật `last_seen_at`; tài khoản `disabled` → `401`.
+- `requireAuth` tra token trong `sessions` (không còn `users.token_hash`), cập nhật `last_seen_at`; tài khoản `disabled` → `401`. Có code (TV2-14).
+- Tên đăng nhập không tồn tại vẫn chạy scrypt trên một hash giả để thời gian trả lời không lộ tên nào đã có. Bộ đếm giới hạn tần suất nằm trong bộ nhớ tiến trình (khởi động lại thì xoá). Mỗi lần đăng nhập hoặc đăng ký được giữ chỗ trong bộ đếm ngay sau bước kiểm, trước khi chạy scrypt, nên gửi nhiều request cùng lúc cũng không vượt giới hạn; đăng nhập đúng hoặc đăng ký không thành thì trả lại lượt đó.
 - Tài khoản admin đăng nhập được `/auth/login` để dùng trang quản trị; app khảo sát tự chặn (§4.9). Admin vẫn nhận `403 not_member` ở mọi `P/...` (T4, ADR 0003 Y8).
 
 **🕘 /api/admin/projects bản đang chạy** (chỉ `isAdmin`; người khác nhận `403 forbidden`). TV2-15 sẽ bỏ `POST` và `PUT …/members/:userId`, `PATCH` chỉ còn `archived` (bảng "Không theo dự án" ở trên).
@@ -735,15 +739,15 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | 400 | `invalid_body` | Thân request sai kiểu | op `failed` |
 | 400 | `missing_idempotency_key` | Thiếu header | lỗi lập trình, op `failed` |
 | 400 | `invalid_form` | Form không qua validate (`details`: danh sách lỗi) | hiện lỗi trong builder |
-| 401 | `unauthorized` | Thiếu hoặc sai token (🆕 phiên không còn) | dừng đồng bộ, yêu cầu đăng nhập lại |
-| 401 | `invalid_credentials` 🆕 | Sai tên đăng nhập hoặc mật khẩu (không phân biệt) | "Sai tên đăng nhập hoặc mật khẩu" |
+| 401 | `unauthorized` | Thiếu hoặc sai token, phiên đã bị huỷ hoặc tài khoản bị khoá | dừng đồng bộ, yêu cầu đăng nhập lại |
+| 401 | `invalid_credentials` | Sai tên đăng nhập hoặc mật khẩu (không phân biệt) | "Sai tên đăng nhập hoặc mật khẩu" |
 | 403 | `not_member` | Không (còn) là thành viên dự án, hoặc dự án đã lưu trữ | dừng dự án, xử lý như bị rút (ADR 0002 §6) |
 | 403 | `forbidden` | Là thành viên nhưng sai vai trò (vd. surveyor gọi export) | hiện lỗi; ẩn nút tương ứng |
 | 404 | `not_found` | Không có tài nguyên, ngoài phạm vi, hoặc thuộc dự án khác (không phân biệt để không lộ thông tin) | op `failed` |
 | 409 | `project_exists` 🕘 | Admin tạo dự án với `id` đã có | hiện lỗi ở màn hình Dự án. **Bỏ** khi TV2-15 xong (không còn `POST /admin/projects`) |
 | 409 | `last_supervisor` 🕘 | Rút hoặc hạ vai trò giám sát viên cuối cùng | Chưa có code; **thay bằng `last_owner`** |
 | 409 | `last_owner` 🆕 | Rút hoặc hạ Owner cuối cùng của tổ chức | hiện lỗi ở màn hình Thành viên / A2 |
-| 409 | `username_taken` 🆕 | Đăng ký trùng tên đăng nhập (không phân biệt hoa thường) | hiện lỗi ở form tạo tài khoản |
+| 409 | `username_taken` | Đăng ký trùng tên đăng nhập (không phân biệt hoa thường) | hiện lỗi ở form tạo tài khoản |
 | 409 | `already_member` 🆕 | Thêm người đã là thành viên | hiện lỗi |
 | 409 | `admin_account` 🆕 | Thêm tài khoản admin vào tổ chức | hiện lỗi |
 | 409 | `project_limit_reached` 🆕 | Đang có 1 yêu cầu mở tổ chức chờ duyệt, hoặc đã là Owner của 3 tổ chức | hiện lỗi ở màn hình Tổ chức |
@@ -754,7 +758,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | 415 | `unsupported_media_type` | Không phải JPEG/PNG/WebP | ảnh `failed` |
 | 422 | `idempotency_key_reused` | Xem trên | op `failed` (lỗi lập trình) |
 | 422 | `checksum_mismatch` | SHA-256 không khớp | upload lại từ đầu một lần, sau đó `failed` |
-| 429 | `too_many_requests` 🆕 | Quá giới hạn đăng nhập sai hoặc đăng ký (ADR 0003 §1) | "Thử lại sau ít phút" |
+| 429 | `too_many_requests` | Quá giới hạn đăng nhập sai hoặc đăng ký (ADR 0003 §1) | "Thử lại sau ít phút" |
 | 501 | `not_implemented` | Route chưa làm | – |
 | 500 / 400 | `injected_fault` | Lỗi do route tiêm lỗi tạo ra (§10.1), chỉ khi `ENABLE_TEST_ROUTES=1` | như mã HTTP tương ứng |
 | 5xx | `internal_error` | Lỗi server | retry theo backoff |
@@ -782,8 +786,8 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 
 Phạm vi đồ án giữ đơn giản:
 - **Xác thực:**
-  - 🆕 **Bản mới (ADR 0003 §1, chưa có code):** người dùng tự tạo tài khoản; mật khẩu băm bằng `scrypt` (`node:crypto`), so bằng `timingSafeEqual`. Mỗi lần đăng nhập server cấp một token phiên (32 byte ngẫu nhiên) cho máy đó, chỉ lưu SHA-256 trong `sessions`; phiên không tự hết hạn để máy offline lâu vẫn gửi được phiếu. Sai tên/mật khẩu cùng một lỗi; giới hạn đăng nhập sai và đăng ký theo §7.1. Mất máy: admin chạy `user:revoke-sessions`; quên mật khẩu: `user:reset-password`.
-  - 🕘 **Bản cũ (đang chạy):** mỗi người dùng một token dài ngẫu nhiên, tạo bằng CLI ở server (§12), server chỉ lưu SHA-256 trong bảng `users`. Client nhập token một lần ở màn hình đầu tiên. Mất máy: quản trị đổi token bằng `user:rotate-token`.
+  - **Bản mới (ADR 0003 §1; phía server có code ở TV2-14, client đăng nhập bằng tên + mật khẩu chờ TV2-16, TV1-14):** người dùng tự tạo tài khoản; mật khẩu băm bằng `scrypt` (`node:crypto`), so bằng `timingSafeEqual`. Mỗi lần đăng nhập server cấp một token phiên (32 byte ngẫu nhiên) cho máy đó, chỉ lưu SHA-256 trong `sessions`; phiên không tự hết hạn để máy offline lâu vẫn gửi được phiếu. Sai tên/mật khẩu cùng một lỗi; giới hạn đăng nhập sai và đăng ký theo §7. Giới hạn theo IP dùng `req.ip` với `trust proxy = loopback`: sau Caddy cùng máy là IP trong `X-Forwarded-For`, request đến thẳng cổng API từ máy khác thì header này bị bỏ qua. Mất máy: admin chạy `user:revoke-sessions`; quên mật khẩu: `user:reset-password`.
+  - 🕘 **Bản cũ (client còn chạy tới TV2-16):** mỗi người dùng một token dài ngẫu nhiên, tạo bằng CLI ở server (§12); từ migration 4 token này được lưu thành một phiên trong `sessions`. Client nhập token một lần ở màn hình đầu tiên. Mất máy: quản trị thu hồi phiên bằng `user:revoke-sessions` (TV3-12 bỏ `user:rotate-token`).
   - Chung: token lưu trong `field-survey-account`, gửi qua `Authorization: Bearer`; `updatedBy` và `created_by` lấy từ token, không để client tự khai.
 - **Phân quyền:**
   - 🆕 **Bản mới (ADR 0003 §2):** admin (người kiểm soát app) **không có quyền xem** dữ liệu tổ chức và không là thành viên tổ chức nào; dùng trang quản trị riêng. Trong mỗi tổ chức: `surveyor` chỉ đọc/ghi phiếu mình tạo (§5.5); `supervisor` đọc/ghi mọi phiếu, tạo form, xuất dữ liệu, thêm/rút điều tra viên; `owner` thêm quản lý giám sát viên/Owner, đổi tên, bật/tắt công khai. Dữ liệu thuộc về Owner.
@@ -853,24 +857,24 @@ Phạm vi đồ án giữ đơn giản:
 | A2 | Surveyor pull | Chỉ nhận phiếu mình tạo | Có (`server/test/records.test.ts`) |
 | A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | Một phần: `POST P/forms` có (`server/test/forms.test.ts`); export TODO |
 | A4 | Rút hoặc hạ giám sát viên cuối cùng | `409 last_supervisor` | 🕘 Thay bằng A7 (`last_owner`) |
-| A5 🆕 | Supervisor và Owner `POST P/forms`; surveyor | `201`; `403 forbidden` | Một phần: supervisor `201`, surveyor `403` có (`server/test/forms.test.ts`); Owner chờ TV2-14 (chưa có vai trò `owner`) |
+| A5 | Supervisor và Owner `POST P/forms`; surveyor | `201`; `403 forbidden` | Có (`server/test/forms.test.ts`); thứ hạng owner > supervisor ở mức middleware trong `server/test/auth.test.ts` |
 | A6 🆕 | Một người là `owner` ở A, `surveyor` ở B: sửa form, `PATCH P/settings` ở A và B | `2xx` ở A; `403 forbidden` ở B | TODO TV1-08 |
 | A7 🆕 | Rút/hạ Owner cuối cùng | `409 last_owner` | TODO TV1-08 |
 | A8 🆕 | Admin chỉ định Owner bằng tên đăng nhập; người thường gọi | `200`; `403 forbidden` | TODO TV2-15 |
 
-**🆕 Tài khoản, mở tổ chức, danh sách công khai, thành viên** (ADR 0003, Kiểm chứng; chưa có code)
+**Tài khoản, mở tổ chức, danh sách công khai, thành viên** (ADR 0003, Kiểm chứng). U1–U6, MG1, MG2 có test; các ca khác 🆕 chưa có code
 
 | # | Mức | Ca | Kỳ vọng | Ticket |
 |---|---|---|---|---|
-| U1 | Integration | Đăng ký rồi gọi `/me` bằng token nhận được | `201`, `/me` đúng người, `projects: []` | TV2-14 |
-| U2 | Integration | Đăng ký trùng tên (khác hoa thường) | `409 username_taken` | TV2-14 |
-| U3 | Integration | Sai mật khẩu; sai tên đăng nhập | Cùng `401 invalid_credentials` | TV2-14 |
-| U4 | Integration | Sai mật khẩu 11 lần trong 15 phút | Lần 11 nhận `429` kể cả mật khẩu đúng | TV2-14 |
-| U5 | Integration | Hai phiên (hai máy) cùng gửi phiếu; đăng xuất một máy | Cả hai gửi được; máy kia không ảnh hưởng | TV2-14 |
-| U6 | Integration | DB chỉ chứa hash | Không có mật khẩu/token gốc trong `users`, `sessions` | TV2-14 |
+| U1 | Integration | Đăng ký rồi gọi `/me` bằng token nhận được | `201`, `/me` đúng người, `projects: []` | Có (`server/test/accounts.test.ts`) |
+| U2 | Integration | Đăng ký trùng tên (khác hoa thường) | `409 username_taken` | Có (`server/test/accounts.test.ts`) |
+| U3 | Integration | Sai mật khẩu; sai tên đăng nhập | Cùng `401 invalid_credentials` | Có (`server/test/accounts.test.ts`) |
+| U4 | Integration | Sai mật khẩu 11 lần trong 15 phút | Lần 11 nhận `429` kể cả mật khẩu đúng | Có (`server/test/accounts.test.ts`) |
+| U5 | Integration | Hai phiên (hai máy) cùng gửi phiếu; đăng xuất một máy | Cả hai gửi được; máy kia không ảnh hưởng | Có (`server/test/accounts.test.ts`) |
+| U6 | Integration | DB chỉ chứa hash | Không có mật khẩu/token gốc trong `users`, `sessions` | Có (`server/test/accounts.test.ts`) |
 | U7 | E2E | Tạo tài khoản trên app, tải lại trang; offline lần đầu | Vẫn đăng nhập; báo cần mạng | TV1-14 |
-| MG1 | Integration | DB `user_version = 2` có admin là thành viên tổ chức → `openDb` | Lỗi liệt kê tài khoản và tổ chức; `user_version` vẫn 2, dữ liệu không đổi | TV2-14 |
-| MG2 | Integration | DB `user_version = 2` không có admin là thành viên → `openDb` | Lên 3; membership giữ nguyên; token cũ dùng được; supervisor vẫn dùng `P/...` khi tổ chức chưa có Owner | TV2-14 |
+| MG1 | Integration | DB `user_version = 3` có admin là thành viên tổ chức → `openDb` | Lỗi liệt kê tài khoản và tổ chức; `user_version` vẫn 3, dữ liệu không đổi | Có (`server/test/db.test.ts`) |
+| MG2 | Integration | DB `user_version = 3` không có admin là thành viên → `openDb` | Lên 4; membership giữ nguyên; token cũ dùng được; supervisor vẫn dùng `P/...` khi tổ chức chưa có Owner | Có (`server/test/db.test.ts`) |
 | Q1 | Integration | Gửi yêu cầu mở tổ chức | `201 pending`, chưa có tổ chức, `/me` rỗng | TV2-15 |
 | Q2 | Integration | Admin duyệt | Tổ chức `p-xxxxxxxx`, người gửi là `owner`, admin không có membership | TV2-15 |
 | Q3 | Integration | Từ chối kèm lý do; thiếu lý do | Người gửi đọc được lý do; `400 invalid_body` | TV2-15 |
@@ -898,7 +902,7 @@ Phạm vi đồ án giữ đơn giản:
 | DELETE | `/api/__test/faults` | Tắt mọi lỗi đang chờ |
 | GET | `/api/__test/stats` | `{ "requests": [{ "method", "path", "idempotencyKey"?, "status" }] }`: nhật ký request kể từ lần reset |
 | DELETE | `/api/__test/stats` | Xoá nhật ký |
-| PUT | `/api/__test/memberships/:projectId/:userId` | `{ "role": "surveyor" \| "supervisor" }`: thêm hoặc đổi vai trò, không cần token (E2E T7–T9). Có code. 🆕 Nhận thêm `"owner"` (TV2-14) |
+| PUT | `/api/__test/memberships/:projectId/:userId` | `{ "role": "surveyor" \| "supervisor" \| "owner" }`: thêm hoặc đổi vai trò, không cần token (E2E T7–T9). Có code, nhận cả `"owner"` |
 | DELETE | `/api/__test/memberships/:projectId/:userId` | Rút khỏi dự án. Có code |
 
 | `mode` | Hành vi | Dùng cho |
@@ -964,32 +968,21 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 | `CORS_ORIGIN` | (không đặt = tắt CORS) | Origin được phép khi client và API khác origin (dev) |
 | `ENABLE_TEST_ROUTES` | không đặt | `1` để bật `/api/__test/*` |
 
-**Lệnh quản trị (CLI, chạy trên server)**
+**Lệnh quản trị (CLI, chạy trên server)** (ADR 0003 §1, TV3-12)
+
+Người dùng thường tự tạo tài khoản trên app; CLI để tạo admin và hỗ trợ. `--user` nhận tên đăng nhập (tài khoản tạo trước migration 4 có tên đăng nhập là `userId`).
 
 | Lệnh | Tác dụng |
 |---|---|
-🕘 **Bản đang chạy**
-
-| Lệnh | Tác dụng |
-|---|---|
-| `npm run user:add -w server -- --name "Lan" [--admin]` | Tạo người dùng, in `userId` và token **một lần** |
-| `npm run user:rotate-token -w server -- --user <userId>` | Cấp token mới, token cũ hết hiệu lực |
-| `npm run user:disable -w server -- --user <userId>` | Khoá tài khoản |
-| `npm run seed:demo -w server` | Tạo hai dự án mẫu `demo-yte`, `demo-nongnghiep` và người dùng demo. Từ chối khi `NODE_ENV=production` (token demo công khai) |
-
-🆕 **Bản mới (ADR 0003, TV3-12; chưa có code).** Người dùng thường tự tạo tài khoản trên app; CLI chủ yếu để tạo admin và hỗ trợ:
-
-| Lệnh | Tác dụng |
-|---|---|
-| `npm run user:add -w server -- --username dang --name "Đăng" [--admin]` | Tạo tài khoản, in mật khẩu tạm **một lần**. Dùng để tạo admin đầu tiên |
+| `npm run user:add -w server -- --username dang --name "Đăng" [--admin]` | Tạo tài khoản, in mật khẩu tạm (12 ký tự chữ và số, không có `0 O 1 l I`) và `userId` **một lần**. Dùng để tạo admin đầu tiên |
 | `npm run user:reset-password -w server -- --user <username>` | In mật khẩu tạm mới một lần; không thu hồi phiên đang có |
 | `npm run user:revoke-sessions -w server -- --user <username>` | Thu hồi mọi phiên (mất máy) |
-| `npm run user:disable -w server -- --user <username>` | Khoá tài khoản (mọi phiên nhận `401`) |
-| `npm run seed:demo -w server` | Như trên; tài khoản demo có mật khẩu cố định, mỗi dự án demo có một Owner |
-| ~~`user:rotate-token`~~ | Bỏ (không còn token theo người dùng) |
+| `npm run user:disable -w server -- --user <username>` | Khoá tài khoản và thu hồi mọi phiên (mọi request nhận `401`) |
+| `npm run seed:demo -w server` | Tạo hai dự án mẫu `demo-yte`, `demo-nongnghiep`; tài khoản `lan`, `minh`, `admin`, `chu` (Owner cả hai dự án) mật khẩu `demo-password`. Tới khi TV1-14/TV2-16 xong, mỗi tài khoản demo còn một phiên token cố định `demo-token-<tên>` vì màn hình đăng nhập vẫn nhận mã. Từ chối khi `NODE_ENV=production` |
+| ~~`user:rotate-token`~~ | Đã bỏ (không còn token theo người dùng) |
 
 - **Sao lưu:** mỗi ngày chạy `VACUUM INTO 'backup/survey-<ngày>.db'` và sao chép thư mục `uploads/`; giữ 7 bản.
-- **Migration CSDL server:** đánh số trong `db.ts` (`PRAGMA user_version`), chỉ thêm cột/bảng, không sửa câu lệnh cũ. Ngoại lệ đã được nhóm chấp nhận: migration 2 (tạo lại bảng dữ liệu, ADR 0002) và 🆕 migration 3 (tạo lại `memberships` có chép dữ liệu, ADR 0003 §5).
+- **Migration CSDL server:** đánh số trong `db.ts` (`PRAGMA user_version`), chỉ thêm cột/bảng, không sửa câu lệnh cũ. Ngoại lệ đã được nhóm chấp nhận: migration 2 (tạo lại bảng dữ liệu, ADR 0002) và migration 4 (tạo lại `memberships` có chép dữ liệu, ADR 0003 §5).
 - 🆕 **Trang quản trị** `/admin/` được build cùng `client/dist`; Caddy phục vụ như file tĩnh; TV1-16 phải kiểm tra `/admin/` không bị `try_files` đưa về `/index.html` của PWA (sửa Caddyfile nếu cần) và cập nhật [deploy.md](deploy.md).
 
 ## 13. Rủi ro và hạn chế
@@ -1007,7 +1000,7 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 | Hai điều tra viên cùng đến một hộ | Hai phiếu trùng nghiệp vụ | Chấp nhận; giám sát viên lọc khi xuất (hệ quả của §5.5) |
 | Một truy vấn quên lọc `project_id` | Lộ dữ liệu giữa các tổ chức | Lớp truy cập bắt buộc `ctx`; `projectId` chỉ từ đường dẫn; test T5 duyệt mọi route; review hai người cho code server |
 | Bị rút khỏi dự án khi còn phiếu chưa gửi | Phiếu không lên được | Không tự xoá; banner và nút Xuất JSON (ADR 0002 §6) |
-| Lộ token (mất máy) | Người khác đọc dữ liệu các dự án của người đó | `user:rotate-token` / `user:disable` (🆕 `user:revoke-sessions`); token chỉ lưu hash ở server |
+| Lộ token (mất máy) | Người khác đọc dữ liệu các dự án của người đó | `user:revoke-sessions` / `user:disable`; token chỉ lưu hash ở server |
 | 🆕 Đăng ký hàng loạt, đoán mật khẩu | Tài khoản rác, chiếm tài khoản | Giới hạn tần suất (§7.1 `429`), `scrypt`; mở tổ chức phải qua admin duyệt |
 | 🆕 Người vận hành tò mò dữ liệu khách hàng | Lộ dữ liệu khảo sát | Admin không là thành viên tổ chức nào (`409 admin_account`), mọi `P/...` trả `403` (T4, Q7); trang quản trị không có đường tới dữ liệu |
 | Phạm vi quá rộng với 3 người (thêm multi-tenancy) | Trễ tiến độ | Ưu tiên: sync và conflict > cách ly dự án > ảnh > export > builder; đã cắt kéo thả, so sánh ảnh, ZIP |

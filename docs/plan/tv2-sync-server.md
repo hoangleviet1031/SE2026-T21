@@ -243,7 +243,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV2-14 · Migration 3, tài khoản + phiên, vai trò `owner` (server) · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-14-accounts` · chờ TV3-12 trên cùng nhánh rồi mới mở PR · thành **migration 4** vì số 3 đã là `attachments` (TV3-05). MG1/MG2 dựng DB ở `user_version = 3` ("giữ 2" trong ticket đọc là "giữ phiên bản trước"). Cầu nối tới TV3-12: `seed:demo`, `user:add`, `user:rotate-token` ghi token thành phiên
 - **Tuần:** 3 · **Phụ thuộc:** không · **Làm cùng:** TV3-12 (**một PR**, vì đổi đăng nhập làm vỡ mọi test đang dùng token)
 - **Spec:** ADR 0003 §1, §2, §5; design §6.1 (migration 3), §6.2, §7 (`/auth/*`), §7.1, §9
 - **File:** `docs/deploy.md` (bước nâng cấp), `server/src/db.ts`, `server/src/auth.ts`, `server/src/password.ts` (mới, `scrypt`), `server/src/rateLimit.ts` (mới), `server/src/routes/auth.ts` (mới), `server/src/routes/me.ts`, `server/src/repo/memberships.ts`, `server/src/repo/records.ts` (`scopeOf` cho `owner`), `server/src/routes/testMemberships.ts` (nhận `owner`), `shared/src/types.ts`, `server/test/db.test.ts`, `server/test/auth.test.ts`, `server/test/accounts.test.ts` (mới)

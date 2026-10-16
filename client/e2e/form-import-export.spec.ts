@@ -75,7 +75,7 @@ function importFile(page: Page, text: string) {
 
 test('xuất form ở dự án này, nhập vào dự án khác, lưu thành form mới ở đó', async ({ page, request }) => {
   await createForm(request, source());
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   await formRow(page, 'Hộ dân').getByRole('link', { name: 'Sửa form' }).click();
   // Form đã lưu chỉ có Xuất, không có Nhập (nhập luôn tạo form mới)
   await expect(page.getByRole('button', { name: 'Nhập form' })).toHaveCount(0);
@@ -111,7 +111,7 @@ test('nhập form trùng mã form đã có trong dự án: báo lỗi, không g�
   request,
 }) => {
   await createForm(request, source());
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   const posts = countFormPosts(page);
   await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
   await importFile(page, JSON.stringify(form));
@@ -134,7 +134,7 @@ test('nhập form trùng mã form đã có trong dự án: báo lỗi, không g�
 });
 
 test('file nhập hỏng hoặc sai luật: báo lỗi, builder giữ nguyên, không gửi', async ({ page }) => {
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   const posts = countFormPosts(page);
   await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
   await page.getByLabel('Tiêu đề').fill('Đang làm dở');

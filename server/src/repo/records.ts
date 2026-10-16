@@ -53,7 +53,8 @@ function toHistory(h: HistoryRow): RecordHistoryEntry {
 }
 
 export function scopeOf(ctx: Ctx): PullScope {
-  return ctx.role === 'supervisor' ? 'all' : 'own';
+  // Owner có mọi quyền của supervisor (ADR 0003 §2).
+  return ctx.role === 'surveyor' ? 'own' : 'all';
 }
 
 /**

@@ -4,7 +4,7 @@ import { tx, type Db } from '../db';
 // Đổi thành viên trực tiếp cho E2E T7–T9 (ADR 0002), chỉ đăng ký khi ENABLE_TEST_ROUTES=1.
 // Không xác thực vì chỉ chạy trên server kiểm thử. Route thật cho giám sát viên là
 // P/members (TV1-08). Xem docs/design.md §10.1 (API kiểm thử).
-//   PUT    /api/__test/memberships/:projectId/:userId  { "role": "surveyor" | "supervisor" }
+//   PUT    /api/__test/memberships/:projectId/:userId  { "role": "surveyor" | "supervisor" | "owner" }
 //   DELETE /api/__test/memberships/:projectId/:userId
 export function testMembershipsRouter(db: Db): Router {
   const r = Router();
@@ -12,7 +12,9 @@ export function testMembershipsRouter(db: Db): Router {
   r.put('/memberships/:projectId/:userId', (req, res) => {
     const { projectId, userId } = req.params;
     const role: unknown = (req.body as { role?: unknown } | undefined)?.role;
-    if (role !== 'surveyor' && role !== 'supervisor') return void res.status(400).json({ error: 'invalid_body' });
+    if (role !== 'surveyor' && role !== 'supervisor' && role !== 'owner') {
+      return void res.status(400).json({ error: 'invalid_body' });
+    }
     const ok = tx(db, () => {
       const projectExists = db.prepare(`SELECT 1 FROM projects WHERE id = ?`).get(projectId) !== undefined;
       const userExists = db.prepare(`SELECT 1 FROM users WHERE id = ?`).get(userId) !== undefined;

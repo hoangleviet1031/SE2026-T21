@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { TOKENS, login, readStore, setMembership } from './helpers';
+import { login, readStore, setMembership } from './helpers';
 
 // Bộ chọn dự án (TV1-06; design §4.7, §11.2, ui.md màn hình 2). Dự án demo (server/src/seedDemo.ts):
 // lan là giám sát viên ở "Y tế xã (demo)", điều tra viên ở "Nông nghiệp (demo)"; minh chỉ ở Y tế xã.
@@ -33,7 +33,7 @@ async function waitAllProjectsLoaded(page: Page) {
 test('nhiều dự án: mở bộ chọn thấy mọi dự án kèm vai trò, chưa chọn lần nào thì vào dự án đầu tiên', async ({
   page,
 }) => {
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   // /me sắp theo id: demo-nongnghiep đứng trước demo-yte
   await expect(switcher(page).getByRole('button', { expanded: false })).toHaveText(`${NONGNGHIEP} ▾`);
 
@@ -49,7 +49,7 @@ test('đổi dự án khi offline trong 1 s, mỗi dự án chỉ hiện phiếu
   page,
   context,
 }) => {
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   await waitAllProjectsLoaded(page);
   await context.setOffline(true);
 
@@ -76,7 +76,7 @@ test('đổi dự án khi offline trong 1 s, mỗi dự án chỉ hiện phiếu
 });
 
 test('chỉ một dự án: chỉ hiện tên, không có danh sách', async ({ page }) => {
-  await login(page, TOKENS.minh);
+  await login(page, 'minh');
   await expect(switcher(page)).toHaveText(YTE);
   await expect(switcher(page).getByRole('button')).toHaveCount(0);
 });
@@ -88,7 +88,7 @@ test.describe('chưa thuộc dự án nào', () => {
 
   test('hiện mã người dùng để gửi giám sát viên, không có bộ chọn', async ({ page, request }) => {
     await setMembership(request, 'demo-yte', 'u_minh', null);
-    await login(page, TOKENS.minh);
+    await login(page, 'minh');
     await expect(page.getByTestId('no-project')).toHaveText(
       'Bạn chưa được thêm vào dự án nào. Gửi mã người dùng u_minh cho giám sát viên.',
     );

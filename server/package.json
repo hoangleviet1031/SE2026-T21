@@ -8,7 +8,8 @@
     "start": "tsx src/index.ts",
     "test": "vitest run",
     "user:add": "tsx src/cli/user.ts add",
-    "user:rotate-token": "tsx src/cli/user.ts rotate-token",
+    "user:reset-password": "tsx src/cli/user.ts reset-password",
+    "user:revoke-sessions": "tsx src/cli/user.ts revoke-sessions",
     "user:disable": "tsx src/cli/user.ts disable",
     "seed:demo": "tsx src/cli/seedDemo.ts",
     "typecheck": "tsc -p ."

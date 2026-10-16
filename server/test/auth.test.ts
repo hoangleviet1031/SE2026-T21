@@ -3,11 +3,14 @@ import express from 'express';
 import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
 import { createAuth, getCtx, hashToken } from '../src/auth';
-import { openDb } from '../src/db';
+import { openDb, type Db } from '../src/db';
 
 // Dữ liệu: hai dự án; lan = supervisor ở yte, minh = surveyor ở yte, vy = chỉ ở nongnghiep,
-// root = admin không là thành viên dự án nào, off = bị vô hiệu hoá dù còn là thành viên.
+// root = admin không là thành viên dự án nào, off = bị vô hiệu hoá dù còn là thành viên,
+// chu = owner ở yte, cu = chỉ có token cũ trong users.token_hash, không có phiên.
 const TOKENS = {
+  chu: 'token-chu',
+  cu: 'token-cu',
   lan: 'token-lan',
   minh: 'token-minh',
   vy: 'token-vy',
@@ -17,9 +20,10 @@ const TOKENS = {
 
 let server: Server;
 let base: string;
+let db: Db;
 
 beforeAll(async () => {
-  const db = openDb(':memory:');
+  db = openDb(':memory:');
   const now = '2026-10-08T00:00:00Z';
   const addProject = db.prepare(`INSERT INTO projects (id, name, archived, created_at) VALUES (?, ?, ?, ?)`);
   addProject.run('yte', 'Y tế', 0, now);
@@ -34,6 +38,11 @@ beforeAll(async () => {
   addUser.run('vy', 'Vy', hashToken(TOKENS.vy), 0, 0, now);
   addUser.run('root', 'Quản trị', hashToken(TOKENS.root), 1, 0, now);
   addUser.run('off', 'Đã khoá', hashToken(TOKENS.off), 0, 1, now);
+  addUser.run('chu', 'Chủ', hashToken(TOKENS.chu), 0, 0, now);
+  addUser.run('cu', 'Token cũ', hashToken(TOKENS.cu), 0, 0, now);
+  // Từ migration 4 requireAuth chỉ tra bảng sessions (ADR 0003 §1); mọi người trừ `cu` có một phiên.
+  const addSession = db.prepare(`INSERT INTO sessions (token_hash, user_id, created_at, last_seen_at) VALUES (?, ?, ?, ?)`);
+  for (const id of ['lan', 'minh', 'vy', 'root', 'off', 'chu'] as const) addSession.run(hashToken(TOKENS[id]), id, now, now);
 
   const addMember = db.prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES (?, ?, ?, ?)`);
   addMember.run('yte', 'lan', 'supervisor', now);
@@ -41,6 +50,8 @@ beforeAll(async () => {
   addMember.run('nongnghiep', 'vy', 'surveyor', now);
   addMember.run('yte', 'off', 'supervisor', now);
   addMember.run('cu', 'lan', 'supervisor', now);
+  addMember.run('yte', 'chu', 'owner', now);
+  addMember.run('yte', 'cu', 'supervisor', now);
 
   const { requireAuth, requireMember } = createAuth(db);
   const app = express();
@@ -111,7 +122,31 @@ describe('requireAuth', () => {
   it('token đúng thì gắn req.user, không lộ token_hash', async () => {
     const res = await get('/api/whoami', TOKENS.root);
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ id: 'root', name: 'Quản trị', isAdmin: true });
+    // Tài khoản chèn không có username (như CLI cũ) thì username = id
+    expect(await res.json()).toEqual({ id: 'root', username: 'root', name: 'Quản trị', isAdmin: true });
+  });
+
+  it('chỉ có users.token_hash mà không có phiên thì 401 (không còn đọc token_hash)', async () => {
+    const res = await get('/api/projects/yte/surveyor-route', TOKENS.cu);
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: 'unauthorized' });
+  });
+
+  it('phiên bị xoá thì token đó 401', async () => {
+    db.prepare(`INSERT INTO users (id, name, token_hash, created_at) VALUES ('tam', 'Tạm', 'h-tam', 'now')`).run();
+    db.prepare(`INSERT INTO sessions (token_hash, user_id, created_at, last_seen_at) VALUES (?, 'tam', 'now', 'now')`).run(
+      hashToken('token-tam'),
+    );
+    expect((await get('/api/whoami', 'token-tam')).status).toBe(200);
+    db.prepare(`DELETE FROM sessions WHERE user_id = 'tam'`).run();
+    expect((await get('/api/whoami', 'token-tam')).status).toBe(401);
+  });
+
+  it('mỗi request cập nhật last_seen_at của phiên', async () => {
+    const before = db.prepare(`SELECT last_seen_at FROM sessions WHERE user_id = 'vy'`).get() as { last_seen_at: string };
+    expect((await get('/api/whoami', TOKENS.vy)).status).toBe(200);
+    const after = db.prepare(`SELECT last_seen_at FROM sessions WHERE user_id = 'vy'`).get() as { last_seen_at: string };
+    expect(after.last_seen_at > before.last_seen_at).toBe(true);
   });
 });
 
@@ -161,6 +196,18 @@ describe('requireMember', () => {
   it('supervisor vào được route yêu cầu supervisor', async () => {
     const res = await get('/api/projects/yte/supervisor-route', TOKENS.lan);
     expect(res.status).toBe(200);
+  });
+
+  it('owner vào được route yêu cầu supervisor (thứ hạng surveyor < supervisor < owner)', async () => {
+    const res = await get('/api/projects/yte/supervisor-route', TOKENS.chu);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ userId: 'chu', projectId: 'yte', role: 'owner' });
+  });
+
+  it('owner ở yte không có quyền gì ở dự án khác', async () => {
+    const res = await get('/api/projects/nongnghiep/surveyor-route', TOKENS.chu);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'not_member' });
   });
 
   it('projectId chỉ lấy từ đường dẫn, không từ query hay body', async () => {

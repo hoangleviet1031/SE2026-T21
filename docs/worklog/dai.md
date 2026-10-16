@@ -13,6 +13,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-16 | TV3-12 | feat | CLI theo tên + mật khẩu (`user:add --username`, `reset-password`, `revoke-sessions`, `disable` thu hồi phiên, bỏ `rotate-token`); `seed:demo` mật khẩu demo + Owner `chu`; fixture và helper E2E đăng nhập qua `/api/auth/login` | nhánh `feat/tv2-14-accounts` | chờ review |
+| 2026-10-16 | — | chore | Merge `main` (PR #34, #35) vào `feat/tv2-14-accounts`, gộp xung đột design.md (TV2-14 → 0.5.15) và worklog Hoàng | d413516 | xong |
 | 2026-10-15 | TV3-03 | feat | Nén ảnh khi chọn/chụp: xoay theo EXIF, cạnh dài ≤ 1600, JPEG ≤ 600 KB, bỏ EXIF/GPS; thumbnail + nút bỏ ảnh; báo bộ nhớ đầy, ảnh không đọc được; E2E `photo.spec.ts` | nhánh `feat/tv3-03-compress-photo` | chờ review |
 | 2026-10-15 | TV3-05 | docs | PR #30 đã merge; ghi ✅ trong plan | PR #30 | xong |
 | 2026-10-15 | TV3-05 | feat | Upload ảnh theo chunk: migration 3 bảng `attachments`, 4 route `P/attachments/*`, kiểm SHA-256/magic bytes/giới hạn, dọn chunk 7 ngày; 23 ca test | nhánh `feat/tv3-05-attachments` | chờ review |

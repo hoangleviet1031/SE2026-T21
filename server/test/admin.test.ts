@@ -26,7 +26,7 @@ async function me(token: string): Promise<MeResponse> {
 describe('GET /api/me', () => {
   it('trả người dùng và các dự án kèm vai trò', async () => {
     expect(await me(t.tokens.lan)).toEqual({
-      user: { id: DEMO_USER_IDS.lan, name: 'lan', isAdmin: false },
+      user: { id: DEMO_USER_IDS.lan, username: 'lan', name: 'lan', isAdmin: false },
       projects: [
         { id: t.projects.nongnghiep, name: 'Nông nghiệp (demo)', role: 'surveyor' },
         { id: t.projects.yte, name: expect.any(String), role: 'supervisor' },
@@ -36,7 +36,7 @@ describe('GET /api/me', () => {
 
   it('admin không là thành viên dự án nào thì danh sách rỗng', async () => {
     expect(await me(t.tokens.admin)).toEqual({
-      user: { id: DEMO_USER_IDS.admin, name: 'admin', isAdmin: true },
+      user: { id: DEMO_USER_IDS.admin, username: 'admin', name: 'admin', isAdmin: true },
       projects: [],
     });
   });

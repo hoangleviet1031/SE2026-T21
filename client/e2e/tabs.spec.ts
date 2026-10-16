@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { databaseNames, login, readStore, TOKENS } from './helpers';
+import { databaseNames, login, readStore } from './helpers';
 
 // TV2-06, design §5.3 (Nhiều dự án, Nhiều tab), ADR 0001 (Nhiều tab, một thiết bị).
 
@@ -44,7 +44,7 @@ test('O6: hai tab cùng mở, mỗi op chỉ được gửi từ một tab', asy
 
 test('một vòng đồng bộ tải mọi dự án của người dùng vào đúng CSDL của từng dự án', async ({ page }) => {
   // lan: supervisor ở demo-yte, surveyor ở demo-nongnghiep (server/src/seedDemo.ts)
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
 
   await expect

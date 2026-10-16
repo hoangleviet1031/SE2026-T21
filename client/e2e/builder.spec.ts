@@ -47,7 +47,7 @@ test('tạo form đủ 7 loại trường, lưu, thấy ngay ở trang chủ và
   request,
 }) => {
   const title = `Khảo sát nước ${crypto.randomUUID().slice(0, 4)}`;
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
   await page.getByLabel('Tiêu đề').fill(title);
 
@@ -99,7 +99,7 @@ test('sửa form tạo version mới; phiếu cũ vẫn mở bằng version cũ;
   });
   expect(res.status()).toBe(201);
 
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   await formRow(page, 'Hộ dân').getByRole('button', { name: 'Tạo phiếu mới' }).click();
   await page.locator('input[name=ten]').fill('Phiếu bản 1');
   await page.getByRole('button', { name: 'Lưu' }).click();
@@ -130,7 +130,7 @@ test('lỗi kiểm ở máy không gửi request; offline thì báo cần kết 
   page,
   context,
 }) => {
-  await login(page, TOKENS.lan);
+  await login(page, 'lan');
   const posts: string[] = [];
   page.on('request', (req) => {
     if (req.method() === 'POST' && req.url().endsWith('/forms')) posts.push(req.url());
@@ -162,7 +162,7 @@ test('lỗi kiểm ở máy không gửi request; offline thì báo cần kết 
 
 test('điều tra viên không thấy nút sửa form và không mở được builder', async ({ page }) => {
   // minh là điều tra viên ở demo-yte và không thuộc dự án của test này
-  await login(page, TOKENS.minh);
+  await login(page, 'minh');
   await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Sửa form' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toHaveCount(0);

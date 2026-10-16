@@ -83,8 +83,11 @@ export interface PullResponse {
   scope: 'own' | 'all';
 }
 
-/** Vai trò trong một dự án (ADR 0002 §2). `admin` là cờ toàn hệ thống, không phải vai trò dự án. */
-export type Role = 'surveyor' | 'supervisor';
+/**
+ * Vai trò trong một dự án, thứ hạng tăng dần (ADR 0003 §2). `admin` là cờ toàn hệ thống của người
+ * vận hành app, không phải vai trò dự án.
+ */
+export type Role = 'surveyor' | 'supervisor' | 'owner';
 
 /** Một dự án mình đang là thành viên, như trong `GET /api/me` (design §7). Dự án đã lưu trữ không có ở đây. */
 export interface ProjectSummary {
@@ -95,8 +98,27 @@ export interface ProjectSummary {
 
 /** Thân response `GET /api/me` */
 export interface MeResponse {
-  user: { id: string; name: string; isAdmin: boolean };
+  user: { id: string; username: string; name: string; isAdmin: boolean };
   projects: ProjectSummary[];
+}
+
+/** Thân request `POST /api/auth/register` (ADR 0003 §1) */
+export interface RegisterRequest {
+  username: string;
+  name: string;
+  password: string;
+}
+
+/** Thân request `POST /api/auth/login` */
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+/** Response của register và login: token phiên của máy này */
+export interface AuthResponse {
+  token: string;
+  user: MeResponse['user'];
 }
 
 /** Dự án theo góc nhìn admin (`/api/admin/projects`): có cả dự án đã lưu trữ */

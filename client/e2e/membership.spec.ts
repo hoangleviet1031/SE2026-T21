@@ -45,7 +45,7 @@ async function pushAs(request: APIRequestContext, token: string, householdName: 
 
 /** minh đăng nhập và chờ vòng đồng bộ đầu tải xong dự án OTHER. */
 async function loginAndLoadOther(page: Page) {
-  await login(page, TOKENS.minh);
+  await login(page, 'minh');
   await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
   await expect.poll(async () => (await readStore(page, OTHER_DB, 'forms').catch(() => [])).length).toBeGreaterThan(0);
 }

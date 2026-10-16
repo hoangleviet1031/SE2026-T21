@@ -74,6 +74,9 @@ describe('PUT /api/projects/:projectId/records/:id', () => {
       .prepare(`INSERT INTO users (id, name, token_hash, is_admin, created_at) VALUES ('u_khac', 'khac', ?, 0, 'now')`)
       .run(hashToken('tok-khac'));
     t.db
+      .prepare(`INSERT INTO sessions (token_hash, user_id, created_at, last_seen_at) VALUES (?, 'u_khac', 'now', 'now')`)
+      .run(hashToken('tok-khac'));
+    t.db
       .prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES (?, 'u_khac', 'surveyor', 'now')`)
       .run(t.projects.yte);
     const khac = 'tok-khac';

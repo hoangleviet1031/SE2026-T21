@@ -1,16 +1,32 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
 
-// Hàm dùng chung cho E2E. Token và dự án khớp server/src/seedDemo.ts (server E2E chạy với SEED_DEMO=1).
+// Hàm dùng chung cho E2E. Tài khoản, mật khẩu, token và dự án khớp server/src/seedDemo.ts
+// (server E2E chạy với SEED_DEMO=1).
 
-export const TOKENS = { admin: 'demo-token-admin', lan: 'demo-token-lan', minh: 'demo-token-minh' } as const;
+export const DEMO_PASSWORD = 'demo-password';
+/** Phiên demo cố định do seed tạo, để test gọi API thẳng (đóng vai người khác) không phải đăng nhập. */
+export const TOKENS = {
+  admin: 'demo-token-admin',
+  lan: 'demo-token-lan',
+  minh: 'demo-token-minh',
+  chu: 'demo-token-chu',
+} as const;
 export const PROJECT = 'demo-yte';
 export const API = `http://localhost:3001/api/projects/${PROJECT}`;
+const LOGIN_API = 'http://localhost:3001/api/auth/login';
 
 /** Header xác thực cho request gọi thẳng API (đóng vai người dùng khác). */
 export const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
 
-/** Mở app và nhập mã ở màn hình đăng nhập (design §4.7). Mỗi test có context mới nên luôn phải đăng nhập. */
-export async function login(page: Page, token: string = TOKENS.minh) {
+/**
+ * Mở app và đăng nhập bằng tên + mật khẩu (ADR 0003 §1). Mỗi test có context mới nên luôn phải đăng nhập.
+ * Màn hình tên + mật khẩu (TV1-14) chưa có: lấy token phiên qua /api/auth/login rồi nhập vào màn hình
+ * nhập mã hiện tại. TV1-14 xong thì chỉ sửa thân hàm này, các spec giữ nguyên.
+ */
+export async function login(page: Page, username = 'minh', password = DEMO_PASSWORD) {
+  const res = await page.request.post(LOGIN_API, { data: { username, password } });
+  expect(res.status(), `đăng nhập ${username}`).toBe(200);
+  const { token } = (await res.json()) as { token: string };
   await page.goto('/');
   await page.getByTestId('login-token').fill(token);
   await page.getByRole('button', { name: 'Tiếp tục' }).click();

@@ -86,14 +86,14 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 
 | Ticket | Tên | Thay cho / ảnh hưởng | Trạng thái |
 |---|---|---|---|
-| TV2-14 | Migration 3, tài khoản + phiên, vai trò `owner` (server) · **Lõi** | Phần token của TV2-02 | — |
+| TV2-14 | Migration 3, tài khoản + phiên, vai trò `owner` (server) · **Lõi** | Phần token của TV2-02 | ✅ `feat/tv2-14-accounts` · chờ TV3-12 trên cùng nhánh rồi mới mở PR · thành **migration 4** vì số 3 đã là `attachments` (TV3-05) |
 | TV2-15 | Yêu cầu mở tổ chức, danh bạ công khai, API admin mới (server) · **Lõi** | Phần `/admin/projects` của TV2-04 | — |
 | TV2-16 | Client: đăng nhập bằng phiên, vai trò `owner`, chặn tài khoản admin · **Lõi** | `auth.ts`, `api.ts` | — |
 | TV2-17 | API quản lý tài khoản cho màn hình A3 · **Cắt được** | CLI `user:*` | — |
 | TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | — |
 | TV1-15 | Màn hình Tổ chức (danh bạ, mở tổ chức mới) | – | — |
 | TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | — |
-| TV3-12 | CLI, fixture, helper E2E theo tài khoản mới | Phần CLI/helper của TV3-02 | — |
+| TV3-12 | CLI, fixture, helper E2E theo tài khoản mới | Phần CLI/helper của TV3-02 | ⏳ `feat/tv2-14-accounts` (PR chung với TV2-14) |
 
 ## Phụ thuộc quan trọng
 

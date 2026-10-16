@@ -168,6 +168,75 @@ export const migrations: Migration[] = [
       CREATE INDEX attachments_record ON attachments(project_id, record_id);
     `);
   },
+
+  // 4: tài khoản tên + mật khẩu, phiên theo máy, vai trò owner (ADR 0003 §5, design §6.1).
+  // Bảng project_requests để migration của TV2-15.
+  (db) => {
+    // Bản mới không cho tài khoản admin là thành viên tổ chức (ADR 0003 §8). Dữ liệu cũ vi phạm thì
+    // dừng hẳn để người vận hành tự xử lý, không tự gỡ quyền hay membership của ai (§5 mục 1).
+    // Ném ở đây thì `migrate` rollback, user_version giữ nguyên.
+    const adminMembers = db
+      .prepare(
+        `SELECT u.id, u.name, m.project_id, m.role FROM memberships m JOIN users u ON u.id = m.user_id
+         WHERE u.is_admin = 1 ORDER BY u.id, m.project_id`,
+      )
+      .all() as { id: string; name: string; project_id: string; role: string }[];
+    if (adminMembers.length > 0) {
+      const lines = adminMembers.map((r) => `  - ${r.id} (${r.name}) – ${r.project_id} – ${r.role}`);
+      throw new Error(
+        'Migration 4 dừng, CSDL không đổi: tài khoản admin đang là thành viên tổ chức (ADR 0003 §5).\n' +
+          `${lines.join('\n')}\n` +
+          'Bỏ cờ admin của tài khoản đó hoặc rút nó khỏi tổ chức, rồi khởi động lại. Xem docs/deploy.md.',
+      );
+    }
+
+    // SQLite không cho ADD COLUMN kèm UNIQUE nên username dùng index riêng. Tài khoản cũ lấy
+    // username = id. users.token_hash (NOT NULL UNIQUE) giữ lại nhưng không đọc nữa; tài khoản tạo
+    // từ bản này ghi giá trị giữ chỗ không bao giờ khớp SHA-256 (xem routes/auth.ts).
+    const membershipCount = (db.prepare(`SELECT COUNT(*) AS n FROM memberships`).get() as { n: number }).n;
+    db.exec(`
+      ALTER TABLE users ADD COLUMN username TEXT;
+      ALTER TABLE users ADD COLUMN password_hash TEXT;
+      UPDATE users SET username = id;
+      CREATE UNIQUE INDEX users_username ON users(username);
+
+      -- Mỗi lần đăng nhập một phiên, chỉ lưu SHA-256 của token. Phiên không tự hết hạn (ADR 0003 §1).
+      CREATE TABLE sessions (
+        token_hash TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users(id),
+        created_at TEXT NOT NULL,
+        last_seen_at TEXT NOT NULL
+      );
+      CREATE INDEX sessions_user ON sessions(user_id);
+      -- Máy đang đăng nhập bằng token cũ (staging) không bị đẩy ra.
+      INSERT INTO sessions (token_hash, user_id, created_at, last_seen_at)
+        SELECT token_hash, id, created_at, created_at FROM users;
+
+      ALTER TABLE projects ADD COLUMN public INTEGER NOT NULL DEFAULT 0;
+
+      -- NGOẠI LỆ thứ hai so với "chỉ thêm cột/bảng" (design §12): SQLite không sửa được CHECK nên tạo
+      -- lại bảng và chép nguyên dữ liệu. added_by của dòng cũ để trống vì không biết ai đã thêm.
+      -- Không có FK từ added_by, giống created_by của records.
+      CREATE TABLE memberships_new (
+        project_id TEXT NOT NULL REFERENCES projects(id),
+        user_id TEXT NOT NULL REFERENCES users(id),
+        role TEXT NOT NULL CHECK (role IN ('surveyor', 'supervisor', 'owner')),
+        added_at TEXT NOT NULL,
+        added_by TEXT,
+        PRIMARY KEY (project_id, user_id)
+      );
+      INSERT INTO memberships_new (project_id, user_id, role, added_at)
+        SELECT project_id, user_id, role, added_at FROM memberships;
+      DROP TABLE memberships;
+      ALTER TABLE memberships_new RENAME TO memberships;
+      CREATE INDEX memberships_user ON memberships(user_id);
+    `);
+    // Chép thiếu dòng nào là mất quyền của người đó: thà không khởi động còn hơn.
+    const after = (db.prepare(`SELECT COUNT(*) AS n FROM memberships`).get() as { n: number }).n;
+    if (after !== membershipCount) {
+      throw new Error(`Migration 4: memberships có ${membershipCount} dòng trước khi tạo lại, ${after} dòng sau`);
+    }
+  },
 ];
 
 /**

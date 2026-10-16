@@ -6,12 +6,13 @@ Quy ước ở [README.md](README.md).
 
 | Việc | Chặn bởi | Ghi chú |
 |---|---|---|
-| TV2-14 (cùng PR với TV3-12 của Đại), rồi TV2-15, TV2-16 | — | ADR 0003; đăng nhập đổi nên phải hẹn Đại làm chung |
+| TV3-12 của Đại trên nhánh `feat/tv2-14-accounts` rồi mở PR chung; sau đó TV2-15, TV2-16 | TV3-12 | TV2-14 xong phía server, đang có cầu nối token demo → phiên |
 
 ## Nhật ký
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-16 | TV2-14 | feat | Migration 4 (username, password_hash, `sessions` chép token cũ, `projects.public`, tạo lại `memberships` có `owner`/`added_by`, chặn admin là thành viên); `/api/auth/register`, `/login`, `/logout` với scrypt và giới hạn tần suất, trust proxy loopback; `requireAuth` tra `sessions`; vai trò `owner`; `parseRegisterRequest`/`parseLoginRequest` trong shared; test U1–U6, MG1, MG2, A5 Owner; cầu nối `seed:demo`/CLI ghi token thành phiên | nhánh `feat/tv2-14-accounts` | chờ TV3-12, chờ review |
 | 2026-10-16 | TV2-13 | feat | `deleteRecordLocally` (xoá hẳn khi chưa thể tới server, xoá mềm + op xoá khi có thể đã tới, nháp gửi bản hợp lệ cuối), engine xoá phiếu và ảnh khi op xoá được xác nhận, pull bỏ qua tombstone của phiếu máy không có; nút Xoá phiếu hỏi `confirm()` rồi gọi hàm mới; E2E O7 (cả Huỷ), O8, mất response, nháp, conflict | nhánh `feat/tv2-13-delete-sync` | chờ review |
 | 2026-10-16 | TV2-10 | feat | Phiếu `conflict` không lưu/xoá được (`RecordInConflictError`, FillPage báo kèm link), bỏ op `blocked`; sửa lỗi op tự gộp sau 409 phải chờ vòng sau (gửi lại ngay, tối đa 3 lần); E2E C1, C6, C8 (hai ca), khoá sửa, pull bỏ qua nháp | nhánh `feat/tv2-10-conflict-engine` | chờ review |
 | 2026-10-12 | — | docs | ADR 0003 chấp nhận; design 0.5 và ui.md 0.2 ghi bản mới 🆕 / bản cũ 🕘; ADR 0002 ghi thay thế một phần; ticket TV1-14…16, TV2-14…17, TV3-12 | nhánh `docs/adr-0003-spec` | xong (PR #22) |

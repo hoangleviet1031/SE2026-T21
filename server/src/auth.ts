@@ -1,13 +1,14 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { Role } from '@field-survey/shared';
-import type { Db } from './db';
+import { tx, type Db } from './db';
 import { getMemberRole } from './repo/memberships';
 
 // Xác thực và kiểm tra thành viên dự án. Xem docs/design.md §9, ADR 0002 §3.
 
 export interface AuthUser {
   id: string;
+  username: string;
   name: string;
   isAdmin: boolean;
 }
@@ -23,6 +24,8 @@ declare global {
   namespace Express {
     interface Request {
       user?: AuthUser;
+      /** SHA-256 của token phiên đang dùng, để `/auth/logout` xoá đúng phiên của máy này. */
+      sessionHash?: string;
       ctx?: Ctx;
     }
   }
@@ -33,13 +36,20 @@ export function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
-const ROLE_RANK: Record<Role, number> = { surveyor: 0, supervisor: 1 };
+// Owner có mọi quyền của supervisor nên route cần supervisor cũng cho owner qua (ADR 0003 §2).
+const ROLE_RANK: Record<Role, number> = { surveyor: 0, supervisor: 1, owner: 2 };
 
-interface UserRow {
-  id: string;
-  name: string;
+interface SessionUserRow {
   token_hash: string;
+  id: string;
+  username: string | null;
+  name: string;
   is_admin: number;
+}
+
+/** Tài khoản do CLI cũ tạo (trước TV3-12) chưa có username; dùng id như migration 4 làm với tài khoản cũ. */
+export function toAuthUser(row: { id: string; username: string | null; name: string; is_admin: number }): AuthUser {
+  return { id: row.id, username: row.username ?? row.id, name: row.name, isAdmin: row.is_admin === 1 };
 }
 
 /** Lấy `ctx` trong handler đã đi qua `requireMember`. Thiếu `ctx` là lỗi lập trình (quên gắn middleware). */
@@ -53,21 +63,27 @@ export function createAuth(db: Db): {
   requireMember: (minRole: Role) => RequestHandler;
   requireAdmin: RequestHandler;
 } {
-  const findUser = db.prepare(
-    `SELECT id, name, token_hash, is_admin FROM users WHERE token_hash = ? AND disabled = 0`,
+  // Tra bảng sessions, không còn users.token_hash (ADR 0003 §1). Tài khoản bị khoá thì mọi phiên mất hiệu lực.
+  const findSession = db.prepare(
+    `SELECT s.token_hash, u.id, u.username, u.name, u.is_admin FROM sessions s JOIN users u ON u.id = s.user_id
+     WHERE s.token_hash = ? AND u.disabled = 0`,
   );
+  const touchSession = db.prepare(`UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?`);
 
   const requireAuth: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
     const match = /^Bearer +(\S+)$/i.exec(req.header('Authorization') ?? '');
     if (!match?.[1]) return void res.status(401).json({ error: 'unauthorized' });
 
     const hash = hashToken(match[1]);
-    const row = findUser.get(hash) as UserRow | undefined;
+    const row = findSession.get(hash) as SessionUserRow | undefined;
     // Tra bằng hash đã loại phần lớn rủi ro timing; so lại bằng hàm hằng thời gian cho chắc.
     if (!row || !timingSafeEqual(Buffer.from(row.token_hash, 'hex'), Buffer.from(hash, 'hex'))) {
       return void res.status(401).json({ error: 'unauthorized' });
     }
-    req.user = { id: row.id, name: row.name, isAdmin: row.is_admin === 1 };
+    // Chỉ để admin biết phiên nào còn dùng (vd. trước khi thu hồi); không dùng để hết hạn phiên.
+    tx(db, () => touchSession.run(new Date().toISOString(), hash));
+    req.user = toAuthUser(row);
+    req.sessionHash = hash;
     next();
   };
 
