@@ -42,7 +42,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-03 · Nén ảnh
 
-- **Trạng thái:** ⏳ `feat/tv3-03-compress-photo`
+- **Trạng thái:** ✅ PR #31
 - **Tuần:** 2 · **Phụ thuộc:** không
 - **Spec:** design §4.4 (Ở client), §11.2 (≤ 600 KB)
 - **File:** `client/src/media/compress.ts` (mới), `client/src/components/FormRenderer.tsx` (nhánh `photo`), `client/e2e/photo.spec.ts` (mới), `client/e2e/fixtures/photo-4mb.jpg`
@@ -99,7 +99,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 - **File:** `client/src/sync/attachments.ts` (mới), `client/src/sync/engine.ts` (điểm gọi đã chừa ở TV2-06; TV2 duyệt), `client/src/sync/displayState.ts` + `.test.ts` (mới), `client/src/pages/HomePage.tsx`
 
 **Việc**
-- `uploadPendingAttachments(projectDb)`: chỉ ảnh của phiếu `baseVersion > 0`; mỗi lần một ảnh; `status` → gửi chunk thiếu → `complete` (SHA-256 bằng `crypto.subtle`); lỗi tạm thời dùng `nextRetryDelay`; lỗi `413/415/422 lần 2` → `failed`.
+- `uploadPendingAttachments(projectDb)`: chỉ ảnh của phiếu `baseVersion > 0` và **không `deleted`** (design §5.7, TV2-13: phiếu đã xoá ngừng upload, ảnh bị xoá khi op xoá được xác nhận); mỗi lần một ảnh; `status` → gửi chunk thiếu → `complete` (SHA-256 bằng `crypto.subtle`); lỗi tạm thời dùng `nextRetryDelay`; lỗi `413/415/422 lần 2` → `failed`.
 - `displayState(record, attachments)` thuần: "Đã đồng bộ" / "Đang tải ảnh (n)" / "Lỗi ảnh" / nhãn theo `syncState`. Unit test đủ các nhánh.
 - Nút "Thử lại" / "Bỏ ảnh này" cho ảnh lỗi.
 

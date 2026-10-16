@@ -57,22 +57,22 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-11 | E2E O2, O4, T6, T10 | — |
 | TV1-12 | Hoàn thiện UI, tài liệu người dùng | — |
 | TV1-13 | Nút xoá phiếu + hộp xác nhận | — |
-| TV2-01 | Migration + schema multi-tenancy | ✅ `feat/tv2-multi-tenancy-core` |
-| TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ `feat/tv2-multi-tenancy-core` · ⚠ `requireAuth` đọc `users.token_hash` là bản cũ, TV2-14 đổi sang `sessions` |
-| TV2-03 | Route theo dự án + phạm vi pull | ✅ `feat/tv2-multi-tenancy-core` |
+| TV2-01 | Migration + schema multi-tenancy | ✅ PR #8 (chung với TV2-02, TV2-03, TV3-02) |
+| TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ PR #8 · ⚠ `requireAuth` đọc `users.token_hash` là bản cũ, TV2-14 đổi sang `sessions` |
+| TV2-03 | Route theo dự án + phạm vi pull | ✅ PR #8 |
 | TV2-04 | `/api/me`, `/api/admin/projects` | ✅ PR #9 · ⚠ `POST /admin/projects`, `PUT …/members/:userId` là bản cũ, TV2-15 thay |
 | TV2-05 | CSDL account + CSDL theo dự án, `api.ts` | ✅ PR #10 |
 | TV2-06 | Sync nhiều dự án + Web Locks | ✅ PR #13 |
 | TV2-07 | Cursor theo scope + thay đổi thành viên | ✅ PR #14 |
-| TV2-08 | Idempotency hash, dọn key, fault `drop` | ✅ `feat/tv2-08-idempotency` |
-| TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | ✅ `feat/tv2-09-failed-ops` |
-| TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | — |
+| TV2-08 | Idempotency hash, dọn key, fault `drop` | ✅ PR #15 |
+| TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | ✅ PR #16 |
+| TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | ✅ `feat/tv2-10-conflict-engine` |
 | TV2-11 | Hiệu năng pull | — |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
-| TV2-13 | Xoá phiếu: logic client + đồng bộ | — |
+| TV2-13 | Xoá phiếu: logic client + đồng bộ | ✅ `feat/tv2-13-delete-sync` |
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ✅ PR #2 |
 | TV3-02 | CLI quản trị, fixture, sửa test theo API mới | ✅ PR #8 · ⚠ CLI token và helper `login(token)` là bản cũ, TV3-12 thay |
-| TV3-03 | Nén ảnh | ⏳ `feat/tv3-03-compress-photo` |
+| TV3-03 | Nén ảnh | ✅ PR #31 |
 | TV3-04 | Test cách ly T1–T5 | ✅ PR #29 |
 | TV3-05 | Upload ảnh theo chunk (server) | ✅ PR #30 |
 | TV3-06 | Hàng đợi upload ảnh (client) | — |
