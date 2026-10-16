@@ -14,6 +14,7 @@ import { NetworkError, NotMemberError, fetchFormVersion, fetchForms, fetchMe, pu
 import { mergeMeIntoProjects, projectsToSync, pullStateAfterPage, type PullState } from './accountSync';
 import { applyMembershipChanges, markRemoved } from './membership';
 import { earliestCreatedAt } from './outbox';
+import { uploadPendingAttachments } from './attachments';
 
 // Sync engine: push outbox (FIFO theo từng bản ghi) rồi pull thay đổi từ server.
 // Xem docs/design.md §5 và docs/adr/0001-consistency-model.md.
@@ -109,8 +110,10 @@ async function syncProject(db: ProjectDb): Promise<void> {
   await updateCounts(db);
 }
 
-// TODO(TV3-06): upload ảnh của dự án (design §5.6). Đặt giữa push và pull theo §5.3.
-async function uploadAttachments(_db: ProjectDb): Promise<void> {}
+// Upload ảnh của dự án (design §5.6), giữa push và pull theo §5.3: phiếu đã lên thì ảnh mới lên được.
+async function uploadAttachments(db: ProjectDb): Promise<void> {
+  await uploadPendingAttachments(db);
+}
 
 async function updateCounts(db: ProjectDb): Promise<void> {
   const needsAttention = await db.records.where('syncState').anyOf(NEEDS_ATTENTION).count();
@@ -118,7 +121,7 @@ async function updateCounts(db: ProjectDb): Promise<void> {
   await accountDb.projects.update(db.projectId, { needsAttention, unsynced });
 }
 
-/** Hẹn giờ chạy lại đúng lúc op sớm nhất (trên mọi dự án) hết thời gian backoff */
+/** Hẹn giờ chạy lại đúng lúc op hoặc ảnh sớm nhất (trên mọi dự án) hết thời gian backoff (§5.3 bước 6) */
 async function scheduleNextRetry(dbs: ProjectDb[]) {
   clearTimeout(retryTimer);
   // Offline thì chờ sự kiện 'online'; chỉ hẹn giờ cho op đang trong thời gian backoff
@@ -131,6 +134,12 @@ async function scheduleNextRetry(dbs: ProjectDb[]) {
       .filter((op) => op.status === 'queued')
       .first();
     if (next) earliest = Math.min(earliest, next.nextAttemptAt);
+    const nextPhoto = await db.attachments
+      .where('nextAttemptAt')
+      .above(Date.now())
+      .filter((a) => a.uploadState === 'pending' || a.uploadState === 'uploading')
+      .first();
+    if (nextPhoto?.nextAttemptAt !== undefined) earliest = Math.min(earliest, nextPhoto.nextAttemptAt);
   }
   if (earliest === Infinity) return;
   const delay = Math.max(0, earliest - Date.now());

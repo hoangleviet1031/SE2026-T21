@@ -5,20 +5,14 @@ import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { canManageProject } from '../projects';
 import { downloadJson } from '../download';
-import type { ProjectDb, SyncState } from '../db/projectDb';
+import type { LocalAttachment, ProjectDb } from '../db/projectDb';
 import { syncNow } from '../sync/engine';
+import { dropAttachment, retryAttachment } from '../sync/attachments';
+import { displayState } from '../sync/displayState';
 import { exportRecordJson } from '../sync/exportJson';
 import { retryFailed } from '../sync/outbox';
 import { staleWarnings } from '../sync/staleWarnings';
 import { navigate } from '../useHashRoute';
-
-const STATE_LABEL: Record<SyncState, string> = {
-  draft: 'Nháp',
-  synced: 'Đã đồng bộ',
-  pending: 'Chờ đồng bộ',
-  conflict: 'Cần xử lý xung đột',
-  error: 'Lỗi',
-};
 
 export function HomePage() {
   const db = useCurrentProjectDb();
@@ -52,6 +46,10 @@ function ProjectHome({ db }: { db: ProjectDb }) {
   const canManage = project ? canManageProject(project.role) : false;
   const forms = useLiveQuery(async () => db.forms.toArray(), [db]) ?? [];
   const records = useLiveQuery(async () => db.records.orderBy('updatedAt').reverse().toArray(), [db]) ?? [];
+  // Ảnh theo phiếu để tính nhãn "Đang tải ảnh (n)" / "Lỗi ảnh" (design §5.6)
+  const attachments = useLiveQuery(async () => db.attachments.toArray(), [db]) ?? [];
+  const photosByRecord = new Map<string, LocalAttachment[]>();
+  for (const a of attachments) photosByRecord.set(a.recordId, [...(photosByRecord.get(a.recordId) ?? []), a]);
   // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
   const warnings = useLiveQuery(async () => staleWarnings(await db.outbox.toArray(), Date.now()), [db]);
   const latestForms = Object.values(
@@ -91,31 +89,55 @@ function ProjectHome({ db }: { db: ProjectDb }) {
         <ul className="list" data-testid="records">
           {records
             .filter((r) => !r.deleted)
-            .map((r) => (
-              <li key={r.id}>
-                <a href={`#/fill/${r.formId}/${r.id}`}>{String(Object.values(r.data)[0] ?? r.id)}</a>
-                {r.syncState === 'conflict' ? (
-                  <a className="badge conflict" href={`#/conflict/${r.id}`}>
-                    {STATE_LABEL[r.syncState]}
-                  </a>
-                ) : (
-                  <span className={`badge ${r.syncState}`} data-testid="sync-state">
-                    {STATE_LABEL[r.syncState]}
-                  </span>
-                )}
-                {r.syncState === 'error' && (
-                  <div className="record-error">
-                    <span data-testid="sync-error">{r.lastError ?? 'Máy chủ từ chối phiếu này'}</span>
-                    <button onClick={() => void retry(db, r.id)}>Thử lại</button>
-                    <button onClick={() => void downloadRecord(db, r.id)}>Xuất JSON phiếu này</button>
-                  </div>
-                )}
-              </li>
-            ))}
+            .map((r) => {
+              const photos = photosByRecord.get(r.id) ?? [];
+              const state = displayState(r, photos);
+              return (
+                <li key={r.id}>
+                  <a href={`#/fill/${r.formId}/${r.id}`}>{String(Object.values(r.data)[0] ?? r.id)}</a>
+                  {r.syncState === 'conflict' ? (
+                    <a className="badge conflict" href={`#/conflict/${r.id}`}>
+                      {state.label}
+                    </a>
+                  ) : (
+                    <span className={`badge ${state.kind}`} data-testid="sync-state">
+                      {state.label}
+                    </span>
+                  )}
+                  {r.syncState === 'error' && (
+                    <div className="record-error">
+                      <span data-testid="sync-error">{r.lastError ?? 'Máy chủ từ chối phiếu này'}</span>
+                      <button onClick={() => void retry(db, r.id)}>Thử lại</button>
+                      <button onClick={() => void downloadRecord(db, r.id)}>Xuất JSON phiếu này</button>
+                    </div>
+                  )}
+                  {state.failedPhotoIds.map((photoId) => (
+                    <div className="record-error" key={photoId} data-testid="photo-error">
+                      <span>Lỗi ảnh: {photos.find((p) => p.id === photoId)?.lastError ?? 'không gửi được ảnh'}</span>
+                      <button onClick={() => void retryPhoto(db, photoId)}>Thử lại</button>
+                      {/* Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7): bỏ ảnh là sửa phiếu */}
+                      {r.syncState !== 'conflict' && (
+                        <button onClick={() => void dropPhoto(db, r.id, photoId)}>Bỏ ảnh này</button>
+                      )}
+                    </div>
+                  ))}
+                </li>
+              );
+            })}
         </ul>
       </section>
     </>
   );
+}
+
+async function retryPhoto(db: ProjectDb, photoId: string) {
+  await retryAttachment(db, photoId);
+  void syncNow();
+}
+
+async function dropPhoto(db: ProjectDb, recordId: string, photoId: string) {
+  await dropAttachment(db, recordId, photoId);
+  void syncNow();
 }
 
 async function retry(db: ProjectDb, recordId: string) {

@@ -34,6 +34,9 @@ export async function addPhoto(db: ProjectDb, input: { recordId: string; fieldId
       mimeType: input.blob.type,
       uploadedChunks: [],
       uploadState: 'pending',
+      attempts: 0,
+      // Hàng đợi upload cũ trước mới sau (design §5.6); giờ thiết bị chỉ dùng để xếp thứ tự trên máy.
+      createdAt: Date.now(),
     });
   } catch (e) {
     if (isQuotaError(e)) throw new StorageFullError({ cause: e });

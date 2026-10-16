@@ -133,3 +133,54 @@ export async function pullRecords(projectId: string, since: number): Promise<Pul
   if (!res.ok) throw new Error(`GET /api/records ${res.status}`);
   return res.json();
 }
+
+// Upload ảnh theo chunk (design §4.4, §7). Trả mã HTTP và mã lỗi để sync/attachments.ts quyết định
+// thử lại hay đánh dấu `failed` (§5.6); lỗi mạng, 401, 403 not_member vẫn ném như mọi request.
+
+/** Kết quả một request ảnh: `code` là mã lỗi §7.1 khi không thành công. */
+export interface AttachmentResult {
+  status: number;
+  code?: string;
+}
+
+const attachmentPath = (projectId: string, id: string) =>
+  `${projectPath(projectId)}/attachments/${encodeURIComponent(id)}`;
+
+/** `GET P/attachments/:id/status`: chunk server đã có. */
+export async function fetchAttachmentStatus(
+  projectId: string,
+  id: string,
+): Promise<AttachmentResult & { received?: number[] }> {
+  const res = await request(`${attachmentPath(projectId, id)}/status`, {}, projectId);
+  if (!res.ok) return { status: res.status, code: await errorCode(res) };
+  const body = (await res.json()) as { received: number[] };
+  return { status: res.status, received: body.received };
+}
+
+/** `PUT P/attachments/:id/chunks/:index`: gửi lại chunk đã có thì server trả 200, không ghi lại. */
+export async function putAttachmentChunk(projectId: string, id: string, index: number, chunk: Blob) {
+  const res = await request(
+    `${attachmentPath(projectId, id)}/chunks/${index}`,
+    { method: 'PUT', headers: { 'Content-Type': 'application/octet-stream' }, body: chunk },
+    projectId,
+  );
+  const out: AttachmentResult = { status: res.status };
+  if (!res.ok) out.code = await errorCode(res);
+  return out;
+}
+
+/** `POST P/attachments/:id/complete`: server ghép, kiểm SHA-256 và loại ảnh. */
+export async function completeAttachment(
+  projectId: string,
+  id: string,
+  body: { recordId: string; totalChunks: number; mimeType: string; sha256: string },
+): Promise<AttachmentResult> {
+  const res = await request(
+    `${attachmentPath(projectId, id)}/complete`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+    projectId,
+  );
+  const out: AttachmentResult = { status: res.status };
+  if (!res.ok) out.code = await errorCode(res);
+  return out;
+}

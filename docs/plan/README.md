@@ -75,7 +75,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV3-03 | Nén ảnh | ✅ PR #31 |
 | TV3-04 | Test cách ly T1–T5 | ✅ PR #29 |
 | TV3-05 | Upload ảnh theo chunk (server) | ✅ PR #30 |
-| TV3-06 | Hàng đợi upload ảnh (client) | — |
+| TV3-06 | Hàng đợi upload ảnh (client) | ⏳ `feat/tv3-06-upload-queue` |
 | TV3-07 | Màn hình conflict đầy đủ + chỉ đọc | — |
 | TV3-08 | Xoá vs sửa | — |
 | TV3-09 | Export CSV/JSON | — |
@@ -93,7 +93,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | — |
 | TV1-15 | Màn hình Tổ chức (danh bạ, mở tổ chức mới) | – | — |
 | TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | — |
-| TV3-12 | CLI, fixture, helper E2E theo tài khoản mới | Phần CLI/helper của TV3-02 | ⏳ `feat/tv2-14-accounts` (PR chung với TV2-14) |
+| TV3-12 | CLI, fixture, helper E2E theo tài khoản mới | Phần CLI/helper của TV3-02 | ✅ PR #36 |
 
 ## Phụ thuộc quan trọng
 

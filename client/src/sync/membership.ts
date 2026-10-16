@@ -2,6 +2,7 @@ import { accountDb, type AccountProject } from '../db/accountDb';
 import { deleteProjectDb, openProjectDb, projectDbExists, resetProjectDb } from '../db/current';
 import { getMeta, type ProjectDb } from '../db/projectDb';
 import { needsRescope, type PullState } from './accountSync';
+import { isLiveAttachment } from './attachmentRules';
 
 // Thay đổi thành viên phía client (ADR 0002 §6). Quy tắc chung: không bao giờ tự xoá dữ liệu chưa
 // gửi (CLAUDE.md bất biến 1). Còn dữ liệu chưa gửi thì giữ nguyên CSDL và chờ người dùng quyết
@@ -10,11 +11,15 @@ import { needsRescope, type PullState } from './accountSync';
 /**
  * Còn thứ gì trên máy chưa lên server: op trong outbox, ảnh chưa upload xong, phiếu nháp hoặc
  * đang xung đột (ADR 0002 §6). Phiếu `pending`/`error` luôn có op nên đã nằm trong outbox.
+ * Ảnh chỉ tính khi phiếu chưa xoá còn tham chiếu nó: ảnh người dùng đã bỏ khỏi phiếu không bao giờ
+ * được upload, tính vào thì máy bị coi là còn dữ liệu chưa gửi mãi (TV3-06, design §5.6).
  */
 export async function hasUnsentData(db: ProjectDb): Promise<boolean> {
   return db.transaction('r', [db.outbox, db.attachments, db.records, db.conflicts], async () => {
     if ((await db.outbox.count()) > 0) return true;
-    if ((await db.attachments.where('uploadState').notEqual('done').count()) > 0) return true;
+    for (const a of await db.attachments.where('uploadState').notEqual('done').toArray()) {
+      if (isLiveAttachment(await db.records.get(a.recordId), a)) return true;
+    }
     if ((await db.records.where('syncState').anyOf('draft', 'conflict').count()) > 0) return true;
     return (await db.conflicts.count()) > 0;
   });
