@@ -14,10 +14,10 @@ export function resolveCurrentProjectId(projects: AccountProject[], storedId: st
   return active[0]?.id ?? null;
 }
 
-// TODO(TV2-16): thêm 'owner' → "Owner" khi kiểu Role có vai trò này (ADR 0003)
 export const ROLE_LABEL: Record<Role, string> = {
   surveyor: 'Điều tra viên',
   supervisor: 'Giám sát viên',
+  owner: 'Owner',
 };
 
 /** Dòng phụ dưới tên dự án trong bộ chọn, vd. "Giám sát viên · 1 cần xử lý · 4 chưa đồng bộ". */

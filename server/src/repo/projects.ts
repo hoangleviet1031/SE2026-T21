@@ -1,5 +1,6 @@
-import type { AdminProject, ProjectSummary, Role } from '@field-survey/shared';
+import type { AdminProject, ProjectSummary } from '@field-survey/shared';
 import { tx, type Db } from '../db';
+import { toRole } from './memberships';
 
 // Truy vấn không theo dự án: danh sách dự án của một người (/me) và quản trị dự án (/admin).
 // Không nhận `ctx` vì không đọc dữ liệu bên trong dự án (form, phiếu); quyền đã kiểm ở
@@ -20,12 +21,6 @@ interface MemberProjectRow {
 
 function toAdminProject(row: ProjectRow): AdminProject {
   return { id: row.id, name: row.name, archived: row.archived === 1, createdAt: row.created_at };
-}
-
-function toRole(role: string): Role {
-  // CHECK trong schema đã đảm bảo; kiểm lại để không ép kiểu mù (như getMemberRole).
-  if (role !== 'surveyor' && role !== 'supervisor') throw new Error(`vai trò không hợp lệ trong CSDL: ${role}`);
-  return role;
 }
 
 /** Dự án người dùng đang là thành viên và chưa lưu trữ (design §7, `GET /me`). */

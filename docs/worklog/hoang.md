@@ -9,12 +9,13 @@ Quy ước ở [README.md](README.md).
 | Rebase hoặc merge `main` vào `feat/tv2-multi-tenancy-core`, đổi số phiên bản design.md thành 0.5 | — | Xung đột ở header và bảng lịch sử design.md; giữ phần sửa §6.1 |
 | TV2-03, TV2-04, TV2-05 theo §6.2 và §7 mới (`createdByName`, `updatedByName`, `hasMore`, `/me`) | rebase ở trên | Spec chốt 2026-10-10 |
 | P6: phần sync của xoá phiếu (xoá hẳn hoặc tombstone) | ticket P6 (Dương thêm) | design §5.7 |
-| TV2-14 (cùng PR với TV3-12 của Đại), rồi TV2-15, TV2-16 | — | ADR 0003; đăng nhập đổi nên phải hẹn Đại làm chung |
+| TV3-12 của Đại trên nhánh `feat/tv2-14-accounts` rồi mở PR chung; sau đó TV2-15, TV2-16 | TV3-12 | TV2-14 xong phía server, đang có cầu nối token demo → phiên |
 
 ## Nhật ký
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-16 | TV2-14 | feat | Migration 4 (username, password_hash, `sessions` chép token cũ, `projects.public`, tạo lại `memberships` có `owner`/`added_by`, chặn admin là thành viên); `/api/auth/register`, `/login`, `/logout` với scrypt và giới hạn tần suất, trust proxy loopback; `requireAuth` tra `sessions`; vai trò `owner`; `parseRegisterRequest`/`parseLoginRequest` trong shared; test U1–U6, MG1, MG2, A5 Owner; cầu nối `seed:demo`/CLI ghi token thành phiên | nhánh `feat/tv2-14-accounts` | chờ TV3-12, chờ review |
 | 2026-10-12 | — | docs | ADR 0003 chấp nhận; design 0.5 và ui.md 0.2 ghi bản mới 🆕 / bản cũ 🕘; ADR 0002 ghi thay thế một phần; ticket TV1-14…16, TV2-14…17, TV3-12 | nhánh `docs/adr-0003-spec` | chờ review |
 | 2026-10-12 | — | quyết định | Chốt ADR 0003 phía mình: mở tổ chức cần admin duyệt, admin không xem dữ liệu, trang quản trị riêng `/admin/`, tài khoản admin không vào tổ chức | `docs/adr/0003-accounts-and-owner-role.md` | chờ review |
 | 2026-10-12 | — | quyết định | ADR 0003 viết lại: vai trò `owner` (khách hàng), admin là người vận hành, bỏ xin tham gia, công khai chỉ hiện tên, tạo lại bảng `memberships` | `docs/adr/0003-accounts-and-owner-role.md`, design §14 P9 | chờ review |

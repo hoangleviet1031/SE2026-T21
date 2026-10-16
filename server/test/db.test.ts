@@ -1,14 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { DatabaseSync } from 'node:sqlite';
 import { migrate, migrations, openDb, seed, type Db } from '../src/db';
+import type { AddressInfo } from 'node:net';
+import type { Server } from 'node:http';
+import type { MeResponse } from '@field-survey/shared';
+import { createApp } from '../src/app';
+import { hashToken } from '../src/auth';
 
 // Schema đích sau migration 2, theo bản nháp đã duyệt cho TV2-01 (docs/design.md §6.1, ADR 0002),
-// cộng bảng attachments của migration 3 (TV3-05).
+// cộng bảng attachments của migration 3 (TV3-05) và tài khoản, phiên, vai trò owner của migration 4
+// (TV2-14, ADR 0003 §5).
 // Viết tường minh thay vì suy ra từ code để test bắt được cột bị thiếu hay thừa.
 const EXPECTED_COLUMNS: Record<string, string[]> = {
-  projects: ['id', 'name', 'archived', 'created_at'],
-  users: ['id', 'name', 'token_hash', 'is_admin', 'disabled', 'created_at'],
-  memberships: ['project_id', 'user_id', 'role', 'added_at'],
+  projects: ['id', 'name', 'archived', 'created_at', 'public'],
+  users: ['id', 'name', 'token_hash', 'is_admin', 'disabled', 'created_at', 'username', 'password_hash'],
+  memberships: ['project_id', 'user_id', 'role', 'added_at', 'added_by'],
+  sessions: ['token_hash', 'user_id', 'created_at', 'last_seen_at'],
   forms: ['project_id', 'id', 'version', 'schema', 'created_at', 'created_by'],
   records: [
     'id',
@@ -50,6 +57,7 @@ const EXPECTED_PRIMARY_KEYS: Record<string, string[]> = {
   idempotency: ['key'],
   meta: ['k'],
   attachments: ['id'],
+  sessions: ['token_hash'],
 };
 
 // Tên index tự đặt -> danh sách cột theo thứ tự. Index tự sinh (sqlite_autoindex_*) kiểm riêng.
@@ -60,6 +68,8 @@ const EXPECTED_INDEXES: Record<string, string[]> = {
   record_history_project_record: ['project_id', 'record_id'],
   idempotency_created_at: ['created_at'],
   attachments_record: ['project_id', 'record_id'],
+  users_username: ['username'],
+  sessions_user: ['user_id'],
 };
 
 // "bảng.cột -> bảng cha"
@@ -71,6 +81,7 @@ const EXPECTED_FOREIGN_KEYS = [
   'record_history.record_id -> records',
   'attachments.project_id -> projects',
   'attachments.record_id -> records',
+  'sessions.user_id -> users',
 ];
 
 interface ColumnInfo {
@@ -157,11 +168,27 @@ describe('schema sau migration', () => {
     expect(() => insert.run('u2', 'Bình', 'hash-1', '2026-10-07T00:00:00Z')).toThrow();
   });
 
-  it('role chỉ nhận surveyor hoặc supervisor', () => {
+  // Trước migration 4 ca này là "chỉ nhận surveyor hoặc supervisor"; ADR 0003 §2 thêm owner.
+  it('role chỉ nhận surveyor, supervisor hoặc owner', () => {
     db.prepare(`INSERT INTO projects (id, name, created_at) VALUES (?, ?, ?)`).run('p-role', 'P', '2026-10-07T00:00:00Z');
+    db.prepare(`INSERT INTO users (id, name, token_hash, created_at) VALUES (?, ?, ?, ?)`).run('u-own', 'Chủ', 'hash-own', '2026-10-07T00:00:00Z');
     const insert = db.prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES (?, ?, ?, ?)`);
     expect(() => insert.run('p-role', 'u1', 'admin', '2026-10-07T00:00:00Z')).toThrow();
     expect(() => insert.run('p-role', 'u1', 'surveyor', '2026-10-07T00:00:00Z')).not.toThrow();
+    expect(() => insert.run('p-role', 'u-own', 'owner', '2026-10-07T00:00:00Z')).not.toThrow();
+  });
+
+  it('username là duy nhất; nhiều tài khoản chưa có username (NULL) vẫn được', () => {
+    const insert = db.prepare(`INSERT INTO users (id, name, token_hash, username, created_at) VALUES (?, ?, ?, ?, ?)`);
+    insert.run('u-a', 'A', 'hash-a', 'trung', '2026-10-07T00:00:00Z');
+    expect(() => insert.run('u-b', 'B', 'hash-b', 'trung', '2026-10-07T00:00:00Z')).toThrow();
+    insert.run('u-c', 'C', 'hash-c', null, '2026-10-07T00:00:00Z');
+    expect(() => insert.run('u-d', 'D', 'hash-d', null, '2026-10-07T00:00:00Z')).not.toThrow();
+  });
+
+  it('projects.public mặc định 0 (tổ chức mới không công khai)', () => {
+    db.prepare(`INSERT INTO projects (id, name, created_at) VALUES (?, ?, ?)`).run('p-pub', 'P', '2026-10-07T00:00:00Z');
+    expect(db.prepare(`SELECT public FROM projects WHERE id = 'p-pub'`).get()).toEqual({ public: 0 });
   });
 
   it('khoá ngoại được thực thi: phiếu không thể trỏ tới dự án không tồn tại', () => {
@@ -320,5 +347,129 @@ describe('khoá ngoại', () => {
     expect(() =>
       db.prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES ('khong-co', 'u1', 'surveyor', 'now')`).run(),
     ).toThrow(/FOREIGN KEY/i);
+  });
+});
+
+// Nâng DB đang chạy bản cũ (user_version = 3: có attachments, chưa có tài khoản) lên migration 4.
+// ADR 0003 §5, design §6.1 "Dữ liệu cũ khi nâng cấp", ca MG1, MG2 ở §10.1.
+describe('migration 4: tài khoản, phiên, owner', () => {
+  const NOW = '2026-10-10T00:00:00Z';
+
+  /** DB ở user_version = 3 với hai dự án, ba người dùng có token cũ. */
+  function dbAtVersion3(): Db {
+    const db = new DatabaseSync(':memory:');
+    migrate(db, migrations.slice(0, 3));
+    expect(userVersion(db)).toBe(3);
+    db.exec(`
+      INSERT INTO projects (id, name, archived, created_at) VALUES
+        ('yte', 'Y tế', 0, '${NOW}'), ('nn', 'Nông nghiệp', 0, '${NOW}');
+      INSERT INTO users (id, name, token_hash, is_admin, disabled, created_at) VALUES
+        ('u_lan', 'Lan', '${hashToken('tok-lan')}', 0, 0, '${NOW}'),
+        ('u_minh', 'Minh', '${hashToken('tok-minh')}', 0, 0, '${NOW}'),
+        ('u_root', 'Quản trị', '${hashToken('tok-root')}', 1, 0, '${NOW}');
+      INSERT INTO memberships (project_id, user_id, role, added_at) VALUES
+        ('yte', 'u_lan', 'supervisor', '${NOW}'),
+        ('nn', 'u_lan', 'surveyor', '${NOW}'),
+        ('yte', 'u_minh', 'surveyor', '${NOW}');
+      INSERT INTO forms (project_id, id, version, schema, created_at, created_by) VALUES
+        ('yte', 'f', 1, '{"id":"f","version":1,"title":"F","fields":[]}', '${NOW}', 'u_lan');
+    `);
+    return db;
+  }
+
+  function memberships(db: Db): unknown[] {
+    return db.prepare(`SELECT project_id, user_id, role, added_at FROM memberships ORDER BY project_id, user_id`).all();
+  }
+
+  it('MG1: admin đang là thành viên → lỗi liệt kê tài khoản, dự án, vai trò; rollback, user_version giữ 3', () => {
+    const db = dbAtVersion3();
+    db.exec(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES ('nn', 'u_root', 'supervisor', '${NOW}')`);
+    const before = snapshot(db);
+    const membersBefore = memberships(db);
+
+    let message = '';
+    try {
+      migrate(db, migrations);
+    } catch (err) {
+      message = err instanceof Error ? err.message : String(err);
+    }
+    expect(message).toContain('u_root');
+    expect(message).toContain('nn');
+    expect(message).toContain('supervisor');
+    // Chỉ liệt kê tài khoản admin, không liệt kê người thường
+    expect(message).not.toContain('u_lan');
+
+    expect(userVersion(db)).toBe(3);
+    expect(snapshot(db)).toEqual(before);
+    expect(memberships(db)).toEqual(membersBefore);
+  });
+
+  it('MG1: admin là thành viên dự án đã lưu trữ cũng bị chặn', () => {
+    const db = dbAtVersion3();
+    db.exec(`
+      INSERT INTO projects (id, name, archived, created_at) VALUES ('cu', 'Cũ', 1, '${NOW}');
+      INSERT INTO memberships (project_id, user_id, role, added_at) VALUES ('cu', 'u_root', 'surveyor', '${NOW}');
+    `);
+    expect(() => migrate(db, migrations)).toThrow(/u_root/);
+    expect(userVersion(db)).toBe(3);
+  });
+
+  it('MG2: lên bản mới nhất; membership giữ nguyên số dòng và vai trò, added_by để trống', () => {
+    const db = dbAtVersion3();
+    const membersBefore = memberships(db);
+
+    migrate(db, migrations);
+
+    expect(userVersion(db)).toBe(migrations.length);
+    expect(memberships(db)).toEqual(membersBefore);
+    const addedBy = db.prepare(`SELECT DISTINCT added_by FROM memberships`).all();
+    expect(addedBy).toEqual([{ added_by: null }]);
+    // Chưa tổ chức nào có Owner: migration không tự chọn (ADR 0003 §5)
+    expect(db.prepare(`SELECT COUNT(*) AS n FROM memberships WHERE role = 'owner'`).get()).toEqual({ n: 0 });
+  });
+
+  it('MG2: tài khoản cũ có username = id, chưa có mật khẩu; mỗi token cũ thành một phiên', () => {
+    const db = dbAtVersion3();
+    migrate(db, migrations);
+
+    expect(db.prepare(`SELECT id, username, password_hash FROM users ORDER BY id`).all()).toEqual([
+      { id: 'u_lan', username: 'u_lan', password_hash: null },
+      { id: 'u_minh', username: 'u_minh', password_hash: null },
+      { id: 'u_root', username: 'u_root', password_hash: null },
+    ]);
+    expect(db.prepare(`SELECT token_hash, user_id, created_at, last_seen_at FROM sessions ORDER BY user_id`).all()).toEqual([
+      { token_hash: hashToken('tok-lan'), user_id: 'u_lan', created_at: NOW, last_seen_at: NOW },
+      { token_hash: hashToken('tok-minh'), user_id: 'u_minh', created_at: NOW, last_seen_at: NOW },
+      { token_hash: hashToken('tok-root'), user_id: 'u_root', created_at: NOW, last_seen_at: NOW },
+    ]);
+  });
+
+  it('MG2: token cũ vẫn gọi được API; supervisor dùng được P/... khi tổ chức chưa có Owner', async () => {
+    const db = dbAtVersion3();
+    migrate(db, migrations);
+    const server: Server = createApp(db).listen(0);
+    await new Promise((r) => server.once('listening', r));
+    const base = `http://localhost:${(server.address() as AddressInfo).port}`;
+    try {
+      const me = await fetch(`${base}/api/me`, { headers: { Authorization: 'Bearer tok-lan' } });
+      expect(me.status).toBe(200);
+      const body = (await me.json()) as MeResponse;
+      expect(body.user).toEqual({ id: 'u_lan', username: 'u_lan', name: 'Lan', isAdmin: false });
+      expect(body.projects).toEqual([
+        { id: 'nn', name: 'Nông nghiệp', role: 'surveyor' },
+        { id: 'yte', name: 'Y tế', role: 'supervisor' },
+      ]);
+
+      const forms = await fetch(`${base}/api/projects/yte/forms`, { headers: { Authorization: 'Bearer tok-lan' } });
+      expect(forms.status).toBe(200);
+      const save = await fetch(`${base}/api/projects/yte/forms`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer tok-lan', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'f', title: 'F', fields: [] }),
+      });
+      expect(save.status).toBe(201);
+    } finally {
+      server.close();
+    }
   });
 });

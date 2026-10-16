@@ -4,6 +4,7 @@ import type { Db } from './db';
 import { createAuth } from './auth';
 import { formsRouter } from './routes/forms';
 import { meRouter } from './routes/me';
+import { authRouter } from './routes/auth';
 import { adminRouter } from './routes/admin';
 import { recordsRouter } from './routes/records';
 import { attachmentsRouter } from './routes/attachments';
@@ -19,6 +20,10 @@ export function testRoutesEnabled(env: NodeJS.ProcessEnv): boolean {
 
 export function createApp(db: Db, opts: { enableTestRoutes?: boolean; uploadDir?: string } = {}) {
   const app = express();
+  // Sau Caddy (cùng máy) mọi request tới từ loopback: chỉ khi đó mới tin X-Forwarded-For, để giới hạn
+  // tần suất theo IP đếm đúng người dùng (ADR 0003 §1). Request đến thẳng cổng 3001 từ máy khác
+  // thì header này bị bỏ qua.
+  app.set('trust proxy', 'loopback');
   app.use(cors());
   app.use(express.json({ limit: '2mb' }));
 
@@ -34,6 +39,7 @@ export function createApp(db: Db, opts: { enableTestRoutes?: boolean; uploadDir?
 
   // Route theo dự án: xác thực rồi kiểm thành viên (ADR 0002 §3). projectId chỉ lấy từ đường dẫn.
   const { requireAuth, requireMember, requireAdmin } = createAuth(db);
+  app.use('/api/auth', authRouter(db, requireAuth));
   app.use('/api/me', requireAuth, meRouter(db));
   app.use('/api/admin', requireAuth, requireAdmin, adminRouter(db));
 

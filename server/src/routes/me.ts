@@ -11,8 +11,8 @@ export function meRouter(db: Db): Router {
   r.get('/', (req, res) => {
     if (!req.user) throw new Error('req.user chưa có: /me phải đi qua requireAuth');
     // Chép từng trường thay vì trả nguyên req.user, để sau này AuthUser có thêm gì cũng không lộ ra.
-    const { id, name, isAdmin } = req.user;
-    const body: MeResponse = { user: { id, name, isAdmin }, projects: listMyProjects(db, id) };
+    const { id, username, name, isAdmin } = req.user;
+    const body: MeResponse = { user: { id, username, name, isAdmin }, projects: listMyProjects(db, id) };
     res.json(body);
   });
 

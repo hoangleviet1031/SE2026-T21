@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { FieldDef, FormSchema, SaveFormRequest } from '@field-survey/shared';
+import type { AuthResponse, FieldDef, FormSchema, SaveFormRequest } from '@field-survey/shared';
 import { SAMPLE_FORM } from '../src/db';
 import { DEMO_USER_IDS } from '../src/seedDemo';
 import { createTestServer, type TestServer } from './fixtures';
@@ -134,6 +134,21 @@ describe('POST P/forms', () => {
     expect(await res.json()).toEqual({ error: 'forbidden' });
     const latest = (await (await call('GET', formsPath(t.projects.yte), t.tokens.minh)).json()) as FormSchema[];
     expect(latest.map((x) => x.id)).not.toContain(f.id);
+  });
+
+  it('A5: Owner lưu form được (thứ hạng owner > supervisor, ADR 0003 §2)', async () => {
+    const reg = await fetch(`${t.base}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'chu.yte', name: 'Chủ', password: 'mat-khau-chu' }),
+    });
+    const { token, user } = (await reg.json()) as AuthResponse;
+    t.db
+      .prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES (?, ?, 'owner', 'now')`)
+      .run(t.projects.yte, user.id);
+    const res = await save(newForm(), token);
+    expect(res.status).toBe(201);
+    expect(((await res.json()) as FormSchema).version).toBe(1);
   });
 
   it('không là thành viên (admin): 403 not_member', async () => {

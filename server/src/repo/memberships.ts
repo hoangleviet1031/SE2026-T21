@@ -12,9 +12,13 @@ export function getMemberRole(db: Db, userId: string, projectId: string): Role |
     )
     .get(projectId, userId) as { role: string } | undefined;
   if (!row) return undefined;
-  // CHECK trong schema đã đảm bảo; kiểm lại để không ép kiểu mù.
-  if (row.role !== 'surveyor' && row.role !== 'supervisor') {
-    throw new Error(`vai trò không hợp lệ trong CSDL: ${row.role}`);
+  return toRole(row.role);
+}
+
+/** Đổi cột `role` đọc từ CSDL sang `Role`. CHECK trong schema đã đảm bảo; kiểm lại để không ép kiểu mù. */
+export function toRole(role: string): Role {
+  if (role !== 'surveyor' && role !== 'supervisor' && role !== 'owner') {
+    throw new Error(`vai trò không hợp lệ trong CSDL: ${role}`);
   }
-  return row.role;
+  return role;
 }

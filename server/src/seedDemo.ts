@@ -26,12 +26,19 @@ export function seedDemo(db: Db): void {
       `INSERT OR IGNORE INTO forms (project_id, id, version, schema, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(DEMO_PROJECTS.nongnghiep, SAMPLE_FORM.id, SAMPLE_FORM.version, JSON.stringify(SAMPLE_FORM), now, 'system');
 
+    // Cầu nối tới TV3-12: token demo cố định được ghi thành phiên (requireAuth chỉ tra bảng sessions,
+    // ADR 0003 §1). TV3-12 thêm mật khẩu demo và Owner cho mỗi dự án.
     const addUser = db.prepare(
-      `INSERT OR IGNORE INTO users (id, name, token_hash, is_admin, created_at) VALUES (?, ?, ?, ?, ?)`,
+      `INSERT OR IGNORE INTO users (id, username, name, token_hash, is_admin, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
     );
-    addUser.run(DEMO_USER_IDS.admin, 'admin', hashToken(DEMO_TOKENS.admin), 1, now);
-    addUser.run(DEMO_USER_IDS.lan, 'lan', hashToken(DEMO_TOKENS.lan), 0, now);
-    addUser.run(DEMO_USER_IDS.minh, 'minh', hashToken(DEMO_TOKENS.minh), 0, now);
+    const addSession = db.prepare(
+      `INSERT OR IGNORE INTO sessions (token_hash, user_id, created_at, last_seen_at) VALUES (?, ?, ?, ?)`,
+    );
+    for (const key of ['admin', 'lan', 'minh'] as const) {
+      const tokenHash = hashToken(DEMO_TOKENS[key]);
+      addUser.run(DEMO_USER_IDS[key], key, key, tokenHash, key === 'admin' ? 1 : 0, now);
+      addSession.run(tokenHash, DEMO_USER_IDS[key], now, now);
+    }
 
     const addMember = db.prepare(
       `INSERT OR IGNORE INTO memberships (project_id, user_id, role, added_at) VALUES (?, ?, ?, ?)`,

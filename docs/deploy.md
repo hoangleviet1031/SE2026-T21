@@ -206,14 +206,30 @@ Trên điện thoại:
 
 ## Tài khoản
 
-> 🕘 **Mục này là bản đang chạy (ADR 0002).** [ADR 0003](adr/0003-accounts-and-owner-role.md) đổi sang tự tạo tài khoản (tên + mật khẩu), mở tổ chức qua admin duyệt và trang quản trị `/admin/`; TV2-14, TV3-12, TV1-16 sẽ viết lại mục này. Trong lúc chờ:
-> - **Không chỉ định tài khoản admin làm thành viên tổ chức nào** (kể cả chính mình): từ migration 3, server sẽ **từ chối khởi động** nếu còn admin là thành viên (ADR 0003 §5). Muốn thử app khảo sát thì tạo thêm một tài khoản thường.
-> - Đã lỡ làm vậy thì trước khi deploy bản có migration 3, kiểm tra trên máy staging:
->   ```bash
->   cd ~/app && node --no-warnings -e "const {DatabaseSync}=require('node:sqlite');const db=new DatabaseSync('server/data/survey.db',{readOnly:true});console.log(db.prepare(\"SELECT u.id,u.name,m.project_id,m.role FROM users u JOIN memberships m ON m.user_id=u.id WHERE u.is_admin=1\").all())"
->   ```
->   Kết quả khác `[]` thì xử lý theo ADR 0003 §5 trước khi chạy `deploy.sh`.
-> - Sau khi deploy migration 3: mọi tổ chức cũ chưa có Owner; admin chỉ định Owner (cách làm sẽ ghi ở đây khi TV2-15 xong).
+> 🕘 **Mục này đang chuyển dần sang [ADR 0003](adr/0003-accounts-and-owner-role.md)** (tự tạo tài khoản bằng tên + mật khẩu, mở tổ chức qua admin duyệt, trang quản trị `/admin/`). TV2-14 đã có phía server (migration 4, `/api/auth/*`); app khảo sát vẫn đăng nhập bằng mã tới TV2-16, TV1-14; CLI theo tên đăng nhập ở TV3-12; chỉ định Owner ở TV2-15.
+
+### Nâng cấp lên migration 4 (TV2-14)
+
+Migration 4 chạy khi server khởi động lần đầu với bản mới. Nó **dừng và server không khởi động** nếu còn tài khoản admin là thành viên tổ chức nào (ADR 0003 §5); CSDL giữ nguyên ở `user_version = 3`.
+
+1. **Trước khi chạy `deploy.sh`**, kiểm tra trên máy staging:
+   ```bash
+   cd ~/app && node --no-warnings -e "const {DatabaseSync}=require('node:sqlite');const db=new DatabaseSync('server/data/survey.db',{readOnly:true});console.log(db.prepare('PRAGMA user_version').get(), db.prepare(\"SELECT u.id,u.name,m.project_id,m.role FROM users u JOIN memberships m ON m.user_id=u.id WHERE u.is_admin=1\").all())"
+   ```
+   Kết quả danh sách khác `[]` thì xử lý từng dòng trước, theo một trong hai cách (không tự động, vì có thể làm tổ chức mất người quản lý):
+   - bỏ cờ admin của tài khoản đó, giữ vai trò trong tổ chức, rồi tạo tài khoản admin riêng bằng `user:add --admin`:
+     ```bash
+     node --no-warnings -e "const {DatabaseSync}=require('node:sqlite');new DatabaseSync('server/data/survey.db').prepare('UPDATE users SET is_admin = 0 WHERE id = ?').run(process.argv[1])" <userId>
+     ```
+   - hoặc rút tài khoản admin khỏi tổ chức (chỉ khi tổ chức còn giám sát viên khác).
+2. Chạy `deploy.sh`. Nếu bước 4 báo server không lên, xem lý do bằng `journalctl -u survey-api -n 50`: dòng `Migration 4 dừng` liệt kê `userId (tên) – projectId – vai trò` cần xử lý; làm như bước 1 rồi `sudo systemctl restart survey-api`.
+3. Sau khi lên: mọi mã đăng nhập cũ vẫn dùng được (được chép thành phiên trong bảng `sessions`), tên đăng nhập của tài khoản cũ là `userId`, chưa có mật khẩu. **Mọi tổ chức cũ chưa có Owner**; giám sát viên vẫn làm việc bình thường. Admin chỉ định Owner bằng `PUT /api/admin/projects/:projectId/owners/:username` khi TV2-15 xong (sẽ ghi lệnh ở đây).
+
+`POST /api/auth/register` đã mở trên staging (tối đa 5 tài khoản/giờ/IP), nhưng app chưa có màn hình tạo tài khoản (TV1-14).
+
+### Tài khoản bằng CLI (bản đang chạy)
+
+**Không chỉ định tài khoản admin làm thành viên tổ chức nào** (kể cả chính mình). Muốn thử app khảo sát thì tạo thêm một tài khoản thường.
 
 Không có tự đăng ký (ADR 0002). Quản trị chạy lệnh trên máy staging, trong `~/app`; token in ra **một lần**, gửi cho người dùng qua kênh riêng. Lệnh mở cùng file `server/data/survey.db` với server, chạy được khi server đang chạy.
 
