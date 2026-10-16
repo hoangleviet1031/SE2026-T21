@@ -7,6 +7,7 @@ import { saveRecordLocally } from '../sync/outbox';
 import { syncNow } from '../sync/engine';
 import { requestPersistentStorage } from '../persistStorage';
 import { navigate } from '../useHashRoute';
+import { useOnline } from '../useOnline';
 
 export function FillPage({ formId, recordId }: { formId: string; recordId?: string }) {
   const db = useCurrentProjectDb();
@@ -14,16 +15,44 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const record = useLiveQuery(() => db?.records.get(id), [db, id]);
   const forms = useLiveQuery(async () => db?.forms.where('id').equals(formId).toArray(), [db, formId]);
   const [data, setData] = useState<RecordData>({});
+  const online = useOnline();
+  // Đã thử đồng bộ để tải bản form còn thiếu mà vẫn chưa có (vd. server không trả lời)
+  const [fetchTried, setFetchTried] = useState(false);
 
   useEffect(() => {
     if (record) setData(record.data);
   }, [record?.id]);
 
-  if (!db || !forms) return null;
   // Bản ghi cũ hiển thị theo đúng phiên bản form lúc tạo
-  const version = record?.formVersion ?? Math.max(...forms.map((f) => f.version));
-  const form = forms.find((f) => f.version === version);
-  if (!form) return <p>Không tìm thấy biểu mẫu.</p>;
+  const version = record?.formVersion ?? (forms?.length ? Math.max(...forms.map((f) => f.version)) : undefined);
+  const form = forms?.find((f) => f.version === version);
+  const missingVersion = record !== undefined && forms !== undefined && !form;
+
+  // Thiếu bản form của phiếu: vòng đồng bộ tải về (design §5.3 bước 5), trang không gọi API trực tiếp.
+  // Có mạng lại thì thử lại.
+  useEffect(() => {
+    if (!missingVersion || !online) return;
+    setFetchTried(false);
+    syncNow()
+      .catch((e) => console.warn('sync failed', e))
+      .finally(() => setFetchTried(true));
+  }, [missingVersion, online]);
+
+  if (!db || !forms) return null;
+  if (!form) {
+    if (!missingVersion) return <p>Không tìm thấy biểu mẫu.</p>;
+    // design §8: phiếu dùng form version chưa có trên máy
+    return (
+      <section>
+        <a href="#/" className="back">
+          ← Quay lại
+        </a>
+        <p data-testid="form-version-missing">
+          {online && !fetchTried ? 'Đang tải biểu mẫu…' : 'Cần kết nối để mở phiếu này'}
+        </p>
+      </section>
+    );
+  }
   // Lỗi lấy từ lần lưu gần nhất (design §4.1: mở lại nháp thì thấy danh sách lỗi)
   const isDraft = record?.syncState === 'draft';
 

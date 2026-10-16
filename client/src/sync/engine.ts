@@ -10,7 +10,7 @@ import {
 import { accountDb, setAccountValue, type AccountProject } from '../db/accountDb';
 import { getCurrentProjectId, openProjectDb } from '../db/current';
 import { formKey, getMeta, setMeta, type OutboxOp, type ProjectDb, type SyncState } from '../db/projectDb';
-import { NetworkError, NotMemberError, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
+import { NetworkError, NotMemberError, fetchFormVersion, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
 import { mergeMeIntoProjects, projectsToSync, pullStateAfterPage, type PullState } from './accountSync';
 import { applyMembershipChanges, markRemoved } from './membership';
 import { earliestCreatedAt } from './outbox';
@@ -140,6 +140,30 @@ async function scheduleNextRetry(dbs: ProjectDb[]) {
 async function syncForms(db: ProjectDb): Promise<void> {
   const forms = await fetchForms(db.projectId);
   await db.forms.bulkPut(forms.map((f) => ({ ...f, key: formKey(f.id, f.version) })));
+  await fetchMissingFormVersions(db);
+}
+
+/**
+ * Phiếu luôn mở bằng đúng `formVersion` của nó, mà GET forms chỉ trả bản mới nhất: phiếu pull từ
+ * máy khác có thể dùng bản cũ máy này chưa từng thấy (design §5.3 bước 5, §8). Quét mọi phiếu
+ * chứ không chỉ phiếu vừa pull, để trang điền phiếu chỉ cần gọi syncNow() khi thiếu bản form.
+ */
+async function fetchMissingFormVersions(db: ProjectDb): Promise<void> {
+  const have = new Set(await db.forms.toCollection().primaryKeys());
+  const missing = new Map<string, { id: string; version: number }>();
+  await db.records.each((r) => {
+    const key = formKey(r.formId, r.formVersion);
+    if (!have.has(key)) missing.set(key, { id: r.formId, version: r.formVersion });
+  });
+  for (const [key, { id, version }] of missing) {
+    const form = await fetchFormVersion(db.projectId, id, version);
+    // Server không có bản này thì phiếu vẫn nằm trên máy, chỉ chưa mở được; không chặn vòng đồng bộ
+    if (!form) {
+      console.warn('server không có form', key);
+      continue;
+    }
+    await db.forms.put({ ...form, key });
+  }
 }
 
 async function pushAll(db: ProjectDb): Promise<void> {
