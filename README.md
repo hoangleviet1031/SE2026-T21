@@ -35,26 +35,30 @@ Mở http://localhost:5173. Để thử offline: DevTools > Network > Offline, r
 
 ### Tài khoản demo
 
-> 🕘 Đăng nhập bằng mã (token) là cách **đang chạy**. Theo [ADR 0003](docs/adr/0003-accounts-and-owner-role.md) sẽ đổi sang tên đăng nhập + mật khẩu, tự tạo tài khoản và trang quản trị `/admin/` (ticket TV2-14, TV3-12 sẽ cập nhật mục này).
+> Theo [ADR 0003](docs/adr/0003-accounts-and-owner-role.md), tài khoản đăng nhập bằng tên + mật khẩu (server đã có từ TV2-14). Màn hình đăng nhập tên + mật khẩu (TV1-14) **chưa có**: app vẫn hỏi **mã (token)**, nên tài khoản demo có sẵn cả token cố định.
 
-Đặt `SEED_DEMO=1` khi chạy server để nạp dữ liệu demo (chỉ dùng dev/test, token cố định): `SEED_DEMO=1 npm run dev` (PowerShell: `$env:SEED_DEMO='1'; npm run dev`).
+Đặt `SEED_DEMO=1` khi chạy server để nạp dữ liệu demo (chỉ dùng dev/test, mật khẩu và token cố định): `SEED_DEMO=1 npm run dev` (PowerShell: `$env:SEED_DEMO='1'; npm run dev`).
 
-| Người dùng | Token | Dự án |
+Mật khẩu chung: `demo-password`.
+
+| Tên đăng nhập | Token (nhập ở màn hình hiện tại) | Dự án |
 |---|---|---|
 | `lan` | `demo-token-lan` | `demo-yte`: supervisor; `demo-nongnghiep`: surveyor |
 | `minh` | `demo-token-minh` | `demo-yte`: surveyor |
-| `admin` | `demo-token-admin` | quản trị hệ thống, chưa là thành viên dự án nào |
+| `chu` | `demo-token-chu` | Owner của `demo-yte` và `demo-nongnghiep` |
+| `admin` | `demo-token-admin` | quản trị hệ thống, không là thành viên dự án nào |
 
-Nhập token ở màn hình đăng nhập. E2E tự bật `SEED_DEMO=1`. Muốn nạp vào file DB mà không chạy server: `npm run seed:demo -w server` (từ chối khi `NODE_ENV=production`).
+E2E tự bật `SEED_DEMO=1` và đăng nhập bằng tên + mật khẩu qua `/api/auth/login` (`client/e2e/helpers.ts`). Muốn nạp vào file DB mà không chạy server: `npm run seed:demo -w server` (từ chối khi `NODE_ENV=production`).
 
-### Quản trị người dùng
+### Quản trị tài khoản
 
-Không có tự đăng ký: quản trị tạo tài khoản bằng lệnh rồi gửi token cho người dùng (design §12). Lệnh dùng cùng `DB_PATH` với server.
+Người dùng tự tạo tài khoản trên app (ADR 0003). Lệnh dưới đây để tạo admin và hỗ trợ; dùng cùng `DB_PATH` với server, chạy được khi server đang chạy (design §12).
 
 ```bash
-npm run user:add -w server -- --name "Lan" [--admin]     # in userId và token, token chỉ hiện một lần
-npm run user:rotate-token -w server -- --user u_xxxxxxxx  # cấp token mới, token cũ hết hiệu lực
-npm run user:disable -w server -- --user u_xxxxxxxx       # khoá tài khoản
+npm run user:add -w server -- --username dang --name "Đăng" [--admin]  # in mật khẩu tạm một lần
+npm run user:reset-password -w server -- --user dang                   # quên mật khẩu: mật khẩu tạm mới, giữ phiên
+npm run user:revoke-sessions -w server -- --user dang                  # mất máy: thu hồi mọi phiên
+npm run user:disable -w server -- --user dang                          # khoá tài khoản và thu hồi mọi phiên
 ```
 
 ## Kiểm thử

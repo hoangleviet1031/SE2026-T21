@@ -182,7 +182,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-12 · CLI, fixture, helper E2E theo tài khoản mới
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv2-14-accounts` (PR chung với TV2-14)
 - **Tuần:** 3 · **Phụ thuộc:** không · **Làm cùng:** TV2-14 (**một PR**: đổi đăng nhập làm vỡ mọi test đang dùng token)
 - **Spec:** design §12 (🆕 Lệnh quản trị), §10.1; ADR 0003 §1, §5
 - **File:** `server/src/cli/user.ts`, `server/src/seedDemo.ts`, `server/package.json` (scripts), `server/test/cli.test.ts`, `server/test/fixtures.ts`, `client/e2e/helpers.ts`, `client/e2e/*.spec.ts` (chỉ chỗ đăng nhập), `README.md` (mục "Tài khoản demo")

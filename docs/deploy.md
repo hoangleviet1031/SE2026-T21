@@ -227,23 +227,33 @@ Migration 4 chạy khi server khởi động lần đầu với bản mới. Nó
 
 `POST /api/auth/register` đã mở trên staging (tối đa 5 tài khoản/giờ/IP), nhưng app chưa có màn hình tạo tài khoản (TV1-14).
 
-### Tài khoản bằng CLI (bản đang chạy)
+### Tài khoản bằng CLI (TV3-12)
 
 **Không chỉ định tài khoản admin làm thành viên tổ chức nào** (kể cả chính mình). Muốn thử app khảo sát thì tạo thêm một tài khoản thường.
 
-Không có tự đăng ký (ADR 0002). Quản trị chạy lệnh trên máy staging, trong `~/app`; token in ra **một lần**, gửi cho người dùng qua kênh riêng. Lệnh mở cùng file `server/data/survey.db` với server, chạy được khi server đang chạy.
+Quản trị chạy lệnh trên máy staging, trong `~/app`; mật khẩu tạm in ra **một lần**, gửi cho người dùng qua kênh riêng. Lệnh mở cùng file `server/data/survey.db` với server, chạy được khi server đang chạy.
 
 ```bash
 cd ~/app
-npm run user:add -w server -- --name "Dương" --admin    # admin: quản lý dự án
-npm run user:add -w server -- --name "Lan"              # người dùng thường
-npm run user:rotate-token -w server -- --user <userId>   # cấp lại mã, mã cũ hết hiệu lực
-npm run user:disable -w server -- --user <userId>        # khoá tài khoản
+npm run user:add -w server -- --username duong --name "Dương" --admin  # admin; in mật khẩu tạm và userId
+npm run user:add -w server -- --username lan --name "Lan"              # người dùng thường
+npm run user:reset-password -w server -- --user lan                   # quên mật khẩu (tài khoản cũ chưa có mật khẩu cũng dùng lệnh này)
+npm run user:revoke-sessions -w server -- --user lan                  # mất máy: thu hồi mọi phiên
+npm run user:disable -w server -- --user lan                          # khoá tài khoản và thu hồi mọi phiên
 ```
 
-`seed:demo` **từ chối chạy** vì `NODE_ENV=production` là đúng: token demo công khai trong repo. Không lách bằng cách bỏ `NODE_ENV`.
+`user:rotate-token` đã bỏ. Tài khoản cũ (tạo trước migration 4) có tên đăng nhập là `userId`, nên `--user u_xxxxxxxx` vẫn dùng được.
 
-Dự án và giám sát viên tạo bằng API admin (design §7, TV2-04), gọi với token admin:
+**Lấy mã để nhập vào app** (tới khi có màn hình đăng nhập tên + mật khẩu, TV1-14): mỗi lần đăng nhập tạo một phiên mới, `token` trong kết quả là mã nhập vào app.
+
+```bash
+curl -s -X POST https://se2026-t21.koreacentral.cloudapp.azure.com/api/auth/login \
+  -H 'Content-Type: application/json' -d '{"username":"lan","password":"<mật khẩu>"}'
+```
+
+`seed:demo` **từ chối chạy** vì `NODE_ENV=production` là đúng: mật khẩu và token demo công khai trong repo. Không lách bằng cách bỏ `NODE_ENV`.
+
+Dự án và giám sát viên tạo bằng API admin (design §7, TV2-04), gọi với token admin (lấy bằng lệnh `curl` đăng nhập ở trên):
 
 ```bash
 TOKEN=<token admin>
