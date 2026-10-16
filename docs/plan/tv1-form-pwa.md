@@ -183,7 +183,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-10 · `formVersion`, trường ẩn, xuất/nhập form
 
-- **Trạng thái:** ⏳ PR (phần 1: formVersion + trường ẩn); phần 2 xuất/nhập form chưa làm
+- **Trạng thái:** ⏳ PR #32 (phần 1: formVersion + trường ẩn); phần 2 xuất/nhập form chưa làm
 - **Tuần:** 5 · **Phụ thuộc:** TV1-04
 - **Spec:** design §4.1, §5.3 bước 5, §8 (form version chưa có trên máy)
 - **File:** `client/src/pages/FillPage.tsx`, `client/src/components/FormRenderer.tsx`, `client/src/pages/BuilderPage.tsx`
