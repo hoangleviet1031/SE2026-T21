@@ -12,8 +12,10 @@ export function formFileName(form: FormSchema): string {
   return `${form.id}-v${form.version}.json`;
 }
 
+/** Chỉ chép các khoá của `FormSchema`: bản ghi trong IndexedDB còn khoá nội bộ (`key`) không được lọt ra file. */
 export function formFileText(form: FormSchema): string {
-  return JSON.stringify(form, null, 2);
+  const { id, version, title, fields } = form;
+  return JSON.stringify({ id, version, title, fields }, null, 2);
 }
 
 export type ParsedFormFile = { ok: true; form: SaveFormRequest } | { ok: false; errors: string[] };

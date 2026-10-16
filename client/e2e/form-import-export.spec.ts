@@ -86,7 +86,7 @@ test('xuất form ở dự án này, nhập vào dự án khác, lưu thành for
   expect(download.suggestedFilename()).toBe('ho-v1.json');
   const path = await download.path();
   const text = await readFile(path, 'utf8');
-  expect(JSON.parse(text)).toMatchObject({ ...form, version: 1 });
+  expect(JSON.parse(text)).toEqual({ ...form, version: 1 });
 
   await page.goto('/#/');
   await page.getByTestId('project-switcher').getByRole('button', { expanded: false }).click();

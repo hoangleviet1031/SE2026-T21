@@ -18,6 +18,11 @@ describe('xuất form', () => {
     expect(formFileName(form)).toBe('household-survey-v3.json');
   });
 
+  it('file chỉ có khoá của FormSchema, không có khoá nội bộ của IndexedDB', () => {
+    const stored = { ...form, key: 'household-survey@3' };
+    expect(JSON.parse(formFileText(stored))).toEqual(form);
+  });
+
   it('xuất rồi đọc lại được đúng form, bỏ version', () => {
     const { version: _version, ...rest } = form;
     expect(parseFormFile(formFileText(form))).toEqual({ ok: true, form: rest });
