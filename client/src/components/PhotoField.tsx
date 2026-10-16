@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { ProjectDb } from '../db/projectDb';
+import type { LocalAttachment, ProjectDb } from '../db/projectDb';
 import { addPhoto, StorageFullError } from '../db/attachments';
 import { compressImage, ImageDecodeError } from '../media/compress';
 
@@ -20,21 +20,46 @@ interface Props {
   onChange: (ids: string[]) => void;
 }
 
-/** URL xem trước cho các ảnh đang có trong trường; thu hồi khi danh sách đổi hoặc rời trang. */
-function usePreviewUrls(db: ProjectDb, ids: string[]): Map<string, string> {
+// Nhãn nhỏ trên ảnh thu nhỏ (design §5.6: trang xem phiếu báo ảnh đang tải lên). Ảnh đã lên thì không hiện gì.
+const UPLOAD_BADGE: Record<LocalAttachment['uploadState'], string | null> = {
+  pending: 'Chờ tải lên',
+  uploading: 'Đang tải lên',
+  done: null,
+  failed: 'Lỗi',
+};
+
+/**
+ * Ảnh đang có trong trường: URL xem trước và trạng thái upload. Hàng đợi ảnh cập nhật bản ghi
+ * liên tục khi đang gửi, nên chỉ tạo lại URL khi danh sách ảnh có trên máy đổi, không phải mỗi lần cập nhật.
+ */
+function usePhotos(db: ProjectDb, ids: string[]) {
   const rows = useLiveQuery(() => db.attachments.bulkGet(ids), [db, ids.join(',')]);
+  const present = (rows ?? []).filter((r): r is LocalAttachment => r !== undefined);
+  const presentKey = present.map((r) => r.id).join(',');
   const [urls, setUrls] = useState(new Map<string, string>());
   useEffect(() => {
     const next = new Map<string, string>();
-    for (const row of rows ?? []) if (row) next.set(row.id, URL.createObjectURL(row.blob));
+    for (const row of present) next.set(row.id, URL.createObjectURL(row.blob));
     setUrls(next);
     return () => next.forEach((url) => URL.revokeObjectURL(url));
-  }, [rows]);
-  return urls;
+    // Chỉ theo presentKey: `present` đổi danh tính mỗi lần hàng đợi cập nhật bản ghi.
+  }, [presentKey]);
+  const states = new Map(present.map((r) => [r.id, r.uploadState]));
+  return { urls, states };
+}
+
+function UploadBadge({ state }: { state: LocalAttachment['uploadState'] | undefined }) {
+  const text = state ? UPLOAD_BADGE[state] : null;
+  if (!state || !text) return null;
+  return (
+    <span className={`photo-state ${state}`} data-testid="photo-state">
+      {text}
+    </span>
+  );
 }
 
 export function PhotoField({ db, fieldId, recordId, ids, onChange }: Props) {
-  const urls = usePreviewUrls(db, ids);
+  const { urls, states } = usePhotos(db, ids);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +84,7 @@ export function PhotoField({ db, fieldId, recordId, ids, onChange }: Props) {
       {ids.map((id, i) => (
         <span key={id} className="photo-thumb" data-testid="photo-thumb">
           {urls.has(id) ? <img src={urls.get(id)} alt={`Ảnh ${i + 1}`} /> : <span className="photo-missing">Ảnh</span>}
+          <UploadBadge state={states.get(id)} />
           {/* Khoá khi đang nén: ảnh mới được thêm vào danh sách lúc bắt đầu chọn, bỏ ảnh giữa chừng sẽ bị ghi đè */}
           <button
             type="button"
