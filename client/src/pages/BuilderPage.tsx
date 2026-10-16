@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { FieldType, FormSchema } from '@field-survey/shared';
 import {
@@ -8,6 +8,7 @@ import {
   builderErrors,
   emptyBuilder,
   fromForm,
+  fromImport,
   moveField,
   removeField,
   setFormId,
@@ -18,6 +19,7 @@ import {
 } from '../builder';
 import { FieldEditor } from '../components/FieldEditor';
 import { FormRenderer } from '../components/FormRenderer';
+import { formFileName, formFileText, parseFormFile } from '../formFile';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { formKey, type ProjectDb } from '../db/projectDb';
 import { canManageProject } from '../projects';
@@ -28,7 +30,6 @@ const OFFLINE_MSG = 'Cần kết nối để lưu form';
 
 // Form builder (design §4.1, ui.md màn hình 5). Đọc form từ IndexedDB; chỉ khi lưu mới gọi API
 // (màn hình được phép gọi API trực tiếp, CLAUDE.md bất biến 7).
-// TODO(TV1-10): nút "Xuất form" / "Nhập form".
 export function BuilderPage({ formId }: { formId?: string }) {
   const db = useCurrentProjectDb();
   const project = useCurrentProject();
@@ -38,24 +39,30 @@ export function BuilderPage({ formId }: { formId?: string }) {
     const versions = await db.forms.where('id').equals(formId).toArray();
     return versions.reduce<FormSchema | null>((a, b) => (a && a.version >= b.version ? a : b), null);
   }, [db, formId]);
+  // Mã các form đã có trên máy: form mới không được trùng (design §4.1, Xuất/Nhập form)
+  const formIds = useLiveQuery(
+    async () => (db ? new Set((await db.forms.orderBy('id').uniqueKeys()).map(String)) : undefined),
+    [db],
+  );
 
-  if (db === undefined || project === undefined || prev === undefined) return null;
+  if (db === undefined || project === undefined || prev === undefined || (db && !formIds)) return null;
   if (!db || !project || !canManageProject(project.role)) {
     return <p>Chỉ giám sát viên được sửa biểu mẫu.</p>;
   }
   if (formId && !prev) return <p>Không tìm thấy biểu mẫu.</p>;
   // key chỉ theo form: vòng đồng bộ tải bản mới hơn trong lúc sửa không được xoá phần đang sửa;
   // `prev` mới vẫn được dùng để kiểm luật khi lưu (nhóm chốt: bản lưu sau thành version mới)
-  return <Builder key={formId ?? 'new'} db={db} prev={prev ?? undefined} />;
+  return <Builder key={formId ?? 'new'} db={db} prev={prev ?? undefined} formIds={formIds ?? new Set()} />;
 }
 
-function Builder({ db, prev }: { db: ProjectDb; prev?: FormSchema }) {
+function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; formIds: ReadonlySet<string> }) {
   const [state, setState] = useState<BuilderState>(() => (prev ? fromForm(prev) : emptyBuilder()));
   const [selected, setSelected] = useState<number | null>(null);
   const [newType, setNewType] = useState<FieldType>('text');
   const [errors, setErrors] = useState<string[]>([]);
   const [preview, setPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   // Trường đang chọn bị xoá thì bỏ chọn
   useEffect(() => {
@@ -76,7 +83,7 @@ function Builder({ db, prev }: { db: ProjectDb; prev?: FormSchema }) {
   };
 
   const save = async () => {
-    const found = builderErrors(state, prev);
+    const found = builderErrors(state, prev, formIds);
     setErrors(found);
     if (found.length > 0) return;
     // Biết chắc offline thì báo ngay, không chờ hết thời gian request
@@ -94,6 +101,27 @@ function Builder({ db, prev }: { db: ProjectDb; prev?: FormSchema }) {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Xuất bản đã lưu mới nhất trên máy, không gồm phần đang sửa: file dùng để tạo lại đúng form đó
+  const exportForm = (form: FormSchema) => {
+    const url = URL.createObjectURL(new Blob([formFileText(form)], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = formFileName(form);
+    a.click();
+    // Thu hồi ngay thì Safari/Firefox có thể chưa kịp đọc blob để tải
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  // Nhập chỉ nạp vào builder để xem, sửa (vd. đổi mã trùng) rồi mới bấm Lưu bản mới
+  const importForm = async (file: File) => {
+    const parsed = parseFormFile(await file.text());
+    if (!parsed.ok) return setErrors(parsed.errors);
+    const next = fromImport(parsed.form);
+    setState(next);
+    setSelected(null);
+    setErrors(builderErrors(next, undefined, formIds));
   };
 
   const previewForm: FormSchema = { ...toSaveRequest(state), version: (prev?.version ?? 0) + 1 };
@@ -176,6 +204,29 @@ function Builder({ db, prev }: { db: ProjectDb; prev?: FormSchema }) {
         <button className="primary" disabled={saving} onClick={() => void save()}>
           Lưu bản mới
         </button>
+      </div>
+
+      <div className="actions">
+        {prev ? (
+          <button onClick={() => exportForm(prev)}>Xuất form</button>
+        ) : (
+          <>
+            <button onClick={() => fileInput.current?.click()}>Nhập form</button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json,.json"
+              hidden
+              data-testid="import-form-file"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                // Xoá chọn để chọn lại cùng file (sau khi sửa file) vẫn có sự kiện change
+                e.target.value = '';
+                if (file) void importForm(file);
+              }}
+            />
+          </>
+        )}
       </div>
 
       {preview && (

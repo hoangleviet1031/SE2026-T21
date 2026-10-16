@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { FormSchema } from '@field-survey/shared';
 import {
   addField,
+  FORM_ID_TAKEN,
   builderErrors,
   emptyBuilder,
   fromForm,
+  fromImport,
   moveField,
   parseOptions,
   removeField,
@@ -130,5 +132,30 @@ describe('builderErrors', () => {
   it('bỏ lựa chọn cũ thì báo lỗi theo luật so với bản trước', () => {
     const s = updateField(fromForm(saved), 1, { options: ['Máy'] });
     expect(builderErrors(s, saved)).not.toEqual([]);
+  });
+});
+
+describe('mã form trùng trong dự án', () => {
+  const existing = new Set(['household']);
+
+  it('form mới trùng mã form đã có thì báo lỗi, đổi mã thì hết', () => {
+    const s = setFormId(fromImport(saved), 'household');
+    expect(builderErrors(s, undefined, existing)).toEqual([FORM_ID_TAKEN]);
+    expect(builderErrors(setFormId(s, 'household2'), undefined, existing)).toEqual([]);
+  });
+
+  it('form đã lưu (mã khoá) không tính là trùng với chính nó', () => {
+    expect(builderErrors(fromForm(saved), saved, existing)).toEqual([]);
+  });
+});
+
+describe('fromImport', () => {
+  it('nạp thành form mới: mã sửa được, trường chưa lưu nên xoá được và sửa được mã', () => {
+    const s = fromImport({ id: saved.id, title: saved.title, fields: saved.fields });
+    expect(s.idLocked).toBe(false);
+    expect(setFormId(s, 'khac').id).toBe('khac');
+    expect(updateField(s, 0, { id: 'hoTen' }).fields[0]?.id).toBe('hoTen');
+    expect(removeField(s, 0).fields).toHaveLength(1);
+    expect(toSaveRequest(s)).toEqual({ id: saved.id, title: saved.title, fields: saved.fields });
   });
 });

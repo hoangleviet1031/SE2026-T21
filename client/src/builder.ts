@@ -52,6 +52,20 @@ export function fromForm(form: FormSchema): BuilderState {
 }
 
 /**
+ * Form đọc từ file nhập (design §4.1, Xuất/Nhập form) thành form mới chưa lưu: mã form và mã trường
+ * còn sửa được, trường nào cũng xoá được, vì ở dự án này chưa có phiếu nào dùng form đó.
+ */
+export function fromImport(form: SaveFormRequest): BuilderState {
+  return {
+    id: form.id,
+    idLocked: false,
+    autoId: false,
+    title: form.title,
+    fields: form.fields.map((f) => ({ ...f, uid: nextUid++, saved: false, autoId: false })),
+  };
+}
+
+/**
  * Mã gợi ý từ nhãn: bỏ dấu tiếng Việt, ghép kiểu camelCase, thêm "f" nếu bắt đầu bằng số, thêm số
  * nếu trùng mã đã có ("Tên chủ hộ" → "tenChuHo"). Kết quả khớp FIELD_ID_PATTERN (nên cũng khớp FORM_ID_PATTERN) hoặc là chuỗi rỗng.
  */
@@ -149,14 +163,22 @@ export function toSaveRequest(state: BuilderState): SaveFormRequest {
   };
 }
 
+export const FORM_ID_TAKEN = 'Mã biểu mẫu đã có trong dự án';
+
 /**
  * Lỗi trước khi gửi: cùng luật với server (`validateFormSchema`, so với bản mới nhất trên máy),
- * thêm luật riêng của builder là trường phải có nhãn (trường không nhãn thì điều tra viên không
- * biết nhập gì). Server vẫn kiểm lại khi lưu.
+ * thêm luật riêng của builder: trường phải có nhãn (trường không nhãn thì điều tra viên không
+ * biết nhập gì), và form mới không được trùng mã form đã có trong dự án (`existingFormIds`), vì
+ * server sẽ coi đó là bản mới của form cũ. Server vẫn kiểm lại khi lưu.
  */
-export function builderErrors(state: BuilderState, prev?: FormSchema): string[] {
+export function builderErrors(
+  state: BuilderState,
+  prev?: FormSchema,
+  existingFormIds: ReadonlySet<string> = new Set(),
+): string[] {
   const req = toSaveRequest(state);
   const errors: string[] = [];
+  if (!state.idLocked && existingFormIds.has(req.id)) errors.push(FORM_ID_TAKEN);
   req.fields.forEach((f, i) => {
     if (f.label === '') errors.push(`Trường thứ ${i + 1} chưa có nhãn`);
   });

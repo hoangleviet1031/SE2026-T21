@@ -1,8 +1,9 @@
-import type { FieldDef, FormSchema } from './types';
+import type { FieldDef, FieldType, FormSchema, SaveFormRequest } from './types';
 
 // Luật lưu form ở server và builder. Xem docs/design.md §4.1 ("Validate ở server khi lưu form",
-// "Quy tắc đổi form an toàn"). Hàm chỉ kiểm luật; kiểu dữ liệu sai (thiếu `fields`, `type` lạ) là
-// việc của nơi đọc request (400 invalid_body), không phải ở đây.
+// "Quy tắc đổi form an toàn"). `validateFormSchema` chỉ kiểm luật; kiểu dữ liệu sai (thiếu `fields`,
+// `type` lạ) do `parseSaveFormRequest` cuối file kiểm, dùng chung cho thân request ở server và file
+// nhập form ở builder.
 
 /** Mẫu cho id trường: dùng làm khoá trong `data` của phiếu và tên cột khi export. */
 export const FIELD_ID_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]*$/;
@@ -72,4 +73,48 @@ function compatibilityErrors(next: FormSchema, prev: FormSchema): string[] {
     }
   }
   return errors;
+}
+
+const FIELD_TYPES: readonly FieldType[] = ['text', 'number', 'select', 'multiselect', 'date', 'photo', 'gps'];
+
+const isOptional = (v: unknown, check: (v: unknown) => boolean) => v === undefined || check(v);
+const isBoolean = (v: unknown) => typeof v === 'boolean';
+const isStringArray = (v: unknown) => Array.isArray(v) && v.every((x) => typeof x === 'string');
+
+/**
+ * Kiểm kiểu thân request lưu form (hoặc file nhập form ở builder) và chỉ giữ các khoá đã biết,
+ * để form lưu vào DB đúng `FormSchema`. Sai kiểu → `undefined` (server trả `invalid_body`);
+ * luật nội dung (id trùng, option...) để `validateFormSchema` báo. `version` (nếu có) bị bỏ qua:
+ * server tự đặt.
+ */
+export function parseSaveFormRequest(body: unknown): SaveFormRequest | undefined {
+  if (typeof body !== 'object' || body === null) return undefined;
+  const b = body as Record<string, unknown>;
+  if (typeof b.id !== 'string' || typeof b.title !== 'string' || !Array.isArray(b.fields)) return undefined;
+
+  const fields: FieldDef[] = [];
+  for (const raw of b.fields as unknown[]) {
+    if (typeof raw !== 'object' || raw === null) return undefined;
+    const f = raw as Record<string, unknown>;
+    const type = FIELD_TYPES.find((t) => t === f.type);
+    if (
+      typeof f.id !== 'string' ||
+      !type ||
+      typeof f.label !== 'string' ||
+      !isOptional(f.required, isBoolean) ||
+      !isOptional(f.hidden, isBoolean) ||
+      !isOptional(f.options, isStringArray)
+    ) {
+      return undefined;
+    }
+    fields.push({
+      id: f.id,
+      type,
+      label: f.label,
+      ...(f.required !== undefined && { required: f.required as boolean }),
+      ...(f.options !== undefined && { options: f.options as string[] }),
+      ...(f.hidden !== undefined && { hidden: f.hidden as boolean }),
+    });
+  }
+  return { id: b.id, title: b.title, fields };
 }
