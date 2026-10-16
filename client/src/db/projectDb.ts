@@ -65,11 +65,21 @@ export interface LocalAttachment {
   fieldId: string;
   blob: Blob;
   mimeType: string;
-  /** TODO(Thành viên 3): chunk đã upload, để tiếp tục khi mất mạng */
+  /** Chunk server đã nhận theo lần hỏi `status` gần nhất; chỉ để hiển thị, nguồn sự thật là server */
   uploadedChunks: number[];
-  uploadState: 'pending' | 'uploading' | 'done';
-  /** Thời điểm được thử upload lại (backoff), TV3-06 dùng (design §5.6) */
+  /** Hàng đợi ảnh (design §5.6). `uploading` bị bỏ dở (đóng tab) thì vòng sau coi như `pending`. */
+  uploadState: 'pending' | 'uploading' | 'done' | 'failed';
+  /** Thời điểm được thử upload lại (backoff, ms giờ thiết bị) */
   nextAttemptAt?: number;
+  /** Số lần lỗi tạm thời liên tiếp, để tính backoff như op */
+  attempts?: number;
+  /** Số lần nhận `422 checksum_mismatch`; lần thứ hai thì `failed` (§5.6) */
+  checksumFailures?: number;
+  /** Câu báo lỗi khi `failed` */
+  lastError?: string;
+  /** Lúc chọn ảnh (ms): upload cũ trước mới sau. Ảnh lưu trước TV3-06 không có trường này. */
+  createdAt?: number;
+  // Các trường thêm ở TV3-06 không cần index nên không nâng version Dexie.
 }
 
 export interface MetaEntry {
