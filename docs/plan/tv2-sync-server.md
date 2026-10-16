@@ -8,7 +8,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-01 · Migration + schema multi-tenancy · **Lõi** · **Người làm** (thiết kế)
 
-- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-02, TV2-03, TV3-02)
+- **Trạng thái:** ✅ PR #8 (chung với TV2-02, TV2-03, TV3-02)
 - **Tuần:** 1–2 · **Phụ thuộc:** không
 - **Spec:** design §6.1, §12 (Migration CSDL server); ADR 0002 §1–2
 - **File:** `server/src/db.ts`, `server/test/db.test.ts` (mới)
@@ -27,7 +27,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-02 · Xác thực, `requireMember`, lớp `ctx` · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-03, TV3-02)
+- **Trạng thái:** ✅ PR #8 (chung với TV2-01, TV2-03, TV3-02)
 - ⚠ **ADR 0003:** `requireAuth` tra `users.token_hash` là **bản cũ, vẫn đang chạy**; TV2-14 đổi sang bảng `sessions` và thêm vai trò `owner` vào `requireMember`. Nội dung dưới đây giữ nguyên như lúc làm.
 - **Tuần:** 2 · **Phụ thuộc:** TV2-01
 - **Spec:** design §9, §7.1 (`401`, `403 not_member`, `403 forbidden`); ADR 0002 §2–3
@@ -49,7 +49,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-03 · Route theo dự án + phạm vi pull · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-multi-tenancy-core` (PR: chưa mở; chung PR với TV2-01, TV2-02; TV3-02 mới làm phần fixture/helper)
+- **Trạng thái:** ✅ PR #8 (chung với TV2-01, TV2-02; TV3-02 làm phần fixture/helper)
 - **Tuần:** 2 · **Phụ thuộc:** TV2-02 · **Làm cùng:** TV3-02 (**một PR**)
 - **Spec:** design §5.5, §7 (bảng "Theo dự án", PUT records); ADR 0001 quy tắc 2, 10; ADR 0002 §3
 - **File:** `server/src/app.ts`, `server/src/routes/records.ts`, `server/src/routes/forms.ts` (chỉ GET), `shared/src/types.ts`, `client/src/sync/api.ts`, `client/src/sync/engine.ts`, `client/src/sync/outbox.ts`
@@ -145,7 +145,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-08 · Idempotency hash, dọn key, fault `drop` sau khi ghi · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-08-idempotency` (PR: chưa mở)
+- **Trạng thái:** ✅ PR #15
 - **Tuần:** 4 · **Phụ thuộc:** TV2-03
 - **Spec:** ADR 0001 quy tắc 3; design §10.1 R2, R3, R6
 - **File:** `server/src/routes/records.ts`, `server/src/routes/faults.ts` (phối hợp TV3), `server/src/index.ts` (job dọn), `server/test/records.test.ts`, `client/e2e/retry.spec.ts` (mới)
@@ -161,7 +161,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-09 · Op `failed`, thử lại, cảnh báo tồn lâu
 
-- **Trạng thái:** ✅ `feat/tv2-09-failed-ops` (PR: chưa mở; chồng lên TV2-08)
+- **Trạng thái:** ✅ PR #16
 - **Tuần:** 5 · **Phụ thuộc:** TV2-06
 - **Spec:** design §5.1 (`error → pending`), §5.2 (Op tồn lâu), §8
 - **File:** `client/src/sync/engine.ts`, `client/src/sync/outbox.ts`, `client/src/pages/HomePage.tsx` (phối hợp TV1), `client/e2e/errors.spec.ts` (mới)
@@ -271,7 +271,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 - **Trạng thái:** —
 - **Tuần:** 3–4 · **Phụ thuộc:** TV2-14
 - **Spec:** ADR 0003 §3, §4, §6; design §6.1 (`project_requests`), §7, §7.1
-- **File:** `server/src/db.ts` (bảng `project_requests` trong migration 3 nếu TV2-14 chưa merge, hoặc migration 4), `server/src/repo/projectRequests.ts` (mới), `server/src/repo/projects.ts`, `server/src/routes/projectRequests.ts` (mới), `server/src/routes/directory.ts` (mới), `server/src/routes/admin.ts`, `server/test/projectRequests.test.ts` (mới), `server/test/admin.test.ts`
+- **File:** `server/src/db.ts` (bảng `project_requests` là migration 5: số 3 là `attachments` của TV3-05, số 4 là tài khoản của TV2-14), `server/src/repo/projectRequests.ts` (mới), `server/src/repo/projects.ts`, `server/src/routes/projectRequests.ts` (mới), `server/src/routes/directory.ts` (mới), `server/src/routes/admin.ts`, `server/test/projectRequests.test.ts` (mới), `server/test/admin.test.ts`
 
 **Việc**
 - `/api/project-requests` (GET, POST, DELETE) và `/api/admin/project-requests` (GET, POST duyệt/từ chối). Duyệt: **một transaction** tạo dự án (`id` = `p-` + 8 ký tự), membership `owner` cho người gửi (`added_by` = admin), cập nhật yêu cầu. Admin không có membership.
