@@ -217,7 +217,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-13 · Xoá phiếu: logic phía client và đồng bộ · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-13-delete-sync`. Phần ảnh làm được luôn vì bảng `attachments` phía client đã có (TV3-03); "ngừng upload" ghi thành yêu cầu ở TV3-06. Nút "Xoá phiếu" hiện có hỏi bằng `window.confirm` rồi gọi `deleteRecordLocally` (đã duyệt; bất biến 1); pull bỏ qua tombstone của phiếu máy không có
 - **Tuần:** 5 · **Phụ thuộc:** TV2-05; phần ảnh cần bảng `attachments` phía client (TV3-06), chưa có thì để lại phần ảnh và ghi rõ trong PR
 - **Spec:** design §5.7, §5.2 (gộp op); ADR 0001 quy tắc 6; CLAUDE.md bất biến 1, 2, 3
 - **File:** `client/src/sync/outbox.ts` (`deleteRecordLocally`), `client/src/sync/engine.ts`, `client/e2e/delete.spec.ts` (mới)

@@ -6,13 +6,13 @@ Quy ước ở [README.md](README.md).
 
 | Việc | Chặn bởi | Ghi chú |
 |---|---|---|
-| TV2-13: phần sync của xoá phiếu (P6) | — | design §5.7; phần ảnh chờ TV3-06 |
 | TV2-14 (cùng PR với TV3-12 của Đại), rồi TV2-15, TV2-16 | — | ADR 0003; đăng nhập đổi nên phải hẹn Đại làm chung |
 
 ## Nhật ký
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-16 | TV2-13 | feat | `deleteRecordLocally` (xoá hẳn khi chưa thể tới server, xoá mềm + op xoá khi có thể đã tới, nháp gửi bản hợp lệ cuối), engine xoá phiếu và ảnh khi op xoá được xác nhận, pull bỏ qua tombstone của phiếu máy không có; nút Xoá phiếu hỏi `confirm()` rồi gọi hàm mới; E2E O7 (cả Huỷ), O8, mất response, nháp, conflict | nhánh `feat/tv2-13-delete-sync` | chờ review |
 | 2026-10-16 | TV2-10 | feat | Phiếu `conflict` không lưu/xoá được (`RecordInConflictError`, FillPage báo kèm link), bỏ op `blocked`; sửa lỗi op tự gộp sau 409 phải chờ vòng sau (gửi lại ngay, tối đa 3 lần); E2E C1, C6, C8 (hai ca), khoá sửa, pull bỏ qua nháp | nhánh `feat/tv2-10-conflict-engine` | chờ review |
 | 2026-10-12 | — | docs | ADR 0003 chấp nhận; design 0.5 và ui.md 0.2 ghi bản mới 🆕 / bản cũ 🕘; ADR 0002 ghi thay thế một phần; ticket TV1-14…16, TV2-14…17, TV3-12 | nhánh `docs/adr-0003-spec` | xong (PR #22) |
 | 2026-10-12 | — | quyết định | Chốt ADR 0003 phía mình: mở tổ chức cần admin duyệt, admin không xem dữ liệu, trang quản trị riêng `/admin/`, tài khoản admin không vào tổ chức | `docs/adr/0003-accounts-and-owner-role.md` | xong (PR #21, #22) |

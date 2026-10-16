@@ -98,6 +98,75 @@ export async function saveRecordLocally(
   });
 }
 
+/**
+ * Xoá phiếu sau khi người dùng đã bấm xác nhận (design §5.7, bất biến 1). Một transaction gồm
+ * `records`, `outbox`, `attachments`, nên không bao giờ còn phiếu đã xoá mà thiếu op xoá.
+ * - `removed`: phiếu chưa thể tới server, đã xoá hẳn khỏi máy cùng mọi op và ảnh, không gửi gì.
+ * - `queued`: phiếu có thể đã tới server; đánh dấu `deleted` và chờ op xoá được xác nhận.
+ * - `missing`: không có phiếu này trên máy.
+ * Phiếu đang `conflict` thì ném `RecordInConflictError`, không ghi gì (ADR 0001 quy tắc 7).
+ */
+export async function deleteRecordLocally(db: ProjectDb, recordId: string): Promise<'removed' | 'queued' | 'missing'> {
+  return db.transaction('rw', db.records, db.outbox, db.attachments, async () => {
+    const record = await db.records.get(recordId);
+    if (!record) return 'missing';
+    if (record.syncState === 'conflict') throw new RecordInConflictError(recordId);
+    let ops = await db.outbox.where('recordId').equals(recordId).sortBy('seq');
+
+    // Chỉ xoá hẳn khi chắc chắn server chưa từng nhận: chưa có version nào và chưa op nào được gửi.
+    // Op đã gửi (attempts > 0, kể cả op failed) có thể đã được server ghi mà mất response; xoá hẳn
+    // lúc đó sẽ để phiếu mồ côi trên server.
+    const neverSent = record.baseVersion === 0 && ops.every((op) => op.attempts === 0);
+    if (neverSent) {
+      // seq!: op đọc từ CSDL nên luôn có khoá tự tăng
+      await db.outbox.bulkDelete(ops.map((op) => op.seq!));
+      await db.attachments.where('recordId').equals(recordId).delete();
+      await db.records.delete(recordId);
+      return 'removed';
+    }
+
+    const createdAt = earliestCreatedAt(ops) ?? Date.now();
+    // Op failed bị server từ chối (4xx, server không lưu key) nên bỏ được, như saveRecordLocally.
+    const failed = ops.filter((op) => op.status === 'failed');
+    if (failed.length > 0) {
+      // seq!: op đọc từ CSDL nên luôn có khoá tự tăng
+      await db.outbox.bulkDelete(failed.map((op) => op.seq!));
+      ops = ops.filter((op) => op.status !== 'failed');
+    }
+
+    // Server không được nhận dữ liệu chưa qua validate: nháp thì lấy bản hợp lệ cuối cùng, là op
+    // chưa gửi nếu còn, không thì bản đã thống nhất với server. Ghi luôn vào phiếu, để nếu op xoá
+    // nhận 409 thì merge cũng dùng bản hợp lệ này chứ không dùng dữ liệu nháp.
+    const last = ops[ops.length - 1];
+    const data = record.syncState === 'draft' ? (last?.data ?? record.baseData) : record.data;
+
+    // Gộp op theo design §5.2: op cuối chưa gửi thì sửa nó, đã gửi thì thêm op mới phía sau.
+    if (last && last.attempts === 0 && last.status === 'queued') {
+      await db.outbox.update(last.seq!, { data, deleted: true });
+    } else {
+      await db.outbox.add({
+        opId: crypto.randomUUID(),
+        recordId,
+        data,
+        deleted: true,
+        attempts: 0,
+        nextAttemptAt: 0,
+        status: 'queued',
+        createdAt,
+      });
+    }
+    await db.records.update(recordId, {
+      data,
+      deleted: true,
+      syncState: 'pending',
+      updatedAt: new Date().toISOString(),
+      validationErrors: undefined,
+      lastError: undefined,
+    });
+    return 'queued';
+  });
+}
+
 /** `createdAt` sớm nhất trong các op của một phiếu, để giữ mốc "chưa đồng bộ từ lúc nào". */
 export function earliestCreatedAt(ops: OutboxOp[]): number | undefined {
   const times = ops.map((op) => op.createdAt).filter((t): t is number => t !== undefined);
