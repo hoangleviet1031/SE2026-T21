@@ -1,5 +1,6 @@
 import type { FieldDef, FieldValue, FormSchema, GpsValue, RecordData } from '@field-survey/shared';
 import type { ProjectDb } from '../db/projectDb';
+import { fieldMode } from '../formDisplay';
 import { PhotoField } from './PhotoField';
 
 interface Props {
@@ -13,12 +14,16 @@ interface Props {
   errors?: Record<string, string>;
 }
 
-// TODO(TV1-10): trường `hidden` không hiện khi tạo phiếu mới (design §4.1).
 export function FormRenderer({ db, form, recordId, value, onChange, errors = {} }: Props) {
   const set = (field: string, v: FieldValue) => onChange({ ...value, [field]: v });
   return (
     <div className="form">
       {form.fields.map((f) => {
+        const mode = fieldMode(f, value[f.id], errors[f.id] !== undefined);
+        if (mode === 'hidden') return null;
+        const input = (
+          <FieldInput db={db} field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
+        );
         // Trường ảnh có nhiều nút bên trong: bọc bằng <label> thì bấm vào tên trường sẽ bấm nhầm nút đầu tiên.
         const Wrapper = f.type === 'photo' ? 'div' : 'label';
         const groupProps = f.type === 'photo' ? { role: 'group', 'aria-label': f.label } : {};
@@ -26,9 +31,17 @@ export function FormRenderer({ db, form, recordId, value, onChange, errors = {} 
           <Wrapper key={f.id} className="field" {...groupProps}>
             <span>
               {f.label}
-              {f.required && ' *'}
+              {f.required && !f.hidden && ' *'}
+              {f.hidden && ' (đã ẩn)'}
             </span>
-            <FieldInput db={db} field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
+            {/* fieldset khoá được cả các nút bên trong (trường ảnh, GPS), không chỉ ô nhập */}
+            {mode === 'readonly' ? (
+              <fieldset disabled className="readonly">
+                {input}
+              </fieldset>
+            ) : (
+              input
+            )}
             {errors[f.id] && (
               <span className="field-error" data-testid={`error-${f.id}`}>
                 ⚠ {errors[f.id]}

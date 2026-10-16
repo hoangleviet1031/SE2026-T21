@@ -75,6 +75,18 @@ export async function fetchForms(projectId: string): Promise<FormSchema[]> {
   return res.json();
 }
 
+/** Một phiên bản form cụ thể (design §7); `null` khi server không có bản đó. */
+export async function fetchFormVersion(projectId: string, formId: string, version: number): Promise<FormSchema | null> {
+  const res = await request(
+    `${projectPath(projectId)}/forms/${encodeURIComponent(formId)}/versions/${version}`,
+    {},
+    projectId,
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GET form ${formId}@${version} ${res.status}`);
+  return res.json();
+}
+
 /** Kết quả lưu form: form server đã lưu (version do server đặt), hoặc lỗi để hiện trong builder. */
 export type SaveFormResult = { ok: true; form: FormSchema } | { ok: false; errors: string[] };
 

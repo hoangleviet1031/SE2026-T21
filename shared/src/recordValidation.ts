@@ -38,7 +38,7 @@ function validateField(field: FieldDef, value: FieldValue): string | undefined {
 }
 
 /** "Có giá trị" cho luật required, chung cho mọi loại; sai kiểu thì coi là có để báo lỗi định dạng. */
-function hasValue(value: FieldValue): boolean {
+export function hasValue(value: FieldValue): boolean {
   if (value === null) return false;
   if (typeof value === 'string') return value.trim() !== '';
   if (Array.isArray(value)) return value.length > 0;
