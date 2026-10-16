@@ -12,7 +12,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-16 | TV1-10 | feat | Phần 1: trường ẩn không hiện ở phiếu mới, có giá trị thì hiện chỉ đọc; vòng đồng bộ tải bản form phiếu đang dùng mà máy chưa có, trang điền phiếu báo "Cần kết nối để mở phiếu này"; trường ẩn sai định dạng mở cho sửa; unit `formDisplay.test.ts`, E2E `form-version.spec.ts` | PR #32, design §4.1, §5.3, §8 | chờ review |
+| 2026-10-16 | TV1-10 | feat | Phần 2: Xuất/Nhập form JSON trong builder (nhập nạp vào builder thành form mới), form mới trùng mã báo "Mã biểu mẫu đã có trong dự án", `parseSaveFormRequest` chuyển sang shared; unit `formFile.test.ts`, `builder.test.ts`; E2E `form-import-export.spec.ts` | design §4.1, §8 | chờ review |
+| 2026-10-16 | TV1-10 | feat | Phần 1: trường ẩn không hiện ở phiếu mới, có giá trị thì hiện chỉ đọc; vòng đồng bộ tải bản form phiếu đang dùng mà máy chưa có, trang điền phiếu báo "Cần kết nối để mở phiếu này"; trường ẩn sai định dạng mở cho sửa; unit `formDisplay.test.ts`, E2E `form-version.spec.ts` | PR #32, design §4.1, §5.3, §8 | xong |
 | 2026-10-14 | TV1-07 | feat | Phần 2b bổ sung: Đăng xuất xoá cache runtime `me`, `forms` của SW, giữ precache; tên cache dùng chung `swCaches.ts`; E2E trong `settings.spec.ts` | PR #28, design §4.7 | xong |
 | 2026-10-14 | TV1-07 | feat | Phần 2b: màn hình "Trình duyệt không được hỗ trợ" khi thiếu API bắt buộc, `storage.persist()` sau khi lưu phiếu, hướng dẫn cài ở Cài đặt; unit + E2E | PR #28, design §4.2, §11.1 | xong |
 | 2026-10-14 | TV1-07 | feat | Phần 2a: SW `prompt` + dải "Có phiên bản mới" (hỏi khi đang nhập phiếu), icon PNG/`apple-touch-icon`, runtime cache theo dự án, `/admin/` không qua SW; E2E `update.spec.ts` | PR #27, design §4.3 | xong |
