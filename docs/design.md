@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.16 (2026-10-16)
+- **Phiên bản:** 0.5.17 (2026-10-16)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -49,6 +49,7 @@
 | 0.5.13 | 2026-10-16 | TV2-10: phiếu `conflict` không lưu, không xoá được ở tầng dữ liệu (`saveRecordLocally` ném `RecordInConflictError`), trang điền phiếu báo "Phiếu này cần xử lý xung đột trước" kèm link (§4.5); bỏ op `blocked` (§5.2); 409 tự gộp được thì gửi lại ngay trong cùng vòng, tối đa 3 lần mỗi phiếu (§5.3). C1, C6, C8 và pull bỏ qua nháp có E2E (§10.1) |
 | 0.5.15 | 2026-10-16 | TV2-14: migration 4 có code (§6.1): `users.username`, `users.password_hash`, bảng `sessions` (chép token cũ thành phiên), `projects.public`, `memberships` tạo lại có `owner` và `added_by`; admin là thành viên thì migration dừng. `POST /auth/register`, `/login`, `/logout` có code, `requireAuth` tra `sessions`, `/me` trả `username`, vai trò `owner` trong `requireMember` và phạm vi pull (§7); trust proxy loopback để giới hạn tần suất đếm đúng IP sau Caddy (§9); tài khoản tự đăng ký ghi `users.token_hash` giữ chỗ (§6.1); kiểu `Role`, `MeResponse`, `RegisterRequest`, `LoginRequest`, `AuthResponse` và `parseRegisterRequest`/`parseLoginRequest` trong `shared/` (§6.2). U1–U6, MG1, MG2, A5 phần Owner có test (§10.1). CLI và `seed:demo` ghi token thành phiên làm cầu nối tới TV3-12 (§12) |
 | 0.5.16 | 2026-10-16 | TV3-12: CLI theo tài khoản có code (§12): `user:add --username`, `user:reset-password`, `user:revoke-sessions`, `user:disable` (khoá và thu hồi phiên), bỏ `user:rotate-token`; `seed:demo` có mật khẩu demo và Owner `chu`, giữ token demo tới TV1-14/TV2-16 |
+| 0.5.17 | 2026-10-16 | TV3-06: hàng đợi ảnh có code (§5.6): chỉ ảnh còn trong phiếu chưa xoá mới upload và mới tính là dữ liệu chưa gửi; `409 missing_chunks` gửi bù, `422` lần đầu gửi lại từ đầu; thứ tự nhãn khi phiếu chưa đồng bộ; nhãn trên ảnh thu nhỏ; O3 có E2E (§10.1) |
 | 0.5.12 | 2026-10-16 | TV1-10 phần 2: Xuất/Nhập form trong builder có code (§4.1): xuất `<id>-v<version>.json`, nhập nạp vào builder thành form mới; form mới trùng mã form đã có báo "Mã biểu mẫu đã có trong dự án"; kiểm kiểu thân lưu form chuyển sang `shared/` (`parseSaveFormRequest`), server dùng chung; §8 thêm dòng file nhập không hợp lệ |
 
 ## Mục lục
@@ -473,11 +474,13 @@ Lý do: không tải dữ liệu cá nhân (tên chủ hộ, GPS, ảnh) của n
 
 ### 5.6 Đồng bộ ảnh
 
-- **Hàng đợi:** chính bảng `attachments` (không dùng outbox), mỗi ảnh có `uploadState: 'pending' | 'uploading' | 'done' | 'failed'`, `attempts`, `nextAttemptAt`, `uploadedChunks`.
+- **Hàng đợi:** chính bảng `attachments` (không dùng outbox), mỗi ảnh có `uploadState: 'pending' | 'uploading' | 'done' | 'failed'`, `attempts`, `nextAttemptAt`, `uploadedChunks`, `checksumFailures`, `createdAt`. `uploading` bị bỏ dở (đóng tab) thì vòng sau coi như `pending`.
+- **Ảnh nào được upload:** chỉ ảnh **còn trong phiếu chưa xoá** (id nằm trong một trường của `data`). Ảnh đã bỏ khỏi trường, ảnh của phiếu chưa từng lưu hay phiếu đã xoá thì không upload, và cũng **không tính là dữ liệu chưa gửi** khi xét đăng xuất hay bị rút khỏi dự án (`hasUnsentData`): người dùng đã chủ động bỏ, nếu tính thì máy kẹt mãi ở "còn dữ liệu chưa gửi".
 - **Thứ tự:** trong mỗi vòng, push phiếu trước, sau đó upload ảnh của những phiếu đã có trên server (`baseVersion > 0`), cũ trước mới sau, mỗi lần một ảnh. Server cho phép phiếu tham chiếu ảnh chưa xong; trang xem phiếu hiển thị "Ảnh đang tải lên".
 - **Retry:** lỗi mạng, `5xx`, `408`, `429` dùng cùng `nextRetryDelay` như op; tiếp tục từ chunk thiếu theo `GET /status`.
-- **Lỗi không retry được** (`413`, `415`, `422 checksum_mismatch` lần thứ hai): ảnh `failed`, phiếu hiện "Lỗi ảnh" kèm nút "Thử lại" và "Bỏ ảnh này".
-- **Nhãn phiếu:** "Đã đồng bộ" chỉ khi `syncState = synced` **và** mọi ảnh của phiếu `done`. Ngược lại: "Đang tải ảnh (n)" hoặc "Lỗi ảnh".
+- **Thiếu chunk hoặc sai hash:** `409 missing_chunks` thì hỏi lại `status` và gửi bù ngay; `422 checksum_mismatch` lần đầu thì gửi lại từ đầu ngay (server đã xoá chunk). Tối đa 3 lượt trong một vòng, quá thì chờ backoff.
+- **Lỗi không retry được** (`413`, `415`, `422 checksum_mismatch` lần thứ hai, `4xx` khác): ảnh `failed`, phiếu hiện "Lỗi ảnh" kèm nút "Thử lại" và "Bỏ ảnh này". "Bỏ ảnh này" bỏ id khỏi phiếu qua `saveRecordLocally` (tạo op mới); phiếu đang xung đột thì không có nút này.
+- **Nhãn phiếu:** "Đã đồng bộ" chỉ khi `syncState = synced` **và** mọi ảnh còn trong phiếu `done`. Phiếu đã đồng bộ: có ảnh lỗi thì "Lỗi ảnh", còn ảnh chưa lên thì "Đang tải ảnh (n)". Phiếu chưa đồng bộ thì nhãn theo `syncState` (§5.1), nhưng nút của ảnh lỗi vẫn hiện. Hàm thuần `displayState` (`client/src/sync/displayState.ts`). Trang điền phiếu hiện nhãn nhỏ trên từng ảnh: "Chờ tải lên", "Đang tải lên", "Lỗi".
 - **Xoá ảnh khỏi phiếu:** chỉ bỏ id khỏi trường photo; blob cục bộ giữ tới khi người dùng dọn bộ nhớ.
 - **Dọn rác ở server:** chunk tạm của ảnh chưa `complete` sau 7 ngày thì xoá. File đã hoàn tất không tự xoá, vì `record_history` có thể còn tham chiếu.
 
@@ -818,7 +821,7 @@ Phạm vi đồ án giữ đơn giản:
 |---|---|---|
 | O1 | Tải app, offline, reload vẫn mở được, nhập phiếu, online thì đồng bộ | Có (`offline.spec.ts`) |
 | O2 | Offline từ lúc mở app (đã cài trước đó), tạo 10 phiếu, online | TODO |
-| O3 | Phiếu có ảnh khi offline, online thì ảnh lên đủ, nhãn chỉ thành "Đã đồng bộ" khi ảnh xong | TODO |
+| O3 | Phiếu có ảnh khi offline, online thì ảnh lên đủ, nhãn chỉ thành "Đã đồng bộ" khi ảnh xong | Có (`upload.spec.ts`) |
 | O4 | Đóng tab khi còn op, mở lại thì vẫn đồng bộ | TODO |
 | O5 | Lưu phiếu thiếu trường bắt buộc: thành "Nháp", không lên server; sửa đủ thì đồng bộ | Có (`draft.spec.ts`) |
 | O6 | Hai tab cùng mở: mỗi op chỉ được gửi từ một tab | Có (`tabs.spec.ts`) |
