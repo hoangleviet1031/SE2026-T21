@@ -166,27 +166,55 @@ async function fetchMissingFormVersions(db: ProjectDb): Promise<void> {
   }
 }
 
+// Server bị sửa liên tục thì mỗi lần gửi lại đều có thể nhận 409 mới; quá số lần này trong một
+// vòng thì để vòng sau, tránh lặp không dừng.
+const MAX_MERGES_PER_ROUND = 3;
+
 async function pushAll(db: ProjectDb): Promise<void> {
   const ops = await db.outbox.orderBy('seq').toArray();
-  const blockedRecords = new Set<string>();
+  // Bản ghi đã xử lý xong trong vòng này hoặc phải chờ: bỏ qua các op còn lại của nó
+  const skipRecords = new Set<string>();
   for (const op of ops) {
     // Mỗi bản ghi xử lý tuần tự: op sau chỉ đi khi op trước đã xong
-    if (blockedRecords.has(op.recordId)) continue;
+    if (skipRecords.has(op.recordId)) continue;
     if (op.status !== 'queued' || op.nextAttemptAt > Date.now()) {
-      blockedRecords.add(op.recordId);
+      skipRecords.add(op.recordId);
       continue;
     }
-    const done = await pushOne(db, op);
-    if (!done) blockedRecords.add(op.recordId);
+    const result = await pushOne(db, op);
+    if (result === 'done') continue;
+    // 409: mọi op của bản ghi đã bị thay (các op cũ trong danh sách trên không còn), nên không đi
+    // tiếp danh sách cho bản ghi này nữa.
+    skipRecords.add(op.recordId);
+    if (result === 'merged') await pushMerged(db, op.recordId);
   }
 }
 
-/** Trả về true nếu op đã xong (thành công hoặc đã được thay thế). */
-async function pushOne(db: ProjectDb, op: OutboxOp): Promise<boolean> {
+/**
+ * Tự gộp được thì gửi lại ngay trong vòng này (ADR 0001 quy tắc 7, design §5.3), không chờ vòng
+ * sau. Op gộp là op mới (`attempts = 0`), chưa từng dùng opId cho dữ liệu nào khác.
+ */
+async function pushMerged(db: ProjectDb, recordId: string): Promise<void> {
+  for (let i = 0; i < MAX_MERGES_PER_ROUND; i++) {
+    const op = await db.outbox.where('recordId').equals(recordId).first();
+    if (!op || op.status !== 'queued' || op.nextAttemptAt > Date.now()) return;
+    if ((await pushOne(db, op)) !== 'merged') return;
+  }
+}
+
+/**
+ * - `done`: op đã xong (thành công, hoặc phiếu không còn).
+ * - `merged`: 409 và đã tự gộp thành một op mới, cần gửi lại.
+ * - `conflict`: 409 có xung đột, chờ người dùng.
+ * - `stop`: chưa xong (lỗi mạng, backoff, 4xx), op sau của bản ghi phải chờ.
+ */
+type PushResult = 'done' | 'merged' | 'conflict' | 'stop';
+
+async function pushOne(db: ProjectDb, op: OutboxOp): Promise<PushResult> {
   const record = await db.records.get(op.recordId);
   if (!record) {
     await db.outbox.delete(op.seq!);
-    return true;
+    return 'done';
   }
 
   let res: { status: number; body: unknown };
@@ -206,26 +234,25 @@ async function pushOne(db: ProjectDb, op: OutboxOp): Promise<boolean> {
   } catch (err) {
     if (err instanceof NetworkError) {
       await scheduleRetry(db, op, err.message);
-      return false;
+      return 'stop';
     }
     throw err;
   }
 
   if (res.status === 200 || res.status === 201) {
     await onPushed(db, op, res.body as ServerRecord);
-    return true;
+    return 'done';
   }
   if (res.status === 409) {
-    await onConflict(db, op, res.body as ConflictResponse);
-    return true;
+    return (await onConflict(db, op, res.body as ConflictResponse)) ? 'merged' : 'conflict';
   }
   if (res.status >= 500 || res.status === 408 || res.status === 429) {
     await scheduleRetry(db, op, `HTTP ${res.status}`);
-    return false;
+    return 'stop';
   }
   // 403 forbidden (sai vai trò): giữ op trong outbox, không đánh dấu lỗi (bất biến 1).
   // 403 not_member và 401 đã được api.ts ném thành NotMemberError / AuthError.
-  if (res.status === 403) return false;
+  if (res.status === 403) return 'stop';
   // 4xx khác: lỗi dữ liệu, tự retry cũng vô ích; chờ người dùng sửa hoặc bấm "Thử lại".
   // Tính là một lần gửi (attempts + 1): op đã tới server thì không được gộp dữ liệu mới vào nữa.
   await db.transaction('rw', db.outbox, db.records, async () => {
@@ -236,7 +263,7 @@ async function pushOne(db: ProjectDb, op: OutboxOp): Promise<boolean> {
     });
     await db.records.update(op.recordId, { syncState: 'error', lastError: `HTTP ${res.status}` });
   });
-  return false;
+  return 'stop';
 }
 
 async function scheduleRetry(db: ProjectDb, op: OutboxOp, error: string) {
@@ -265,10 +292,12 @@ async function onPushed(db: ProjectDb, op: OutboxOp, saved: ServerRecord) {
 /**
  * 409: gộp toàn bộ các op của bản ghi thành một, three-way merge
  *   base = record.baseData, local = record.data (mới nhất), remote = server.current.
- * Không có trường xung đột -> tự gộp và gửi lại ngay. Có -> chờ người dùng.
+ * Không có trường xung đột -> tự gộp, trả true để gửi lại ngay. Có -> chờ người dùng, trả false.
+ * Sau `resolveConflict`, base là bản server người dùng đã thấy, nên 409 lặp lại cũng đi qua đây
+ * đúng quy tắc 5 (ADR 0001 quy tắc 7, ca C8).
  */
-async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictResponse) {
-  await db.transaction('rw', db.outbox, db.records, db.conflicts, async () => {
+async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictResponse): Promise<boolean> {
+  return db.transaction('rw', db.outbox, db.records, db.conflicts, async () => {
     const record = (await db.records.get(op.recordId))!;
     const remote = conflict.current;
     const merge = threeWayMerge(record.baseData, record.data, remote.data);
@@ -291,7 +320,7 @@ async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictRespons
         syncState: 'pending',
       });
       await db.outbox.add(newOp(record.id, merge.merged, deleted, earliestCreatedAt(replaced)));
-      return;
+      return true;
     }
 
     await db.conflicts.put({
@@ -303,10 +332,14 @@ async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictRespons
       recordLevel,
     });
     await db.records.update(record.id, { syncState: 'conflict' });
+    return false;
   });
 }
 
-/** Người dùng đã chọn giá trị cho từng trường ở màn hình conflict. */
+/**
+ * Người dùng đã chọn giá trị cho từng trường ở màn hình conflict. Base mới là bản server người
+ * dùng đã thấy (`conflict.server`), để nếu server đổi tiếp thì 409 kế tiếp merge với đúng base đó.
+ */
 export async function resolveConflict(db: ProjectDb, recordId: string, resolved: RecordData, deleted: boolean) {
   await db.transaction('rw', db.outbox, db.records, db.conflicts, async () => {
     const c = await db.conflicts.get(recordId);

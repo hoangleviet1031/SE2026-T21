@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.12 (2026-10-16)
+- **Phiên bản:** 0.5.13 (2026-10-16)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -45,6 +45,7 @@
 | 0.5.9 | 2026-10-15 | TV3-05: `P/attachments/*` có code (§7): dạng response của `status`, `chunks`, `complete`; bảng `attachments` là migration 3, file ở `uploads/<projectId>/<id>/` (§6.1). Bước ADR 0003 (TV2-14) lấy số migration kế tiếp |
 | 0.5.10 | 2026-10-15 | TV3-03: nén ảnh có code (§4.4): JPEG 0.8, vượt 600 KB thì 0.7, 0.6, vẫn vượt thì vẫn lưu; §8 thêm dòng ảnh không đọc được; §11.2 kích thước ảnh sau nén đo bằng E2E `photo.spec.ts` |
 | 0.5.11 | 2026-10-16 | TV1-10 phần 1: trường ẩn có code: phiếu mới không hiện, phiếu đã có giá trị thì hiện chỉ đọc kèm "(đã ẩn)", có lỗi định dạng thì mở cho sửa (§4.1); vòng đồng bộ tải bản form mà phiếu trên máy đang dùng nếu máy chưa có (§5.3 bước 5); trang điền phiếu thiếu bản form thì gọi đồng bộ, offline hoặc tải không được thì "Cần kết nối để mở phiếu này" (§8). Xuất/nhập form làm ở phần 2 |
+| 0.5.13 | 2026-10-16 | TV2-10: phiếu `conflict` không lưu, không xoá được ở tầng dữ liệu (`saveRecordLocally` ném `RecordInConflictError`), trang điền phiếu báo "Phiếu này cần xử lý xung đột trước" kèm link (§4.5); bỏ op `blocked` (§5.2); 409 tự gộp được thì gửi lại ngay trong cùng vòng, tối đa 3 lần mỗi phiếu (§5.3). C1, C6, C8 và pull bỏ qua nháp có E2E (§10.1) |
 | 0.5.12 | 2026-10-16 | TV1-10 phần 2: Xuất/Nhập form trong builder có code (§4.1): xuất `<id>-v<version>.json`, nhập nạp vào builder thành form mới; form mới trùng mã form đã có báo "Mã biểu mẫu đã có trong dự án"; kiểm kiểu thân lưu form chuyển sang `shared/` (`parseSaveFormRequest`), server dùng chung; §8 thêm dòng file nhập không hợp lệ |
 
 ## Mục lục
@@ -295,7 +296,7 @@ Khi sync engine nhận `409` và merge còn xung đột trường hoặc xung đ
 - **Xoá vs sửa:** hộp thoại riêng: "Bạn đã xoá phiếu này nhưng Lan vừa sửa nó. Giữ phiếu (với bản của Lan) hay vẫn xoá?" (và chiều ngược lại: "Lan đã xoá phiếu này nhưng bạn vừa sửa. Khôi phục với bản của bạn hay bỏ?"). Nút "Áp dụng" bị khoá cho tới khi người dùng trả lời câu này; không bao giờ mặc định chọn hộ.
 - Multiselect và photo có thêm lựa chọn "Gộp cả hai" (hợp hai tập). Ảnh chỉ hiện số lượng mỗi bên ("3 ảnh" / "2 ảnh"); xem thumbnail so sánh để sau MVP.
 - Sau khi áp dụng: dữ liệu đã chọn thành op mới với `baseVersion` = version server đã thấy, đẩy ngay. Nếu lại nhận `409` (server đổi tiếp trong lúc người dùng đang chọn), đi lại đúng quy trình ADR quy tắc 5 với base = bản server đã thấy: khác trường thì tự gộp, cùng trường thì hiện màn hình conflict mới.
-- **Trong lúc phiếu đang `conflict`, không sửa được phiếu** (ADR quy tắc 7): mở phiếu thì ở chế độ chỉ đọc với banner "Phiếu này cần xử lý xung đột trước" và nút dẫn tới màn hình xung đột (code chưa làm).
+- **Trong lúc phiếu đang `conflict`, không sửa được phiếu** (ADR quy tắc 7): mở phiếu thì ở chế độ chỉ đọc với banner "Phiếu này cần xử lý xung đột trước" và nút dẫn tới màn hình xung đột (chế độ chỉ đọc và banner: TV3-07). Đã có: `saveRecordLocally` từ chối phiếu `conflict` (cả lưu lẫn xoá), không ghi gì; trang điền phiếu bấm Lưu thì hiện câu trên kèm link tới màn hình xung đột, phần đang nhập vẫn trên màn hình. Phiếu có thể thành `conflict` ngay lúc form đang mở vì đồng bộ chạy nền.
 - Danh sách phiếu có bộ lọc "Cần xử lý" và số đếm trên đầu trang.
 
 **Tiêu chí chấp nhận:** đủ các ca C1–C8 ở §10.1.
@@ -418,7 +419,7 @@ Mỗi op: `{ seq, opId, recordId, data, deleted, attempts, nextAttemptAt, status
 | `queued` | Chờ gửi (có thể đang trong thời gian backoff theo `nextAttemptAt`) |
 | `failed` | Server trả 4xx không retry được; chờ người dùng sửa hoặc bấm "Thử lại" |
 
-(Khung mã hiện có thêm `blocked` cho op tạo ra khi phiếu đang `conflict`; với quy tắc khoá sửa ở §4.5 trạng thái này không còn phát sinh và sẽ bị bỏ.)
+Không còn trạng thái `blocked` (TV2-10): phiếu đang `conflict` không sửa được (§4.5) nên không sinh op mới. Op `blocked` do bản cũ tạo, nếu còn trên máy (chỉ có thể ở staging), vẫn bị bỏ qua khi push như trước và bị xoá khi người dùng giải quyết xung đột; không có migration vì không gộp an toàn được phần sửa sau khi đã xung đột.
 
 - **Gộp op:** sửa phiếu khi op cuối của nó **chưa từng gửi** (`attempts = 0`) thì cập nhật op đó. Nếu op đã gửi ít nhất một lần (có thể server đã ghi nhưng response bị mất) thì giữ nguyên `opId` và thêm op mới phía sau. Nhờ vậy idempotency key không bao giờ bị dùng cho dữ liệu khác.
 - **Thứ tự:** FIFO theo `seq`, tuần tự trong từng phiếu: op sau chỉ chạy khi op trước xong. Phiếu khác nhau không chặn nhau.
@@ -436,7 +437,7 @@ Mỗi op: `{ seq, opId, recordId, data, deleted, attempts, nextAttemptAt, status
 1. Offline thì dừng.
 2. **Push:** với mỗi op đến hạn, `PUT .../records/:id` kèm `Idempotency-Key: opId`.
    - `200/201`: xoá op; `baseData = data trả về`, `baseVersion = version trả về`; hết op thì `synced`.
-   - `409`: gộp mọi op của phiếu, three-way merge (base = `baseData`, local = `data` mới nhất, remote = bản server). Không xung đột thì thay bằng một op mới chứa bản gộp và cập nhật base; có xung đột thì lưu `conflicts`, phiếu thành `conflict`.
+   - `409`: gộp mọi op của phiếu, three-way merge (base = `baseData`, local = `data` mới nhất, remote = bản server). Không xung đột thì thay bằng một op mới chứa bản gộp, cập nhật base và **gửi lại ngay trong cùng vòng** (tối đa 3 lần 409 liên tiếp cho một phiếu, quá thì để vòng sau); có xung đột thì lưu `conflicts`, phiếu thành `conflict`. Sau khi người dùng giải quyết, base là bản server họ đã thấy, nên 409 lặp lại đi đúng quy tắc 5 (ADR 0001 quy tắc 7).
    - Lỗi mạng, timeout 10s, `5xx`, `408`, `429`: `attempts++`, `nextAttemptAt = now + nextRetryDelay(attempts)`.
    - `4xx` khác: op `failed`, phiếu `error`, hiển thị lỗi cho người dùng.
 3. **Upload ảnh** (§5.6).
@@ -820,14 +821,14 @@ Phạm vi đồ án giữ đơn giản:
 
 | # | Ca | Kỳ vọng | Trạng thái |
 |---|---|---|---|
-| C1 | Hai nơi sửa khác trường | Tự gộp, không hỏi | Unit có; E2E TODO |
+| C1 | Hai nơi sửa khác trường | Tự gộp, không hỏi | Có (unit; E2E `conflict.spec.ts`) |
 | C2 | Hai nơi sửa cùng trường, khác giá trị | Màn hình conflict, chọn xong server có bản gộp | Có (`conflict.spec.ts`) |
 | C3 | Hai nơi sửa cùng trường, cùng giá trị | Không hỏi | Unit có |
 | C4 | Máy xoá, server sửa | Hỏi giữ hay xoá; nút Áp dụng khoá tới khi trả lời | Unit có; UI TODO |
 | C5 | Máy sửa, server xoá | Hỏi khôi phục hay bỏ | Unit có; UI TODO |
-| C6 | Sửa ba lần liên tiếp khi offline | Một op, version server tăng 1 | TODO |
-| C7 | Phiếu đang conflict, người dùng mở phiếu | Chỉ đọc, có banner dẫn tới màn hình xung đột; không tạo op | TODO |
-| C8 | Server đổi tiếp trong lúc người dùng đang chọn ở màn hình conflict | Khác trường: tự gộp; cùng trường: hiện conflict mới; không mất lựa chọn đã áp dụng | TODO |
+| C6 | Sửa ba lần liên tiếp khi offline | Một op, version server tăng 1 | Có (`conflict.spec.ts`) |
+| C7 | Phiếu đang conflict, người dùng mở phiếu | Chỉ đọc, có banner dẫn tới màn hình xung đột; không tạo op | Một phần: bấm Lưu không tạo op, báo cần xử lý xung đột kèm link (`conflict.spec.ts`, TV2-10); chỉ đọc và banner TODO TV3-07 |
+| C8 | Server đổi tiếp trong lúc người dùng đang chọn ở màn hình conflict | Khác trường: tự gộp; cùng trường: hiện conflict mới; không mất lựa chọn đã áp dụng | Có (`conflict.spec.ts`, hai ca) |
 
 **Retry**
 

@@ -42,7 +42,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-03 · Nén ảnh
 
-- **Trạng thái:** ⏳ `feat/tv3-03-compress-photo`
+- **Trạng thái:** ✅ PR #31
 - **Tuần:** 2 · **Phụ thuộc:** không
 - **Spec:** design §4.4 (Ở client), §11.2 (≤ 600 KB)
 - **File:** `client/src/media/compress.ts` (mới), `client/src/components/FormRenderer.tsx` (nhánh `photo`), `client/e2e/photo.spec.ts` (mới), `client/e2e/fixtures/photo-4mb.jpg`

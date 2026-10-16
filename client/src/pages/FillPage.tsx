@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import type { RecordData } from '@field-survey/shared';
 import { useCurrentProjectDb } from '../db/current';
 import { FormRenderer } from '../components/FormRenderer';
-import { saveRecordLocally } from '../sync/outbox';
+import { RecordInConflictError, saveRecordLocally } from '../sync/outbox';
 import { syncNow } from '../sync/engine';
 import { requestPersistentStorage } from '../persistStorage';
 import { navigate } from '../useHashRoute';
@@ -18,6 +18,8 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const online = useOnline();
   // Đã thử đồng bộ để tải bản form còn thiếu mà vẫn chưa có (vd. server không trả lời)
   const [fetchTried, setFetchTried] = useState(false);
+  // Lưu bị từ chối vì phiếu đang xung đột (có thể vừa thành conflict khi form đang mở)
+  const [inConflict, setInConflict] = useState(false);
 
   useEffect(() => {
     if (record) setData(record.data);
@@ -56,8 +58,21 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // Lỗi lấy từ lần lưu gần nhất (design §4.1: mở lại nháp thì thấy danh sách lỗi)
   const isDraft = record?.syncState === 'draft';
 
+  // Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7): không lưu, báo người dùng đi xử lý xung đột.
+  // Phần đang nhập vẫn trên màn hình. Banner và chế độ chỉ đọc đầy đủ là việc của TV3-07.
+  const saveLocally = async (deleted: boolean): Promise<Record<string, string> | undefined> => {
+    try {
+      return await saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data, deleted });
+    } catch (err) {
+      if (!(err instanceof RecordInConflictError)) throw err;
+      setInConflict(true);
+      return undefined;
+    }
+  };
+
   const save = async () => {
-    const errors = await saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data });
+    const errors = await saveLocally(false);
+    if (!errors) return;
     // Phiếu đã nằm trên máy (kể cả nháp); xin giữ bộ nhớ không chặn việc lưu hay chuyển trang
     requestPersistentStorage().catch((e) => console.warn('không xin được bộ nhớ lâu dài', e));
     // Còn lỗi thì ở lại để người dùng thấy trường nào cần sửa; phiếu đã lưu thành nháp
@@ -67,7 +82,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   };
 
   const remove = async () => {
-    await saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data, deleted: true });
+    if (!(await saveLocally(true))) return;
     void syncNow();
     navigate();
   };
@@ -79,6 +94,11 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
         ← Quay lại
       </a>
       <h2>{form.title}</h2>
+      {inConflict && (
+        <p className="warning" data-testid="record-in-conflict">
+          Phiếu này cần xử lý xung đột trước. <a href={`#/conflict/${id}`}>Xử lý xung đột</a>
+        </p>
+      )}
       {isDraft && (
         <p className="draft-notice" data-testid="draft-notice">
           Đã lưu nháp, chưa đồng bộ. Sửa các trường báo lỗi rồi bấm Lưu.

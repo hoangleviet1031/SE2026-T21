@@ -2,11 +2,24 @@ import { validateRecord, type RecordData } from '@field-survey/shared';
 import { formKey, type LocalRecord, type OutboxOp, type ProjectDb } from '../db/projectDb';
 
 /**
+ * Phiếu đang `conflict` là chỉ đọc cho tới khi người dùng giải quyết (ADR 0001 quy tắc 7): cho sửa
+ * tiếp thì lúc áp dụng lựa chọn sẽ ghi đè phần vừa sửa. Màn hình nên không cho bấm tới đây (TV3-07);
+ * lỗi này chặn ở tầng dữ liệu cho chắc, kể cả khi phiếu vừa thành `conflict` lúc form đang mở.
+ */
+export class RecordInConflictError extends Error {
+  constructor(readonly recordId: string) {
+    super(`Phiếu ${recordId} đang xung đột, cần xử lý xung đột trước khi sửa`);
+    this.name = 'RecordInConflictError';
+  }
+}
+
+/**
  * Lưu bản ghi cục bộ và đưa vào outbox trong cùng một transaction,
  * nên không bao giờ có bản ghi đã sửa mà không có op tương ứng.
  *
  * Phiếu chưa qua validate thì lưu thành nháp, không tạo op (design §4.1, §5.1).
  * Trả lỗi theo id trường; object rỗng nghĩa là phiếu hợp lệ và đã vào outbox.
+ * Phiếu đang `conflict` thì ném `RecordInConflictError`, không ghi gì (cả lưu lẫn xoá).
  */
 export async function saveRecordLocally(
   db: ProjectDb,
@@ -20,14 +33,13 @@ export async function saveRecordLocally(
 ): Promise<Record<string, string>> {
   return db.transaction('rw', db.records, db.outbox, db.forms, async () => {
     const existing = await db.records.get(input.id);
+    if (existing?.syncState === 'conflict') throw new RecordInConflictError(input.id);
     const now = new Date().toISOString();
     const deleted = input.deleted ?? false;
-    const inConflict = existing?.syncState === 'conflict';
 
-    // Xoá phiếu thì không cần validate (xoá được cả nháp). Phiếu đang conflict giữ đường cũ,
-    // việc khoá sửa khi conflict thuộc TV2-10/TV3-07.
+    // Xoá phiếu thì không cần validate (xoá được cả nháp).
     let errors: Record<string, string> = {};
-    if (!deleted && !inConflict) {
+    if (!deleted) {
       const form = await db.forms.get(formKey(input.formId, input.formVersion));
       if (!form) throw new Error(`Không có biểu mẫu ${input.formId} phiên bản ${input.formVersion} trên máy`);
       errors = validateRecord(form, input.data);
@@ -42,7 +54,7 @@ export async function saveRecordLocally(
       deleted,
       baseData: existing?.baseData ?? {},
       baseVersion: existing?.baseVersion ?? 0,
-      syncState: inConflict ? 'conflict' : isDraft ? 'draft' : 'pending',
+      syncState: isDraft ? 'draft' : 'pending',
       updatedAt: now,
       ...(isDraft && { validationErrors: errors }),
     };
@@ -78,8 +90,7 @@ export async function saveRecordLocally(
         deleted,
         attempts: 0,
         nextAttemptAt: 0,
-        // Đang chờ giải quyết conflict thì op mới cũng phải chờ
-        status: inConflict ? 'blocked' : 'queued',
+        status: 'queued',
         createdAt,
       });
     }
