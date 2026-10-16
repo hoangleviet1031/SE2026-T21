@@ -164,6 +164,7 @@ describe('runUserCli (đọc tham số dòng lệnh)', () => {
     expect(code).toBe(0);
     const password = /mật khẩu tạm:\s*(\S+)/i.exec(out)?.[1];
     expect(out).toMatch(/tên đăng nhập:\s*ha\.le\b/i);
+    expect(out).toMatch(/userId:\s*u_[a-z0-9]{8}\b/);
     expect(await meStatus(await loginToken('ha.le', password ?? ''))).toBe(200);
   });
 

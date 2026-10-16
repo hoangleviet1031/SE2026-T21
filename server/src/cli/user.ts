@@ -119,6 +119,8 @@ export async function runUserCli(argv: string[], db: Db, io: Output): Promise<nu
       });
       io.out(`Tên đăng nhập: ${created.username}`);
       io.out(`Mật khẩu tạm:  ${created.password}`);
+      // API admin chỉ định giám sát viên (TV2-04) còn nhận userId.
+      io.out(`userId:        ${created.userId}`);
       io.out(TEMP_PASSWORD_NOTE);
       return 0;
     }
