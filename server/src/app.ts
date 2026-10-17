@@ -11,7 +11,7 @@ import { attachmentsRouter } from './routes/attachments';
 import { membersRouter, settingsHandler } from './routes/members';
 import { createUploadStore } from './uploads';
 import { exportRouter } from './routes/export';
-import { faultInjector, faultsRouter } from './routes/faults';
+import { faultInjector, faultsRouter, requestLogger } from './routes/faults';
 import { testMembershipsRouter } from './routes/testMemberships';
 
 // Bật chủ động: quên cấu hình thì route tiêm lỗi tắt, kể cả khi quên đặt NODE_ENV. Xem docs/design.md §9.
@@ -35,7 +35,9 @@ export function createApp(db: Db, opts: { enableTestRoutes?: boolean; uploadDir?
   if (opts.enableTestRoutes) {
     app.use('/api/__test', faultsRouter());
     app.use('/api/__test', testMembershipsRouter(db));
-    app.use('/api/projects/:projectId/records', faultInjector);
+    // Nhật ký trước bộ tiêm lỗi để ghi được cả request bị cắt kết nối (design §10.1).
+    app.use('/api/projects', requestLogger);
+    app.use('/api/projects/:projectId', faultInjector);
   }
 
   // Route theo dự án: xác thực rồi kiểm thành viên (ADR 0002 §3). projectId chỉ lấy từ đường dẫn.
