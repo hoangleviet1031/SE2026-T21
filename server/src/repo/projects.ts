@@ -1,10 +1,11 @@
-import type { AdminProject, ProjectSummary } from '@field-survey/shared';
+import type { AdminProject, ProjectSettings, ProjectSummary, UpdateSettingsRequest } from '@field-survey/shared';
+import type { Ctx } from '../auth';
 import { tx, type Db } from '../db';
 import { toRole } from './memberships';
 
 // Truy vấn không theo dự án: danh sách dự án của một người (/me) và quản trị dự án (/admin).
 // Không nhận `ctx` vì không đọc dữ liệu bên trong dự án (form, phiếu); quyền đã kiểm ở
-// requireAuth/requireAdmin. Xem ADR 0002 §2–3.
+// requireAuth/requireAdmin. Xem ADR 0002 §2–3. Riêng updateProjectSettings là route theo dự án nên nhận `ctx`.
 
 interface ProjectRow {
   id: string;
@@ -90,5 +91,25 @@ export function assignSupervisor(db: Db, projectId: string, userId: string, now:
        ON CONFLICT (project_id, user_id) DO UPDATE SET role = 'supervisor'`,
     ).run(projectId, userId, now);
     return true;
+  });
+}
+
+/**
+ * Owner đổi tên và/hoặc bật tắt công khai tổ chức của mình (`PATCH P/settings`, ADR 0003 §3 mục 4).
+ * Dự án chắc chắn có vì requireMember vừa kiểm.
+ */
+export function updateProjectSettings(ctx: Ctx, db: Db, patch: UpdateSettingsRequest): ProjectSettings {
+  return tx(db, () => {
+    const row = db.prepare(`SELECT name, public FROM projects WHERE id = ?`).get(ctx.projectId) as
+      | { name: string; public: number }
+      | undefined;
+    if (!row) throw new Error(`không thấy dự án ${ctx.projectId} dù đã qua requireMember`);
+    const settings: ProjectSettings = { name: patch.name ?? row.name, public: patch.public ?? row.public === 1 };
+    db.prepare(`UPDATE projects SET name = ?, public = ? WHERE id = ?`).run(
+      settings.name,
+      settings.public ? 1 : 0,
+      ctx.projectId,
+    );
+    return settings;
   });
 }

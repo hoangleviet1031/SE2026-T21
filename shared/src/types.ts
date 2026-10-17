@@ -140,3 +140,35 @@ export interface UpdateProjectRequest {
   name?: string;
   archived?: boolean;
 }
+
+/** Một thành viên trong `GET P/members` (ADR 0003 §6). Chỉ supervisor, owner gọi được */
+export interface Member {
+  userId: string;
+  username: string;
+  name: string;
+  role: Role;
+  addedAt: string;
+}
+
+/** Thân request `POST P/members` */
+export interface AddMemberRequest {
+  username: string;
+  role: Role;
+}
+
+/** Thân request `PUT P/members/:userId` */
+export interface UpdateMemberRequest {
+  role: Role;
+}
+
+/** Thân request `PATCH P/settings`; cần ít nhất một trường. Chỉ owner */
+export interface UpdateSettingsRequest {
+  name?: string;
+  public?: boolean;
+}
+
+/** Response `PATCH P/settings` */
+export interface ProjectSettings {
+  name: string;
+  public: boolean;
+}

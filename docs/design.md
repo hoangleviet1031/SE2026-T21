@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.17 (2026-10-16)
+- **Phiên bản:** 0.5.18 (2026-10-17)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -51,6 +51,7 @@
 | 0.5.16 | 2026-10-16 | TV3-12: CLI theo tài khoản có code (§12): `user:add --username`, `user:reset-password`, `user:revoke-sessions`, `user:disable` (khoá và thu hồi phiên), bỏ `user:rotate-token`; `seed:demo` có mật khẩu demo và Owner `chu`, giữ token demo tới TV1-14/TV2-16 |
 | 0.5.17 | 2026-10-16 | TV3-06: hàng đợi ảnh có code (§5.6): chỉ ảnh còn trong phiếu chưa xoá mới upload và mới tính là dữ liệu chưa gửi; `409 missing_chunks` gửi bù, `422` lần đầu gửi lại từ đầu; thứ tự nhãn khi phiếu chưa đồng bộ; nhãn trên ảnh thu nhỏ; O3 có E2E (§10.1) |
 | 0.5.12 | 2026-10-16 | TV1-10 phần 2: Xuất/Nhập form trong builder có code (§4.1): xuất `<id>-v<version>.json`, nhập nạp vào builder thành form mới; form mới trùng mã form đã có báo "Mã biểu mẫu đã có trong dự án"; kiểm kiểu thân lưu form chuyển sang `shared/` (`parseSaveFormRequest`), server dùng chung; §8 thêm dòng file nhập không hợp lệ |
+| 0.5.18 | 2026-10-17 | TV1-08 phần 1: API thành viên có code (§7): `GET/POST P/members`, `PUT/DELETE P/members/:userId`, `PATCH P/settings`; thứ tự kiểm lỗi, supervisor không tự rút mình, đổi vai trò giữ `added_at` và ghi `added_by`; kiểm và ghi trong một transaction để không mất Owner cuối cùng. Kiểu `Member`, `ProjectSettings` và luật thân request, `canAssignRole` ở `shared/` (§6.2). `last_owner`, `already_member`, `admin_account` có code (§7.1). M1, M2, A6, A7, Q9, D2 (trừ vế D1) có test (§10.1). Màn hình Thành viên (phần 2) chưa có |
 
 ## Mục lục
 
@@ -339,6 +340,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
   - Thêm người **bằng tên đăng nhập** và chọn vai trò. Supervisor chỉ thêm/rút được `surveyor`; Owner thêm, đổi, rút được mọi vai trò. Rút có hỏi xác nhận.
   - Không rút/hạ được Owner cuối cùng (`409 last_owner`). Không thêm được tài khoản admin (`409 admin_account`).
   - Owner có thêm: đổi tên tổ chức, ô "Công khai tên tổ chức" (mặc định tắt).
+  - API có code (TV1-08 phần 1, §7); màn hình chưa có (TV1-08 phần 2).
 - **Admin** không dùng app khảo sát: đăng nhập bằng tài khoản admin thì hiện "Tài khoản quản trị dùng trang /admin" và không tạo CSDL nào. Việc của admin ở trang quản trị (§4.9).
 - **Nhập tài khoản khác trên máy đang có dữ liệu:** như bản cũ dưới đây, thay "mã" bằng "tên đăng nhập + mật khẩu"; "Cùng người" là đăng nhập lại chính tài khoản đó (phiên mới thay phiên cũ trên máy).
 - **Đăng xuất** như bản cũ, thêm: gọi `POST /api/auth/logout` để huỷ phiên của máy này nếu đang online.
@@ -576,7 +578,7 @@ interface AuthResponse { token: string; user: MeResponse['user'] }
 
 Luật thân request nằm ở `shared/src/accountValidation.ts` để client báo lỗi giống server: `parseRegisterRequest` chuyển `username` về chữ thường rồi kiểm `^[a-z0-9._]{3,32}$`, cắt khoảng trắng hai đầu `name` (1–100 ký tự), `password` 8–128 ký tự, không cắt; `parseLoginRequest` chỉ kiểm kiểu và chuyển `username` về chữ thường.
 
-**🆕 Thay đổi theo ADR 0003, chưa có code (TV2-15, TV1-08):**
+**🆕 Thay đổi theo ADR 0003, chưa có code (TV2-15); riêng `Member`, `ProjectSettings` đã có (TV1-08):**
 
 ```ts
 interface DirectoryEntry { id: string; name: string }        // GET /api/directory
@@ -595,6 +597,8 @@ interface AdminProject {                                      // thêm ownerUser
   ownerUsernames: string[]; memberCount: number;
 }
 ```
+
+`Member`, `ProjectSettings` cùng thân request `AddMemberRequest`, `UpdateMemberRequest`, `UpdateSettingsRequest` nằm ở `shared/src/types.ts`; luật thân request và `canAssignRole` (ai được thêm/đổi/rút vai trò nào) ở `shared/src/memberValidation.ts` để màn hình Thành viên kiểm giống server.
 
 `CreateProjectRequest` bị bỏ (tổ chức chỉ được tạo khi admin duyệt yêu cầu). `UpdateProjectRequest` của admin chỉ còn `archived`.
 
@@ -628,11 +632,11 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 
 | Method | Đường dẫn | Mô tả | Vai trò | Trạng thái |
 |---|---|---|---|---|
-| GET | `P/members` | Danh sách thành viên `Member[]` | supervisor | 🆕 TODO TV1-08 |
-| POST | `P/members` | Thêm bằng `{ username, role }`; supervisor chỉ thêm `surveyor` | supervisor | 🆕 TODO TV1-08 |
-| PUT | `P/members/:userId` | Đổi vai trò `{ role }`; không hạ Owner cuối cùng | supervisor (chỉ surveyor), owner | 🆕 TODO TV1-08 |
-| DELETE | `P/members/:userId` | Rút khỏi dự án; không rút Owner cuối cùng | supervisor (chỉ surveyor), owner | 🆕 TODO TV1-08 |
-| PATCH | `P/settings` | `{ name?, public? }` | owner | 🆕 TODO TV1-08 |
+| GET | `P/members` | Danh sách thành viên `Member[]` | supervisor | Có |
+| POST | `P/members` | Thêm bằng `{ username, role }`; supervisor chỉ thêm `surveyor` | supervisor | Có |
+| PUT | `P/members/:userId` | Đổi vai trò `{ role }`; không hạ Owner cuối cùng | supervisor (chỉ surveyor), owner | Có |
+| DELETE | `P/members/:userId` | Rút khỏi dự án; không rút Owner cuối cùng | supervisor (chỉ surveyor), owner | Có |
+| PATCH | `P/settings` | `{ name?, public? }` | owner | Có |
 | GET | `P/forms` | Phiên bản mới nhất của mỗi form | thành viên | Có |
 | GET | `P/forms/:id/versions/:v` | Một phiên bản form | thành viên | Có |
 | POST | `P/forms` | Lưu form từ builder. Thân `SaveFormRequest` (`{ id, title, fields }`; `version` client gửi bị bỏ qua), server đặt `version` = bản mới nhất + 1 trong cùng transaction, trả `201` + `FormSchema`. Sai kiểu `400 invalid_body`, sai luật §4.1 `400 invalid_form` | supervisor (🆕 owner đi qua theo thứ hạng) | Có |
@@ -702,6 +706,8 @@ Content-Type: application/json
 | `PUT P/members/:userId`, `DELETE P/members/:userId` | `{ role }` / – | `200` / `204`; `409 last_owner`; supervisor đụng vào supervisor/owner → `403 forbidden` |
 | `PATCH P/settings` | `{ name?, public? }` | `200 ProjectSettings`; không phải owner → `403 forbidden` |
 
+- **`P/members`, `P/settings`** (có code, `server/src/routes/members.ts`): `POST` kiểm theo thứ tự thân sai `400` → vai trò vượt quyền `403` → không có tên `404` → tài khoản admin `409 admin_account` → đã là thành viên `409 already_member`. Tên đăng nhập cắt khoảng trắng, không phân biệt hoa thường. `PUT`/`DELETE`: `userId` không thuộc dự án này (kể cả người ở dự án khác) → `404`; người làm phải đụng được cả vai trò hiện tại lẫn vai trò mới, nên supervisor không tự rút hay đổi vai trò của mình. `PUT` giữ `added_at`, ghi `added_by` là người đổi; đổi sang đúng vai trò đang có thì không ghi gì. Kiểm `last_owner` và ghi trong cùng transaction. `GET` sắp Owner, supervisor, surveyor, rồi theo tên đăng nhập. `PATCH P/settings`: `name` cắt khoảng trắng, 1–100 ký tự; cần ít nhất một trường, sai → `400 invalid_body`.
+
 - Mọi route theo tổ chức vẫn qua `requireMember`; `/directory`, `/project-requests` không có `:projectId` và không chạm form, phiếu, ảnh. T5 không có ngoại lệ.
 - `requireAuth` tra token trong `sessions` (không còn `users.token_hash`), cập nhật `last_seen_at`; tài khoản `disabled` → `401`. Có code (TV2-14).
 - Tên đăng nhập không tồn tại vẫn chạy scrypt trên một hash giả để thời gian trả lời không lộ tên nào đã có. Bộ đếm giới hạn tần suất nằm trong bộ nhớ tiến trình (khởi động lại thì xoá). Mỗi lần đăng nhập hoặc đăng ký được giữ chỗ trong bộ đếm ngay sau bước kiểm, trước khi chạy scrypt, nên gửi nhiều request cùng lúc cũng không vượt giới hạn; đăng nhập đúng hoặc đăng ký không thành thì trả lại lượt đó.
@@ -749,10 +755,10 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | 404 | `not_found` | Không có tài nguyên, ngoài phạm vi, hoặc thuộc dự án khác (không phân biệt để không lộ thông tin) | op `failed` |
 | 409 | `project_exists` 🕘 | Admin tạo dự án với `id` đã có | hiện lỗi ở màn hình Dự án. **Bỏ** khi TV2-15 xong (không còn `POST /admin/projects`) |
 | 409 | `last_supervisor` 🕘 | Rút hoặc hạ vai trò giám sát viên cuối cùng | Chưa có code; **thay bằng `last_owner`** |
-| 409 | `last_owner` 🆕 | Rút hoặc hạ Owner cuối cùng của tổ chức | hiện lỗi ở màn hình Thành viên / A2 |
+| 409 | `last_owner` | Rút hoặc hạ Owner cuối cùng của tổ chức | hiện lỗi ở màn hình Thành viên / A2 |
 | 409 | `username_taken` | Đăng ký trùng tên đăng nhập (không phân biệt hoa thường) | hiện lỗi ở form tạo tài khoản |
-| 409 | `already_member` 🆕 | Thêm người đã là thành viên | hiện lỗi |
-| 409 | `admin_account` 🆕 | Thêm tài khoản admin vào tổ chức | hiện lỗi |
+| 409 | `already_member` | Thêm người đã là thành viên | hiện lỗi |
+| 409 | `admin_account` | Thêm tài khoản admin vào tổ chức | hiện lỗi |
 | 409 | `project_limit_reached` 🆕 | Đang có 1 yêu cầu mở tổ chức chờ duyệt, hoặc đã là Owner của 3 tổ chức | hiện lỗi ở màn hình Tổ chức |
 | 409 | `request_decided` 🆕 | Duyệt/từ chối yêu cầu không còn `pending` | tải lại danh sách A1 |
 | 409 | `version_conflict` | `baseVersion` lệch | merge (§5.3) |
@@ -861,11 +867,11 @@ Phạm vi đồ án giữ đơn giản:
 | A3 | Surveyor gọi `POST P/forms` hoặc export | `403 forbidden` | Một phần: `POST P/forms` có (`server/test/forms.test.ts`); export TODO |
 | A4 | Rút hoặc hạ giám sát viên cuối cùng | `409 last_supervisor` | 🕘 Thay bằng A7 (`last_owner`) |
 | A5 | Supervisor và Owner `POST P/forms`; surveyor | `201`; `403 forbidden` | Có (`server/test/forms.test.ts`); thứ hạng owner > supervisor ở mức middleware trong `server/test/auth.test.ts` |
-| A6 🆕 | Một người là `owner` ở A, `surveyor` ở B: sửa form, `PATCH P/settings` ở A và B | `2xx` ở A; `403 forbidden` ở B | TODO TV1-08 |
-| A7 🆕 | Rút/hạ Owner cuối cùng | `409 last_owner` | TODO TV1-08 |
+| A6 | Một người là `owner` ở A, `surveyor` ở B: sửa form, `PATCH P/settings` ở A và B | `2xx` ở A; `403 forbidden` ở B | Có (`server/test/members.test.ts`), kiểm thêm `POST P/members` |
+| A7 | Rút/hạ Owner cuối cùng | `409 last_owner` | Có (`server/test/members.test.ts`) |
 | A8 🆕 | Admin chỉ định Owner bằng tên đăng nhập; người thường gọi | `200`; `403 forbidden` | TODO TV2-15 |
 
-**Tài khoản, mở tổ chức, danh sách công khai, thành viên** (ADR 0003, Kiểm chứng). U1–U6, MG1, MG2 có test; các ca khác 🆕 chưa có code
+**Tài khoản, mở tổ chức, danh sách công khai, thành viên** (ADR 0003, Kiểm chứng). U1–U6, MG1, MG2, Q9, D2, M1, M2 có test; các ca khác 🆕 chưa có code
 
 | # | Mức | Ca | Kỳ vọng | Ticket |
 |---|---|---|---|---|
@@ -886,13 +892,13 @@ Phạm vi đồ án giữ đơn giản:
 | Q6 | Integration | Duyệt lại yêu cầu đã xử lý; huỷ yêu cầu người khác | `409 request_decided`; `404` | TV2-15 |
 | Q7 | Integration | Sau khi duyệt, admin gọi `P/forms`, `P/records` | `403 not_member` | TV2-15 |
 | Q8 | E2E | Tạo tài khoản → gửi yêu cầu → admin duyệt (API) → sau một vòng đồng bộ thấy tổ chức với vai trò Owner, tạo được form | Như T6 | TV1-15 |
-| Q9 | Integration | Thêm tài khoản admin vào tổ chức | `409 admin_account` | TV1-08 |
+| Q9 | Integration | Thêm tài khoản admin vào tổ chức | `409 admin_account` | Có (`server/test/members.test.ts`) |
 | Q10 | E2E | `/admin/`: tài khoản thường bị từ chối; admin duyệt ở A1, khoá ở A2; trang admin không có IndexedDB | Như mô tả | TV1-16 |
 | Q11 | E2E | Đăng nhập app khảo sát bằng tài khoản admin | "Tài khoản quản trị dùng trang /admin", không tạo CSDL | TV2-16 |
 | D1 | Integration | `GET /directory` | Chỉ `id`, `name` của tổ chức công khai, chưa lưu trữ, mình chưa thuộc | TV2-15 |
-| D2 | Integration | Supervisor/surveyor `PATCH P/settings`; Owner | `403`; `200` và tổ chức hiện/ẩn ở D1 | TV1-08 |
-| M1 | Integration | Supervisor thêm surveyor bằng tên đăng nhập; thêm supervisor | `201`; `403 forbidden` | TV1-08 |
-| M2 | Integration | Owner thêm supervisor, Owner; tên không có; người đã là thành viên | `201`; `404`; `409 already_member` | TV1-08 |
+| D2 | Integration | Supervisor/surveyor `PATCH P/settings`; Owner | `403`; `200` và tổ chức hiện/ẩn ở D1 | Có (`server/test/members.test.ts`), kiểm cột `public`; vế hiện/ẩn ở D1 chờ TV2-15 |
+| M1 | Integration | Supervisor thêm surveyor bằng tên đăng nhập; thêm supervisor | `201`; `403 forbidden` | Có (`server/test/members.test.ts`) |
+| M2 | Integration | Owner thêm supervisor, Owner; tên không có; người đã là thành viên | `201`; `404`; `409 already_member` | Có (`server/test/members.test.ts`) |
 | M3 | E2E | Owner thêm người bằng tên đăng nhập → sau một vòng đồng bộ người đó thấy tổ chức, gửi được phiếu | Như T6 | TV1-15 |
 
 **Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm. E2E T7, T8, T9 và hạ vai trò có trong `client/e2e/membership.spec.ts`; T7 kiểm cả banner, file Xuất JSON và "Xoá khỏi máy" (TV1-06). Bộ chọn dự án và đổi dự án offline ≤ 1 s (§11.2) ở `client/e2e/project-switcher.spec.ts`; T10 đầy đủ vẫn là việc của TV1-11.
