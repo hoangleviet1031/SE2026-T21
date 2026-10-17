@@ -247,7 +247,7 @@ test('xoá phiếu đang là nháp: op xoá mang dữ liệu hợp lệ cuối c
   expect(bodies).toMatchObject([{ deleted: true, data: { householdName: name } }]);
 });
 
-test('phiếu đang xung đột không xoá được: báo cần xử lý xung đột, phiếu và outbox không đổi', async ({
+test('phiếu đang xung đột không xoá được: không có nút Xoá, có banner, phiếu và outbox không đổi', async ({
   page,
   context,
   request,
@@ -280,9 +280,8 @@ test('phiếu đang xung đột không xoá được: báo cần xử lý xung �
   const before = (await records(page)).find((r) => r.id === id);
 
   await page.goto(`/#/fill/household-survey/${id}`);
-  await clickDelete(page);
-
   await expect(page.getByTestId('record-in-conflict')).toContainText('Phiếu này cần xử lý xung đột trước');
+  await expect(page.getByRole('button', { name: 'Xoá phiếu' })).toHaveCount(0);
   expect((await records(page)).find((r) => r.id === id)).toEqual(before);
   expect(await ops(page, id)).toHaveLength(0);
   expect(await photos(page, id)).toHaveLength(1);

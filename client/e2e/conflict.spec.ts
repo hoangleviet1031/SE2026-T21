@@ -45,7 +45,10 @@ test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, ngư�
   await expect(page.getByText('u_lan')).toBeVisible();
   const table = page.getByTestId('conflict-table');
   // Chỉ householdName xung đột; members và waterSource được gộp tự động
-  await expect(table.locator('tbody tr')).toHaveCount(1);
+  await expect(table.getByTestId('conflict-field')).toHaveCount(1);
+  // Nhãn trường lấy từ form thay cho id (TV3-07)
+  await expect(table.getByTestId('conflict-field')).toContainText('Tên chủ hộ');
+  await expect(page.getByTestId('auto-merged')).toContainText('Đã gộp tự động (2 trường)');
   await table.getByLabel('Trần Thị Máy A').check();
   await page.getByRole('button', { name: 'Áp dụng và đồng bộ' }).click();
 
@@ -125,7 +128,7 @@ async function openConflict(page: Page, context: BrowserContext, request: APIReq
   const badge = recordRow(page, name).getByRole('link', { name: 'Cần xử lý xung đột' });
   await expect(badge).toBeVisible({ timeout: 15_000 });
   await badge.click();
-  await expect(page.getByTestId('conflict-table').locator('tbody tr')).toHaveCount(1);
+  await expect(page.getByTestId('conflict-table').getByTestId('conflict-field')).toHaveCount(1);
   return id;
 }
 
@@ -216,7 +219,7 @@ test('C8: server đổi cùng trường trong lúc đang chọn thì hiện xung
   await badge.click();
   const table = page.getByTestId('conflict-table');
   // Chỉ trường mới bị đụng; "của bạn" là lựa chọn đã áp dụng, "trên máy chủ" là bản mới nhất
-  await expect(table.locator('tbody tr')).toHaveCount(1);
+  await expect(table.getByTestId('conflict-field')).toHaveCount(1);
   await expect(table.getByLabel('Hộ C8b Máy A')).toBeVisible();
   await expect(table.getByLabel('Hộ C8b Máy C')).toBeVisible();
   // members (máy này sửa 3 → 5) không bị mất
@@ -224,7 +227,7 @@ test('C8: server đổi cùng trường trong lúc đang chọn thì hiện xung
   expect((await serverRecord(request, id)).version).toBe(3);
 });
 
-test('phiếu đang xung đột không sửa được: bấm Lưu báo cần xử lý xung đột, không tạo op', async ({
+test('C7: phiếu đang xung đột mở ra chỉ đọc: có banner, không có Lưu/Xoá, không tạo op', async ({
   page,
   context,
   request,
@@ -234,12 +237,16 @@ test('phiếu đang xung đột không sửa được: bấm Lưu báo cần x�
   const before = await localRecord(page, id);
 
   await page.goto(`/#/fill/household-survey/${id}`);
-  await page.locator('input[name=householdName]').fill('Hộ khoá sửa thêm');
-  await page.getByRole('button', { name: 'Lưu' }).click();
-
   const notice = page.getByTestId('record-in-conflict');
   await expect(notice).toContainText('Phiếu này cần xử lý xung đột trước');
-  await expect(notice.getByRole('link')).toHaveAttribute('href', `#/conflict/${id}`);
+  await expect(notice.getByRole('link', { name: 'Xử lý' })).toHaveAttribute('href', `#/conflict/${id}`);
+  await expect(page.getByRole('button', { name: 'Lưu' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Xoá phiếu' })).toHaveCount(0);
+  await expect(page.locator('input[name=householdName]')).toBeDisabled();
+  await expect(page.getByTestId('photo-input-housePhoto')).toBeDisabled();
+
+  await notice.getByRole('link', { name: 'Xử lý' }).click();
+  await expect(page.getByRole('heading', { name: 'Xử lý xung đột' })).toBeVisible();
   const after = await localRecord(page, id);
   expect(after?.syncState).toBe('conflict');
   expect(after?.data).toEqual(before?.data);
@@ -268,4 +275,78 @@ test('pull không ghi đè phiếu nháp (ADR 0001 quy tắc 8)', async ({ page,
   expect(local?.syncState).toBe('draft');
   expect(local?.data).toMatchObject({ householdName: '', members: 9 });
   expect(local?.baseVersion).toBe(1);
+});
+
+// ---- TV3-07: "Gộp cả hai", bộ lọc "Cần xử lý" (design §4.5, §4.8; ui.md màn hình 3) ----
+
+test('multiselect hai bên thêm khác nhau: "Gộp cả hai" thì server có hợp hai tập', async ({ page, context, request }) => {
+  await login(page);
+  const id = await createSynced(page, 'Hộ gộp');
+  await serverPut(request, id, 1, { householdName: 'Hộ gộp', members: 3, assets: ['Xe máy'] });
+  // Kéo bản có Xe máy về máy rồi mới sửa offline
+  await page.reload();
+  await expect.poll(async () => (await localRecord(page, id))?.baseVersion, { timeout: 15_000 }).toBe(2);
+
+  await context.setOffline(true);
+  await recordRow(page, 'Hộ gộp').getByRole('link').first().click();
+  await page.getByRole('checkbox', { name: 'Tivi', exact: true }).check();
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await serverPut(request, id, 2, { householdName: 'Hộ gộp', members: 3, assets: ['Xe máy', 'Tủ lạnh'] });
+  await context.setOffline(false);
+
+  const badge = recordRow(page, 'Hộ gộp').getByRole('link', { name: 'Cần xử lý xung đột' });
+  await expect(badge).toBeVisible({ timeout: 15_000 });
+  await badge.click();
+  const card = page.getByTestId('conflict-field').filter({ hasText: 'Tài sản' });
+  await expect(card).toContainText('Gộp cả hai: Xe máy; Tivi; Tủ lạnh');
+  await card.getByLabel('Gộp cả hai').check();
+  await page.getByRole('button', { name: 'Áp dụng và đồng bộ' }).click();
+
+  await expect(recordRow(page, 'Hộ gộp').getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 15_000 });
+  const saved = await serverRecord(request, id);
+  expect([...(saved.data.assets as string[])].sort()).toEqual(['Tivi', 'Tủ lạnh', 'Xe máy']);
+});
+
+test('số "Cần xử lý" đầu trang và bộ lọc chỉ hiện phiếu cần xử lý', async ({ page, context, request }) => {
+  await login(page);
+  await createSynced(page, 'Hộ lọc yên');
+  await openConflict(page, context, request, 'Hộ lọc xung đột');
+  await page.getByRole('link', { name: '← Quay lại' }).click();
+
+  await expect(page.getByTestId('needs-attention')).toHaveText('Cần xử lý (1)');
+  await page.getByTestId('needs-attention').click();
+  await expect(page.getByRole('radio', { name: 'Cần xử lý' })).toBeChecked();
+  await expect(page.getByTestId('records').getByRole('listitem')).toHaveCount(1);
+  await expect(recordRow(page, 'Hộ lọc xung đột')).toHaveCount(1);
+  await expect(recordRow(page, 'Hộ lọc yên')).toHaveCount(0);
+
+  await page.getByRole('radio', { name: 'Tất cả' }).check();
+  await expect(recordRow(page, 'Hộ lọc yên')).toHaveCount(1);
+});
+
+test('xoá vs sửa: phiếu hiện ở "Cần xử lý", màn hình xung đột khoá Áp dụng, không tự chọn hộ', async ({
+  page,
+  context,
+  request,
+}) => {
+  await login(page);
+  const id = await createSynced(page, 'Hộ xoá sửa');
+  await context.setOffline(true);
+  await recordRow(page, 'Hộ xoá sửa').getByRole('link').first().click();
+  page.once('dialog', (d) => void d.accept());
+  await page.getByRole('button', { name: 'Xoá phiếu' }).click();
+  await serverPut(request, id, 1, { householdName: 'Hộ xoá sửa', members: 8 });
+  await context.setOffline(false);
+
+  // Phiếu đã xoá ở máy này nhưng đang xung đột: vẫn hiện để người dùng xử lý
+  const badge = recordRow(page, 'Hộ xoá sửa').getByRole('link', { name: 'Cần xử lý xung đột' });
+  await expect(badge).toBeVisible({ timeout: 15_000 });
+  await badge.click();
+  await expect(page.getByTestId('record-level-conflict')).toContainText('bị xoá ở một nơi và được sửa ở nơi khác');
+  await expect(page.getByRole('button', { name: 'Áp dụng và đồng bộ' })).toBeDisabled();
+
+  const local = await localRecord(page, id);
+  expect(local?.syncState).toBe('conflict');
+  expect(await opsOf(page, id)).toHaveLength(0);
+  expect((await serverRecord(request, id)).data).toMatchObject({ members: 8 });
 });
