@@ -19,6 +19,8 @@ interface RecordRow {
   updated_at: string;
   updated_by: string;
   seq: number;
+  created_by_name: string;
+  updated_by_name: string;
 }
 
 interface HistoryRow {
@@ -27,7 +29,15 @@ interface HistoryRow {
   deleted: number;
   updated_at: string;
   updated_by: string;
+  updated_by_name: string;
 }
+
+// Tên ghép lúc đọc (design §6.2): LEFT JOIN vì không có FK từ created_by/updated_by tới users,
+// phiếu vẫn phải trả về dù không tìm thấy tài khoản.
+const SELECT_RECORD = `SELECT r.*, COALESCE(cu.name, '') AS created_by_name, COALESCE(uu.name, '') AS updated_by_name
+  FROM records r LEFT JOIN users cu ON cu.id = r.created_by LEFT JOIN users uu ON uu.id = r.updated_by`;
+const SELECT_HISTORY = `SELECT h.*, COALESCE(u.name, '') AS updated_by_name
+  FROM record_history h LEFT JOIN users u ON u.id = h.updated_by`;
 
 function toRecord(row: RecordRow): ServerRecord {
   return {
@@ -37,8 +47,11 @@ function toRecord(row: RecordRow): ServerRecord {
     data: JSON.parse(row.data) as RecordData,
     version: row.version,
     deleted: row.deleted === 1,
+    createdBy: row.created_by,
+    createdByName: row.created_by_name,
     updatedAt: row.updated_at,
     updatedBy: row.updated_by,
+    updatedByName: row.updated_by_name,
   };
 }
 
@@ -49,6 +62,7 @@ function toHistory(h: HistoryRow): RecordHistoryEntry {
     deleted: h.deleted === 1,
     updatedAt: h.updated_at,
     updatedBy: h.updated_by,
+    updatedByName: h.updated_by_name,
   };
 }
 
@@ -68,7 +82,7 @@ export type RecordAccess = { kind: 'none' } | { kind: 'hidden' } | { kind: 'visi
 export function getRecordAccess(ctx: Ctx, db: Db, id: string): RecordAccess {
   // Cố ý KHÔNG lọc project_id ở đây: id phiếu là khoá toàn hệ thống, và phải phát hiện được id
   // đang thuộc dự án khác để không ghi đè (ADR 0002 §3). Kết quả được lọc ngay bên dưới.
-  const row = db.prepare(`SELECT * FROM records WHERE id = ?`).get(id) as RecordRow | undefined;
+  const row = db.prepare(`${SELECT_RECORD} WHERE r.id = ?`).get(id) as RecordRow | undefined;
   if (!row) return { kind: 'none' };
   if (row.project_id !== ctx.projectId) return { kind: 'hidden' };
   if (ctx.role === 'surveyor' && row.created_by !== ctx.userId) return { kind: 'hidden' };
@@ -85,10 +99,10 @@ export function pullRecords(
   const rows =
     scope === 'own'
       ? (db
-          .prepare(`SELECT * FROM records WHERE project_id = ? AND created_by = ? AND seq > ? ORDER BY seq LIMIT ?`)
+          .prepare(`${SELECT_RECORD} WHERE r.project_id = ? AND r.created_by = ? AND r.seq > ? ORDER BY r.seq LIMIT ?`)
           .all(ctx.projectId, ctx.userId, since, limit) as unknown as RecordRow[])
       : (db
-          .prepare(`SELECT * FROM records WHERE project_id = ? AND seq > ? ORDER BY seq LIMIT ?`)
+          .prepare(`${SELECT_RECORD} WHERE r.project_id = ? AND r.seq > ? ORDER BY r.seq LIMIT ?`)
           .all(ctx.projectId, since, limit) as unknown as RecordRow[]);
   const last = rows[rows.length - 1];
   return { records: rows.map(toRecord), cursor: last ? last.seq : since, scope };
@@ -98,7 +112,7 @@ export function pullRecords(
 export function getHistory(ctx: Ctx, db: Db, id: string, afterVersion = 0): RecordHistoryEntry[] | undefined {
   if (getRecordAccess(ctx, db, id).kind !== 'visible') return undefined;
   const rows = db
-    .prepare(`SELECT * FROM record_history WHERE project_id = ? AND record_id = ? AND version > ? ORDER BY version`)
+    .prepare(`${SELECT_HISTORY} WHERE h.project_id = ? AND h.record_id = ? AND h.version > ? ORDER BY h.version`)
     .all(ctx.projectId, id, afterVersion) as unknown as HistoryRow[];
   return rows.map(toHistory);
 }
@@ -140,7 +154,7 @@ export function writeRecord(ctx: Ctx, db: Db, input: WriteRecordInput): ServerRe
   ).run(input.id, ctx.projectId, version, dataJson, deleted, now, ctx.userId);
 
   const saved = db
-    .prepare(`SELECT * FROM records WHERE id = ? AND project_id = ?`)
+    .prepare(`${SELECT_RECORD} WHERE r.id = ? AND r.project_id = ?`)
     .get(input.id, ctx.projectId) as RecordRow | undefined;
   if (!saved) throw new Error('ghi phiếu xong nhưng không đọc lại được');
   return toRecord(saved);

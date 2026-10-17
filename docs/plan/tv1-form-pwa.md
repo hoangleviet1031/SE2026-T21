@@ -301,3 +301,19 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 **Xong khi:** E2E **Q10** (tài khoản thường bị từ chối; admin duyệt ở A1, khoá ở A2; `indexedDB.databases()` trên trang admin rỗng); thử trên staging, `deploy.md` cập nhật.
 
 **Review kỹ:** trang admin không có đường gọi `P/...`; bản build PWA không chứa mã của trang admin và ngược lại (xem kích thước chunk).
+
+---
+
+## TV1-17 · Tên người tạo/sửa trong `ServerRecord`
+
+- **Trạng thái:** ✅ PR #44 (phần 1: shared + server) · phần 2 (client) chưa làm
+- **Tuần:** 6 · **Phụ thuộc:** TV2-03 (`P/records`), TV2-05 (CSDL client) · Dương nhận 2026-10-17 (P1 nhóm chốt 2026-10-10, chưa ticket nào có)
+- **Spec:** design §6.2 (`createdBy`, `createdByName`, `updatedByName`), §4.5 (tên người sửa ở màn hình xung đột), §5.7 (surveyor chỉ xoá phiếu mình tạo)
+- **File:** phần 1: `shared/src/types.ts`, `server/src/repo/records.ts`, `server/test/recordNames.test.ts` (mới). Phần 2: `client/src/db/projectDb.ts`, `client/src/sync/engine.ts`, `client/src/pages/FillPage.tsx`, `client/src/pages/ConflictPage.tsx`, hàm thuần `canDeleteRecord` + unit, E2E
+
+**Chia 2 phần** (Dương duyệt 2026-10-17)
+- **Phần 1 – shared + server:** `ServerRecord` thêm `createdBy`, `createdByName`, `updatedByName`; `RecordHistoryEntry` thêm `updatedByName`. Server ghép tên từ `users` lúc đọc (LEFT JOIN, không tìm thấy thì `''`) ở pull, PUT, 409 (`current` + `history`), `GET history`. Không migration.
+- **Phần 2 – client:** lưu `createdBy`, `createdByName` theo phiếu (không đổi schema Dexie, không ép pull lại phiếu cũ); màn hình xung đột hiện tên thay userId (bản xung đột cũ không có tên thì hiện userId); ẩn "Xoá phiếu" với surveyor khi đã biết `createdBy` khác mình (phần bỏ ra từ TV1-13).
+- Ngoài phạm vi: danh sách phiếu §4.8 (tên người tạo, lọc theo người tạo, "(đã rời dự án)").
+
+**Xong khi:** phần 1: integration pull/PUT/409/history có tên, người tạo giữ nguyên sau khi người khác sửa, tài khoản không tìm thấy thì tên rỗng. Phần 2: màn hình xung đột hiện tên người sửa; E2E surveyor mở phiếu người khác tạo thì không có nút "Xoá phiếu", phiếu của mình thì có.

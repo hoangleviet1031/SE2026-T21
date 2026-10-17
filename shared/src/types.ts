@@ -42,8 +42,16 @@ export interface ServerRecord {
   /** Do server cấp, tăng 1 mỗi lần ghi thành công. 0 = chưa từng tồn tại */
   version: number;
   deleted: boolean;
+  /** userId người tạo, server đặt lúc tạo và không đổi */
+  createdBy: string;
+  /**
+   * Tên người tạo/sửa lúc server trả response, để màn hình hiện tên cả khi offline (design §6.2).
+   * Rỗng nếu không tìm thấy tài khoản; client hiện userId thay vào.
+   */
+  createdByName: string;
   updatedAt: string;
   updatedBy: string;
+  updatedByName: string;
 }
 
 /** Một dòng lịch sử, dùng để giải thích conflict ("ai sửa, lúc nào") */
@@ -53,6 +61,8 @@ export interface RecordHistoryEntry {
   deleted: boolean;
   updatedAt: string;
   updatedBy: string;
+  /** Tên người sửa lúc server trả response, như `ServerRecord.updatedByName` */
+  updatedByName: string;
 }
 
 /** Thân request POST P/forms: server tự đặt `version` (bản mới nhất + 1), không nhận từ client */

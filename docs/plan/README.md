@@ -93,6 +93,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | — |
 | TV1-15 | Màn hình Tổ chức (danh bạ, mở tổ chức mới) | – | — |
 | TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | — |
+| TV1-17 | Tên người tạo/sửa trong `ServerRecord`; ẩn Xoá với surveyor theo người tạo | Phần bỏ của TV1-13 | ✅ PR #44 (phần 1: shared + server) · phần 2 (client) chưa làm |
 | TV3-12 | CLI, fixture, helper E2E theo tài khoản mới | Phần CLI/helper của TV3-02 | ✅ PR #36 |
 
 ## Phụ thuộc quan trọng
