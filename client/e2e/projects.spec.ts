@@ -84,7 +84,9 @@ test('T6: được thêm vào dự án mới khi đang có dữ liệu dự án 
   await page.getByRole('button', { name: 'Lưu' }).click();
   const mineRow = page.getByTestId('records').getByRole('listitem').filter({ hasText: mine });
   await expect(mineRow.getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 15_000 });
-  const before = await localRecords(page, PROJECT);
+  const before = (await localRecords(page, PROJECT)) as { data: { householdName?: string } }[];
+  // localRecords trả [] khi chưa có CSDL: phải chắc ảnh chụp có phiếu thì "không đổi" mới có nghĩa
+  expect(before.some((r) => r.data.householdName === mine)).toBe(true);
 
   // Giám sát viên để thấy phiếu của người khác (surveyor chỉ thấy phiếu của mình, design §5.5)
   await setMembership(request, b.id, 'u_minh', 'supervisor');
