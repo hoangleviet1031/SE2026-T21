@@ -200,7 +200,8 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-11 · E2E O2, O4, T6, T10
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #43
+- **Ghi chú:** T6 thêm minh vào dự án mới với vai trò **supervisor**, vì surveyor chỉ thấy phiếu của mình (§5.5) nên không kiểm được "thấy đủ phiếu". T6 dùng phiếu đã đồng bộ ở dự án cũ để so "không đổi" (phiếu chưa gửi sẽ tự gửi khi có mạng).
 - **Tuần:** 6 · **Phụ thuộc:** TV1-06, TV2-07
 - **Spec:** design §10.1, ADR 0002 Kiểm chứng
 - **File:** `client/e2e/offline-install.spec.ts`, `client/e2e/projects.spec.ts` (mới)

@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-17 | TV1-11 | test | E2E O2 (mở app đã cài khi offline từ đầu, 10 phiếu), O4 (đóng tab khi còn op) trong `offline-install.spec.ts`; T6 (được thêm vào dự án mới), T10 (offline đổi qua lại hai dự án) trong `projects.spec.ts`; không sửa code app | PR #43, design §10.1 | xong |
 | 2026-10-17 | TV1-13 | feat | Hộp xác nhận xoá phiếu trong app (`ConfirmDialog`, `<dialog>` + Esc = Huỷ) thay `window.confirm`, giữ câu chữ §5.7; E2E O7 bấm nút trong hộp thoại (thêm Esc), `conflict.spec` đổi cách bấm xoá | PR #42 | xong |
 | 2026-10-17 | TV1-08 | feat | Phần 2: màn hình Thành viên (thêm, đổi vai trò, rút, tên và công khai tổ chức cho Owner), thêm `GET P/settings`, Owner thấy Sửa form; E2E members.spec | PR #39 | xong |
 | 2026-10-17 | TV1-08 | feat | Phần 1: API `P/members` (thêm bằng tên đăng nhập, đổi vai trò, rút, `last_owner`, `admin_account`) và `PATCH P/settings`; test M1, M2, A6, A7, Q9, D2 | PR #38 | xong |
