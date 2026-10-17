@@ -41,8 +41,10 @@ test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, ngư�
   await expect(conflictBadge).toBeVisible({ timeout: 15_000 });
   await conflictBadge.click();
 
-  // Tạm hiện userId của người sửa; tên ('Lan') chờ updatedByName (design §6.2)
-  await expect(page.getByText('u_lan')).toBeVisible();
+  // Hiện tên người sửa (updatedByName, design §6.2), không hiện userId
+  const explain = page.getByTestId('conflict-explain');
+  await expect(explain.getByText('lan', { exact: true })).toBeVisible();
+  await expect(explain).not.toContainText('u_lan');
   const table = page.getByTestId('conflict-table');
   // Chỉ householdName xung đột; members và waterSource được gộp tự động
   await expect(table.getByTestId('conflict-field')).toHaveCount(1);
