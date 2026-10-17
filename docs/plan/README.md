@@ -56,7 +56,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-10 | `formVersion`, `hidden`, xuất/nhập form | ✅ PR #32 (phần 1), PR #33 (phần 2) |
 | TV1-11 | E2E O2, O4, T6, T10 | — |
 | TV1-12 | Hoàn thiện UI, tài liệu người dùng | — |
-| TV1-13 | Nút xoá phiếu + hộp xác nhận | ⏳ PR #42 · chưa ẩn nút theo người tạo (thiếu `createdBy`) |
+| TV1-13 | Nút xoá phiếu + hộp xác nhận | ✅ PR #42 · chưa ẩn nút theo người tạo (thiếu `createdBy`) |
 | TV2-01 | Migration + schema multi-tenancy | ✅ PR #8 (chung với TV2-02, TV2-03, TV3-02) |
 | TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ PR #8 · ⚠ `requireAuth` đọc `users.token_hash` là bản cũ, TV2-14 đổi sang `sessions` |
 | TV2-03 | Route theo dự án + phạm vi pull | ✅ PR #8 |
