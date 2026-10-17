@@ -72,3 +72,16 @@ header .brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .field .photo-add input { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0; }
 .photo-thumb .photo-state { position: absolute; left: 2px; bottom: 2px; padding: 0 4px; border-radius: 4px; font-size: 10px; background: rgba(15, 23, 42, 0.7); color: #fff; }
 .photo-thumb .photo-state.failed { background: #b91c1c; }
+/* Màn hình xung đột (ui.md màn hình 3): mỗi trường một thẻ */
+.conflict-cards { display: grid; gap: 12px; margin: 12px 0; }
+.conflict-card { display: grid; gap: 6px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; margin: 0; min-width: 0; }
+.conflict-card legend { font-weight: 600; padding: 0 4px; }
+.conflict-card .conflict-base { margin: 0; color: #475569; }
+.conflict-card label { display: flex; gap: 8px; align-items: baseline; }
+.auto-merged { margin: 8px 0 12px; }
+/* Trang điền phiếu: fieldset chỉ để khoá ô nhập khi chỉ đọc, không có khung */
+.form-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+/* Bộ lọc trạng thái danh sách phiếu (design §4.8) */
+.record-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.record-filters label { display: inline-flex; gap: 4px; align-items: center; padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 999px; }
+.record-filters label:has(input:checked) { background: #0f766e; color: #fff; border-color: #0f766e; }

@@ -58,8 +58,11 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // Lỗi lấy từ lần lưu gần nhất (design §4.1: mở lại nháp thì thấy danh sách lỗi)
   const isDraft = record?.syncState === 'draft';
 
-  // Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7): không lưu, báo người dùng đi xử lý xung đột.
-  // Phần đang nhập vẫn trên màn hình. Banner và chế độ chỉ đọc đầy đủ là việc của TV3-07.
+  // Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7, design §4.5): khoá ô nhập, ẩn Lưu và Xoá, banner
+  // dẫn tới màn hình xung đột. Phiếu có thể thành conflict ngay lúc form đang mở (đồng bộ chạy nền):
+  // liveQuery đổi record là trang tự chuyển sang chỉ đọc, phần đang nhập vẫn hiện trên màn hình.
+  const readOnly = record?.syncState === 'conflict' || inConflict;
+  // Bấm Lưu đúng lúc phiếu vừa thành conflict (trước khi liveQuery kịp cập nhật): tầng dữ liệu từ chối.
   const unlessInConflict = async <T,>(write: () => Promise<T>): Promise<T | undefined> => {
     try {
       return await write();
@@ -99,9 +102,9 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
         ← Quay lại
       </a>
       <h2>{form.title}</h2>
-      {inConflict && (
+      {readOnly && (
         <p className="warning" data-testid="record-in-conflict">
-          Phiếu này cần xử lý xung đột trước. <a href={`#/conflict/${id}`}>Xử lý xung đột</a>
+          Phiếu này cần xử lý xung đột trước. <a href={`#/conflict/${id}`}>Xử lý</a>
         </p>
       )}
       {isDraft && (
@@ -109,20 +112,25 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
           Đã lưu nháp, chưa đồng bộ. Sửa các trường báo lỗi rồi bấm Lưu.
         </p>
       )}
-      <FormRenderer
-        db={db}
-        form={form}
-        recordId={id}
-        value={data}
-        onChange={setData}
-        errors={isDraft ? record.validationErrors : undefined}
-      />
-      <div className="actions">
-        <button className="primary" onClick={save}>
-          Lưu
-        </button>
-        {record && <button onClick={remove}>Xoá phiếu</button>}
-      </div>
+      {/* fieldset disabled khoá mọi ô nhập và nút bên trong, kể cả chọn/bỏ ảnh */}
+      <fieldset className="form-fieldset" disabled={readOnly} data-testid="record-form">
+        <FormRenderer
+          db={db}
+          form={form}
+          recordId={id}
+          value={data}
+          onChange={setData}
+          errors={isDraft ? record.validationErrors : undefined}
+        />
+      </fieldset>
+      {!readOnly && (
+        <div className="actions">
+          <button className="primary" onClick={save}>
+            Lưu
+          </button>
+          {record && <button onClick={remove}>Xoá phiếu</button>}
+        </div>
+      )}
     </section>
   );
 }
