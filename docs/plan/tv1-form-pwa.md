@@ -151,7 +151,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-08 · Thành viên dự án (API + màn hình)
 
-- **Trạng thái:** ⏳ PR (phần 1: API `P/members`, `P/settings`) · phần 2 (màn hình) chưa làm
+- **Trạng thái:** ⏳ PR #38 (phần 1: API `P/members`, `P/settings`) · phần 2 (màn hình) chưa làm
 - **Ghi chú phần 1:** D2 chỉ kiểm cột `public`; vế "tổ chức hiện/ẩn ở D1" kiểm khi TV2-15 có `GET /directory`.
 - 🆕 **Cập nhật theo ADR 0003** (bản trước: thêm bằng `userId`, `last_supervisor`, chỉ supervisor): thêm bằng **tên đăng nhập**, phân quyền supervisor/owner, `last_owner`, `admin_account`, thêm `P/settings`.
 - **Tuần:** 5 · **Phụ thuộc:** TV2-14 (vai trò `owner`, `username`)
