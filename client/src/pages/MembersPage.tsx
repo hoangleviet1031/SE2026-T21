@@ -16,7 +16,7 @@ import {
   updateSettings,
   type MemberResult,
 } from '../sync/api';
-import { syncAfterChange } from '../sync/engine';
+import { syncNow } from '../sync/engine';
 import { navigate } from '../useHashRoute';
 
 // Màn hình Thành viên (ui.md màn hình 6, design §4.7). Cần mạng: gọi API thẳng, không qua IndexedDB
@@ -86,7 +86,7 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
         return undefined;
       }
       if (opts.self) {
-        await syncAfterChange();
+        await syncNow();
         navigate();
         return result.value;
       }
@@ -155,7 +155,7 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
                 if (saved) {
                   setSettings(saved);
                   // Tên mới hiện ở bộ chọn dự án sau khi /me trả về
-                  if (patch.name !== undefined) void syncAfterChange();
+                  if (patch.name !== undefined) void syncNow();
                 }
                 return saved !== undefined;
               }}
