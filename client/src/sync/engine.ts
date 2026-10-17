@@ -9,7 +9,15 @@ import {
 } from '@field-survey/shared';
 import { accountDb, setAccountValue, type AccountProject } from '../db/accountDb';
 import { getCurrentProjectId, openProjectDb } from '../db/current';
-import { formKey, getMeta, setMeta, type OutboxOp, type ProjectDb, type SyncState } from '../db/projectDb';
+import {
+  formKey,
+  getMeta,
+  setMeta,
+  type LocalRecord,
+  type OutboxOp,
+  type ProjectDb,
+  type SyncState,
+} from '../db/projectDb';
 import { NetworkError, NotMemberError, fetchFormVersion, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
 import { mergeMeIntoProjects, projectsToSync, pullStateAfterPage, type PullState } from './accountSync';
 import { applyMembershipChanges, markRemoved } from './membership';
@@ -294,6 +302,16 @@ async function scheduleRetry(db: ProjectDb, op: OutboxOp, error: string) {
   });
 }
 
+/**
+ * Người tạo theo bản server. Response từ trước TV1-17 (bản xung đột đã lưu, response PUT trả lại
+ * theo Idempotency-Key) không có trường này: trả rỗng để không ghi đè giá trị đang có bằng undefined.
+ */
+function creatorOf(remote: ServerRecord): Pick<LocalRecord, 'createdBy' | 'createdByName'> {
+  return typeof remote.createdBy === 'string'
+    ? { createdBy: remote.createdBy, createdByName: remote.createdByName }
+    : {};
+}
+
 async function onPushed(db: ProjectDb, op: OutboxOp, saved: ServerRecord) {
   await db.transaction('rw', db.outbox, db.records, db.attachments, async () => {
     await db.outbox.delete(op.seq!);
@@ -307,6 +325,7 @@ async function onPushed(db: ProjectDb, op: OutboxOp, saved: ServerRecord) {
     }
     const record = await db.records.get(op.recordId);
     await db.records.update(op.recordId, {
+      ...creatorOf(saved),
       baseData: saved.data,
       baseVersion: saved.version,
       // Op vừa gửi là bản hợp lệ cũ; phiếu đã sửa thành nháp sau đó thì vẫn là nháp (TV1-05)
@@ -340,6 +359,7 @@ async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictRespons
     if (merge.conflicts.length === 0 && recordLevel === 'none') {
       const deleted = record.deleted || remote.deleted;
       await db.records.update(record.id, {
+        ...creatorOf(remote),
         data: merge.merged,
         deleted,
         baseData: remote.data,
@@ -372,6 +392,7 @@ export async function resolveConflict(db: ProjectDb, recordId: string, resolved:
     const c = await db.conflicts.get(recordId);
     if (!c) return;
     await db.records.update(recordId, {
+      ...creatorOf(c.server),
       data: resolved,
       deleted,
       baseData: c.server.data,
@@ -432,6 +453,7 @@ async function pullAll(db: ProjectDb): Promise<void> {
           baseVersion: remote.version,
           syncState: 'synced',
           updatedAt: remote.updatedAt,
+          ...creatorOf(remote),
         });
       }
       state = { cursor: page.cursor, scope: next.scope };

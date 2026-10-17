@@ -22,6 +22,12 @@ export interface LocalRecord {
   lastError?: string;
   /** Lỗi validate theo id trường, chỉ có khi `syncState = 'draft'` (design §4.1) */
   validationErrors?: Record<string, string>;
+  /**
+   * Người tạo theo server (design §6.2), có từ lần đầu nhận bản server sau TV1-17. Phiếu mới tạo
+   * trên máy chưa gửi, hoặc tải về trước TV1-17, thì chưa có: coi như chưa biết.
+   */
+  createdBy?: string;
+  createdByName?: string;
 }
 
 /** Một thao tác chờ gửi. opId đồng thời là Idempotency-Key. */

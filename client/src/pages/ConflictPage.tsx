@@ -27,7 +27,10 @@ export function ConflictPage({ recordId }: { recordId: string }) {
   const { fields, auto } = buildConflictView(conflict.merge, form);
   // Người sửa và giờ là của lần ghi cuối trên server, không dùng giờ thiết bị (bất biến 4)
   const lastEdit = conflict.history[conflict.history.length - 1];
-  const editor = lastEdit?.updatedBy ?? conflict.server.updatedBy;
+  // Tên lấy từ response lúc phát hiện xung đột nên hiện được khi offline (design §6.2). Xung đột lưu
+  // trước TV1-17, hoặc server không tìm thấy tài khoản (tên rỗng), thì hiện userId như trước.
+  const lastEditor = lastEdit ?? conflict.server;
+  const editor = lastEditor.updatedByName || lastEditor.updatedBy;
   const editedAt = new Date(lastEdit?.updatedAt ?? conflict.server.updatedAt).toLocaleString('vi-VN', {
     hour: '2-digit',
     minute: '2-digit',

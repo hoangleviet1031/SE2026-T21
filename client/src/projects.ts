@@ -32,3 +32,11 @@ export function projectSubtitle(p: AccountProject): string {
 export function canManageProject(role: Role): boolean {
   return role === 'supervisor' || role === 'owner';
 }
+
+/**
+ * Có hiện nút "Xoá phiếu" không (design §5.7): surveyor chỉ xoá phiếu mình tạo. Chưa biết người tạo
+ * (phiếu mới trên máy, hoặc tải về trước TV1-17) thì vẫn hiện; server vẫn chặn phiếu ngoài phạm vi.
+ */
+export function canDeleteRecord(role: Role, myUserId: string, createdBy: string | undefined): boolean {
+  return role !== 'surveyor' || createdBy === undefined || createdBy === myUserId;
+}
