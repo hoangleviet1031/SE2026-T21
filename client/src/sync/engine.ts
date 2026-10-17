@@ -23,11 +23,11 @@ import { mergeMeIntoProjects, projectsToSync, pullStateAfterPage, type PullState
 import { applyMembershipChanges, markRemoved } from './membership';
 import { earliestCreatedAt } from './outbox';
 import { uploadPendingAttachments } from './attachments';
+import { coalesce } from './coalesce';
 
 // Sync engine: push outbox (FIFO theo từng bản ghi) rồi pull thay đổi từ server.
 // Xem docs/design.md §5 và docs/adr/0001-consistency-model.md.
 
-let running: Promise<void> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
 // Một khoá cho cả thiết bị: mọi tab dùng chung IndexedDB nên chung outbox (ADR 0001, Nhiều tab).
@@ -37,25 +37,12 @@ export const SYNC_LOCK = 'field-survey-sync';
 const NEEDS_ATTENTION: SyncState[] = ['conflict', 'error'];
 const UNSYNCED: SyncState[] = ['pending', 'draft'];
 
-/** Gọi bất cứ lúc nào; các lần gọi chồng nhau trong cùng tab được gộp làm một. */
-export function syncNow(): Promise<void> {
-  // Reset trong .finally (luôn chạy bất đồng bộ) để không ghi đè sau khi đã reset
-  running ??= runSync().finally(() => {
-    running = null;
-  });
-  return running;
-}
-
 /**
- * Một vòng đồng bộ bắt đầu sau lúc gọi. Dùng sau khi vừa đổi thứ mà vòng đồng bộ đọc từ server
- * (vd. tự hạ vai trò, đổi tên tổ chức ở màn hình Thành viên): vòng đang chạy có thể đã đọc /me cũ,
- * syncNow sẽ chỉ gộp vào vòng đó. Lỗi của vòng cũ do nơi khởi động nó xử lý (startSyncLoop ghi log),
- * ở đây chỉ chờ nó kết thúc.
+ * Gọi bất cứ lúc nào. Promise xong khi đã có một vòng đồng bộ bắt đầu sau lúc gọi: gọi lúc đang
+ * có vòng chạy thì chạy thêm đúng một vòng sau đó, vì vòng đang chạy có thể đã qua bước gửi phiếu
+ * hoặc đã đọc /me cũ (design §5.3).
  */
-export async function syncAfterChange(): Promise<void> {
-  if (running) await Promise.allSettled([running]);
-  return syncNow();
-}
+export const syncNow = coalesce(runSync);
 
 export function startSyncLoop(intervalMs = 30_000): () => void {
   const kick = () => void syncNow().catch((e) => console.warn('sync failed', e));
