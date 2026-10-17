@@ -333,8 +333,8 @@ test('xoá vs sửa: phiếu hiện ở "Cần xử lý", màn hình xung đột
   const id = await createSynced(page, 'Hộ xoá sửa');
   await context.setOffline(true);
   await recordRow(page, 'Hộ xoá sửa').getByRole('link').first().click();
-  page.once('dialog', (d) => void d.accept());
   await page.getByRole('button', { name: 'Xoá phiếu' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Xoá', exact: true }).click();
   await serverPut(request, id, 1, { householdName: 'Hộ xoá sửa', members: 8 });
   await context.setOffline(false);
 

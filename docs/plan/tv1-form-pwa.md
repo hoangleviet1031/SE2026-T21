@@ -227,7 +227,8 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-13 · Nút xoá phiếu và hộp xác nhận
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #42
+- **Ghi chú:** (1) Phiếu `conflict` **ẩn** cả Lưu lẫn Xoá theo main (#41, design §4.5), không "khoá nút". (2) "Ẩn nút với surveyor khi phiếu không do mình tạo" **chưa làm** (Dương chốt 2026-10-17): máy không biết người tạo vì `ServerRecord` chưa có `createdBy` (design §6.2 bản 0.4, chưa có code), cần ticket riêng chạm server + shared + client. Hiện surveyor chỉ pull phiếu của mình; phiếu người khác chỉ còn trên máy khi vừa bị hạ vai trò mà còn dữ liệu chưa gửi, xoá thì server trả 404 (op lỗi, không mất dữ liệu).
 - **Tuần:** 5 · **Phụ thuộc:** TV2-13
 - **Spec:** design §5.7, §4.8 (phiếu đã xoá không hiện); [ui.md](../ui.md) màn hình 4 (trang phiếu)
 - **File:** `client/src/pages/FillPage.tsx`, `client/src/components/ConfirmDialog.tsx` (mới), `client/e2e/delete.spec.ts` (phần UI, chung file với TV2-13)

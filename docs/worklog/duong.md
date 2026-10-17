@@ -6,12 +6,12 @@ Quy ước ở [README.md](README.md).
 
 | Việc | Chặn bởi | Ghi chú |
 |---|---|---|
-| TV1-13: nút xoá phiếu và hộp xác nhận | TV2-13 (Hoàng) | design §5.7 |
 
 ## Nhật ký
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-17 | TV1-13 | feat | Hộp xác nhận xoá phiếu trong app (`ConfirmDialog`, `<dialog>` + Esc = Huỷ) thay `window.confirm`, giữ câu chữ §5.7; E2E O7 bấm nút trong hộp thoại (thêm Esc), `conflict.spec` đổi cách bấm xoá | PR #42 | xong |
 | 2026-10-17 | TV1-08 | feat | Phần 2: màn hình Thành viên (thêm, đổi vai trò, rút, tên và công khai tổ chức cho Owner), thêm `GET P/settings`, Owner thấy Sửa form; E2E members.spec | PR #39 | xong |
 | 2026-10-17 | TV1-08 | feat | Phần 1: API `P/members` (thêm bằng tên đăng nhập, đổi vai trò, rút, `last_owner`, `admin_account`) và `PATCH P/settings`; test M1, M2, A6, A7, Q9, D2 | PR #38 | xong |
 | 2026-10-16 | TV1-10 | feat | Phần 2: Xuất/Nhập form JSON trong builder (nhập nạp vào builder thành form mới), form mới trùng mã báo "Mã biểu mẫu đã có trong dự án", `parseSaveFormRequest` chuyển sang shared; unit `formFile.test.ts`, `builder.test.ts`; E2E `form-import-export.spec.ts` | PR #33, design §4.1, §8 | xong |

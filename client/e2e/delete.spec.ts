@@ -3,7 +3,7 @@ import { API, PROJECT, TOKENS, authHeaders, login, readStore } from './helpers';
 
 // Xoá phiếu (design §5.7, TV2-13): chưa thể tới server thì xoá hẳn trên máy; có thể đã tới server
 // thì xoá mềm, gửi op xoá, server xác nhận xong mới xoá khỏi máy. Ca O7, O8 ở §10.1.
-// Hộp xác nhận hiện là confirm() của trình duyệt; TV1-13 thay bằng ConfirmDialog đúng câu chữ.
+// Hộp xác nhận là ConfirmDialog trong app (TV1-13), không phải confirm() của trình duyệt.
 
 const DB = `field-survey-p-${PROJECT}`;
 const FAULTS = 'http://localhost:3001/api/__test/faults';
@@ -54,22 +54,20 @@ async function createWithPhoto(page: Page, name: string): Promise<string> {
 const CONFIRM_TEXT = 'Xoá phiếu này? Không hoàn tác được trên máy.';
 
 /**
- * Bấm "Xoá phiếu" rồi trả lời hộp xác nhận. Playwright mặc định tự đóng hộp thoại (tức là Huỷ),
- * nên phải đăng ký trả lời trước khi bấm. Trả câu hỏi đã hiện để kiểm câu chữ.
+ * Bấm "Xoá phiếu" rồi trả lời hộp xác nhận trong app (ConfirmDialog). Kiểm câu chữ trước khi trả lời;
+ * trả lời xong thì hộp phải đóng.
  */
-async function clickDelete(page: Page, answer: 'accept' | 'dismiss' = 'accept'): Promise<string> {
-  let message = '';
-  page.once('dialog', (d) => {
-    message = d.message();
-    void (answer === 'accept' ? d.accept() : d.dismiss());
-  });
+async function clickDelete(page: Page, answer: 'accept' | 'dismiss' = 'accept') {
   await page.getByRole('button', { name: 'Xoá phiếu' }).click();
-  return message;
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText(CONFIRM_TEXT, { exact: true })).toBeVisible();
+  await dialog.getByRole('button', { name: answer === 'accept' ? 'Xoá' : 'Huỷ', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
 }
 
 async function deleteFromForm(page: Page, name: string) {
   await recordRow(page, name).getByRole('link').first().click();
-  expect(await clickDelete(page)).toBe(CONFIRM_TEXT);
+  await clickDelete(page);
 }
 
 async function serverRecord(request: APIRequestContext, id: string) {
@@ -129,7 +127,12 @@ test('O7: bấm Huỷ ở hộp xác nhận thì phiếu, op, ảnh còn nguyên
   const before = (await records(page)).find((r) => r.id === id);
 
   await recordRow(page, name).getByRole('link').first().click();
-  expect(await clickDelete(page, 'dismiss')).toBe(CONFIRM_TEXT);
+  await clickDelete(page, 'dismiss');
+  // Esc cũng là Huỷ
+  await page.getByRole('button', { name: 'Xoá phiếu' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 
   await expect(page.getByRole('button', { name: 'Xoá phiếu' })).toBeVisible();
   expect((await records(page)).find((r) => r.id === id)).toEqual(before);

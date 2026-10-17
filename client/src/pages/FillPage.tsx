@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import type { RecordData } from '@field-survey/shared';
 import { useCurrentProjectDb } from '../db/current';
 import { FormRenderer } from '../components/FormRenderer';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { RecordInConflictError, deleteRecordLocally, saveRecordLocally } from '../sync/outbox';
 import { syncNow } from '../sync/engine';
 import { requestPersistentStorage } from '../persistStorage';
@@ -20,6 +21,8 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const [fetchTried, setFetchTried] = useState(false);
   // Lưu bị từ chối vì phiếu đang xung đột (có thể vừa thành conflict khi form đang mở)
   const [inConflict, setInConflict] = useState(false);
+  // Đang hỏi xác nhận xoá phiếu
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
     if (record) setData(record.data);
@@ -86,10 +89,11 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
     navigate();
   };
 
+  // Chỉ chạy sau khi người dùng bấm Xoá trong hộp xác nhận: phiếu chưa từng gửi bị xoá hẳn khỏi máy
+  // (bất biến 1, design §5.7)
   const remove = async () => {
-    // Phiếu chưa từng gửi bị xoá hẳn khỏi máy, nên phải hỏi trước (bất biến 1, design §5.7).
-    // TODO(TV1-13): thay confirm() của trình duyệt bằng ConfirmDialog, giữ nguyên câu chữ.
-    if (!window.confirm('Xoá phiếu này? Không hoàn tác được trên máy.')) return;
+    // Đóng hộp trước khi ghi để bấm Xoá hai lần không chạy xoá hai lần
+    setConfirmingDelete(false);
     if (!(await unlessInConflict(() => deleteRecordLocally(db, id)))) return;
     void syncNow();
     navigate();
@@ -128,8 +132,16 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
           <button className="primary" onClick={save}>
             Lưu
           </button>
-          {record && <button onClick={remove}>Xoá phiếu</button>}
+          {record && <button onClick={() => setConfirmingDelete(true)}>Xoá phiếu</button>}
         </div>
+      )}
+      {confirmingDelete && !readOnly && (
+        <ConfirmDialog
+          message="Xoá phiếu này? Không hoàn tác được trên máy."
+          confirmLabel="Xoá"
+          onConfirm={() => void remove()}
+          onCancel={() => setConfirmingDelete(false)}
+        />
       )}
     </section>
   );

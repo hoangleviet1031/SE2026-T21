@@ -6,6 +6,7 @@ header { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-
 /* Đặt màu chữ rõ ràng: Safari iOS dùng màu mặc định của hệ thống cho nút, có lúc trùng màu nền trắng (nút "Tiếp tục" trống chữ trên iPhone) */
 button { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: inherit; cursor: pointer; }
 button.primary { background: #0f766e; color: #fff; border-color: #0f766e; }
+button.danger { background: #b91c1c; color: #fff; border-color: #b91c1c; }
 button:disabled { opacity: 0.5; cursor: default; }
 .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #e2e8f0; }
 .badge.ok, .badge.synced { background: #dcfce7; color: #166534; }
@@ -23,6 +24,10 @@ button:disabled { opacity: 0.5; cursor: default; }
 .field input:not([type=checkbox]):not([type=radio]), .field select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
 .checks { display: flex; flex-wrap: wrap; gap: 12px; }
 .actions { display: flex; gap: 8px; margin-top: 20px; }
+.confirm-dialog { max-width: min(400px, calc(100vw - 32px)); border: none; border-radius: 8px; padding: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25); }
+.confirm-dialog::backdrop { background: rgba(15, 23, 42, 0.5); }
+.confirm-dialog p { margin: 0; }
+.confirm-dialog .actions { justify-content: flex-end; }
 table.conflict { width: 100%; border-collapse: collapse; margin: 16px 0; }
 table.conflict th, table.conflict td { text-align: left; padding: 8px; border-bottom: 1px solid #e2e8f0; }
 .project-switcher { padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
