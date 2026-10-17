@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.21 (2026-10-17)
+- **Phiên bản:** 0.5.22 (2026-10-17)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -55,6 +55,7 @@
 | 0.5.19 | 2026-10-17 | TV1-08 phần 2: màn hình Thành viên có code (§4.7, ui.md màn hình 6); supervisor và Owner thấy Sửa form, Thành viên; thêm `GET P/settings` (owner) để màn hình đọc trạng thái công khai (§7, Dương chốt); thao tác làm mình mất quyền chạy một vòng đồng bộ mới sau vòng đang chạy (`syncAfterChange`) để `/me` cập nhật ngay |
 | 0.5.20 | 2026-10-17 | TV3-10: API kiểm thử `match`, `chunkIndex`, `stats` có code (§10.1), request bị cắt kết nối ghi `status: 0`; R4 có E2E, O3 kiểm 2 ảnh và trạng thái "Đang tải ảnh (2)" |
 | 0.5.21 | 2026-10-17 | TV3-07: màn hình xung đột có code (§4.5): thẻ mỗi trường, nhãn theo form, "Gộp cả hai", mục "Đã gộp tự động"; xoá vs sửa khoá Áp dụng tới TV3-08; phiếu `conflict` mở ra chỉ đọc; bộ lọc trạng thái và số "Cần xử lý" (§4.8), phiếu đã xoá mà đang xung đột vẫn hiện; C7 có E2E (§10.1) |
+| 0.5.22 | 2026-10-17 | TV1-13: hộp xác nhận xoá phiếu là hộp trong app (`ConfirmDialog`), O7 kiểm câu chữ, Huỷ và Esc (§10.1). Ẩn nút xoá với surveyor theo người tạo chưa có code (thiếu `createdBy`, §6.2) |
 
 ## Mục lục
 
@@ -837,7 +838,7 @@ Phạm vi đồ án giữ đơn giản:
 | O4 | Đóng tab khi còn op, mở lại thì vẫn đồng bộ | TODO |
 | O5 | Lưu phiếu thiếu trường bắt buộc: thành "Nháp", không lên server; sửa đủ thì đồng bộ | Có (`draft.spec.ts`) |
 | O6 | Hai tab cùng mở: mỗi op chỉ được gửi từ một tab | Có (`tabs.spec.ts`) |
-| O7 | Xoá phiếu chưa từng gửi (tạo khi offline): bấm "Huỷ" thì phiếu còn; xác nhận thì phiếu, op, ảnh biến khỏi máy, online lên không có request nào cho phiếu đó (§5.7) | Có (`delete.spec.ts`; hộp xác nhận hiện là `confirm()` của trình duyệt) |
+| O7 | Xoá phiếu chưa từng gửi (tạo khi offline): bấm "Huỷ" thì phiếu còn; xác nhận thì phiếu, op, ảnh biến khỏi máy, online lên không có request nào cho phiếu đó (§5.7) | Có (`delete.spec.ts`; hộp xác nhận trong app, kiểm cả Huỷ và Esc) |
 | O8 | Xoá phiếu đã đồng bộ: phiếu biến khỏi danh sách, server có `deleted: true`, máy khác pull thấy tombstone; phiếu bị xoá khỏi máy sau khi op xoá được xác nhận (§5.7) | Có (`delete.spec.ts`) |
 
 **Conflict**
