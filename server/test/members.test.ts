@@ -262,7 +262,7 @@ describe('PUT, DELETE P/members/:userId', () => {
   });
 });
 
-describe('PATCH P/settings', () => {
+describe('GET, PATCH P/settings', () => {
   it('D2: Owner đổi tên và bật/tắt công khai → 200, cột public đổi đúng', async () => {
     const owner = newUser();
     const projectId = newProject([[owner, 'owner']]);
@@ -277,12 +277,15 @@ describe('PATCH P/settings', () => {
     expect(await res2.json()).toEqual({ name: 'Y tế Tân Lập', public: false });
     expect(publicOf().public).toBe(0);
 
+    // GET P/settings đọc lại đúng (màn hình Thành viên dùng để hiện ô Công khai).
+    expect(await (await call('GET', settings(projectId), owner.token)).json()).toEqual({ name: 'Y tế Tân Lập', public: false });
+
     // /me thấy tên mới.
     const me = (await (await call('GET', '/me', owner.token)).json()) as { projects: Array<{ id: string; name: string }> };
     expect(me.projects).toContainEqual(expect.objectContaining({ id: projectId, name: 'Y tế Tân Lập' }));
   });
 
-  it('D2: supervisor, surveyor → 403 forbidden; người ngoài → 403 not_member; thân sai → 400', async () => {
+  it('D2: supervisor, surveyor → 403 forbidden (cả GET); người ngoài → 403 not_member; thân sai → 400', async () => {
     const owner = newUser();
     const sup = newUser();
     const surveyor = newUser();
@@ -292,6 +295,7 @@ describe('PATCH P/settings', () => {
         status: 403,
         error: 'forbidden',
       });
+      expect(await errorOf(await call('GET', settings(projectId), user.token))).toEqual({ status: 403, error: 'forbidden' });
     }
     expect(await errorOf(await call('PATCH', settings(projectId), t.tokens.admin, { public: true }))).toEqual({
       status: 403,
