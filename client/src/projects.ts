@@ -28,8 +28,7 @@ export function projectSubtitle(p: AccountProject): string {
   return parts.join(' · ');
 }
 
-/** Vai trò được thấy nút Sửa form, Xuất, Thành viên (ui.md màn hình 2). */
-// TODO(TV2-16): owner cũng được (ADR 0003)
+/** Vai trò được thấy nút Sửa form, Xuất, Thành viên (ui.md màn hình 2): supervisor và Owner (ADR 0003 §2). */
 export function canManageProject(role: Role): boolean {
-  return role === 'supervisor';
+  return role === 'supervisor' || role === 'owner';
 }

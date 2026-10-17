@@ -12,6 +12,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-17 | TV1-08 | feat | Phần 2: màn hình Thành viên (thêm, đổi vai trò, rút, tên và công khai tổ chức cho Owner), thêm `GET P/settings`, Owner thấy Sửa form; E2E members.spec | PR #39 | xong |
 | 2026-10-17 | TV1-08 | feat | Phần 1: API `P/members` (thêm bằng tên đăng nhập, đổi vai trò, rút, `last_owner`, `admin_account`) và `PATCH P/settings`; test M1, M2, A6, A7, Q9, D2 | PR #38 | xong |
 | 2026-10-16 | TV1-10 | feat | Phần 2: Xuất/Nhập form JSON trong builder (nhập nạp vào builder thành form mới), form mới trùng mã báo "Mã biểu mẫu đã có trong dự án", `parseSaveFormRequest` chuyển sang shared; unit `formFile.test.ts`, `builder.test.ts`; E2E `form-import-export.spec.ts` | PR #33, design §4.1, §8 | xong |
 | 2026-10-16 | TV1-10 | feat | Phần 1: trường ẩn không hiện ở phiếu mới, có giá trị thì hiện chỉ đọc; vòng đồng bộ tải bản form phiếu đang dùng mà máy chưa có, trang điền phiếu báo "Cần kết nối để mở phiếu này"; trường ẩn sai định dạng mở cho sửa; unit `formDisplay.test.ts`, E2E `form-version.spec.ts` | PR #32, design §4.1, §5.3, §8 | xong |

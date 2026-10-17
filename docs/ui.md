@@ -1,6 +1,6 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md; header giữ mỗi phần tử một dòng, tên app tự rút gọn bằng "…"); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
@@ -13,7 +13,7 @@
 | 3 | Xung đột | `#/conflict/<recordId>` | mọi | không | §4.5 | TV3-07, TV3-08 |
 | 4 | Điền / xem phiếu | `#/fill/<formId>/<recordId>` | mọi | không | §4.1, §5.7 | TV1-05, TV1-10 |
 | 5 | Form builder | `#/builder/<formId>`, `#/builder/new` | supervisor, 🆕 owner | khi lưu | §4.1 | TV1-04 |
-| 6 | Thành viên (🆕 kèm cài đặt tổ chức cho owner) | `#/members` | supervisor, 🆕 owner | có | §4.7 | TV1-08 |
+| 6 | Thành viên (kèm cài đặt tổ chức cho owner) | `#/members` | supervisor, owner | có | §4.7 | TV1-08 |
 | 7 | ~~Dự án (quản trị)~~ | ~~`#/admin/projects`~~ | – | – | – | 🕘 Bỏ, thay bằng trang quản trị A1–A3 (TV1-16) |
 | 8 | Cài đặt | `#/settings` | mọi | không | §4.2, §4.7 | TV1-07 |
 | 9 | 🆕 Tổ chức (danh sách công khai, mở tổ chức mới) | `#/orgs` | mọi | có | §4.7 | TV1-15 |
@@ -132,7 +132,7 @@ Biến thể: nhập mã người khác khi máy còn phiếu chưa gửi (desig
 └────────────────────────────────┘
 ```
 
-🆕 ADR 0003: các nút ghi "(supervisor)" hiện cho cả `owner`; bộ chọn có thêm mục "Tổ chức khác…" mở màn hình 9; nhãn vai trò có thêm "Owner".
+ADR 0003: các nút ghi "(supervisor)" hiện cho cả `owner` (có code: Sửa form, Thành viên); 🆕 bộ chọn có thêm mục "Tổ chức khác…" mở màn hình 9; nhãn vai trò có thêm "Owner".
 
 Bộ chọn dự án mở ra:
 
@@ -252,7 +252,7 @@ Code (TV1-04): mã gợi ý từ nhãn, khoá sau khi lưu ("<mã> (khoá)"); tr
 
 Code (TV1-10 phần 2): hàng nút [Xuất form] / [Nhập form] dưới [Xem trước] [Lưu bản mới]. Sửa form đã lưu chỉ có [Xuất form] (tải file JSON); "Biểu mẫu mới" chỉ có [Nhập form] (chọn file JSON, nạp vào builder, lỗi hiện ở `builder-errors`). Form mới trùng mã form đã có: "Mã biểu mẫu đã có trong dự án".
 
-## 6. Thành viên 🆕 (TV1-08, theo ADR 0003)
+## 6. Thành viên (TV1-08, theo ADR 0003)
 
 ```
 ┌────────────────────────────────┐
@@ -273,6 +273,13 @@ Code (TV1-10 phần 2): hàng nút [Xuất form] / [Nhập form] dưới [Xem tr
 ```
 
 Supervisor chỉ thấy thao tác với điều tra viên. Rút người hỏi xác nhận. Lỗi `last_owner`: "Tổ chức phải còn ít nhất một Owner".
+
+Code (`client/src/pages/MembersPage.tsx`, luật hiển thị ở `client/src/members.ts`):
+- Vào từ link **Thành viên** cuối trang chủ (supervisor, owner). Cần mạng: offline hoặc mất mạng giữa chừng hiện "Cần kết nối mạng để quản lý thành viên" kèm nút **Thử lại**.
+- Mỗi dòng "Tên (tên đăng nhập) · Vai trò" (`member-<username>`), Owner trước. Thay cho [⋯]: ô chọn **Đổi vai trò…** (chỉ Owner, các vai trò khác vai trò hiện tại) và nút **Rút**. Supervisor chỉ có nút Rút ở dòng điều tra viên, không có thao tác ở dòng của mình.
+- Ô Vai trò khi thêm: supervisor chỉ có "Điều tra viên". Lỗi hiện dưới form (`member-error`): "Không có tên đăng nhập này", "Người này đã là thành viên", "Không thêm được tài khoản quản trị", "Tổ chức phải còn ít nhất một Owner".
+- Rút người khác hỏi "Rút <tên> (<tên đăng nhập>) khỏi tổ chức?". Tự hạ hỏi "Bạn sẽ mất quyền <vai trò> ngay, chỉ còn quyền <vai trò mới>. Tiếp tục?"; tự rút hỏi "Bạn sẽ rời tổ chức này ngay…". Xong thì đồng bộ để vai trò mới có hiệu lực rồi về trang chủ.
+- Owner: ô **Tên tổ chức** kèm nút **Lưu tên** (bộ chọn dự án đổi tên sau vòng đồng bộ); ô **Công khai tên tổ chức** (`org-public`) lưu ngay khi bấm, hiện theo giá trị server trả về.
 
 ## 7. ~~Dự án (quản trị)~~
 
