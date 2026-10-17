@@ -1,9 +1,9 @@
-import { Router, type Request, type Response } from 'express';
+import { Router, type Response } from 'express';
 import { parseAddMemberRequest, parseUpdateMemberRequest, parseUpdateSettingsRequest } from '@field-survey/shared';
 import { getCtx } from '../auth';
 import type { Db } from '../db';
 import { addMember, changeMemberRole, listMembers, removeMember, type ChangeMemberError } from '../repo/memberships';
-import { updateProjectSettings } from '../repo/projects';
+import { getProjectSettings, updateProjectSettings } from '../repo/projects';
 
 // P/members và P/settings (TV1-08). Xem design §4.7, §7; ADR 0003 §2, §6.
 // Ai được gọi chặn ở app.ts: members cần supervisor trở lên, settings cần owner. Quyền theo vai trò
@@ -53,11 +53,22 @@ export function membersRouter(db: Db): Router {
   return r;
 }
 
-/** `PATCH P/settings`: đổi tên, bật/tắt công khai. Chỉ owner (chặn ở app.ts). */
-export function settingsHandler(db: Db) {
-  return (req: Request, res: Response): void => {
+/**
+ * `P/settings`: đọc (để màn hình Thành viên hiện ô Công khai đúng trạng thái), đổi tên, bật/tắt
+ * công khai. Chỉ owner (chặn ở app.ts).
+ */
+export function settingsRouter(db: Db): Router {
+  const r = Router();
+
+  r.get('/', (req, res) => {
+    res.json(getProjectSettings(getCtx(req), db));
+  });
+
+  r.patch('/', (req, res) => {
     const patch = parseUpdateSettingsRequest(req.body);
     if (!patch) return void res.status(400).json({ error: 'invalid_body' });
     res.json(updateProjectSettings(getCtx(req), db, patch));
-  };
+  });
+
+  return r;
 }

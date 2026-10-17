@@ -47,8 +47,9 @@ describe('projectSubtitle', () => {
 });
 
 describe('canManageProject', () => {
-  it('chỉ giám sát viên', () => {
+  it('giám sát viên và Owner; điều tra viên thì không (ADR 0003 §2)', () => {
     expect(canManageProject('supervisor')).toBe(true);
+    expect(canManageProject('owner')).toBe(true);
     expect(canManageProject('surveyor')).toBe(false);
   });
 });

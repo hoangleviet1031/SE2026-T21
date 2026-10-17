@@ -94,17 +94,20 @@ export function assignSupervisor(db: Db, projectId: string, userId: string, now:
   });
 }
 
-/**
- * Owner đổi tên và/hoặc bật tắt công khai tổ chức của mình (`PATCH P/settings`, ADR 0003 §3 mục 4).
- * Dự án chắc chắn có vì requireMember vừa kiểm.
- */
+/** Tên và cờ công khai của tổ chức (`GET P/settings`). Dự án chắc chắn có vì requireMember vừa kiểm. */
+export function getProjectSettings(ctx: Ctx, db: Db): ProjectSettings {
+  const row = db.prepare(`SELECT name, public FROM projects WHERE id = ?`).get(ctx.projectId) as
+    | { name: string; public: number }
+    | undefined;
+  if (!row) throw new Error(`không thấy dự án ${ctx.projectId} dù đã qua requireMember`);
+  return { name: row.name, public: row.public === 1 };
+}
+
+/** Owner đổi tên và/hoặc bật tắt công khai tổ chức của mình (`PATCH P/settings`, ADR 0003 §3 mục 4). */
 export function updateProjectSettings(ctx: Ctx, db: Db, patch: UpdateSettingsRequest): ProjectSettings {
   return tx(db, () => {
-    const row = db.prepare(`SELECT name, public FROM projects WHERE id = ?`).get(ctx.projectId) as
-      | { name: string; public: number }
-      | undefined;
-    if (!row) throw new Error(`không thấy dự án ${ctx.projectId} dù đã qua requireMember`);
-    const settings: ProjectSettings = { name: patch.name ?? row.name, public: patch.public ?? row.public === 1 };
+    const current = getProjectSettings(ctx, db);
+    const settings: ProjectSettings = { name: patch.name ?? current.name, public: patch.public ?? current.public };
     db.prepare(`UPDATE projects SET name = ?, public = ? WHERE id = ?`).run(
       settings.name,
       settings.public ? 1 : 0,

@@ -8,6 +8,7 @@ import { ConflictPage } from './pages/ConflictPage';
 import { LoginPage } from './pages/LoginPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { BuilderPage } from './pages/BuilderPage';
+import { MembersPage } from './pages/MembersPage';
 import { ProjectSwitcher } from './components/ProjectSwitcher';
 import { UpdatePrompt } from './components/UpdatePrompt';
 import { syncNow } from './sync/engine';
@@ -60,6 +61,8 @@ export function App() {
         ) : page === 'builder' && args[0] ? (
           // #/builder/new: form mới; #/builder/<formId>: sửa form đã có (ui.md màn hình 5)
           <BuilderPage formId={args[0] === 'new' ? undefined : args[0]} />
+        ) : page === 'members' ? (
+          <MembersPage />
         ) : page === 'settings' ? (
           <SettingsPage />
         ) : (

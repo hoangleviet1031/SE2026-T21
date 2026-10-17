@@ -38,6 +38,17 @@ export function syncNow(): Promise<void> {
   return running;
 }
 
+/**
+ * Một vòng đồng bộ bắt đầu sau lúc gọi. Dùng sau khi vừa đổi thứ mà vòng đồng bộ đọc từ server
+ * (vd. tự hạ vai trò, đổi tên tổ chức ở màn hình Thành viên): vòng đang chạy có thể đã đọc /me cũ,
+ * syncNow sẽ chỉ gộp vào vòng đó. Lỗi của vòng cũ do nơi khởi động nó xử lý (startSyncLoop ghi log),
+ * ở đây chỉ chờ nó kết thúc.
+ */
+export async function syncAfterChange(): Promise<void> {
+  if (running) await Promise.allSettled([running]);
+  return syncNow();
+}
+
 export function startSyncLoop(intervalMs = 30_000): () => void {
   const kick = () => void syncNow().catch((e) => console.warn('sync failed', e));
   window.addEventListener('online', kick);

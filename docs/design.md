@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.18 (2026-10-17)
+- **Phiên bản:** 0.5.19 (2026-10-17)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -52,6 +52,7 @@
 | 0.5.17 | 2026-10-16 | TV3-06: hàng đợi ảnh có code (§5.6): chỉ ảnh còn trong phiếu chưa xoá mới upload và mới tính là dữ liệu chưa gửi; `409 missing_chunks` gửi bù, `422` lần đầu gửi lại từ đầu; thứ tự nhãn khi phiếu chưa đồng bộ; nhãn trên ảnh thu nhỏ; O3 có E2E (§10.1) |
 | 0.5.12 | 2026-10-16 | TV1-10 phần 2: Xuất/Nhập form trong builder có code (§4.1): xuất `<id>-v<version>.json`, nhập nạp vào builder thành form mới; form mới trùng mã form đã có báo "Mã biểu mẫu đã có trong dự án"; kiểm kiểu thân lưu form chuyển sang `shared/` (`parseSaveFormRequest`), server dùng chung; §8 thêm dòng file nhập không hợp lệ |
 | 0.5.18 | 2026-10-17 | TV1-08 phần 1: API thành viên có code (§7): `GET/POST P/members`, `PUT/DELETE P/members/:userId`, `PATCH P/settings`; thứ tự kiểm lỗi, supervisor không tự rút mình, đổi vai trò giữ `added_at` và ghi `added_by`; kiểm và ghi trong một transaction để không mất Owner cuối cùng. Kiểu `Member`, `ProjectSettings` và luật thân request, `canAssignRole` ở `shared/` (§6.2). `last_owner`, `already_member`, `admin_account` có code (§7.1). M1, M2, A6, A7, Q9, D2 (trừ vế D1) có test (§10.1). Màn hình Thành viên (phần 2) chưa có |
+| 0.5.19 | 2026-10-17 | TV1-08 phần 2: màn hình Thành viên có code (§4.7, ui.md màn hình 6); supervisor và Owner thấy Sửa form, Thành viên; thêm `GET P/settings` (owner) để màn hình đọc trạng thái công khai (§7, Dương chốt); thao tác làm mình mất quyền chạy một vòng đồng bộ mới sau vòng đang chạy (`syncAfterChange`) để `/me` cập nhật ngay |
 
 ## Mục lục
 
@@ -340,7 +341,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
   - Thêm người **bằng tên đăng nhập** và chọn vai trò. Supervisor chỉ thêm/rút được `surveyor`; Owner thêm, đổi, rút được mọi vai trò. Rút có hỏi xác nhận.
   - Không rút/hạ được Owner cuối cùng (`409 last_owner`). Không thêm được tài khoản admin (`409 admin_account`).
   - Owner có thêm: đổi tên tổ chức, ô "Công khai tên tổ chức" (mặc định tắt).
-  - API có code (TV1-08 phần 1, §7); màn hình chưa có (TV1-08 phần 2).
+  - Có code (TV1-08): API `P/members`, `P/settings` (§7), màn hình `client/src/pages/MembersPage.tsx` (ui.md màn hình 6). Tự hạ hoặc tự rút hỏi xác nhận nói rõ mất quyền ngay; xong thì chạy một vòng đồng bộ mới (chờ vòng đang chạy, vì vòng đó có thể đã đọc `/me` cũ) rồi về trang chủ.
 - **Admin** không dùng app khảo sát: đăng nhập bằng tài khoản admin thì hiện "Tài khoản quản trị dùng trang /admin" và không tạo CSDL nào. Việc của admin ở trang quản trị (§4.9).
 - **Nhập tài khoản khác trên máy đang có dữ liệu:** như bản cũ dưới đây, thay "mã" bằng "tên đăng nhập + mật khẩu"; "Cùng người" là đăng nhập lại chính tài khoản đó (phiên mới thay phiên cũ trên máy).
 - **Đăng xuất** như bản cũ, thêm: gọi `POST /api/auth/logout` để huỷ phiên của máy này nếu đang online.
@@ -636,6 +637,7 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | POST | `P/members` | Thêm bằng `{ username, role }`; supervisor chỉ thêm `surveyor` | supervisor | Có |
 | PUT | `P/members/:userId` | Đổi vai trò `{ role }`; không hạ Owner cuối cùng | supervisor (chỉ surveyor), owner | Có |
 | DELETE | `P/members/:userId` | Rút khỏi dự án; không rút Owner cuối cùng | supervisor (chỉ surveyor), owner | Có |
+| GET | `P/settings` | `ProjectSettings` `{ name, public }`, để màn hình Thành viên hiện ô Công khai | owner | Có |
 | PATCH | `P/settings` | `{ name?, public? }` | owner | Có |
 | GET | `P/forms` | Phiên bản mới nhất của mỗi form | thành viên | Có |
 | GET | `P/forms/:id/versions/:v` | Một phiên bản form | thành viên | Có |
@@ -704,7 +706,7 @@ Content-Type: application/json
 | `PUT /admin/projects/:projectId/owners/:username` | – | `200`; không có dự án hoặc tên → `404`; tài khoản admin → `409 admin_account` |
 | `POST P/members` | `{ username, role }` | `201 Member`; không có tên → `404 not_found`; `409 already_member`; `409 admin_account`; supervisor thêm vai trò khác `surveyor` → `403 forbidden` |
 | `PUT P/members/:userId`, `DELETE P/members/:userId` | `{ role }` / – | `200` / `204`; `409 last_owner`; supervisor đụng vào supervisor/owner → `403 forbidden` |
-| `PATCH P/settings` | `{ name?, public? }` | `200 ProjectSettings`; không phải owner → `403 forbidden` |
+| `GET P/settings`, `PATCH P/settings` | – / `{ name?, public? }` | `200 ProjectSettings`; không phải owner → `403 forbidden` |
 
 - **`P/members`, `P/settings`** (có code, `server/src/routes/members.ts`): `POST` kiểm theo thứ tự thân sai `400` → vai trò vượt quyền `403` → không có tên `404` → tài khoản admin `409 admin_account` → đã là thành viên `409 already_member`. Tên đăng nhập cắt khoảng trắng, không phân biệt hoa thường. `PUT`/`DELETE`: `userId` không thuộc dự án này (kể cả người ở dự án khác) → `404`; người làm phải đụng được cả vai trò hiện tại lẫn vai trò mới, nên supervisor không tự rút hay đổi vai trò của mình. `PUT` giữ `added_at`, ghi `added_by` là người đổi; đổi sang đúng vai trò đang có thì không ghi gì. Kiểm `last_owner` và ghi trong cùng transaction. `GET` sắp Owner, supervisor, surveyor, rồi theo tên đăng nhập. `PATCH P/settings`: `name` cắt khoảng trắng, 1–100 ký tự; cần ít nhất một trường, sai → `400 invalid_body`.
 
@@ -901,7 +903,7 @@ Phạm vi đồ án giữ đơn giản:
 | M2 | Integration | Owner thêm supervisor, Owner; tên không có; người đã là thành viên | `201`; `404`; `409 already_member` | Có (`server/test/members.test.ts`) |
 | M3 | E2E | Owner thêm người bằng tên đăng nhập → sau một vòng đồng bộ người đó thấy tổ chức, gửi được phiếu | Như T6 | TV1-15 |
 
-**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm. E2E T7, T8, T9 và hạ vai trò có trong `client/e2e/membership.spec.ts`; T7 kiểm cả banner, file Xuất JSON và "Xoá khỏi máy" (TV1-06). Bộ chọn dự án và đổi dự án offline ≤ 1 s (§11.2) ở `client/e2e/project-switcher.spec.ts`; T10 đầy đủ vẫn là việc của TV1-11.
+**Cách ly dự án và thay đổi thành viên:** ca T1–T10 ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng) (T1–T5 integration, T6–T10 E2E). Fixture chung: hai dự án, ba người dùng (một chỉ ở dự án A, một ở cả hai với vai trò khác nhau, một admin không là thành viên). Đã có test integration cho T1–T4 trong `server/test/records.test.ts` (T3 trùng A2), T4 có thêm ca admin tự tạo dự án qua API trong `server/test/admin.test.ts`; T5 chưa làm. E2E T7, T8, T9 và hạ vai trò có trong `client/e2e/membership.spec.ts`; màn hình Thành viên (thêm, lỗi, đổi vai trò, rút, `last_owner`, tự hạ, quyền supervisor, cài đặt tổ chức, offline) ở `client/e2e/members.spec.ts`; T7 kiểm cả banner, file Xuất JSON và "Xoá khỏi máy" (TV1-06). Bộ chọn dự án và đổi dự án offline ≤ 1 s (§11.2) ở `client/e2e/project-switcher.spec.ts`; T10 đầy đủ vẫn là việc của TV1-11.
 
 **API kiểm thử** (chỉ đăng ký khi `ENABLE_TEST_ROUTES=1`, file `server/src/routes/faults.ts`):
 

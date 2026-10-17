@@ -8,7 +8,7 @@ import { authRouter } from './routes/auth';
 import { adminRouter } from './routes/admin';
 import { recordsRouter } from './routes/records';
 import { attachmentsRouter } from './routes/attachments';
-import { membersRouter, settingsHandler } from './routes/members';
+import { membersRouter, settingsRouter } from './routes/members';
 import { createUploadStore } from './uploads';
 import { exportRouter } from './routes/export';
 import { faultInjector, faultsRouter } from './routes/faults';
@@ -52,7 +52,7 @@ export function createApp(db: Db, opts: { enableTestRoutes?: boolean; uploadDir?
   app.use('/api/projects/:projectId/records', ...asMember, recordsRouter(db));
   // Thành viên: supervisor trở lên; ai được đụng tới vai trò nào kiểm tiếp trong repo (ADR 0003 §2).
   app.use('/api/projects/:projectId/members', requireAuth, requireMember('supervisor'), membersRouter(db));
-  app.patch('/api/projects/:projectId/settings', requireAuth, requireMember('owner'), settingsHandler(db));
+  app.use('/api/projects/:projectId/settings', requireAuth, requireMember('owner'), settingsRouter(db));
   // Thư mục ảnh: UPLOAD_DIR (design §12); test truyền thư mục tạm.
   const uploads = createUploadStore(opts.uploadDir ?? 'uploads');
   app.use('/api/projects/:projectId/attachments', ...asMember, attachmentsRouter(db, uploads));
