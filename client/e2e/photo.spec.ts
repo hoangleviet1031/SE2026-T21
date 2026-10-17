@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { PROJECT, login, readStore } from './helpers';
+import { PROJECT, login, makeImage, readStore } from './helpers';
 
 // Nén ảnh khi chọn/chụp (design §4.4, §11.2, ticket TV3-03): cạnh dài ≤ 1600 px, JPEG ≤ 600 KB,
 // xoay theo EXIF rồi bỏ EXIF (kể cả GPS, §9). Ảnh thử tạo ngay trong trình duyệt bằng canvas,
@@ -18,51 +18,6 @@ interface StoredPhoto {
   width: number;
   height: number;
   hasExif: boolean;
-}
-
-/** Ảnh thử vẽ bằng canvas. `texture` thêm hình và nhiễu hạt mịn để file JPEG nặng như ảnh chụp thật. */
-async function makeImage(
-  page: Page,
-  opts: { width: number; height: number; type: 'image/jpeg' | 'image/png'; quality?: number; texture?: boolean },
-): Promise<Buffer> {
-  const base64 = await page.evaluate(async ({ width, height, type, quality, texture }) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('không có canvas 2D');
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#2563eb');
-    gradient.addColorStop(1, '#f59e0b');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-    // Mốc nhận chiều ảnh sau khi xoay: góc trên trái màu đỏ.
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(0, 0, Math.ceil(width / 4), Math.ceil(height / 4));
-    if (texture) {
-      for (let i = 0; i < 2000; i++) {
-        ctx.fillStyle = `hsla(${Math.random() * 360}, 60%, 50%, 0.35)`;
-        ctx.beginPath();
-        ctx.arc(Math.random() * width, Math.random() * height, 10 + Math.random() * 120, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      const pixels = ctx.getImageData(0, 0, width, height);
-      for (let i = 0; i < pixels.data.length; i += 4) {
-        const n = (Math.random() - 0.5) * 24;
-        pixels.data[i] = (pixels.data[i] ?? 0) + n;
-        pixels.data[i + 1] = (pixels.data[i + 1] ?? 0) + n;
-        pixels.data[i + 2] = (pixels.data[i + 2] ?? 0) + n;
-      }
-      ctx.putImageData(pixels, 0, 0);
-    }
-    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, type, quality));
-    if (!blob) throw new Error('canvas.toBlob trả null');
-    const bytes = new Uint8Array(await blob.arrayBuffer());
-    let binary = '';
-    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-    return btoa(binary);
-  }, opts);
-  return Buffer.from(base64, 'base64');
 }
 
 /**
