@@ -93,7 +93,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-06 · Hàng đợi upload ảnh (client)
 
-- **Trạng thái:** ⏳ `feat/tv3-06-upload-queue`
+- **Trạng thái:** ✅ PR #37
 - **Tuần:** 4 · **Phụ thuộc:** TV3-03, TV3-05, TV2-06
 - **Spec:** design §5.6
 - **File:** `client/src/sync/attachments.ts` (mới), `client/src/sync/engine.ts` (điểm gọi đã chừa ở TV2-06; TV2 duyệt), `client/src/sync/displayState.ts` + `.test.ts` (mới), `client/src/pages/HomePage.tsx`
@@ -158,7 +158,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-10 · E2E O3, R4
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv3-10-e2e-o3-r4`
 - **Tuần:** 7 · **Phụ thuộc:** TV3-06
 - **File:** `client/e2e/photo.spec.ts`
 

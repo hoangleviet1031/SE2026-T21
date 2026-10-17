@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.18 (2026-10-17)
+- **Phiên bản:** 0.5.19 (2026-10-17)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -52,6 +52,7 @@
 | 0.5.17 | 2026-10-16 | TV3-06: hàng đợi ảnh có code (§5.6): chỉ ảnh còn trong phiếu chưa xoá mới upload và mới tính là dữ liệu chưa gửi; `409 missing_chunks` gửi bù, `422` lần đầu gửi lại từ đầu; thứ tự nhãn khi phiếu chưa đồng bộ; nhãn trên ảnh thu nhỏ; O3 có E2E (§10.1) |
 | 0.5.12 | 2026-10-16 | TV1-10 phần 2: Xuất/Nhập form trong builder có code (§4.1): xuất `<id>-v<version>.json`, nhập nạp vào builder thành form mới; form mới trùng mã form đã có báo "Mã biểu mẫu đã có trong dự án"; kiểm kiểu thân lưu form chuyển sang `shared/` (`parseSaveFormRequest`), server dùng chung; §8 thêm dòng file nhập không hợp lệ |
 | 0.5.18 | 2026-10-17 | TV1-08 phần 1: API thành viên có code (§7): `GET/POST P/members`, `PUT/DELETE P/members/:userId`, `PATCH P/settings`; thứ tự kiểm lỗi, supervisor không tự rút mình, đổi vai trò giữ `added_at` và ghi `added_by`; kiểm và ghi trong một transaction để không mất Owner cuối cùng. Kiểu `Member`, `ProjectSettings` và luật thân request, `canAssignRole` ở `shared/` (§6.2). `last_owner`, `already_member`, `admin_account` có code (§7.1). M1, M2, A6, A7, Q9, D2 (trừ vế D1) có test (§10.1). Màn hình Thành viên (phần 2) chưa có |
+| 0.5.19 | 2026-10-17 | TV3-10: API kiểm thử `match`, `chunkIndex`, `stats` có code (§10.1), request bị cắt kết nối ghi `status: 0`; R4 có E2E, O3 kiểm 2 ảnh và trạng thái "Đang tải ảnh (2)" |
 
 ## Mục lục
 
@@ -827,7 +828,7 @@ Phạm vi đồ án giữ đơn giản:
 |---|---|---|
 | O1 | Tải app, offline, reload vẫn mở được, nhập phiếu, online thì đồng bộ | Có (`offline.spec.ts`) |
 | O2 | Offline từ lúc mở app (đã cài trước đó), tạo 10 phiếu, online | TODO |
-| O3 | Phiếu có ảnh khi offline, online thì ảnh lên đủ, nhãn chỉ thành "Đã đồng bộ" khi ảnh xong | Có (`upload.spec.ts`) |
+| O3 | Phiếu có ảnh khi offline, online thì ảnh lên đủ, nhãn chỉ thành "Đã đồng bộ" khi ảnh xong | Có (`upload.spec.ts`: 2 ảnh, SHA-256 khớp, thấy "Đang tải ảnh (2)" trước "Đã đồng bộ") |
 | O4 | Đóng tab khi còn op, mở lại thì vẫn đồng bộ | TODO |
 | O5 | Lưu phiếu thiếu trường bắt buộc: thành "Nháp", không lên server; sửa đủ thì đồng bộ | Có (`draft.spec.ts`) |
 | O6 | Hai tab cùng mở: mỗi op chỉ được gửi từ một tab | Có (`tabs.spec.ts`) |
@@ -854,7 +855,7 @@ Phạm vi đồ án giữ đơn giản:
 | R1 | Server trả 500 hai lần | Retry theo backoff, đúng một bản ghi | Có (`offline.spec.ts`) |
 | R2 | Timeout (server giữ request 15s) | Hủy sau 10s, retry, không trùng | Có (`retry.spec.ts`) |
 | R3 | Server ghi xong nhưng kết nối bị cắt trước response | Gửi lại cùng key, server trả `Idempotent-Replayed` | Có (integration `server/test/idempotency.test.ts`, E2E `retry.spec.ts`) |
-| R4 | Mất mạng giữa lúc upload ảnh | Tiếp tục từ chunk thiếu | TODO |
+| R4 | Mất mạng giữa lúc upload ảnh | Tiếp tục từ chunk thiếu | Có (`upload.spec.ts`: cắt trước và sau khi server ghi chunk 2) |
 | R5 | `400` | Phiếu "Lỗi", không retry vô hạn | Có (`errors.spec.ts`, fault mode `"400"`) |
 | R6 | Cùng `Idempotency-Key`, khác nội dung | `422 idempotency_key_reused` | Có (`server/test/records.test.ts`) |
 
@@ -909,7 +910,7 @@ Phạm vi đồ án giữ đơn giản:
 |---|---|---|
 | POST | `/api/__test/faults` | `{ "mode", "count", "match"?, "chunkIndex"? }`: `count` request khớp tiếp theo bị lỗi |
 | DELETE | `/api/__test/faults` | Tắt mọi lỗi đang chờ |
-| GET | `/api/__test/stats` | `{ "requests": [{ "method", "path", "idempotencyKey"?, "status" }] }`: nhật ký request kể từ lần reset |
+| GET | `/api/__test/stats` | `{ "requests": [{ "method", "path", "idempotencyKey"?, "status" }] }`: nhật ký request kể từ lần reset. `path` không gồm query; `status: 0` là kết nối bị cắt, client không nhận được response |
 | DELETE | `/api/__test/stats` | Xoá nhật ký |
 | PUT | `/api/__test/memberships/:projectId/:userId` | `{ "role": "surveyor" \| "supervisor" \| "owner" }`: thêm hoặc đổi vai trò, không cần token (E2E T7–T9). Có code, nhận cả `"owner"` |
 | DELETE | `/api/__test/memberships/:projectId/:userId` | Rút khỏi dự án. Có code |
@@ -925,6 +926,7 @@ Phạm vi đồ án giữ đơn giản:
 - `match`: tiền tố đường dẫn **sau** `/api/projects/:projectId`, mặc định `"/records"`. Ví dụ `"/attachments"` để tiêm lỗi vào upload ảnh.
 - `chunkIndex`: chỉ áp lỗi cho `PUT .../chunks/<chunkIndex>`, phục vụ R4 (cắt ở chunk thứ 2 thì `chunkIndex: 1`).
 - Nhật ký `stats` chỉ ghi request dưới `/api/projects/`; dùng để kiểm "đúng một PUT cho mỗi `opId`" (O6) và "mỗi chunk chỉ ghi một lần" (R4).
+- Có code đủ bảng trên (TV3-10, `server/src/routes/faults.ts`; test `server/test/faults.test.ts`). Thân `POST /faults` sai (mode lạ, `count` âm, `match` không bắt đầu bằng `/`, `chunkIndex` không phải số nguyên ≥ 0) trả `400 invalid_body`.
 - Khi thêm `mode` mới thì thêm vào bảng này cùng PR.
 
 Playwright `context.setOffline(true|false)` để bật/tắt mạng. Các test chạy tuần tự (`workers: 1`) vì dùng chung server. Khi chạy local, Playwright dùng lại server đang chạy ở cổng 3001 nếu có (`reuseExistingServer`); tắt `npm run dev` trước khi chạy E2E để không ghi vào DB thật.
