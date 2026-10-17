@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.24 (2026-10-17)
+- **Phiên bản:** 0.5.25 (2026-10-17)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -58,6 +58,7 @@
 | 0.5.22 | 2026-10-17 | TV1-13: hộp xác nhận xoá phiếu là hộp trong app (`ConfirmDialog`), O7 kiểm câu chữ, Huỷ và Esc (§10.1). Ẩn nút xoá với surveyor theo người tạo chưa có code (thiếu `createdBy`, §6.2) |
 | 0.5.23 | 2026-10-17 | TV1-11: O2, O4 có E2E (`offline-install.spec.ts`); T6, T10 có E2E (`projects.spec.ts`) (§10.1) |
 | 0.5.24 | 2026-10-17 | TV1-17 phần 1: `ServerRecord.createdBy`, `createdByName`, `updatedByName` và `RecordHistoryEntry.updatedByName` có code (§6.2): server ghép tên lúc đọc ở pull, PUT, 409, history; không tìm thấy tài khoản thì tên rỗng. Client chưa dùng (phần 2) |
+| 0.5.25 | 2026-10-17 | TV1-17 phần 2: client lưu `createdBy`, `createdByName` theo phiếu, màn hình xung đột hiện tên người sửa (§6.2); surveyor không thấy "Xoá phiếu" ở phiếu người khác tạo (§5.7) |
 
 ## Mục lục
 
@@ -496,7 +497,7 @@ Lý do: không tải dữ liệu cá nhân (tên chủ hộ, GPS, ảnh) của n
 
 ### 5.7 Xoá phiếu
 
-Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu này? Không hoàn tác được trên máy." (bất biến 1: người dùng đã bấm xác nhận). Surveyor xoá được phiếu mình tạo, supervisor xoá được mọi phiếu. Phiếu đang `conflict` không xoá được (chỉ đọc, §4.5). Hàm xoá nằm cạnh `saveRecordLocally` và chạy trong **một transaction Dexie** gồm `records`, `outbox`, `attachments`.
+Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu này? Không hoàn tác được trên máy." (bất biến 1: người dùng đã bấm xác nhận). Surveyor xoá được phiếu mình tạo, supervisor xoá được mọi phiếu (có code, TV1-17: nút ẩn với surveyor khi `createdBy` của phiếu đã biết và khác mình; chưa biết thì hiện, server vẫn chặn). Phiếu đang `conflict` không xoá được (chỉ đọc, §4.5). Hàm xoá nằm cạnh `saveRecordLocally` và chạy trong **một transaction Dexie** gồm `records`, `outbox`, `attachments`.
 
 | Phiếu đang ở đâu | Cách nhận biết | Hành vi |
 |---|---|---|
@@ -568,7 +569,7 @@ interface RecordHistoryEntry {
 - **Vì sao gửi kèm tên:** màn hình xung đột cần hiện "**Lan** đã sửa…" (§4.5) ngay cả khi offline, và surveyor không được gọi `GET P/members`. Server ghép tên từ bảng `users` lúc trả response; client lưu theo bản ghi nên đọc được khi offline. Tên đổi sau đó thì bản đã tải về vẫn hiện tên cũ tới lần pull kế tiếp, chấp nhận được.
 - **"(đã rời dự án)":** client tự thêm khi `createdBy` không có trong danh sách thành viên mà supervisor tải được; surveyor không cần (chỉ thấy phiếu của chính mình).
 - `updatedAt` là ISO 8601 UTC; UI hiển thị theo múi giờ của máy, chỉ để đọc, không dùng để so thứ tự (bất biến 4).
-- Có code (TV1-17 phần 1): server ghép tên bằng LEFT JOIN `users` ở mọi response có `ServerRecord`/`RecordHistoryEntry` (pull, PUT, `409`, `GET history`); không tìm thấy tài khoản thì tên là chuỗi rỗng, client hiện userId thay vào. Response PUT đã lưu theo `Idempotency-Key` khi replay trả tên tại lần ghi đầu. Client lưu và hiện tên: phần 2, chưa có code.
+- Có code (TV1-17 phần 1): server ghép tên bằng LEFT JOIN `users` ở mọi response có `ServerRecord`/`RecordHistoryEntry` (pull, PUT, `409`, `GET history`); không tìm thấy tài khoản thì tên là chuỗi rỗng, client hiện userId thay vào. Response PUT đã lưu theo `Idempotency-Key` khi replay trả tên tại lần ghi đầu. Có code (TV1-17 phần 2): client lưu `createdBy`, `createdByName` vào phiếu mỗi khi nhận bản server (push, pull, tự gộp, giải quyết xung đột), không đổi schema Dexie; response cũ thiếu trường thì giữ giá trị đang có. Phiếu tải về trước đó chưa có người tạo tới khi được ghi lại (không pull lại toàn bộ). Màn hình xung đột hiện `updatedByName` của lần sửa cuối, tên rỗng hoặc bản xung đột cũ thì hiện userId.
 
 **Thay đổi theo ADR 0003, đã có code (TV2-14):**
 

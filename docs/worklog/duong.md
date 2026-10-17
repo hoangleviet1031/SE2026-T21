@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-17 | TV1-17 | feat | Phần 2: phiếu trên máy lưu `createdBy`, `createdByName` theo server; màn hình xung đột hiện tên người sửa; surveyor không thấy "Xoá phiếu" ở phiếu người khác tạo (`canDeleteRecord` + unit); E2E `record-owner.spec.ts`, `conflict.spec` kiểm tên | PR #45, design §5.7, §6.2 | xong |
 | 2026-10-17 | TV1-17 | feat | Phần 1: `ServerRecord` thêm `createdBy`, `createdByName`, `updatedByName`, lịch sử thêm `updatedByName`; server ghép tên từ `users` lúc đọc (pull, PUT, 409, history); integration `recordNames.test.ts`; thêm mục ticket TV1-17 | PR #44, design §6.2 | xong |
 | 2026-10-17 | TV1-11 | test | E2E O2 (mở app đã cài khi offline từ đầu, 10 phiếu), O4 (đóng tab khi còn op) trong `offline-install.spec.ts`; T6 (được thêm vào dự án mới), T10 (offline đổi qua lại hai dự án) trong `projects.spec.ts`; không sửa code app | PR #43, design §10.1 | xong |
 | 2026-10-17 | TV1-13 | feat | Hộp xác nhận xoá phiếu trong app (`ConfirmDialog`, `<dialog>` + Esc = Huỷ) thay `window.confirm`, giữ câu chữ §5.7; E2E O7 bấm nút trong hộp thoại (thêm Esc), `conflict.spec` đổi cách bấm xoá | PR #42 | xong |

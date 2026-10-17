@@ -1,6 +1,6 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md; header giữ mỗi phần tử một dòng, tên app tự rút gọn bằng "…"); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
@@ -192,6 +192,8 @@ Hộp thoại xoá vs sửa (ADR 0001 quy tắc 6, không chọn sẵn):
 └────────────────────────────────┘
 ```
 
+Code (TV1-17): câu giải thích hiện tên người sửa cuối (`updatedByName`); xung đột lưu trước bản này hoặc không tìm thấy tài khoản thì hiện userId.
+
 ## 4. Điền / xem phiếu
 
 ```
@@ -220,7 +222,7 @@ Code: trang điền phiếu có link "← Quay lại" ở đầu trang (về dan
 
 Code (TV1-10): trường ẩn không hiện ở phiếu mới; phiếu đã có giá trị ở trường ẩn thì trường hiện với ô bị khoá, nhãn kèm "(đã ẩn)"; giá trị sai định dạng (phiếu nháp báo lỗi ở trường đó) thì ô mở cho sửa. Máy chưa có bản form của phiếu: "Đang tải biểu mẫu…" rồi mở phiếu; offline hoặc tải không được: "Cần kết nối để mở phiếu này" kèm "← Quay lại".
 
-Code (TV1-13): bấm [Xoá phiếu] mở hộp xác nhận trong app (không dùng hộp của trình duyệt) "Xoá phiếu này? Không hoàn tác được trên máy." với hai nút [Huỷ] (nhận focus đầu tiên) và [Xoá] màu đỏ; Esc hoặc Huỷ thì đóng hộp, không đổi gì. Phiếu đang xung đột: ẩn cả Lưu và Xoá (§4.5). Chưa ẩn nút với surveyor theo người tạo (máy chưa có `createdBy`).
+Code (TV1-13): bấm [Xoá phiếu] mở hộp xác nhận trong app (không dùng hộp của trình duyệt) "Xoá phiếu này? Không hoàn tác được trên máy." với hai nút [Huỷ] (nhận focus đầu tiên) và [Xoá] màu đỏ; Esc hoặc Huỷ thì đóng hộp, không đổi gì. Phiếu đang xung đột: ẩn cả Lưu và Xoá (§4.5). Code (TV1-17): surveyor không thấy [Xoá phiếu] ở phiếu người khác tạo; phiếu chưa biết người tạo (mới tạo trên máy, hoặc tải về trước bản này) vẫn hiện nút.
 
 ## 5. Form builder
 

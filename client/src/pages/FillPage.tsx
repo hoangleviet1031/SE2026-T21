@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { RecordData } from '@field-survey/shared';
-import { useCurrentProjectDb } from '../db/current';
+import type { MeResponse, RecordData } from '@field-survey/shared';
+import { getAccountValue } from '../db/accountDb';
+import { useCurrentProject, useCurrentProjectDb } from '../db/current';
+import { canDeleteRecord } from '../projects';
 import { FormRenderer } from '../components/FormRenderer';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { RecordInConflictError, deleteRecordLocally, saveRecordLocally } from '../sync/outbox';
@@ -15,6 +17,9 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const id = recordId ?? crypto.randomUUID();
   const record = useLiveQuery(() => db?.records.get(id), [db, id]);
   const forms = useLiveQuery(async () => db?.forms.where('id').equals(formId).toArray(), [db, formId]);
+  // Vai trò và id của mình để biết có được xoá phiếu này không (design §5.7)
+  const project = useCurrentProject();
+  const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
   const [data, setData] = useState<RecordData>({});
   const online = useOnline();
   // Đã thử đồng bộ để tải bản form còn thiếu mà vẫn chưa có (vd. server không trả lời)
@@ -65,6 +70,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // dẫn tới màn hình xung đột. Phiếu có thể thành conflict ngay lúc form đang mở (đồng bộ chạy nền):
   // liveQuery đổi record là trang tự chuyển sang chỉ đọc, phần đang nhập vẫn hiện trên màn hình.
   const readOnly = record?.syncState === 'conflict' || inConflict;
+  const canDelete = !!record && !!project && !!user && canDeleteRecord(project.role, user.id, record.createdBy);
   // Bấm Lưu đúng lúc phiếu vừa thành conflict (trước khi liveQuery kịp cập nhật): tầng dữ liệu từ chối.
   const unlessInConflict = async <T,>(write: () => Promise<T>): Promise<T | undefined> => {
     try {
@@ -132,7 +138,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
           <button className="primary" onClick={save}>
             Lưu
           </button>
-          {record && <button onClick={() => setConfirmingDelete(true)}>Xoá phiếu</button>}
+          {canDelete && <button onClick={() => setConfirmingDelete(true)}>Xoá phiếu</button>}
         </div>
       )}
       {confirmingDelete && !readOnly && (

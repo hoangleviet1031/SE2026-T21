@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AccountProject } from './db/accountDb';
-import { canManageProject, projectSubtitle, resolveCurrentProjectId } from './projects';
+import { canDeleteRecord, canManageProject, projectSubtitle, resolveCurrentProjectId } from './projects';
 
 function project(id: string, over: Partial<AccountProject> = {}): AccountProject {
   return { id, name: id, role: 'surveyor', status: 'active', needsAttention: 0, unsynced: 0, ...over };
@@ -51,5 +51,21 @@ describe('canManageProject', () => {
     expect(canManageProject('supervisor')).toBe(true);
     expect(canManageProject('owner')).toBe(true);
     expect(canManageProject('surveyor')).toBe(false);
+  });
+});
+
+describe('canDeleteRecord', () => {
+  it('surveyor xoá được phiếu mình tạo, không xoá được phiếu người khác', () => {
+    expect(canDeleteRecord('surveyor', 'u_minh', 'u_minh')).toBe(true);
+    expect(canDeleteRecord('surveyor', 'u_minh', 'u_lan')).toBe(false);
+  });
+
+  it('chưa biết người tạo (phiếu mới trên máy, tải về trước TV1-17) thì vẫn cho xoá', () => {
+    expect(canDeleteRecord('surveyor', 'u_minh', undefined)).toBe(true);
+  });
+
+  it('supervisor và Owner xoá được mọi phiếu', () => {
+    expect(canDeleteRecord('supervisor', 'u_lan', 'u_minh')).toBe(true);
+    expect(canDeleteRecord('owner', 'u_chu', 'u_minh')).toBe(true);
   });
 });
