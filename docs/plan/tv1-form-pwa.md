@@ -306,7 +306,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-17 · Tên người tạo/sửa trong `ServerRecord`
 
-- **Trạng thái:** ✅ PR #44 (phần 1: shared + server) · ⏳ PR (phần 2: client)
+- **Trạng thái:** ✅ PR #44 (phần 1: shared + server) · ⏳ PR #45 (phần 2: client)
 - **Tuần:** 6 · **Phụ thuộc:** TV2-03 (`P/records`), TV2-05 (CSDL client) · Dương nhận 2026-10-17 (P1 nhóm chốt 2026-10-10, chưa ticket nào có)
 - **Spec:** design §6.2 (`createdBy`, `createdByName`, `updatedByName`), §4.5 (tên người sửa ở màn hình xung đột), §5.7 (surveyor chỉ xoá phiếu mình tạo)
 - **File:** phần 1: `shared/src/types.ts`, `server/src/repo/records.ts`, `server/test/recordNames.test.ts` (mới). Phần 2: `client/src/db/projectDb.ts`, `client/src/sync/engine.ts`, `client/src/pages/FillPage.tsx`, `client/src/pages/ConflictPage.tsx`, hàm thuần `canDeleteRecord` + unit, E2E
