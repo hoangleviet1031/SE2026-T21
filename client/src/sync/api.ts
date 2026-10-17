@@ -1,4 +1,16 @@
-import type { FormSchema, MeResponse, PullResponse, PushRecordRequest, SaveFormRequest } from '@field-survey/shared';
+import type {
+  AddMemberRequest,
+  FormSchema,
+  MeResponse,
+  Member,
+  ProjectSettings,
+  PullResponse,
+  PushRecordRequest,
+  Role,
+  SaveFormRequest,
+  UpdateSettingsRequest,
+} from '@field-survey/shared';
+import { MEMBER_ERROR_CODES, type MemberErrorCode } from '../members';
 
 import { clearToken, getToken } from '../auth';
 
@@ -113,6 +125,60 @@ export async function saveForm(projectId: string, body: SaveFormRequest): Promis
   if (code === 'forbidden') return { ok: false, errors: ['Chỉ giám sát viên được lưu biểu mẫu'] };
   if (code === 'invalid_body') return { ok: false, errors: ['Biểu mẫu không đúng định dạng'] };
   throw new Error(`POST forms ${res.status}`);
+}
+
+/**
+ * Kết quả gọi `P/members`, `P/settings` (màn hình Thành viên, cần mạng): giá trị, hoặc mã lỗi để hiện
+ * cho người dùng (design §7.1). Mất mạng ném NetworkError, không còn là thành viên ném NotMemberError.
+ */
+export type MemberResult<T> = { ok: true; value: T } | { ok: false; error: MemberErrorCode };
+
+function isMemberErrorCode(code: string | undefined): code is MemberErrorCode {
+  return MEMBER_ERROR_CODES.some((c) => c === code);
+}
+
+async function memberCall<T>(
+  projectId: string,
+  path: string,
+  init: RequestInit,
+  read: (res: Response) => Promise<T>,
+): Promise<MemberResult<T>> {
+  const res = await request(`${projectPath(projectId)}${path}`, init, projectId);
+  if (res.ok) return { ok: true, value: await read(res) };
+  const code = await errorCode(res);
+  if (isMemberErrorCode(code)) return { ok: false, error: code };
+  throw new Error(`${init.method ?? 'GET'} ${path} ${res.status}`);
+}
+
+const json = (method: string, body: unknown): RequestInit => ({
+  method,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+});
+const readJson = <T>(res: Response): Promise<T> => res.json();
+
+export function fetchMembers(projectId: string): Promise<MemberResult<Member[]>> {
+  return memberCall(projectId, '/members', {}, readJson<Member[]>);
+}
+
+export function addMember(projectId: string, body: AddMemberRequest): Promise<MemberResult<Member>> {
+  return memberCall(projectId, '/members', json('POST', body), readJson<Member>);
+}
+
+export function changeMemberRole(projectId: string, userId: string, role: Role): Promise<MemberResult<Member>> {
+  return memberCall(projectId, `/members/${encodeURIComponent(userId)}`, json('PUT', { role }), readJson<Member>);
+}
+
+export function removeMember(projectId: string, userId: string): Promise<MemberResult<void>> {
+  return memberCall(projectId, `/members/${encodeURIComponent(userId)}`, { method: 'DELETE' }, async () => undefined);
+}
+
+export function fetchSettings(projectId: string): Promise<MemberResult<ProjectSettings>> {
+  return memberCall(projectId, '/settings', {}, readJson<ProjectSettings>);
+}
+
+export function updateSettings(projectId: string, body: UpdateSettingsRequest): Promise<MemberResult<ProjectSettings>> {
+  return memberCall(projectId, '/settings', json('PATCH', body), readJson<ProjectSettings>);
 }
 
 export async function pushRecord(projectId: string, id: string, body: PushRecordRequest, idempotencyKey: string) {

@@ -1,0 +1,317 @@
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import type { MeResponse, Member, ProjectSettings, Role } from '@field-survey/shared';
+import { getAccountValue, type AccountProject } from '../db/accountDb';
+import { useCurrentProject } from '../db/current';
+import { MEMBER_ERROR_TEXT, assignableRoles, confirmText, memberActions } from '../members';
+import { ROLE_LABEL, canManageProject } from '../projects';
+import {
+  NetworkError,
+  NotMemberError,
+  addMember,
+  changeMemberRole,
+  fetchMembers,
+  fetchSettings,
+  removeMember,
+  updateSettings,
+  type MemberResult,
+} from '../sync/api';
+import { syncAfterChange } from '../sync/engine';
+import { navigate } from '../useHashRoute';
+
+// Màn hình Thành viên (ui.md màn hình 6, design §4.7). Cần mạng: gọi API thẳng, không qua IndexedDB
+// (CLAUDE.md bất biến 7 cho phép). Luật ai đụng được vai trò nào giống server (canAssignRole).
+
+const OFFLINE_MSG = 'Cần kết nối mạng để quản lý thành viên';
+const NOT_MEMBER_MSG = 'Bạn không còn thuộc tổ chức này';
+
+/** Lỗi gọi API thành câu hiển thị; lỗi khác (lỗi lập trình, 5xx) ném tiếp. */
+function failureText(err: unknown): string {
+  if (err instanceof NetworkError) return OFFLINE_MSG;
+  if (err instanceof NotMemberError) return NOT_MEMBER_MSG;
+  throw err;
+}
+
+export function MembersPage() {
+  const project = useCurrentProject();
+  const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
+
+  if (project === undefined || user === undefined) return null;
+  if (!project || !user || !canManageProject(project.role)) {
+    return <p>Chỉ giám sát viên và Owner xem được trang này.</p>;
+  }
+  // key theo dự án: đổi dự án thì nạp lại từ đầu, không lẫn danh sách của dự án trước
+  return <Members key={project.id} project={project} myUserId={user.id} />;
+}
+
+function Members({ project, myUserId }: { project: AccountProject; myUserId: string }) {
+  const isOwner = project.role === 'owner';
+  const [members, setMembers] = useState<Member[] | null>(null);
+  const [settings, setSettings] = useState<ProjectSettings | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoadError(null);
+    try {
+      const list = await fetchMembers(project.id);
+      if (!list.ok) return setLoadError(MEMBER_ERROR_TEXT[list.error]);
+      setMembers(list.value);
+      if (isOwner) {
+        const s = await fetchSettings(project.id);
+        if (!s.ok) return setLoadError(MEMBER_ERROR_TEXT[s.error]);
+        setSettings(s.value);
+      }
+    } catch (err) {
+      setLoadError(failureText(err));
+    }
+  }, [project.id, isOwner]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  /**
+   * Chạy một thao tác ghi. Thành công thì nạp lại danh sách; thao tác làm mình mất quyền thì đồng bộ
+   * để /me cập nhật vai trò ngay rồi về trang chủ (góp ý review PR #38).
+   */
+  async function run<T>(action: () => Promise<MemberResult<T>>, opts: { self?: boolean } = {}): Promise<T | undefined> {
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await action();
+      if (!result.ok) {
+        setError(MEMBER_ERROR_TEXT[result.error]);
+        return undefined;
+      }
+      if (opts.self) {
+        await syncAfterChange();
+        navigate();
+        return result.value;
+      }
+      await load();
+      return result.value;
+    } catch (err) {
+      setError(failureText(err));
+      return undefined;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const onChangeRole = (m: Member, role: Role) => {
+    const text = confirmText(myUserId, m, role);
+    if (text && !window.confirm(text)) return;
+    void run(() => changeMemberRole(project.id, m.userId, role), { self: m.userId === myUserId });
+  };
+
+  const onRemove = (m: Member) => {
+    const text = confirmText(myUserId, m, null);
+    if (text && !window.confirm(text)) return;
+    void run(() => removeMember(project.id, m.userId), { self: m.userId === myUserId });
+  };
+
+  return (
+    <section>
+      <h2>Thành viên · {project.name}</h2>
+      {loadError ? (
+        <p className="field-error" role="alert">
+          {loadError}{' '}
+          <button onClick={() => void load()}>Thử lại</button>
+        </p>
+      ) : members === null ? (
+        <p>Đang tải…</p>
+      ) : (
+        <>
+          <AddMemberForm
+            roles={assignableRoles(project.role)}
+            busy={busy}
+            onAdd={(username, role) => run(() => addMember(project.id, { username, role }))}
+          />
+          {error && (
+            <p className="field-error" role="alert" data-testid="member-error">
+              {error}
+            </p>
+          )}
+          <ul className="list" data-testid="members">
+            {members.map((m) => (
+              <MemberRow
+                key={m.userId}
+                member={m}
+                myRole={project.role}
+                busy={busy}
+                onChangeRole={(role) => onChangeRole(m, role)}
+                onRemove={() => onRemove(m)}
+              />
+            ))}
+          </ul>
+          {isOwner && settings && (
+            <OrgSettings
+              settings={settings}
+              busy={busy}
+              onSave={async (patch) => {
+                const saved = await run(() => updateSettings(project.id, patch));
+                if (saved) {
+                  setSettings(saved);
+                  // Tên mới hiện ở bộ chọn dự án sau khi /me trả về
+                  if (patch.name !== undefined) void syncAfterChange();
+                }
+                return saved !== undefined;
+              }}
+            />
+          )}
+        </>
+      )}
+      <a className="back" href="#/">
+        ← Về danh sách phiếu
+      </a>
+    </section>
+  );
+}
+
+function AddMemberForm({
+  roles,
+  busy,
+  onAdd,
+}: {
+  roles: Role[];
+  busy: boolean;
+  onAdd: (username: string, role: Role) => Promise<Member | undefined>;
+}) {
+  const [username, setUsername] = useState('');
+  const [role, setRole] = useState<Role>('surveyor');
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!username.trim()) return;
+    if (await onAdd(username, role)) setUsername('');
+  };
+
+  return (
+    <form className="form" onSubmit={(e) => void submit(e)}>
+      <label className="field">
+        Thêm theo tên đăng nhập
+        <input
+          data-testid="member-username"
+          value={username}
+          autoCapitalize="none"
+          autoComplete="off"
+          onChange={(e) => setUsername(e.target.value)}
+        />
+      </label>
+      <label className="field">
+        Vai trò
+        {/* aria-label: nhãn bọc select thì tên đọc được gồm cả chữ các lựa chọn */}
+        <select
+          aria-label="Vai trò"
+          value={role}
+          onChange={(e) => setRole(roles.find((r) => r === e.target.value) ?? 'surveyor')}
+        >
+          {roles.map((r) => (
+            <option key={r} value={r}>
+              {ROLE_LABEL[r]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button type="submit" disabled={busy || !username.trim()}>
+        Thêm
+      </button>
+    </form>
+  );
+}
+
+function MemberRow({
+  member,
+  myRole,
+  busy,
+  onChangeRole,
+  onRemove,
+}: {
+  member: Member;
+  myRole: Role;
+  busy: boolean;
+  onChangeRole: (role: Role) => void;
+  onRemove: () => void;
+}) {
+  const actions = memberActions(myRole, member);
+  return (
+    <li data-testid={`member-${member.username}`}>
+      <span>
+        {member.name} ({member.username}) · {ROLE_LABEL[member.role]}
+      </span>
+      <span>
+        {actions.changeTo.length > 0 && (
+          <select
+            aria-label={`Đổi vai trò ${member.username}`}
+            value=""
+            disabled={busy}
+            onChange={(e) => {
+              const role = actions.changeTo.find((r) => r === e.target.value);
+              if (role) onChangeRole(role);
+            }}
+          >
+            <option value="">Đổi vai trò…</option>
+            {actions.changeTo.map((r) => (
+              <option key={r} value={r}>
+                {ROLE_LABEL[r]}
+              </option>
+            ))}
+          </select>
+        )}{' '}
+        {actions.canRemove && (
+          <button aria-label={`Rút ${member.username}`} disabled={busy} onClick={onRemove}>
+            Rút
+          </button>
+        )}
+      </span>
+    </li>
+  );
+}
+
+/** Chỉ Owner: đổi tên tổ chức (bấm Lưu), bật/tắt công khai (lưu ngay khi bấm). */
+function OrgSettings({
+  settings,
+  busy,
+  onSave,
+}: {
+  settings: ProjectSettings;
+  busy: boolean;
+  onSave: (patch: { name?: string; public?: boolean }) => Promise<boolean>;
+}) {
+  const [name, setName] = useState(settings.name);
+  const trimmed = name.trim();
+
+  return (
+    <section>
+      <h3>Tổ chức</h3>
+      <form
+        className="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void onSave({ name: trimmed });
+        }}
+      >
+        <label className="field">
+          Tên tổ chức
+          <input value={name} maxLength={100} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <button type="submit" disabled={busy || !trimmed || trimmed === settings.name}>
+          Lưu tên
+        </button>
+      </form>
+      <label>
+        <input
+          type="checkbox"
+          data-testid="org-public"
+          checked={settings.public}
+          disabled={busy}
+          onChange={(e) => void onSave({ public: e.target.checked })}
+        />{' '}
+        Công khai tên tổ chức
+      </label>
+      <p className="hint">Người đã đăng nhập thấy tên tổ chức trong danh sách và gửi tên đăng nhập cho bạn để được thêm.</p>
+    </section>
+  );
+}
