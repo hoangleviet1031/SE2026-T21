@@ -76,10 +76,10 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV3-04 | Test cách ly T1–T5 | ✅ PR #29 |
 | TV3-05 | Upload ảnh theo chunk (server) | ✅ PR #30 |
 | TV3-06 | Hàng đợi upload ảnh (client) | ✅ PR #37 |
-| TV3-07 | Màn hình conflict đầy đủ + chỉ đọc | — |
+| TV3-07 | Màn hình conflict đầy đủ + chỉ đọc | ⏳ `feat/tv3-07-conflict-ui` |
 | TV3-08 | Xoá vs sửa | — |
 | TV3-09 | Export CSV/JSON | — |
-| TV3-10 | E2E O3, R4 | ⏳ `feat/tv3-10-e2e-o3-r4` |
+| TV3-10 | E2E O3, R4 | ✅ PR #40 |
 | TV3-11 | Báo cáo kiểm thử | — |
 
 ### Theo ADR 0003 (bản mới)

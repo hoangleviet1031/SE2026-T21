@@ -6,12 +6,13 @@ Quy ước ở [README.md](README.md).
 
 | Việc | Chặn bởi | Ghi chú |
 |---|---|---|
-| Xem lại màn hình 3 (Xung đột) trong `ui.md` | — | Bộ lọc "Cần xử lý" đã làm chung ở §4.8, TV3-07 không làm riêng |
 
 ## Nhật ký
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-17 | TV3-07 | feat | Màn hình xung đột thẻ mỗi trường (nhãn theo form, "Gộp cả hai", "Đã gộp tự động"), xoá vs sửa khoá Áp dụng; phiếu conflict chỉ đọc + banner (C7); bộ lọc trạng thái §4.8 + "Cần xử lý (n)" | nhánh `feat/tv3-07-conflict-ui` | chờ review |
+| 2026-10-17 | TV3-10 | docs | PR #40 đã merge; ghi ✅ trong plan | PR #40 | xong |
 | 2026-10-17 | TV3-10 | test | API kiểm thử `match`, `chunkIndex`, `stats` (P8); E2E R4 (cắt trước/sau khi ghi chunk 2, chunk 0 không gửi lại), O3 2 ảnh + "Đang tải ảnh (2)"; thử phá logic gửi tiếp thì R4 đỏ | nhánh `feat/tv3-10-e2e-o3-r4` | chờ review |
 | 2026-10-17 | TV3-06 | docs | PR #37 đã merge; ghi ✅ trong plan | PR #37 | xong |
 | 2026-10-16 | TV3-06 | feat | Hàng đợi upload ảnh: status → chunk thiếu → complete (SHA-256), backoff, `failed`; `displayState` ("Đang tải ảnh (n)", "Lỗi ảnh"); nút Thử lại/Bỏ ảnh này; ảnh đã bỏ không tính chưa gửi; E2E O3 + ảnh lỗi | nhánh `feat/tv3-06-upload-queue` | chờ review |

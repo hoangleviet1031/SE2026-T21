@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.20 (2026-10-17)
+- **Phiên bản:** 0.5.21 (2026-10-17)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -54,6 +54,7 @@
 | 0.5.18 | 2026-10-17 | TV1-08 phần 1: API thành viên có code (§7): `GET/POST P/members`, `PUT/DELETE P/members/:userId`, `PATCH P/settings`; thứ tự kiểm lỗi, supervisor không tự rút mình, đổi vai trò giữ `added_at` và ghi `added_by`; kiểm và ghi trong một transaction để không mất Owner cuối cùng. Kiểu `Member`, `ProjectSettings` và luật thân request, `canAssignRole` ở `shared/` (§6.2). `last_owner`, `already_member`, `admin_account` có code (§7.1). M1, M2, A6, A7, Q9, D2 (trừ vế D1) có test (§10.1). Màn hình Thành viên (phần 2) chưa có |
 | 0.5.19 | 2026-10-17 | TV1-08 phần 2: màn hình Thành viên có code (§4.7, ui.md màn hình 6); supervisor và Owner thấy Sửa form, Thành viên; thêm `GET P/settings` (owner) để màn hình đọc trạng thái công khai (§7, Dương chốt); thao tác làm mình mất quyền chạy một vòng đồng bộ mới sau vòng đang chạy (`syncAfterChange`) để `/me` cập nhật ngay |
 | 0.5.20 | 2026-10-17 | TV3-10: API kiểm thử `match`, `chunkIndex`, `stats` có code (§10.1), request bị cắt kết nối ghi `status: 0`; R4 có E2E, O3 kiểm 2 ảnh và trạng thái "Đang tải ảnh (2)" |
+| 0.5.21 | 2026-10-17 | TV3-07: màn hình xung đột có code (§4.5): thẻ mỗi trường, nhãn theo form, "Gộp cả hai", mục "Đã gộp tự động"; xoá vs sửa khoá Áp dụng tới TV3-08; phiếu `conflict` mở ra chỉ đọc; bộ lọc trạng thái và số "Cần xử lý" (§4.8), phiếu đã xoá mà đang xung đột vẫn hiện; C7 có E2E (§10.1) |
 
 ## Mục lục
 
@@ -298,12 +299,13 @@ Khi sync engine nhận `409` và merge còn xung đột trường hoặc xung đ
 
 **Màn hình xung đột** (`client/src/pages/ConflictPage.tsx`):
 - Câu giải thích bằng ngôn ngữ thường: *"Trong lúc bạn ngoại tuyến, **Lan** đã sửa phiếu này (lần cuối 14:32 07/10). 2 trường đã được gộp tự động. Các trường dưới đây cả hai bên cùng sửa, hãy chọn giá trị giữ lại."*
-- Bảng: tên trường (dùng nhãn trong form, không dùng `id`), giá trị trước đó, của bạn, trên máy chủ; mỗi dòng chọn một bên.
+- **Mỗi trường một thẻ** (ui.md màn hình 3, không dùng bảng 4 cột vì không vừa điện thoại): tên trường (nhãn trong form đúng `formVersion` của phiếu; form chưa có trên máy thì dùng `id`), giá trị trước đó, của bạn, trên máy chủ; mỗi thẻ chọn một bên, không chọn sẵn. Nút "Áp dụng và đồng bộ" khoá tới khi chọn hết. Logic thuần ở `client/src/conflictView.ts`.
 - Mục "Đã gộp tự động" thu gọn, mở ra thấy trường nào lấy từ đâu.
 - **Xoá vs sửa:** hộp thoại riêng: "Bạn đã xoá phiếu này nhưng Lan vừa sửa nó. Giữ phiếu (với bản của Lan) hay vẫn xoá?" (và chiều ngược lại: "Lan đã xoá phiếu này nhưng bạn vừa sửa. Khôi phục với bản của bạn hay bỏ?"). Nút "Áp dụng" bị khoá cho tới khi người dùng trả lời câu này; không bao giờ mặc định chọn hộ.
 - Multiselect và photo có thêm lựa chọn "Gộp cả hai" (hợp hai tập). Ảnh chỉ hiện số lượng mỗi bên ("3 ảnh" / "2 ảnh"); xem thumbnail so sánh để sau MVP.
 - Sau khi áp dụng: dữ liệu đã chọn thành op mới với `baseVersion` = version server đã thấy, đẩy ngay. Nếu lại nhận `409` (server đổi tiếp trong lúc người dùng đang chọn), đi lại đúng quy trình ADR quy tắc 5 với base = bản server đã thấy: khác trường thì tự gộp, cùng trường thì hiện màn hình conflict mới.
-- **Trong lúc phiếu đang `conflict`, không sửa được phiếu** (ADR quy tắc 7): mở phiếu thì ở chế độ chỉ đọc với banner "Phiếu này cần xử lý xung đột trước" và nút dẫn tới màn hình xung đột (chế độ chỉ đọc và banner: TV3-07). Đã có: `saveRecordLocally` từ chối phiếu `conflict` (cả lưu lẫn xoá), không ghi gì; trang điền phiếu bấm Lưu thì hiện câu trên kèm link tới màn hình xung đột, phần đang nhập vẫn trên màn hình. Phiếu có thể thành `conflict` ngay lúc form đang mở vì đồng bộ chạy nền.
+- **Trong lúc phiếu đang `conflict`, không sửa được phiếu** (ADR quy tắc 7): mở phiếu thì ở chế độ chỉ đọc (mọi ô nhập và nút chọn ảnh bị khoá, không có Lưu và Xoá) với banner "Phiếu này cần xử lý xung đột trước" và link "Xử lý" tới màn hình xung đột. `saveRecordLocally` vẫn từ chối phiếu `conflict` (cả lưu lẫn xoá) cho trường hợp phiếu vừa thành `conflict` đúng lúc bấm Lưu; phần đang nhập vẫn trên màn hình. Phiếu có thể thành `conflict` ngay lúc form đang mở vì đồng bộ chạy nền: trang tự chuyển sang chỉ đọc.
+- **Tới khi có hộp thoại xoá vs sửa (TV3-08):** phiếu có xung đột mức bản ghi thì màn hình xung đột hiện câu giải thích và khoá "Áp dụng", không đoán hộ người dùng; phiếu đứng ở `conflict`, không mất dữ liệu.
 - Danh sách phiếu có bộ lọc "Cần xử lý" và số đếm trên đầu trang.
 
 **Tiêu chí chấp nhận:** đủ các ca C1–C8 ở §10.1.
@@ -367,7 +369,8 @@ Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), kh
 - **Nhóm theo form**, mỗi form một mục có số phiếu; trong mục, phiếu sắp theo `updatedAt` cục bộ mới nhất trước.
 - **Mỗi dòng:** tiêu đề phiếu (giá trị trường `text` đầu tiên không ẩn, rỗng thì "Phiếu chưa có tên"), nhãn trạng thái hiển thị (§5.1, §5.6), giờ sửa cuối. Với `supervisor` thêm tên người tạo (`createdByName`, kèm "(đã rời dự án)" nếu cần).
 - **Bộ lọc:** trạng thái ("Tất cả", "Cần xử lý", "Chưa đồng bộ", "Nháp", "Lỗi"); với `supervisor` thêm lọc theo người tạo (cần `createdBy`, §6.2). Ô tìm kiếm theo tiêu đề phiếu. Bộ lọc chạy trên index `syncState` và lọc trong bộ nhớ, đủ cho 2.000 phiếu (§11.2).
-- **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định.
+  - Có code (TV3-07, `client/src/recordFilter.ts`): lọc theo nhãn hiển thị (§5.6) chứ không theo `syncState` thô. "Cần xử lý" = xung đột, lỗi, lỗi ảnh; "Chưa đồng bộ" = chờ đồng bộ, đang tải ảnh; "Nháp"; "Lỗi" = lỗi, lỗi ảnh. Số "Cần xử lý (n)" đầu danh sách, bấm vào thì bật bộ lọc đó. Lọc theo người tạo và ô tìm kiếm: chưa có code.
+- **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định, **trừ khi đang `conflict`** (vd. xoá ở máy này, sửa ở máy kia): người dùng phải thấy để xử lý.
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).
 
@@ -847,7 +850,7 @@ Phạm vi đồ án giữ đơn giản:
 | C4 | Máy xoá, server sửa | Hỏi giữ hay xoá; nút Áp dụng khoá tới khi trả lời | Unit có; UI TODO |
 | C5 | Máy sửa, server xoá | Hỏi khôi phục hay bỏ | Unit có; UI TODO |
 | C6 | Sửa ba lần liên tiếp khi offline | Một op, version server tăng 1 | Có (`conflict.spec.ts`) |
-| C7 | Phiếu đang conflict, người dùng mở phiếu | Chỉ đọc, có banner dẫn tới màn hình xung đột; không tạo op | Một phần: bấm Lưu không tạo op, báo cần xử lý xung đột kèm link (`conflict.spec.ts`, TV2-10); chỉ đọc và banner TODO TV3-07 |
+| C7 | Phiếu đang conflict, người dùng mở phiếu | Chỉ đọc, có banner dẫn tới màn hình xung đột; không tạo op | Có (`conflict.spec.ts` "C7"; `delete.spec.ts` không có nút Xoá) |
 | C8 | Server đổi tiếp trong lúc người dùng đang chọn ở màn hình conflict | Khác trường: tự gộp; cùng trường: hiện conflict mới; không mất lựa chọn đã áp dụng | Có (`conflict.spec.ts`, hai ca) |
 
 **Retry**
