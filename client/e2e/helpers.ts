@@ -93,7 +93,7 @@ export async function setMembership(
   request: APIRequestContext,
   projectId: string,
   userId: string,
-  role: 'surveyor' | 'supervisor' | null,
+  role: 'surveyor' | 'supervisor' | 'owner' | null,
 ) {
   const url = `http://localhost:3001/api/__test/memberships/${projectId}/${userId}`;
   const res = role ? await request.put(url, { data: { role } }) : await request.delete(url);
