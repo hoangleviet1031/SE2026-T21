@@ -326,7 +326,7 @@ test('số "Cần xử lý" đầu trang và bộ lọc chỉ hiện phiếu c�
   await expect(recordRow(page, 'Hộ lọc yên')).toHaveCount(1);
 });
 
-test('xoá vs sửa: phiếu hiện ở "Cần xử lý", màn hình xung đột khoá Áp dụng, không tự chọn hộ', async ({
+test('xoá vs sửa: phiếu hiện ở "Cần xử lý", hỏi giữ hay xoá, Áp dụng khoá tới khi trả lời', async ({
   page,
   context,
   request,
@@ -344,7 +344,9 @@ test('xoá vs sửa: phiếu hiện ở "Cần xử lý", màn hình xung đột
   const badge = recordRow(page, 'Hộ xoá sửa').getByRole('link', { name: 'Cần xử lý xung đột' });
   await expect(badge).toBeVisible({ timeout: 15_000 });
   await badge.click();
-  await expect(page.getByTestId('record-level-conflict')).toContainText('bị xoá ở một nơi và được sửa ở nơi khác');
+  // TV3-08: hộp thoại hỏi giữ hay xoá, không chọn sẵn (ADR 0001 quy tắc 6); chưa trả lời thì không áp dụng được
+  await expect(page.getByTestId('delete-conflict')).toContainText('Bạn đã xoá phiếu này nhưng');
+  await expect(page.getByTestId('delete-conflict').getByRole('radio', { checked: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Áp dụng và đồng bộ' })).toBeDisabled();
 
   const local = await localRecord(page, id);
