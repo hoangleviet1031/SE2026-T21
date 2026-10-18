@@ -5,3 +5,4 @@ export * from './recordValidation';
 export * from './formValidation';
 export * from './accountValidation';
 export * from './memberValidation';
+export * from './projectRequestValidation';

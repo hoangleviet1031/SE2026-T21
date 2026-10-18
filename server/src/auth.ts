@@ -58,6 +58,12 @@ export function getCtx(req: Request): Ctx {
   return req.ctx;
 }
 
+/** Lấy người dùng trong handler đã đi qua `requireAuth`. Thiếu là lỗi lập trình, như `getCtx`. */
+export function getUser(req: Request): AuthUser {
+  if (!req.user) throw new Error('req.user chưa có: route phải đi qua requireAuth');
+  return req.user;
+}
+
 export function createAuth(db: Db): {
   requireAuth: RequestHandler;
   requireMember: (minRole: Role) => RequestHandler;

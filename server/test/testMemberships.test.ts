@@ -5,7 +5,7 @@ import { openDb, type Db } from '../src/db';
 import { createApp } from '../src/app';
 import { DEMO_PROJECTS, DEMO_USER_IDS, seedDemo } from '../src/seedDemo';
 
-// Route kiểm thử đổi thành viên cho E2E T7–T9 (TV2-07), chỉ có khi ENABLE_TEST_ROUTES=1.
+// Route kiểm thử đổi thành viên cho E2E T7–T9 (TV2-07) và tạo dự án (TV2-15), chỉ có khi ENABLE_TEST_ROUTES=1.
 // Xem docs/design.md §10.1 (API kiểm thử).
 
 let db: Db;
@@ -71,5 +71,51 @@ describe('/api/__test/memberships', () => {
     plain.close();
     expect(res.status).toBe(404);
     expect(roleOf(DEMO_PROJECTS.yte, DEMO_USER_IDS.minh)).toBe('surveyor');
+  });
+});
+
+describe('PUT /api/__test/projects/:projectId', () => {
+  const putProject = (projectId: string, body: unknown, at = base) =>
+    fetch(`${at}/api/__test/projects/${projectId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+  it('tạo dự án chưa có, không công khai, không thành viên; gọi lại thì đặt lại tên', async () => {
+    const res = await putProject('b-thu', { name: '  Thử  ' });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ id: 'b-thu', name: 'Thử' });
+    expect(db.prepare(`SELECT name, public, archived FROM projects WHERE id = 'b-thu'`).get()).toEqual({
+      name: 'Thử',
+      public: 0,
+      archived: 0,
+    });
+    expect(db.prepare(`SELECT 1 FROM memberships WHERE project_id = 'b-thu'`).get()).toBeUndefined();
+
+    expect((await putProject('b-thu', { name: 'Tên mới' })).status).toBe(200);
+    expect(db.prepare(`SELECT name FROM projects WHERE id = 'b-thu'`).get()).toEqual({ name: 'Tên mới' });
+  });
+
+  it('id hoặc tên sai trả 400', async () => {
+    for (const [id, body] of [
+      ['Chu-Hoa', { name: 'x' }],
+      ['-dau-gach', { name: 'x' }],
+      ['b-ok', {}],
+      ['b-ok', { name: '   ' }],
+      ['b-ok', { name: 'x'.repeat(101) }],
+    ] as const) {
+      expect((await putProject(id, body)).status, `${id} ${JSON.stringify(body)}`).toBe(400);
+    }
+    expect(db.prepare(`SELECT 1 FROM projects WHERE id = 'b-ok'`).get()).toBeUndefined();
+  });
+
+  it('không bật ENABLE_TEST_ROUTES thì không có route', async () => {
+    const plain = createApp(db).listen(0);
+    await new Promise((r) => plain.once('listening', r));
+    const res = await putProject('b-tat', { name: 'x' }, `http://localhost:${(plain.address() as AddressInfo).port}`);
+    plain.close();
+    expect(res.status).toBe(404);
+    expect(db.prepare(`SELECT 1 FROM projects WHERE id = 'b-tat'`).get()).toBeUndefined();
   });
 });

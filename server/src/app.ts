@@ -6,6 +6,8 @@ import { formsRouter } from './routes/forms';
 import { meRouter } from './routes/me';
 import { authRouter } from './routes/auth';
 import { adminRouter } from './routes/admin';
+import { directoryRouter } from './routes/directory';
+import { projectRequestsRouter } from './routes/projectRequests';
 import { recordsRouter } from './routes/records';
 import { attachmentsRouter } from './routes/attachments';
 import { membersRouter, settingsRouter } from './routes/members';
@@ -47,6 +49,9 @@ export function createApp(
   const { requireAuth, requireMember, requireAdmin } = createAuth(db);
   app.use('/api/auth', authRouter(db, requireAuth));
   app.use('/api/me', requireAuth, meRouter(db));
+  // Không theo dự án và không chạm form, phiếu (ADR 0003 §4): chỉ cần đăng nhập.
+  app.use('/api/directory', requireAuth, directoryRouter(db));
+  app.use('/api/project-requests', requireAuth, projectRequestsRouter(db));
   app.use('/api/admin', requireAuth, requireAdmin, adminRouter(db));
 
   const asMember = [requireAuth, requireMember('surveyor')];
