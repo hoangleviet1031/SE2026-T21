@@ -268,7 +268,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV2-15 · Yêu cầu mở tổ chức, danh bạ công khai, API admin mới (server) · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-15-project-requests`. Thêm (được duyệt khi làm): duyệt kiểm lại giới hạn 3 tổ chức (vượt thì yêu cầu vẫn chờ); `?status=` mặc định `pending`; route kiểm thử `PUT /api/__test/projects/:projectId` thay `POST /admin/projects` cho 5 file E2E; vế D1 của D2
+- **Trạng thái:** ✅ PR #49. Thêm (được duyệt khi làm): duyệt kiểm lại giới hạn 3 tổ chức (vượt thì yêu cầu vẫn chờ); `?status=` mặc định `pending`; route kiểm thử `PUT /api/__test/projects/:projectId` thay `POST /admin/projects` cho 5 file E2E; vế D1 của D2
 - **Tuần:** 3–4 · **Phụ thuộc:** TV2-14
 - **Spec:** ADR 0003 §3, §4, §6; design §6.1 (`project_requests`), §7, §7.1
 - **File:** `server/src/db.ts` (bảng `project_requests` là migration 5: số 3 là `attachments` của TV3-05, số 4 là tài khoản của TV2-14), `server/src/repo/projectRequests.ts` (mới), `server/src/repo/projects.ts`, `server/src/routes/projectRequests.ts` (mới), `server/src/routes/directory.ts` (mới), `server/src/routes/admin.ts`, `server/test/projectRequests.test.ts` (mới), `server/test/admin.test.ts`
@@ -287,7 +287,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV2-16 · Client: đăng nhập bằng phiên, vai trò `owner`, chặn tài khoản admin · **Lõi**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-16-client-session`. Thêm (được duyệt khi làm, phương án A): màn hình nhập mã hiện có đi qua `signInWithToken` (kiểm mã bằng `/me` trước khi lưu) để Q11 và E2E đổi tài khoản chạy được trước TV1-14; điều phối đăng nhập ở `client/src/signIn.ts` (mới, tránh import vòng `auth.ts` ↔ `api.ts`); phiên bị từ chối được huỷ trên server; `logout.ts` gọi `/auth/logout`. Nút "Xuất JSON" ở thông báo từ chối để TV1-14
 - **Tuần:** 4 · **Phụ thuộc:** TV2-14
 - **Spec:** ADR 0003 §1, §8; design §4.2, §4.7, §4.9
 - **File:** `client/src/sync/api.ts` (`register`, `login`, `logout`), `client/src/auth.ts`, `client/src/db/accountDb.ts` (`username`), `client/src/sync/accountSync.ts` (vai trò `owner`), `client/src/sync/engine.ts`, `client/src/sync/*.test.ts`

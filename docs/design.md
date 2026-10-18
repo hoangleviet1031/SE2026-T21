@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.29 (2026-10-18)
+- **Phiên bản:** 0.5.30 (2026-10-18)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -63,6 +63,7 @@
 | 0.5.27 | 2026-10-18 | TV3-08: hộp thoại xoá vs sửa có code (§4.5): khung hai lựa chọn ngay trong màn hình xung đột, không chọn sẵn; chỉ hỏi giữ hay xoá, không kèm thẻ từng trường; "Bỏ" cũng gửi op xoá; C4, C5 có E2E (§10.1) |
 | 0.5.28 | 2026-10-18 | TV3-09: export có code (§4.6, §7): thêm cột `updatedByName`; chống CSV injection chỉ với ô chữ (số giữ nguyên), thêm tab và CR; `format` mặc định `csv`, lạ thì `400`, form không có thì `404`; route cũ `/api/export` bỏ; nút "Xuất CSV"/"Xuất JSON" ở trang chủ; A3 phần export có test (§10.1) |
 | 0.5.29 | 2026-10-18 | TV2-15: migration 5 `project_requests` có code (§6.1). `/directory`, `/project-requests`, `/admin/project-requests`, `PUT /admin/projects/:projectId/owners/:username` có code (§7): duyệt tạo tổ chức và Owner trong một transaction, giới hạn 3 tổ chức kiểm lại lúc duyệt, `?status=` mặc định `pending`, huỷ chỉ đổi trạng thái. `GET /admin/projects` thêm `ownerUsernames`, `memberCount`; `PATCH` chỉ còn `{ archived }`; **bỏ** `POST /admin/projects`, `PUT …/members/:userId` và mã `project_exists` (§7.1). Kiểu `DirectoryEntry`, `ProjectRequest`, `AdminProjectRequest`, `CreateProjectRequestBody`, `DecideProjectRequest` và luật thân request ở `shared/` (§6.2). Route kiểm thử `PUT /api/__test/projects/:projectId` thay `POST /admin/projects` cho E2E (§10.1). Q1–Q7, D1, D2 (vế D1), A8 có test, T4 viết lại (§10.1) |
+| 0.5.30 | 2026-10-18 | TV2-16: client đăng nhập bằng phiên có code (§4.2, §4.7): `register`, `login`, `logoutSession`, `fetchMeWithToken` ở `api.ts`; `signIn.ts` biết người dùng là ai rồi mới lưu token, trong Web Lock `field-survey-sync` (tài khoản admin → `AdminAccountError`, cùng người → thay token, khác người mà máy trống → xoá dữ liệu người cũ, khác người mà còn dữ liệu chưa gửi → từ chối, không xoá gì); phiên bị từ chối được huỷ trên server; màn hình nhập mã kiểm mã trước khi lưu ("Mã không đúng"); vòng đồng bộ bỏ token admin đã lưu từ trước; Đăng xuất gọi `POST /auth/logout` khi online. Q11 có E2E (§10.1) |
 
 ## Mục lục
 
@@ -251,7 +252,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 
 | Bảng | Khoá | Nội dung |
 |---|---|---|
-| `account` | `key` | `token`; `user` = `{ id, name, isAdmin }` (bản sao `MeResponse.user`, ghi sau mỗi lần gọi `/me`); `currentProjectId` (dự án đang chọn). 🆕 Token là token **phiên** của máy này (ADR 0003 §1), thêm `username`; tài khoản `isAdmin` không được lưu (bị chặn khi đăng nhập, §4.9) |
+| `account` | `key` | `token`; `user` = `{ id, name, isAdmin }` (bản sao `MeResponse.user`, ghi sau mỗi lần gọi `/me`); `currentProjectId` (dự án đang chọn). Token là token **phiên** của máy này (ADR 0003 §1); `user` có thêm `username`; tài khoản `isAdmin` không được lưu (bị chặn khi đăng nhập, §4.9). Có code (TV2-16): token chỉ được ghi sau khi `client/src/signIn.ts` kiểm xong người dùng, ghi `user` trước rồi `token` sau cùng |
 | `projects` | `id` | Bản sao `GET /api/me`: tên dự án, vai trò, trạng thái (`active` / `removed`), số phiếu cần xử lý (`needsAttention`: `conflict` + `error`) và chưa đồng bộ (`unsynced`: `pending` + `draft`), cập nhật sau mỗi vòng đồng bộ |
 
 **`field-survey-p-<projectId>`** (mỗi dự án một CSDL, cùng schema)
@@ -354,9 +355,9 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
   - Không rút/hạ được Owner cuối cùng (`409 last_owner`). Không thêm được tài khoản admin (`409 admin_account`).
   - Owner có thêm: đổi tên tổ chức, ô "Công khai tên tổ chức" (mặc định tắt).
   - Có code (TV1-08): API `P/members`, `P/settings` (§7), màn hình `client/src/pages/MembersPage.tsx` (ui.md màn hình 6). Tự hạ hoặc tự rút hỏi xác nhận nói rõ mất quyền ngay; xong thì chạy một vòng đồng bộ mới (chờ vòng đang chạy, vì vòng đó có thể đã đọc `/me` cũ) rồi về trang chủ.
-- **Admin** không dùng app khảo sát: đăng nhập bằng tài khoản admin thì hiện "Tài khoản quản trị dùng trang /admin" và không tạo CSDL nào. Việc của admin ở trang quản trị (§4.9).
-- **Nhập tài khoản khác trên máy đang có dữ liệu:** như bản cũ dưới đây, thay "mã" bằng "tên đăng nhập + mật khẩu"; "Cùng người" là đăng nhập lại chính tài khoản đó (phiên mới thay phiên cũ trên máy).
-- **Đăng xuất** như bản cũ, thêm: gọi `POST /api/auth/logout` để huỷ phiên của máy này nếu đang online.
+- **Admin** không dùng app khảo sát: đăng nhập bằng tài khoản admin thì hiện "Tài khoản quản trị dùng trang /admin" và không tạo CSDL nào. Việc của admin ở trang quản trị (§4.9). Có code (TV2-16): `signIn.ts` ném `AdminAccountError` trước khi lưu token và huỷ phiên vừa cấp; token admin đã lưu từ bản cũ thì vòng đồng bộ thấy `isAdmin` trong `/me`, xoá token và dừng trước khi mở CSDL dự án nào.
+- **Nhập tài khoản khác trên máy đang có dữ liệu:** như bản cũ dưới đây, thay "mã" bằng "tên đăng nhập + mật khẩu"; "Cùng người" là đăng nhập lại chính tài khoản đó (phiên mới thay phiên cũ trên máy; phiên cũ không bị thu hồi trên server, ADR 0003 §1). Có code (TV2-16, `client/src/signIn.ts`, quyết định ở hàm thuần `decideSignIn`): chạy trong Web Lock `field-survey-sync`; khác người mà máy trống thì xoá như Đăng xuất (cache runtime, mọi CSDL dự án, `projects`, `user`, `currentProjectId`); bị từ chối thì không lưu token và huỷ phiên vừa cấp. Màn hình tên + mật khẩu chưa có (TV1-14): tới lúc đó màn hình nhập mã đi cùng đường này qua `signInWithToken` (kiểm mã bằng `GET /me`, 401 → "Mã không đúng"). Nút "Xuất JSON" ở thông báo từ chối chưa có (TV1-14); N đếm phiếu nháp, chờ đồng bộ, lỗi, xung đột, N = 0 (chỉ còn ảnh hoặc op) thì câu là "còn dữ liệu chưa gửi".
+- **Đăng xuất** như bản cũ, thêm: gọi `POST /api/auth/logout` để huỷ phiên của máy này nếu đang online. Có code (TV2-16, `client/src/logout.ts`): gọi sau khi đã xoá dữ liệu trên máy, trước khi xoá token; lỗi mạng thì vẫn đăng xuất trên máy (phiên còn trên server, admin thu hồi được bằng `user:revoke-sessions`).
 
 **🕘 Bản cũ (đang chạy, ADR 0002)**
 - **Lần đầu mở app:** màn hình nhập mã đăng nhập (token do quản trị tạo bằng CLI, §12). Sau đó nếu chỉ thuộc một dự án thì vào thẳng dự án đó; nhiều dự án thì vào dự án đầu tiên theo thứ tự `/me`, lần sau vào dự án đã chọn lần trước; chưa nhận được `/me` lần nào thì hiện "Đang tải danh sách dự án…"; nếu chưa thuộc dự án nào: "Bạn chưa được thêm vào dự án nào. Gửi mã người dùng `<userId>` cho giám sát viên."
@@ -886,7 +887,7 @@ Phạm vi đồ án giữ đơn giản:
 | A7 | Rút/hạ Owner cuối cùng | `409 last_owner` | Có (`server/test/members.test.ts`) |
 | A8 | Admin chỉ định Owner bằng tên đăng nhập; người thường gọi | `200`; `403 forbidden` | Có (`server/test/admin.test.ts`) |
 
-**Tài khoản, mở tổ chức, danh sách công khai, thành viên** (ADR 0003, Kiểm chứng). U1–U6, MG1, MG2, Q1–Q7, Q9, D1, D2, M1, M2 có test; các ca khác 🆕 chưa có code
+**Tài khoản, mở tổ chức, danh sách công khai, thành viên** (ADR 0003, Kiểm chứng). U1–U6, MG1, MG2, Q1–Q7, Q9, Q11, D1, D2, M1, M2 có test; các ca khác 🆕 chưa có code
 
 | # | Mức | Ca | Kỳ vọng | Ticket |
 |---|---|---|---|---|
@@ -909,7 +910,7 @@ Phạm vi đồ án giữ đơn giản:
 | Q8 | E2E | Tạo tài khoản → gửi yêu cầu → admin duyệt (API) → sau một vòng đồng bộ thấy tổ chức với vai trò Owner, tạo được form | Như T6 | TV1-15 |
 | Q9 | Integration | Thêm tài khoản admin vào tổ chức | `409 admin_account` | Có (`server/test/members.test.ts`) |
 | Q10 | E2E | `/admin/`: tài khoản thường bị từ chối; admin duyệt ở A1, khoá ở A2; trang admin không có IndexedDB | Như mô tả | TV1-16 |
-| Q11 | E2E | Đăng nhập app khảo sát bằng tài khoản admin | "Tài khoản quản trị dùng trang /admin", không tạo CSDL | TV2-16 |
+| Q11 | E2E | Đăng nhập app khảo sát bằng tài khoản admin | "Tài khoản quản trị dùng trang /admin", không tạo CSDL | Có (`client/e2e/account.spec.ts`, qua màn hình nhập mã; thêm ca token admin đã lưu từ trước) |
 | D1 | Integration | `GET /directory` | Chỉ `id`, `name` của tổ chức công khai, chưa lưu trữ, mình chưa thuộc | Có (`server/test/projectRequests.test.ts`) |
 | D2 | Integration | Supervisor/surveyor `PATCH P/settings`; Owner | `403`; `200` và tổ chức hiện/ẩn ở D1 | Có (`server/test/members.test.ts` kiểm quyền và cột `public`; vế hiện/ẩn ở D1 trong `server/test/projectRequests.test.ts`) |
 | M1 | Integration | Supervisor thêm surveyor bằng tên đăng nhập; thêm supervisor | `201`; `403 forbidden` | Có (`server/test/members.test.ts`) |

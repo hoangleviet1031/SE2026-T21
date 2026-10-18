@@ -1,7 +1,10 @@
 import type {
   AddMemberRequest,
+  AuthResponse,
   FormSchema,
+  LoginRequest,
   MeResponse,
+  RegisterRequest,
   Member,
   ProjectSettings,
   PullResponse,
@@ -45,6 +48,19 @@ async function errorCode(res: Response): Promise<string | undefined> {
   return typeof body.error === 'string' ? body.error : undefined;
 }
 
+/** fetch có timeout; mất mạng, DNS, timeout, kết nối bị cắt đều thành NetworkError (lỗi tạm thời). */
+async function timedFetch(path: string, init: RequestInit): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  try {
+    return await fetch(path, { ...init, signal: ctrl.signal });
+  } catch (err) {
+    throw new NetworkError(err instanceof Error ? err.message : String(err));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function request(path: string, init: RequestInit = {}, projectId?: string): Promise<Response> {
   const token = await getToken();
   if (!token) throw new AuthError('chưa đăng nhập');
@@ -79,6 +95,70 @@ export async function fetchMe(): Promise<MeResponse> {
   const res = await request('/api/me');
   if (!res.ok) throw new Error(`GET /api/me ${res.status}`);
   return res.json();
+}
+
+// Tài khoản và phiên (ADR 0003 §1, design §7). Các hàm dưới đây không đọc token đã lưu và không xoá
+// token khi gặp 401: lúc gọi, token trên máy có thể là của người khác (đang đổi tài khoản), và token
+// mới chỉ được lưu sau khi signIn.ts kiểm xong.
+
+/** Mã lỗi người dùng sửa được khi đăng nhập/đăng ký (design §7.1). `invalid_token`: mã dán vào bị 401. */
+export type AccountErrorCode = 'invalid_credentials' | 'username_taken' | 'too_many_requests' | 'invalid_body' | 'invalid_token';
+
+const ACCOUNT_ERROR_CODES: readonly AccountErrorCode[] = [
+  'invalid_credentials',
+  'username_taken',
+  'too_many_requests',
+  'invalid_body',
+];
+
+export class AccountError extends Error {
+  constructor(readonly code: AccountErrorCode) {
+    super(`tài khoản: ${code}`);
+  }
+}
+
+/** Tài khoản quản trị dùng trang /admin, không dùng app khảo sát (ADR 0003 §8). Token không được lưu. */
+export class AdminAccountError extends Error {
+  constructor() {
+    super('tài khoản quản trị không dùng app khảo sát');
+  }
+}
+
+async function authCall(path: string, body: unknown): Promise<AuthResponse> {
+  const res = await timedFetch(path, json('POST', body));
+  if (res.ok) return res.json();
+  const code = await errorCode(res);
+  const known = ACCOUNT_ERROR_CODES.find((c) => c === code);
+  if (known) throw new AccountError(known);
+  throw new Error(`POST ${path} ${res.status}`);
+}
+
+/** Tạo tài khoản, server đăng nhập luôn và trả token phiên của máy này. */
+export function register(body: RegisterRequest): Promise<AuthResponse> {
+  return authCall('/api/auth/register', body);
+}
+
+/** Đăng nhập bằng tên + mật khẩu; mỗi lần là một phiên mới cho máy này. */
+export function login(body: LoginRequest): Promise<AuthResponse> {
+  return authCall('/api/auth/login', body);
+}
+
+/** `GET /api/me` bằng một token cho trước (màn hình nhập mã), chưa lưu token đó. Sai mã: AccountError. */
+export async function fetchMeWithToken(token: string): Promise<MeResponse> {
+  const res = await timedFetch('/api/me', { headers: { Authorization: `Bearer ${token}` } });
+  if (res.status === 401) throw new AccountError('invalid_token');
+  if (!res.ok) throw new Error(`GET /api/me ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Huỷ phiên của `token` trên server (`POST /auth/logout`). 401 nghĩa là phiên đã mất từ trước, cũng
+ * coi như xong. Mất mạng ném NetworkError để nơi gọi quyết định.
+ */
+export async function logoutSession(token: string): Promise<void> {
+  const res = await timedFetch('/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+  if (res.status === 204 || res.status === 401) return;
+  throw new Error(`POST /api/auth/logout ${res.status}`);
 }
 
 export async function fetchForms(projectId: string): Promise<FormSchema[]> {
