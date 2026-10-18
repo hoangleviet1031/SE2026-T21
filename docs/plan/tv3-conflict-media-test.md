@@ -128,7 +128,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-08 · Xoá vs sửa
 
-- **Trạng thái:** ⏳ `feat/tv3-08-delete-conflict`
+- **Trạng thái:** ✅ PR #47
 - **Tuần:** 6 · **Phụ thuộc:** TV3-07
 - **Spec:** design §4.5 (Xoá vs sửa); ADR 0001 quy tắc 6, 7 (Không chọn hộ)
 - **File:** `client/src/pages/ConflictPage.tsx`, `client/src/components/DeleteConflictDialog.tsx` (mới), `client/e2e/delete-conflict.spec.ts` (mới)
@@ -143,7 +143,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-09 · Export CSV/JSON
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv3-09-export`
 - **Tuần:** 7 · **Phụ thuộc:** TV2-03
 - **Spec:** design §4.6
 - **File:** `server/src/lib/csv.ts` (mới), `server/test/csv.test.ts` (mới), `server/src/routes/export.ts`, `server/test/export.test.ts` (mới), nút Xuất trong trang form (phối hợp TV1)
