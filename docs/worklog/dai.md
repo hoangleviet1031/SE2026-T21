@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-18 | TV3-08 | feat | Hộp thoại xoá vs sửa trong màn hình xung đột (đúng câu chữ §4.5, không chọn sẵn, Áp dụng khoá tới khi trả lời), `deleted` theo lựa chọn; E2E C4, C5 (4 ca) | nhánh `feat/tv3-08-delete-conflict` | chờ review |
+| 2026-10-18 | TV3-07 | docs | PR #41 đã merge; ghi ✅ trong plan | PR #41 | xong |
 | 2026-10-17 | TV3-07 | feat | Màn hình xung đột thẻ mỗi trường (nhãn theo form, "Gộp cả hai", "Đã gộp tự động"), xoá vs sửa khoá Áp dụng; phiếu conflict chỉ đọc + banner (C7); bộ lọc trạng thái §4.8 + "Cần xử lý (n)" | nhánh `feat/tv3-07-conflict-ui` | chờ review |
 | 2026-10-17 | TV3-10 | docs | PR #40 đã merge; ghi ✅ trong plan | PR #40 | xong |
 | 2026-10-17 | TV3-10 | test | API kiểm thử `match`, `chunkIndex`, `stats` (P8); E2E R4 (cắt trước/sau khi ghi chunk 2, chunk 0 không gửi lại), O3 2 ảnh + "Đang tải ảnh (2)"; thử phá logic gửi tiếp thì R4 đỏ | nhánh `feat/tv3-10-e2e-o3-r4` | chờ review |

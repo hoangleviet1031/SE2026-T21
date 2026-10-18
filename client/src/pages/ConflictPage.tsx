@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCurrentProjectDb } from '../db/current';
 import { formKey } from '../db/projectDb';
-import { buildConflictView, resolveChoices, type Choice } from '../conflictView';
+import { buildConflictView, resolveChoices, resolveRecordLevel, type Choice, type RecordLevelChoice } from '../conflictView';
+import { DeleteConflictDialog } from '../components/DeleteConflictDialog';
 import { resolveConflict } from '../sync/engine';
 import { navigate } from '../useHashRoute';
 
@@ -20,6 +21,7 @@ export function ConflictPage({ recordId }: { recordId: string }) {
     [db, record?.formId, record?.formVersion],
   );
   const [choices, setChoices] = useState<Record<string, Choice>>({});
+  const [recordLevelChoice, setRecordLevelChoice] = useState<RecordLevelChoice>();
 
   if (!db) return null;
   if (!conflict || !record) return <p>Không có xung đột cho phiếu này.</p>;
@@ -37,16 +39,23 @@ export function ConflictPage({ recordId }: { recordId: string }) {
     day: '2-digit',
     month: '2-digit',
   });
-  // Xoá vs sửa cần câu trả lời tường minh (ADR 0001 quy tắc 6); hộp thoại riêng là TV3-08. Tới lúc đó
-  // khoá Áp dụng thay vì đoán hộ: phiếu đứng ở conflict, không mất gì.
-  const recordLevelPending = conflict.recordLevel !== 'none';
-  const allChosen = fields.every((f) => choices[f.id]);
+  // Xoá vs sửa (ADR 0001 quy tắc 6): chỉ hỏi giữ hay xoá, câu hỏi đã nói rõ giữ bản nào nên không
+  // hiện thẻ từng trường. Áp dụng khoá tới khi có câu trả lời, không có giá trị mặc định.
+  const recordLevel = conflict.recordLevel;
+  const ready = recordLevel === 'none' ? fields.every((f) => choices[f.id]) : recordLevelChoice !== undefined;
 
   const choose = (field: string, choice: Choice) => setChoices({ ...choices, [field]: choice });
 
   const apply = async () => {
-    const resolved = resolveChoices(conflict.merge, form, choices);
-    await resolveConflict(db, recordId, resolved, record.deleted && conflict.server.deleted);
+    if (recordLevel === 'none') {
+      // Không có xoá vs sửa: chỉ xoá khi cả hai bên đều đã xoá, như trước TV3-08.
+      const resolved = resolveChoices(conflict.merge, form, choices);
+      await resolveConflict(db, recordId, resolved, record.deleted && conflict.server.deleted);
+    } else {
+      if (!recordLevelChoice) return; // nút đã khoá; chặn thêm cho chắc
+      const { data, deleted } = resolveRecordLevel(recordLevel, recordLevelChoice, record.data, conflict.server.data);
+      await resolveConflict(db, recordId, data, deleted);
+    }
     navigate();
   };
 
@@ -59,14 +68,19 @@ export function ConflictPage({ recordId }: { recordId: string }) {
       <p data-testid="conflict-explain">
         Trong lúc bạn ngoại tuyến, <b>{editor}</b> đã sửa phiếu này (lần cuối {editedAt}). {auto.length} trường đã
         được gộp tự động.
-        {fields.length > 0 && ' Các trường dưới đây cả hai bên cùng sửa, hãy chọn giá trị giữ lại.'}
+        {recordLevel === 'none' &&
+          fields.length > 0 &&
+          ' Các trường dưới đây cả hai bên cùng sửa, hãy chọn giá trị giữ lại.'}
       </p>
-      {recordLevelPending && (
-        <p className="warning" data-testid="record-level-conflict">
-          Phiếu này bị xoá ở một nơi và được sửa ở nơi khác. Cần chọn giữ hay xoá phiếu; màn hình này chưa hỗ trợ
-          lựa chọn đó. Phiếu vẫn được giữ nguyên trên máy.
-        </p>
+      {recordLevel !== 'none' && (
+        <DeleteConflictDialog
+          level={recordLevel}
+          editor={editor}
+          choice={recordLevelChoice}
+          onChoose={setRecordLevelChoice}
+        />
       )}
+      {recordLevel === 'none' && (
       <div className="conflict-cards" data-testid="conflict-table">
         {fields.map((f) => (
           <fieldset key={f.id} className="conflict-card" data-testid="conflict-field">
@@ -94,7 +108,8 @@ export function ConflictPage({ recordId }: { recordId: string }) {
           </fieldset>
         ))}
       </div>
-      {auto.length > 0 && (
+      )}
+      {recordLevel === 'none' && auto.length > 0 && (
         <details className="auto-merged" data-testid="auto-merged">
           <summary>Đã gộp tự động ({auto.length} trường)</summary>
           <ul>
@@ -106,7 +121,7 @@ export function ConflictPage({ recordId }: { recordId: string }) {
           </ul>
         </details>
       )}
-      <button className="primary" disabled={!allChosen || recordLevelPending} onClick={apply}>
+      <button className="primary" disabled={!ready} onClick={apply}>
         Áp dụng và đồng bộ
       </button>
     </section>

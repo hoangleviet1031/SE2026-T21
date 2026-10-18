@@ -1,4 +1,4 @@
-import type { FieldType, FieldValue, FormSchema, MergeResult, RecordData } from '@field-survey/shared';
+import type { FieldType, FieldValue, FormSchema, MergeResult, RecordData, RecordLevelConflict } from '@field-survey/shared';
 
 // Dữ liệu cho màn hình xung đột (design §4.5, ui.md màn hình 3), tách khỏi React để unit test được.
 
@@ -94,4 +94,44 @@ export function resolveChoices(merge: MergeResult, form: FormSchema | undefined,
     else resolved[c.field] = value;
   }
   return resolved;
+}
+
+// ---- Xoá vs sửa (design §4.5, ADR 0001 quy tắc 6). Không có lựa chọn mặc định. ----
+
+export type DeleteConflict = Exclude<RecordLevelConflict, 'none'>;
+/** `keep`: phiếu còn (Giữ phiếu / Khôi phục); `delete`: phiếu bị xoá (Vẫn xoá / Bỏ). */
+export type RecordLevelChoice = 'keep' | 'delete';
+
+/** Câu hỏi và nhãn hai lựa chọn, đúng câu chữ design §4.5. `editor`: tên người sửa/xoá ở máy chủ. */
+export function recordLevelPrompt(
+  level: DeleteConflict,
+  editor: string,
+): { question: string; keepLabel: string; deleteLabel: string } {
+  if (level === 'local-deleted-remote-edited') {
+    return {
+      question: `Bạn đã xoá phiếu này nhưng ${editor} vừa sửa nó. Giữ phiếu (với bản của ${editor}) hay vẫn xoá?`,
+      keepLabel: `Giữ phiếu (với bản của ${editor})`,
+      deleteLabel: 'Vẫn xoá',
+    };
+  }
+  return {
+    question: `${editor} đã xoá phiếu này nhưng bạn vừa sửa. Khôi phục với bản của bạn hay bỏ?`,
+    keepLabel: 'Khôi phục với bản của bạn',
+    deleteLabel: 'Bỏ',
+  };
+}
+
+/**
+ * Dữ liệu gửi lên sau khi người dùng trả lời. Câu hỏi đã nói rõ giữ bản nào ("với bản của Lan" /
+ * "với bản của bạn") nên không ghép thêm lựa chọn từng trường. Xoá thì mang bản mới nhất của máy chủ
+ * để tombstone không ghi đè phần người kia vừa sửa.
+ */
+export function resolveRecordLevel(
+  level: DeleteConflict,
+  choice: RecordLevelChoice,
+  local: RecordData,
+  server: RecordData,
+): { data: RecordData; deleted: boolean } {
+  if (choice === 'delete') return { data: server, deleted: true };
+  return { data: level === 'local-deleted-remote-edited' ? server : local, deleted: false };
 }

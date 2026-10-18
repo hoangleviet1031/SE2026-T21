@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FormSchema, MergeResult } from '@field-survey/shared';
-import { buildConflictView, formatValue, resolveChoices } from './conflictView';
+import { buildConflictView, formatValue, recordLevelPrompt, resolveChoices, resolveRecordLevel } from './conflictView';
 
 // Màn hình xung đột (design §4.5, ui.md màn hình 3): nhãn trường theo form, "Gộp cả hai" cho
 // multiselect/ảnh, mục "Đã gộp tự động".
@@ -105,5 +105,42 @@ describe('resolveChoices', () => {
 
   it('thiếu lựa chọn cho một trường xung đột thì ném lỗi (nút Áp dụng phải khoá trước đó)', () => {
     expect(() => resolveChoices(merge, form, { householdName: 'local' })).toThrow();
+  });
+});
+
+// Xoá vs sửa (design §4.5, ADR 0001 quy tắc 6): câu hỏi đúng câu chữ, không có lựa chọn mặc định.
+describe('recordLevelPrompt', () => {
+  it('máy xoá, server sửa (C4)', () => {
+    expect(recordLevelPrompt('local-deleted-remote-edited', 'Lan')).toEqual({
+      question: 'Bạn đã xoá phiếu này nhưng Lan vừa sửa nó. Giữ phiếu (với bản của Lan) hay vẫn xoá?',
+      keepLabel: 'Giữ phiếu (với bản của Lan)',
+      deleteLabel: 'Vẫn xoá',
+    });
+  });
+
+  it('máy sửa, server xoá (C5)', () => {
+    expect(recordLevelPrompt('local-edited-remote-deleted', 'Lan')).toEqual({
+      question: 'Lan đã xoá phiếu này nhưng bạn vừa sửa. Khôi phục với bản của bạn hay bỏ?',
+      keepLabel: 'Khôi phục với bản của bạn',
+      deleteLabel: 'Bỏ',
+    });
+  });
+});
+
+describe('resolveRecordLevel', () => {
+  const local = { householdName: 'Bản máy', members: 5 };
+  const server = { householdName: 'Bản server', members: 8 };
+
+  it('C4 giữ phiếu: lấy bản trên máy chủ, không xoá', () => {
+    expect(resolveRecordLevel('local-deleted-remote-edited', 'keep', local, server)).toEqual({ data: server, deleted: false });
+  });
+  it('C4 vẫn xoá: xoá, mang bản mới nhất của máy chủ', () => {
+    expect(resolveRecordLevel('local-deleted-remote-edited', 'delete', local, server)).toEqual({ data: server, deleted: true });
+  });
+  it('C5 khôi phục: lấy bản trên máy, không xoá', () => {
+    expect(resolveRecordLevel('local-edited-remote-deleted', 'keep', local, server)).toEqual({ data: local, deleted: false });
+  });
+  it('C5 bỏ: chấp nhận xoá', () => {
+    expect(resolveRecordLevel('local-edited-remote-deleted', 'delete', local, server)).toEqual({ data: server, deleted: true });
   });
 });

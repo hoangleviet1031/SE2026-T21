@@ -109,7 +109,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-07 · Màn hình conflict đầy đủ + chỉ đọc
 
-- **Trạng thái:** ⏳ `feat/tv3-07-conflict-ui`
+- **Trạng thái:** ✅ PR #41
 - **Tuần:** 5 · **Phụ thuộc:** TV2-10
 - **Spec:** design §4.5; ADR 0001 quy tắc 7; [ui.md màn hình 3](../ui.md#3-xung-đột) (thẻ mỗi trường, không dùng bảng 4 cột trên điện thoại)
 - **File:** `client/src/pages/ConflictPage.tsx`, `client/src/pages/FillPage.tsx` (làm cùng TV1), `client/e2e/conflict.spec.ts`
@@ -128,7 +128,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-08 · Xoá vs sửa
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv3-08-delete-conflict`
 - **Tuần:** 6 · **Phụ thuộc:** TV3-07
 - **Spec:** design §4.5 (Xoá vs sửa); ADR 0001 quy tắc 6, 7 (Không chọn hộ)
 - **File:** `client/src/pages/ConflictPage.tsx`, `client/src/components/DeleteConflictDialog.tsx` (mới), `client/e2e/delete-conflict.spec.ts` (mới)
