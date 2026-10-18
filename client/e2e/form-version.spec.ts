@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { TOKENS, authHeaders, login, setMembership } from './helpers';
+import { TOKENS, authHeaders, createProject, login, setMembership } from './helpers';
 
 // TV1-10: phiếu mở bằng đúng formVersion, trường ẩn (design §4.1, §5.3 bước 5, §8). Như
 // builder.spec.ts, mỗi test có dự án riêng "b-…" vì server E2E dùng chung một CSDL, và lan
@@ -10,11 +10,7 @@ const api = (path: string) => `http://localhost:3001/api/projects/${project}${pa
 
 test.beforeEach(async ({ request }) => {
   project = `b-${crypto.randomUUID().slice(0, 8)}`;
-  const res = await request.post('http://localhost:3001/api/admin/projects', {
-    headers: authHeaders(TOKENS.admin),
-    data: { id: project, name: `Form version ${project}` },
-  });
-  expect(res.status()).toBe(201);
+  await createProject(request, project, `Form version ${project}`);
   await setMembership(request, project, 'u_lan', 'supervisor');
 });
 
