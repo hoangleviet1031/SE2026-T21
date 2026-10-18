@@ -67,3 +67,24 @@ export function pullStateAfterPage(
 export function needsRescope(storedScope: PullScope | null, role: Role): boolean {
   return storedScope === 'all' && role === 'surveyor';
 }
+
+/**
+ * Sau khi đăng nhập (hoặc nhập mã), trước khi lưu token: làm gì với dữ liệu đang có trên máy
+ * (design §4.7, ADR 0003 §1, §8). `stored` là người dùng đang lưu trong `field-survey-account`.
+ * - `admin`: tài khoản quản trị không dùng app khảo sát; không lưu token, không đụng dữ liệu.
+ * - `same`: cùng người, chỉ thay token.
+ * - `switch`: khác người và máy không còn gì chưa gửi: xoá dữ liệu người cũ rồi vào.
+ * - `blocked`: khác người mà máy còn dữ liệu chưa gửi: từ chối, vì phiếu phải lên server dưới tên
+ *   người tạo (bất biến 6) và không được xoá khi người dùng chưa xác nhận (bất biến 1).
+ */
+export type SignInDecision = 'admin' | 'same' | 'switch' | 'blocked';
+
+export function decideSignIn(
+  stored: { id: string } | null,
+  next: { id: string; isAdmin: boolean },
+  hasUnsentData: boolean,
+): SignInDecision {
+  if (next.isAdmin) return 'admin';
+  if (stored?.id === next.id) return 'same';
+  return hasUnsentData ? 'blocked' : 'switch';
+}

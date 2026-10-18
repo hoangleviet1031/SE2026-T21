@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AccountProject } from '../db/accountDb';
-import { mergeMeIntoProjects, needsRescope, projectsToSync, pullStateAfterPage } from './accountSync';
+import { decideSignIn, mergeMeIntoProjects, needsRescope, projectsToSync, pullStateAfterPage } from './accountSync';
 
 const saved = (p: Partial<AccountProject> & { id: string }): AccountProject => ({
   name: p.id,
@@ -83,5 +83,57 @@ describe('needsRescope', () => {
     expect(needsRescope('all', 'supervisor')).toBe(false);
     expect(needsRescope('own', 'surveyor')).toBe(false);
     expect(needsRescope(null, 'surveyor')).toBe(false);
+  });
+});
+
+describe('needsRescope với vai trò owner (ADR 0003 §2: phạm vi pull của owner là "all")', () => {
+  it('owner giữ phiếu phạm vi "all" thì không cần thu hẹp', () => {
+    expect(needsRescope('all', 'owner')).toBe(false);
+    expect(needsRescope('own', 'owner')).toBe(false);
+    expect(needsRescope(null, 'owner')).toBe(false);
+  });
+
+  it('owner bị hạ xuống surveyor khi máy đang có phiếu phạm vi "all" thì cần thu hẹp', () => {
+    expect(needsRescope('all', 'surveyor')).toBe(true);
+  });
+});
+
+describe('mergeMeIntoProjects với vai trò owner', () => {
+  it('nâng từ supervisor lên owner thì cập nhật vai trò, giữ số đếm', () => {
+    const result = mergeMeIntoProjects(
+      [saved({ id: 'a', role: 'supervisor', unsynced: 2 })],
+      [{ id: 'a', name: 'A', role: 'owner' }],
+    );
+    expect(result).toEqual([{ id: 'a', name: 'A', role: 'owner', status: 'active', needsAttention: 0, unsynced: 2 }]);
+  });
+});
+
+describe('decideSignIn (design §4.7, ADR 0003 §1, §8)', () => {
+  const lan = { id: 'u_lan', isAdmin: false };
+  const minh = { id: 'u_minh', isAdmin: false };
+  const admin = { id: 'u_admin', isAdmin: true };
+
+  it('tài khoản admin luôn bị chặn, kể cả máy trống hay cùng người', () => {
+    expect(decideSignIn(null, admin, false)).toBe('admin');
+    expect(decideSignIn({ id: 'u_admin' }, admin, false)).toBe('admin');
+    expect(decideSignIn({ id: 'u_lan' }, admin, true)).toBe('admin');
+  });
+
+  it('cùng người: chỉ thay token, giữ dữ liệu dù còn phiếu chưa gửi', () => {
+    expect(decideSignIn({ id: 'u_lan' }, lan, true)).toBe('same');
+    expect(decideSignIn({ id: 'u_lan' }, lan, false)).toBe('same');
+  });
+
+  it('khác người, máy không còn gì chưa gửi: xoá dữ liệu người cũ rồi vào', () => {
+    expect(decideSignIn({ id: 'u_lan' }, minh, false)).toBe('switch');
+  });
+
+  it('khác người, máy còn dữ liệu chưa gửi: từ chối, không xoá gì (bất biến 1, 6)', () => {
+    expect(decideSignIn({ id: 'u_lan' }, minh, true)).toBe('blocked');
+  });
+
+  it('máy chưa từng biết người dùng nào: còn dữ liệu chưa gửi thì vẫn từ chối', () => {
+    expect(decideSignIn(null, minh, false)).toBe('switch');
+    expect(decideSignIn(null, minh, true)).toBe('blocked');
   });
 });

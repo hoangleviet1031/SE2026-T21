@@ -18,7 +18,17 @@ import {
   type ProjectDb,
   type SyncState,
 } from '../db/projectDb';
-import { NetworkError, NotMemberError, fetchFormVersion, fetchForms, fetchMe, pullRecords, pushRecord } from './api';
+import { clearToken } from '../auth';
+import {
+  AdminAccountError,
+  NetworkError,
+  NotMemberError,
+  fetchFormVersion,
+  fetchForms,
+  fetchMe,
+  pullRecords,
+  pushRecord,
+} from './api';
 import { mergeMeIntoProjects, projectsToSync, pullStateAfterPage, type PullState } from './accountSync';
 import { applyMembershipChanges, markRemoved } from './membership';
 import { earliestCreatedAt } from './outbox';
@@ -97,6 +107,12 @@ async function refreshProjects(): Promise<AccountProject[]> {
   } catch (err) {
     if (err instanceof NetworkError) return accountDb.projects.toArray();
     throw err;
+  }
+  // Token admin lưu từ trước khi màn hình đăng nhập chặn admin (signIn.ts): bỏ token, dừng vòng đồng
+  // bộ trước khi mở CSDL dự án nào (ADR 0003 §8). Admin không là thành viên nên không có dữ liệu.
+  if (me.user.isAdmin) {
+    await clearToken();
+    throw new AdminAccountError();
   }
   const projects = me.projects;
   return accountDb.transaction('rw', accountDb.projects, accountDb.account, async () => {
