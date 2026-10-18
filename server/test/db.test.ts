@@ -9,7 +9,7 @@ import { hashToken } from '../src/auth';
 
 // Schema đích sau migration 2, theo bản nháp đã duyệt cho TV2-01 (docs/design.md §6.1, ADR 0002),
 // cộng bảng attachments của migration 3 (TV3-05) và tài khoản, phiên, vai trò owner của migration 4
-// (TV2-14, ADR 0003 §5).
+// (TV2-14, ADR 0003 §5), bảng project_requests của migration 5 (TV2-15).
 // Viết tường minh thay vì suy ra từ code để test bắt được cột bị thiếu hay thừa.
 const EXPECTED_COLUMNS: Record<string, string[]> = {
   projects: ['id', 'name', 'archived', 'created_at', 'public'],
@@ -45,6 +45,18 @@ const EXPECTED_COLUMNS: Record<string, string[]> = {
     'created_at',
     'completed_at',
   ],
+  project_requests: [
+    'id',
+    'user_id',
+    'name',
+    'note',
+    'status',
+    'created_at',
+    'decided_at',
+    'decided_by',
+    'reason',
+    'project_id',
+  ],
 };
 
 const EXPECTED_PRIMARY_KEYS: Record<string, string[]> = {
@@ -58,6 +70,7 @@ const EXPECTED_PRIMARY_KEYS: Record<string, string[]> = {
   meta: ['k'],
   attachments: ['id'],
   sessions: ['token_hash'],
+  project_requests: ['id'],
 };
 
 // Tên index tự đặt -> danh sách cột theo thứ tự. Index tự sinh (sqlite_autoindex_*) kiểm riêng.
@@ -70,6 +83,8 @@ const EXPECTED_INDEXES: Record<string, string[]> = {
   attachments_record: ['project_id', 'record_id'],
   users_username: ['username'],
   sessions_user: ['user_id'],
+  project_requests_status: ['status', 'created_at'],
+  project_requests_user: ['user_id', 'status'],
 };
 
 // "bảng.cột -> bảng cha"
@@ -82,6 +97,8 @@ const EXPECTED_FOREIGN_KEYS = [
   'attachments.project_id -> projects',
   'attachments.record_id -> records',
   'sessions.user_id -> users',
+  'project_requests.user_id -> users',
+  'project_requests.project_id -> projects',
 ];
 
 interface ColumnInfo {
@@ -184,6 +201,17 @@ describe('schema sau migration', () => {
     expect(() => insert.run('u-b', 'B', 'hash-b', 'trung', '2026-10-07T00:00:00Z')).toThrow();
     insert.run('u-c', 'C', 'hash-c', null, '2026-10-07T00:00:00Z');
     expect(() => insert.run('u-d', 'D', 'hash-d', null, '2026-10-07T00:00:00Z')).not.toThrow();
+  });
+
+  it('project_requests.status chỉ nhận pending, approved, rejected, cancelled', () => {
+    db.prepare(`INSERT INTO users (id, name, token_hash, created_at) VALUES (?, ?, ?, ?)`).run('u-req', 'Gửi', 'hash-req', '2026-10-07T00:00:00Z');
+    const insert = db.prepare(
+      `INSERT INTO project_requests (id, user_id, name, status, created_at) VALUES (?, 'u-req', 'Tổ chức', ?, '2026-10-07T00:00:00Z')`,
+    );
+    for (const status of ['pending', 'approved', 'rejected', 'cancelled']) {
+      expect(() => insert.run(`r-${status}`, status)).not.toThrow();
+    }
+    expect(() => insert.run('r-sai', 'done')).toThrow();
   });
 
   it('projects.public mặc định 0 (tổ chức mới không công khai)', () => {

@@ -6,8 +6,31 @@ import { tx, type Db } from '../db';
 // P/members (TV1-08). Xem docs/design.md §10.1 (API kiểm thử).
 //   PUT    /api/__test/memberships/:projectId/:userId  { "role": "surveyor" | "supervisor" | "owner" }
 //   DELETE /api/__test/memberships/:projectId/:userId
+//   PUT    /api/__test/projects/:projectId  { "name": "..." }
+// Route tạo dự án thay cho POST /api/admin/projects đã bỏ ở TV2-15: E2E cần đặt id "b-…" để dự án
+// đứng trước "demo-…" trong /me, điều mà luồng duyệt yêu cầu (id "p-…" do server sinh) không cho.
+
+// Cùng mẫu id dự án ở design §7: nằm trong URL và tên IndexedDB.
+const PROJECT_ID = /^[a-z0-9][a-z0-9-]{1,39}$/;
+
 export function testMembershipsRouter(db: Db): Router {
   const r = Router();
+
+  // Tạo dự án nếu chưa có, có rồi thì đặt lại tên. Không công khai, không thành viên nào.
+  r.put('/projects/:projectId', (req, res) => {
+    const { projectId } = req.params;
+    const name: unknown = (req.body as { name?: unknown } | undefined)?.name;
+    if (!PROJECT_ID.test(projectId) || typeof name !== 'string' || !name.trim() || name.length > 100) {
+      return void res.status(400).json({ error: 'invalid_body' });
+    }
+    tx(db, () => {
+      db.prepare(
+        `INSERT INTO projects (id, name, created_at) VALUES (?, ?, ?)
+         ON CONFLICT (id) DO UPDATE SET name = excluded.name`,
+      ).run(projectId, name.trim(), new Date().toISOString());
+    });
+    res.json({ id: projectId, name: name.trim() });
+  });
 
   r.put('/memberships/:projectId/:userId', (req, res) => {
     const { projectId, userId } = req.params;

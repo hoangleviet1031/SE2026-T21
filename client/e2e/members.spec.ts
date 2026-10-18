@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { TOKENS, authHeaders, login, setMembership } from './helpers';
+import { TOKENS, authHeaders, createProject, login, setMembership } from './helpers';
 
 // Màn hình Thành viên (TV1-08 phần 2; ui.md màn hình 6, design §4.7). Server E2E dùng chung một CSDL,
 // nên mỗi test có dự án riêng "b-…" (đứng trước "demo-…" trong /me, nên đăng nhập là vào thẳng dự án
@@ -10,11 +10,7 @@ const api = (path: string) => `http://localhost:3001/api/projects/${project}${pa
 
 test.beforeEach(async ({ request }) => {
   project = `b-${crypto.randomUUID().slice(0, 8)}`;
-  const res = await request.post('http://localhost:3001/api/admin/projects', {
-    headers: authHeaders(TOKENS.admin),
-    data: { id: project, name: `Thành viên ${project}` },
-  });
-  expect(res.status()).toBe(201);
+  await createProject(request, project, `Thành viên ${project}`);
   await setMembership(request, project, 'u_chu', 'owner');
 });
 

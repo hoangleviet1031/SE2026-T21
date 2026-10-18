@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { PROJECT, TOKENS, authHeaders, login, readStore, setMembership } from './helpers';
+import { PROJECT, TOKENS, authHeaders, createProject, login, readStore, setMembership } from './helpers';
 
 // Ca T6, T10 (ADR 0002 Kiểm chứng, design §10.1). Server E2E dùng chung một CSDL nên mỗi test tạo
 // dự án riêng "b-…" có form tiêu đề riêng và phiếu riêng; lan là giám sát viên ở đó và tạo dữ liệu
@@ -19,11 +19,7 @@ type Seeded = { id: string; name: string; formTitle: string; recordNames: string
 async function seedProject(request: APIRequestContext, label: string, count: number): Promise<Seeded> {
   const id = `b-${crypto.randomUUID().slice(0, 8)}`;
   const name = `Dự án ${label} ${id}`;
-  const res = await request.post('http://localhost:3001/api/admin/projects', {
-    headers: authHeaders(TOKENS.admin),
-    data: { id, name },
-  });
-  expect(res.status()).toBe(201);
+  await createProject(request, id, name);
   created.push(id);
   await setMembership(request, id, 'u_lan', 'supervisor');
 

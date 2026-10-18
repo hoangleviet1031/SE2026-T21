@@ -223,7 +223,7 @@ Migration 4 chạy khi server khởi động lần đầu với bản mới. Nó
      ```
    - hoặc rút tài khoản admin khỏi tổ chức (chỉ khi tổ chức còn giám sát viên khác).
 2. Chạy `deploy.sh`. Nếu bước 4 báo server không lên, xem lý do bằng `journalctl -u survey-api -n 50`: dòng `Migration 4 dừng` liệt kê `userId (tên) – projectId – vai trò` cần xử lý; làm như bước 1 rồi `sudo systemctl restart survey-api`.
-3. Sau khi lên: mọi mã đăng nhập cũ vẫn dùng được (được chép thành phiên trong bảng `sessions`), tên đăng nhập của tài khoản cũ là `userId`, chưa có mật khẩu. **Mọi tổ chức cũ chưa có Owner**; giám sát viên vẫn làm việc bình thường. Admin chỉ định Owner bằng `PUT /api/admin/projects/:projectId/owners/:username` khi TV2-15 xong (sẽ ghi lệnh ở đây).
+3. Sau khi lên: mọi mã đăng nhập cũ vẫn dùng được (được chép thành phiên trong bảng `sessions`), tên đăng nhập của tài khoản cũ là `userId`, chưa có mật khẩu. **Mọi tổ chức cũ chưa có Owner**; giám sát viên vẫn làm việc bình thường. Admin chỉ định Owner bằng lệnh `curl` "Chỉ định Owner" ở mục API admin dưới đây.
 
 `POST /api/auth/register` đã mở trên staging (tối đa 5 tài khoản/giờ/IP), nhưng app chưa có màn hình tạo tài khoản (TV1-14).
 
@@ -253,20 +253,28 @@ curl -s -X POST https://se2026-t21.koreacentral.cloudapp.azure.com/api/auth/logi
 
 `seed:demo` **từ chối chạy** vì `NODE_ENV=production` là đúng: mật khẩu và token demo công khai trong repo. Không lách bằng cách bỏ `NODE_ENV`.
 
-Dự án và giám sát viên tạo bằng API admin (design §7, TV2-04), gọi với token admin (lấy bằng lệnh `curl` đăng nhập ở trên):
+**API admin** (design §7, TV2-15), gọi với token admin (lấy bằng lệnh `curl` đăng nhập ở trên). Tới khi có trang quản trị `/admin/` (TV1-16) thì dùng các lệnh này. Admin **không tạo tổ chức trực tiếp** nữa: người dùng gửi yêu cầu mở tổ chức, admin duyệt, người gửi thành Owner.
 
 ```bash
 TOKEN=<token admin>
 API=https://se2026-t21.koreacentral.cloudapp.azure.com/api
-# Dự án demo-yte (có form mẫu) được server tạo sẵn khi khởi động; tạo thêm dự án:
-curl -s -X POST "$API/admin/projects" -H "Authorization: Bearer $TOKEN" \
-  -H 'Content-Type: application/json' -d '{"id":"thu-nghiem","name":"Thử nghiệm"}'
-# Chỉ định giám sát viên cho dự án:
-curl -s -X PUT "$API/admin/projects/demo-yte/members/<userId>" -H "Authorization: Bearer $TOKEN"
+# Yêu cầu đang chờ duyệt:
+curl -s "$API/admin/project-requests" -H "Authorization: Bearer $TOKEN"
+# Duyệt (trả projectId của tổ chức mới) hoặc từ chối kèm lý do:
+curl -s -X POST "$API/admin/project-requests/<id yêu cầu>" -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' -d '{"decision":"approve"}'
+curl -s -X POST "$API/admin/project-requests/<id yêu cầu>" -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' -d '{"decision":"reject","reason":"<lý do>"}'
+# Danh sách tổ chức (tên đăng nhập Owner, số thành viên):
 curl -s "$API/admin/projects" -H "Authorization: Bearer $TOKEN"
+# Chỉ định Owner (tổ chức cũ chưa có Owner, hoặc khách hàng mất tài khoản Owner):
+curl -s -X PUT "$API/admin/projects/demo-yte/owners/<tên đăng nhập>" -H "Authorization: Bearer $TOKEN"
+# Khoá / mở tổ chức:
+curl -s -X PATCH "$API/admin/projects/demo-yte" -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' -d '{"archived":true}'
 ```
 
-Admin không tự thành thành viên của dự án mình tạo. Thêm **điều tra viên** vào dự án là việc của giám sát viên qua màn hình Thành viên (`P/members`, TV1-08), **chưa có**; tới lúc đó chỉ giám sát viên vào được dự án trên staging.
+Dự án `demo-yte` (có form mẫu) được server tạo sẵn khi khởi động. Admin không thành thành viên của tổ chức nào, kể cả tổ chức mình duyệt. Owner và supervisor thêm người vào tổ chức bằng tên đăng nhập ở màn hình Thành viên.
 
 ## Sao lưu và khôi phục
 

@@ -100,6 +100,16 @@ export async function setMembership(
   expect(res.ok()).toBe(true);
 }
 
+/**
+ * Dự án riêng cho một test, chưa có thành viên. Đi qua route kiểm thử vì từ TV2-15 admin không tạo
+ * dự án được nữa (tổ chức chỉ tạo khi duyệt yêu cầu, id `p-…` do server sinh); test cần id `b-…` để
+ * dự án đứng trước `demo-…` trong /me.
+ */
+export async function createProject(request: APIRequestContext, projectId: string, name: string) {
+  const res = await request.put(`http://localhost:3001/api/__test/projects/${projectId}`, { data: { name } });
+  expect(res.ok()).toBe(true);
+}
+
 /** Ảnh thử vẽ bằng canvas. `texture` thêm hình và nhiễu hạt mịn để file JPEG nặng như ảnh chụp thật. */
 export async function makeImage(
   page: Page,

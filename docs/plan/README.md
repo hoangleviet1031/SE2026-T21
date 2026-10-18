@@ -58,18 +58,18 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-12 | Hoàn thiện UI, tài liệu người dùng | — |
 | TV1-13 | Nút xoá phiếu + hộp xác nhận | ✅ PR #42 · chưa ẩn nút theo người tạo (thiếu `createdBy`) |
 | TV2-01 | Migration + schema multi-tenancy | ✅ PR #8 (chung với TV2-02, TV2-03, TV3-02) |
-| TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ PR #8 · ⚠ `requireAuth` đọc `users.token_hash` là bản cũ, TV2-14 đổi sang `sessions` |
+| TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ PR #8 · `requireAuth` đã đổi sang `sessions` ở TV2-14 |
 | TV2-03 | Route theo dự án + phạm vi pull | ✅ PR #8 |
-| TV2-04 | `/api/me`, `/api/admin/projects` | ✅ PR #9 · ⚠ `POST /admin/projects`, `PUT …/members/:userId` là bản cũ, TV2-15 thay |
+| TV2-04 | `/api/me`, `/api/admin/projects` | ✅ PR #9 · `POST /admin/projects`, `PUT …/members/:userId` đã bỏ ở TV2-15 |
 | TV2-05 | CSDL account + CSDL theo dự án, `api.ts` | ✅ PR #10 |
 | TV2-06 | Sync nhiều dự án + Web Locks | ✅ PR #13 |
 | TV2-07 | Cursor theo scope + thay đổi thành viên | ✅ PR #14 |
 | TV2-08 | Idempotency hash, dọn key, fault `drop` | ✅ PR #15 |
 | TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | ✅ PR #16 |
-| TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | ✅ `feat/tv2-10-conflict-engine` |
+| TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | ✅ PR #34 |
 | TV2-11 | Hiệu năng pull | — |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
-| TV2-13 | Xoá phiếu: logic client + đồng bộ | ✅ `feat/tv2-13-delete-sync` |
+| TV2-13 | Xoá phiếu: logic client + đồng bộ | ✅ PR #35 |
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ✅ PR #2 |
 | TV3-02 | CLI quản trị, fixture, sửa test theo API mới | ✅ PR #8 · ⚠ CLI token và helper `login(token)` là bản cũ, TV3-12 thay |
 | TV3-03 | Nén ảnh | ✅ PR #31 |
@@ -86,8 +86,8 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 
 | Ticket | Tên | Thay cho / ảnh hưởng | Trạng thái |
 |---|---|---|---|
-| TV2-14 | Migration 3, tài khoản + phiên, vai trò `owner` (server) · **Lõi** | Phần token của TV2-02 | ✅ `feat/tv2-14-accounts` · chờ TV3-12 trên cùng nhánh rồi mới mở PR · thành **migration 4** vì số 3 đã là `attachments` (TV3-05) |
-| TV2-15 | Yêu cầu mở tổ chức, danh bạ công khai, API admin mới (server) · **Lõi** | Phần `/admin/projects` của TV2-04 | — |
+| TV2-14 | Migration 3, tài khoản + phiên, vai trò `owner` (server) · **Lõi** | Phần token của TV2-02 | ✅ PR #36 (chung với TV3-12) · thành **migration 4** vì số 3 đã là `attachments` (TV3-05) |
+| TV2-15 | Yêu cầu mở tổ chức, danh bạ công khai, API admin mới (server) · **Lõi** | Phần `/admin/projects` của TV2-04 | ✅ PR #49 |
 | TV2-16 | Client: đăng nhập bằng phiên, vai trò `owner`, chặn tài khoản admin · **Lõi** | `auth.ts`, `api.ts` | ✅ `feat/tv2-16-client-session` |
 | TV2-17 | API quản lý tài khoản cho màn hình A3 · **Cắt được** | CLI `user:*` | — |
 | TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | — |

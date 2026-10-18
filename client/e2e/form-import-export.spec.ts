@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { TOKENS, authHeaders, login, setMembership } from './helpers';
+import { TOKENS, authHeaders, createProject, login, setMembership } from './helpers';
 
 // TV1-10 phần 2: Xuất/Nhập form để dùng lại form ở dự án khác (design §4.1, ui.md màn hình 5).
 // Như builder.spec.ts: dự án riêng "b-…" cho từng test; "-a" đứng trước "-b" trong /me nên lan
@@ -17,11 +17,7 @@ test.beforeEach(async ({ request }) => {
     { id: source(), name: `Nguồn ${run}` },
     { id: target(), name: `Đích ${run}` },
   ]) {
-    const res = await request.post('http://localhost:3001/api/admin/projects', {
-      headers: authHeaders(TOKENS.admin),
-      data: { id, name },
-    });
-    expect(res.status()).toBe(201);
+    await createProject(request, id, name);
     await setMembership(request, id, 'u_lan', 'supervisor');
   }
 });

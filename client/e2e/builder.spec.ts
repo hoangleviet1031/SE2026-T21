@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { TOKENS, authHeaders, login, setMembership } from './helpers';
+import { TOKENS, authHeaders, createProject, login, setMembership } from './helpers';
 
 // Form builder (TV1-04; design §4.1, ui.md màn hình 5). Server E2E dùng chung một CSDL cho mọi
 // file test, nên form tạo ở đây nằm trong một dự án riêng của từng test: dự án demo vẫn chỉ có
@@ -11,11 +11,7 @@ const api = (path: string) => `http://localhost:3001/api/projects/${project}${pa
 
 test.beforeEach(async ({ request }) => {
   project = `b-${crypto.randomUUID().slice(0, 8)}`;
-  const res = await request.post('http://localhost:3001/api/admin/projects', {
-    headers: authHeaders(TOKENS.admin),
-    data: { id: project, name: `Builder ${project}` },
-  });
-  expect(res.status()).toBe(201);
+  await createProject(request, project, `Builder ${project}`);
   await setMembership(request, project, 'u_lan', 'supervisor');
 });
 
