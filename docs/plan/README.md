@@ -67,7 +67,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-08 | Idempotency hash, dọn key, fault `drop` | ✅ PR #15 |
 | TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | ✅ PR #16 |
 | TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | ✅ PR #34 |
-| TV2-11 | Hiệu năng pull | — |
+| TV2-11 | Hiệu năng pull | ✅ `feat/tv2-11-perf` |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
 | TV2-13 | Xoá phiếu: logic client + đồng bộ | ✅ PR #35 |
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ✅ PR #2 |

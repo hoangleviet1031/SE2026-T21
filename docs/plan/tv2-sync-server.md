@@ -194,7 +194,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-11 · Hiệu năng pull
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-11-perf`. Mọi chỉ tiêu đạt, số đo ở `docs/perf.md`. Thêm (được duyệt khi làm): bộ đo chạy riêng `npm run test:perf` (`client/playwright.perf.config.ts`), lượt CPU ×4 chỉ ghi số đo; route `POST /api/__test/seed-perf` vì server E2E chạy `:memory:`; `PULL_SQL` export để test kế hoạch truy vấn. "Cuộn mượt" trên điện thoại chưa thử (hướng dẫn trong perf.md)
 - **Tuần:** 6 · **Phụ thuộc:** TV2-07
 - **Spec:** design §11.2
 - **File:** `server/src/cli/seedPerf.ts` (mới), `client/e2e/perf/pull.spec.ts` (mới), `docs/perf.md` (mới)

@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.30 (2026-10-18)
+- **Phiên bản:** 0.5.32 (2026-10-18)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -64,6 +64,7 @@
 | 0.5.28 | 2026-10-18 | TV3-09: export có code (§4.6, §7): thêm cột `updatedByName`; chống CSV injection chỉ với ô chữ (số giữ nguyên), thêm tab và CR; `format` mặc định `csv`, lạ thì `400`, form không có thì `404`; route cũ `/api/export` bỏ; nút "Xuất CSV"/"Xuất JSON" ở trang chủ; A3 phần export có test (§10.1) |
 | 0.5.29 | 2026-10-18 | TV2-15: migration 5 `project_requests` có code (§6.1). `/directory`, `/project-requests`, `/admin/project-requests`, `PUT /admin/projects/:projectId/owners/:username` có code (§7): duyệt tạo tổ chức và Owner trong một transaction, giới hạn 3 tổ chức kiểm lại lúc duyệt, `?status=` mặc định `pending`, huỷ chỉ đổi trạng thái. `GET /admin/projects` thêm `ownerUsernames`, `memberCount`; `PATCH` chỉ còn `{ archived }`; **bỏ** `POST /admin/projects`, `PUT …/members/:userId` và mã `project_exists` (§7.1). Kiểu `DirectoryEntry`, `ProjectRequest`, `AdminProjectRequest`, `CreateProjectRequestBody`, `DecideProjectRequest` và luật thân request ở `shared/` (§6.2). Route kiểm thử `PUT /api/__test/projects/:projectId` thay `POST /admin/projects` cho E2E (§10.1). Q1–Q7, D1, D2 (vế D1), A8 có test, T4 viết lại (§10.1) |
 | 0.5.30 | 2026-10-18 | TV2-16: client đăng nhập bằng phiên có code (§4.2, §4.7): `register`, `login`, `logoutSession`, `fetchMeWithToken` ở `api.ts`; `signIn.ts` biết người dùng là ai rồi mới lưu token, trong Web Lock `field-survey-sync` (tài khoản admin → `AdminAccountError`, cùng người → thay token, khác người mà máy trống → xoá dữ liệu người cũ, khác người mà còn dữ liệu chưa gửi → từ chối, không xoá gì); phiên bị từ chối được huỷ trên server; màn hình nhập mã kiểm mã trước khi lưu ("Mã không đúng"); vòng đồng bộ bỏ token admin đã lưu từ trước; Đăng xuất gọi `POST /auth/logout` khi online. Q11 có E2E (§10.1) |
+| 0.5.32 | 2026-10-18 | TV2-11: đo hiệu năng pull có code (§11.2, [perf.md](perf.md)): pull lần đầu 5.000 phiếu 2,3 s, danh sách 2.000 phiếu 123 ms, đổi dự án 128 ms (CPU ×4: 9,1 s / 498 ms / 316 ms), đều đạt; `EXPLAIN QUERY PLAN` của pull đi theo index có test; bộ đo `npm run test:perf` chạy riêng; lệnh `seed:perf` (§12) và route kiểm thử `POST /api/__test/seed-perf` (§10.1). Số 0.5.31 dành cho TV2-17 |
 
 ## Mục lục
 
@@ -930,6 +931,7 @@ Phạm vi đồ án giữ đơn giản:
 | PUT | `/api/__test/memberships/:projectId/:userId` | `{ "role": "surveyor" \| "supervisor" \| "owner" }`: thêm hoặc đổi vai trò, không cần token (E2E T7–T9). Có code, nhận cả `"owner"` |
 | DELETE | `/api/__test/memberships/:projectId/:userId` | Rút khỏi dự án. Có code |
 | PUT | `/api/__test/projects/:projectId` | `{ "name" }`: tạo dự án (không công khai, chưa có thành viên) nếu chưa có, có rồi thì đặt lại tên; `200 { id, name }`, id hoặc tên sai `400`. Thay `POST /admin/projects` đã bỏ, vì E2E cần đặt id `b-…` để dự án đứng trước `demo-…` trong `/me`. Có code (TV2-15) |
+| POST | `/api/__test/seed-perf` | `{ "projectId", "userId", "count" }`: thêm `count` (1–20.000) phiếu của form mẫu do `userId` tạo, ghi như `PUT` thật; `201 { count }`; thân sai `400`, không có dự án hoặc người dùng `404`. Cho bộ đo `client/e2e/perf` (TV2-11), cùng hàm với `npm run seed:perf` |
 
 | `mode` | Hành vi | Dùng cho |
 |---|---|---|
@@ -970,12 +972,12 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 |---|---|---|
 | Mở app offline (đã cài) tới khi nhập được | ≤ 3 s trên thiết bị tham chiếu | Playwright, CPU throttle 4× |
 | Lưu một phiếu | ≤ 200 ms | Playwright |
-| Danh sách 2.000 phiếu | Cuộn mượt, hiển thị ≤ 1 s | Thủ công |
+| Danh sách 2.000 phiếu | Cuộn mượt, hiển thị ≤ 1 s | Hiển thị: Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); cuộn mượt: thủ công, chưa thử |
 | Đồng bộ 100 phiếu không ảnh | ≤ 10 s ở mạng "Slow 3G" | Playwright network throttle |
 | Đồng bộ 50 ảnh đã nén | ≤ 3 phút ở mạng 3G (1,6 Mbps) | Playwright network throttle |
-| Pull lần đầu 5.000 phiếu (supervisor) | ≤ 30 s | Script seed |
+| Pull lần đầu 5.000 phiếu (supervisor) | ≤ 30 s | Seed (`seed:perf`) + Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); truy vấn theo index có test `server/test/queryPlan.test.ts` |
 | Dung lượng mỗi máy | Thiết kế cho tổng 2.000 phiếu + 500 ảnh (khoảng 250 MB) trên mọi dự án | `storage.estimate()` |
-| Đổi dự án (đã tải) | ≤ 1 s, kể cả offline | Playwright |
+| Đổi dự án (đã tải) | ≤ 1 s, kể cả offline | Playwright (`project-switcher.spec.ts` với ít dữ liệu; `perf/pull.spec.ts` với 2.000 phiếu, [perf.md](perf.md)) |
 | Số dự án mỗi người dùng | Tối đa 10 | Thiết kế |
 | Kích thước ảnh sau nén | ≤ 600 KB | E2E `photo.spec.ts` (canvas chỉ có trong trình duyệt); unit test `fitWithin` |
 
@@ -1006,6 +1008,7 @@ Người dùng thường tự tạo tài khoản trên app; CLI để tạo admi
 | `npm run user:revoke-sessions -w server -- --user <username>` | Thu hồi mọi phiên (mất máy) |
 | `npm run user:disable -w server -- --user <username>` | Khoá tài khoản và thu hồi mọi phiên (mọi request nhận `401`) |
 | `npm run seed:demo -w server` | Tạo hai dự án mẫu `demo-yte`, `demo-nongnghiep`; tài khoản `lan`, `minh`, `admin`, `chu` (Owner cả hai dự án) mật khẩu `demo-password`. Tới khi TV1-14/TV2-16 xong, mỗi tài khoản demo còn một phiên token cố định `demo-token-<tên>` vì màn hình đăng nhập vẫn nhận mã. Từ chối khi `NODE_ENV=production` |
+| `npm run seed:perf -w server -- --project <id> --user <username> [--count 5000]` | Thêm phiếu mẫu vào một dự án có sẵn để đo hiệu năng ([perf.md](perf.md)); ghi như `PUT` thật trong một transaction. Từ chối khi `NODE_ENV=production` |
 | ~~`user:rotate-token`~~ | Đã bỏ (không còn token theo người dùng) |
 
 - **Sao lưu:** mỗi ngày chạy `VACUUM INTO 'backup/survey-<ngày>.db'` và sao chép thư mục `uploads/`; giữ 7 bản.
