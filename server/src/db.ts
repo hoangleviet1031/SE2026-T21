@@ -170,7 +170,7 @@ export const migrations: Migration[] = [
   },
 
   // 4: tài khoản tên + mật khẩu, phiên theo máy, vai trò owner (ADR 0003 §5, design §6.1).
-  // Bảng project_requests để migration của TV2-15.
+  // Bảng project_requests ở migration 5 (TV2-15).
   (db) => {
     // Bản mới không cho tài khoản admin là thành viên tổ chức (ADR 0003 §8). Dữ liệu cũ vi phạm thì
     // dừng hẳn để người vận hành tự xử lý, không tự gỡ quyền hay membership của ai (§5 mục 1).
@@ -236,6 +236,28 @@ export const migrations: Migration[] = [
     if (after !== membershipCount) {
       throw new Error(`Migration 4: memberships có ${membershipCount} dòng trước khi tạo lại, ${after} dòng sau`);
     }
+  },
+
+  // 5: yêu cầu mở tổ chức (ADR 0003 §3 mục 1, §5; TV2-15). Giữ cả yêu cầu đã xử lý để người gửi đọc
+  // được lý do từ chối. decided_by là admin (duyệt, từ chối) hoặc chính người gửi (huỷ); không có FK,
+  // giống added_by. project_id chỉ có khi đã duyệt.
+  (db) => {
+    db.exec(`
+      CREATE TABLE project_requests (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users(id),
+        name TEXT NOT NULL,
+        note TEXT,
+        status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled')),
+        created_at TEXT NOT NULL,
+        decided_at TEXT,
+        decided_by TEXT,
+        reason TEXT,
+        project_id TEXT REFERENCES projects(id)
+      );
+      CREATE INDEX project_requests_status ON project_requests(status, created_at);
+      CREATE INDEX project_requests_user ON project_requests(user_id, status);
+    `);
   },
 ];
 

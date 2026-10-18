@@ -131,25 +131,62 @@ export interface AuthResponse {
   user: MeResponse['user'];
 }
 
-/** Dự án theo góc nhìn admin (`/api/admin/projects`): có cả dự án đã lưu trữ */
+/**
+ * Dự án theo góc nhìn admin (`/api/admin/projects`): có cả dự án đã lưu trữ. Chỉ thông tin quản trị,
+ * không có gì về form, phiếu (ADR 0003 Y8). `ownerUsernames` rỗng là tổ chức chưa có Owner.
+ */
 export interface AdminProject {
   id: string;
   name: string;
   archived: boolean;
   createdAt: string;
+  ownerUsernames: string[];
+  memberCount: number;
 }
 
-/** Thân request `POST /api/admin/projects`. `id` do admin đặt, dùng trong URL và tên IndexedDB */
-export interface CreateProjectRequest {
+/** Thân request `PATCH /api/admin/projects/:projectId`. Tên và công khai là quyền của Owner (ADR 0003 §6) */
+export interface UpdateProjectRequest {
+  archived: boolean;
+}
+
+/** Một tổ chức công khai trong `GET /api/directory`: chỉ id và tên (ADR 0003 §3 mục 4) */
+export interface DirectoryEntry {
   id: string;
   name: string;
 }
 
-/** Thân request `PATCH /api/admin/projects/:projectId`; cần ít nhất một trường */
-export interface UpdateProjectRequest {
-  name?: string;
-  archived?: boolean;
+export type ProjectRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+/** Yêu cầu mở tổ chức của chính mình (`/api/project-requests`) */
+export interface ProjectRequest {
+  id: string;
+  name: string;
+  note?: string;
+  status: ProjectRequestStatus;
+  /** Lý do từ chối, chỉ có khi `rejected` */
+  reason?: string;
+  /** Tổ chức đã tạo, chỉ có khi `approved` */
+  projectId?: string;
+  createdAt: string;
 }
+
+/** Thân request `POST /api/project-requests` */
+export interface CreateProjectRequestBody {
+  name: string;
+  note?: string;
+}
+
+/** Một yêu cầu trong `GET /api/admin/project-requests` (màn hình A1) */
+export interface AdminProjectRequest {
+  id: string;
+  name: string;
+  note?: string;
+  user: { id: string; username: string; name: string };
+  createdAt: string;
+}
+
+/** Thân request `POST /api/admin/project-requests/:id`. Từ chối thì bắt buộc có lý do */
+export type DecideProjectRequest = { decision: 'approve' } | { decision: 'reject'; reason: string };
 
 /** Một thành viên trong `GET P/members` (ADR 0003 §6). Chỉ supervisor, owner gọi được */
 export interface Member {
