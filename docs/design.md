@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.26 (2026-10-17)
+- **Phiên bản:** 0.5.27 (2026-10-18)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -60,6 +60,7 @@
 | 0.5.24 | 2026-10-17 | TV1-17 phần 1: `ServerRecord.createdBy`, `createdByName`, `updatedByName` và `RecordHistoryEntry.updatedByName` có code (§6.2): server ghép tên lúc đọc ở pull, PUT, 409, history; không tìm thấy tài khoản thì tên rỗng. Client chưa dùng (phần 2) |
 | 0.5.25 | 2026-10-17 | TV1-17 phần 2: client lưu `createdBy`, `createdByName` theo phiếu, màn hình xung đột hiện tên người sửa (§6.2); surveyor không thấy "Xoá phiếu" ở phiếu người khác tạo (§5.7) |
 | 0.5.26 | 2026-10-17 | Sửa vòng đồng bộ (§5.3): gọi `syncNow()` lúc đang có vòng chạy thì chạy thêm đúng một vòng sau đó, thay cho gộp vào vòng đang chạy (phiếu lưu lúc vòng đã qua bước push phải chờ tới 30 s); bỏ `syncAfterChange` |
+| 0.5.27 | 2026-10-18 | TV3-08: hộp thoại xoá vs sửa có code (§4.5): khung hai lựa chọn ngay trong màn hình xung đột, không chọn sẵn; chỉ hỏi giữ hay xoá, không kèm thẻ từng trường; "Bỏ" cũng gửi op xoá; C4, C5 có E2E (§10.1) |
 
 ## Mục lục
 
@@ -310,7 +311,7 @@ Khi sync engine nhận `409` và merge còn xung đột trường hoặc xung đ
 - Multiselect và photo có thêm lựa chọn "Gộp cả hai" (hợp hai tập). Ảnh chỉ hiện số lượng mỗi bên ("3 ảnh" / "2 ảnh"); xem thumbnail so sánh để sau MVP.
 - Sau khi áp dụng: dữ liệu đã chọn thành op mới với `baseVersion` = version server đã thấy, đẩy ngay. Nếu lại nhận `409` (server đổi tiếp trong lúc người dùng đang chọn), đi lại đúng quy trình ADR quy tắc 5 với base = bản server đã thấy: khác trường thì tự gộp, cùng trường thì hiện màn hình conflict mới.
 - **Trong lúc phiếu đang `conflict`, không sửa được phiếu** (ADR quy tắc 7): mở phiếu thì ở chế độ chỉ đọc (mọi ô nhập và nút chọn ảnh bị khoá, không có Lưu và Xoá) với banner "Phiếu này cần xử lý xung đột trước" và link "Xử lý" tới màn hình xung đột. `saveRecordLocally` vẫn từ chối phiếu `conflict` (cả lưu lẫn xoá) cho trường hợp phiếu vừa thành `conflict` đúng lúc bấm Lưu; phần đang nhập vẫn trên màn hình. Phiếu có thể thành `conflict` ngay lúc form đang mở vì đồng bộ chạy nền: trang tự chuyển sang chỉ đọc.
-- **Tới khi có hộp thoại xoá vs sửa (TV3-08):** phiếu có xung đột mức bản ghi thì màn hình xung đột hiện câu giải thích và khoá "Áp dụng", không đoán hộ người dùng; phiếu đứng ở `conflict`, không mất dữ liệu.
+- **Xoá vs sửa có code (TV3-08):** câu hỏi và hai lựa chọn hiện ngay trong màn hình xung đột (`DeleteConflictDialog`, không phải hộp modal: modal có nút Huỷ sẽ cho thoát ra mà chưa trả lời), dùng tên người sửa/xoá trên máy chủ. Câu hỏi đã nói rõ giữ bản nào nên không hiện thẻ từng trường. Kết quả: "Giữ phiếu (với bản của Lan)" → bản máy chủ, `deleted: false`; "Vẫn xoá" → `deleted: true` với bản máy chủ mới nhất; "Khôi phục với bản của bạn" → bản trên máy, `deleted: false`; "Bỏ" → `deleted: true`, cũng gửi op xoá như mọi lựa chọn (máy chủ thêm một version vẫn đã xoá; máy dọn phiếu và ảnh khi được xác nhận, §5.7).
 - Danh sách phiếu có bộ lọc "Cần xử lý" và số đếm trên đầu trang.
 
 **Tiêu chí chấp nhận:** đủ các ca C1–C8 ở §10.1.
@@ -853,8 +854,8 @@ Phạm vi đồ án giữ đơn giản:
 | C1 | Hai nơi sửa khác trường | Tự gộp, không hỏi | Có (unit; E2E `conflict.spec.ts`) |
 | C2 | Hai nơi sửa cùng trường, khác giá trị | Màn hình conflict, chọn xong server có bản gộp | Có (`conflict.spec.ts`) |
 | C3 | Hai nơi sửa cùng trường, cùng giá trị | Không hỏi | Unit có |
-| C4 | Máy xoá, server sửa | Hỏi giữ hay xoá; nút Áp dụng khoá tới khi trả lời | Unit có; UI TODO |
-| C5 | Máy sửa, server xoá | Hỏi khôi phục hay bỏ | Unit có; UI TODO |
+| C4 | Máy xoá, server sửa | Hỏi giữ hay xoá; nút Áp dụng khoá tới khi trả lời | Có (unit; E2E `delete-conflict.spec.ts`: "Giữ phiếu", "Vẫn xoá") |
+| C5 | Máy sửa, server xoá | Hỏi khôi phục hay bỏ | Có (unit; E2E `delete-conflict.spec.ts`: "Khôi phục", "Bỏ") |
 | C6 | Sửa ba lần liên tiếp khi offline | Một op, version server tăng 1 | Có (`conflict.spec.ts`) |
 | C7 | Phiếu đang conflict, người dùng mở phiếu | Chỉ đọc, có banner dẫn tới màn hình xung đột; không tạo op | Có (`conflict.spec.ts` "C7"; `delete.spec.ts` không có nút Xoá) |
 | C8 | Server đổi tiếp trong lúc người dùng đang chọn ở màn hình conflict | Khác trường: tự gộp; cùng trường: hiện conflict mới; không mất lựa chọn đã áp dụng | Có (`conflict.spec.ts`, hai ca) |
