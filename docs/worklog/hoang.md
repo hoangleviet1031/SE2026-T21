@@ -12,6 +12,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-18 | TV2-17 | feat | `GET /admin/users?q=`, `POST /admin/users/:id/disable | reset-password | revoke-sessions` dùng chung hàm `repo/users.ts` với CLI; `409 self_action`; kiểu `AdminUser`; test 3 thao tác, 403, mật khẩu tạm chỉ trả một lần | nhánh `feat/tv2-17-admin-users` | chờ review |
 | 2026-10-18 | TV2-16 | feat | `register`/`login`/`logoutSession` ở api.ts; `signIn.ts` kiểm người dùng trước khi lưu token (chặn admin, đổi người chỉ khi máy trống); đăng xuất huỷ phiên; test owner, E2E Q11 và đổi tài khoản | nhánh `feat/tv2-16-client-session` | chờ review |
 | 2026-10-18 | TV2-15 | feat | Migration 5 `project_requests`; `/project-requests`, `/directory`, `/admin/project-requests` (duyệt tạo tổ chức + Owner trong một transaction), `PUT …/owners/:username`; bỏ `POST /admin/projects`, `PUT …/members`; test Q1–Q7, D1, A8; route kiểm thử tạo dự án cho E2E | nhánh `feat/tv2-15-project-requests` | chờ review |
 | 2026-10-16 | TV2-14 | feat | Migration 4 (username, password_hash, `sessions` chép token cũ, `projects.public`, tạo lại `memberships` có `owner`/`added_by`, chặn admin là thành viên); `/api/auth/register`, `/login`, `/logout` với scrypt và giới hạn tần suất, trust proxy loopback; `requireAuth` tra `sessions`; vai trò `owner`; `parseRegisterRequest`/`parseLoginRequest` trong shared; test U1–U6, MG1, MG2, A5 Owner; cầu nối `seed:demo`/CLI ghi token thành phiên | nhánh `feat/tv2-14-accounts` | chờ TV3-12, chờ review |
