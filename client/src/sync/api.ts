@@ -250,3 +250,24 @@ export async function completeAttachment(
   if (!res.ok) out.code = await errorCode(res);
   return out;
 }
+
+/** Định dạng xuất của `GET P/export/:formId` (design §4.6). */
+export type ExportFormat = 'csv' | 'json';
+
+/** Server từ chối xuất (vd. 403 forbidden khi vai trò không đủ), `code` là mã lỗi §7.1. */
+export class ExportError extends Error {
+  constructor(readonly status: number, readonly code: string | undefined) {
+    super(`xuất dữ liệu bị từ chối (${status} ${code ?? ''})`);
+  }
+}
+
+/** Tải file xuất của một form; cần mạng (màn hình xuất là màn hình bắt buộc online, CLAUDE.md bất biến 7). */
+export async function downloadExport(projectId: string, formId: string, format: ExportFormat): Promise<Blob> {
+  const res = await request(
+    `${projectPath(projectId)}/export/${encodeURIComponent(formId)}?format=${format}`,
+    {},
+    projectId,
+  );
+  if (!res.ok) throw new ExportError(res.status, await errorCode(res));
+  return res.blob();
+}
