@@ -8,6 +8,7 @@ import { cleanupStaleChunks } from './uploads';
 const port = Number(process.env.PORT ?? 3001);
 const dbPath = process.env.DB_PATH ?? 'data/survey.db';
 const uploadDir = process.env.UPLOAD_DIR ?? 'uploads';
+const publicBaseUrl = process.env.PUBLIC_BASE_URL ?? `http://localhost:${port}`;
 if (dbPath !== ':memory:') mkdirSync('data', { recursive: true });
 
 const db = openDb(dbPath);
@@ -30,7 +31,7 @@ cleanChunks();
 setInterval(cleanKeys, 24 * 60 * 60 * 1000).unref();
 setInterval(cleanChunks, 24 * 60 * 60 * 1000).unref();
 
-const app = createApp(db, { enableTestRoutes: testRoutesEnabled(process.env), uploadDir });
+const app = createApp(db, { enableTestRoutes: testRoutesEnabled(process.env), uploadDir, publicBaseUrl });
 app.listen(port, () => {
   console.log(`API chạy tại http://localhost:${port}`);
 });

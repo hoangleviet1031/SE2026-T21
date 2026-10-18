@@ -108,6 +108,23 @@ export function pullRecords(
   return { records: rows.map(toRecord), cursor: last ? last.seq : since, scope };
 }
 
+/**
+ * Mọi phiếu của một form trong dự án, theo thứ tự ghi, cho xuất dữ liệu (design §4.6). Route chỉ cho
+ * supervisor/owner; vẫn lọc theo phạm vi để surveyor có gọi tới đây cũng chỉ thấy phiếu mình tạo.
+ */
+export function listRecordsByForm(ctx: Ctx, db: Db, formId: string, includeDeleted: boolean): ServerRecord[] {
+  const deleted = includeDeleted ? '' : ' AND r.deleted = 0';
+  const rows =
+    scopeOf(ctx) === 'own'
+      ? (db
+          .prepare(`${SELECT_RECORD} WHERE r.project_id = ? AND r.form_id = ? AND r.created_by = ?${deleted} ORDER BY r.seq`)
+          .all(ctx.projectId, formId, ctx.userId) as unknown as RecordRow[])
+      : (db
+          .prepare(`${SELECT_RECORD} WHERE r.project_id = ? AND r.form_id = ?${deleted} ORDER BY r.seq`)
+          .all(ctx.projectId, formId) as unknown as RecordRow[]);
+  return rows.map(toRecord);
+}
+
 /** Lịch sử các phiên bản sau `afterVersion`, cũ đến mới. undefined nếu phiếu không thấy được. */
 export function getHistory(ctx: Ctx, db: Db, id: string, afterVersion = 0): RecordHistoryEntry[] | undefined {
   if (getRecordAccess(ctx, db, id).kind !== 'visible') return undefined;
