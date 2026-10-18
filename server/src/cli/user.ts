@@ -1,10 +1,17 @@
-import { randomInt } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { DISPLAY_NAME_MAX_LENGTH, USERNAME_PATTERN } from '@field-survey/shared';
 import { tx, type Db } from '../db';
 import { hashPassword } from '../password';
-import { findUserByUsername, insertUser, type LoginUserRow } from '../repo/users';
+import {
+  disableUserAccount,
+  findUserByUsername,
+  insertUser,
+  newTempPassword,
+  resetUserPassword,
+  revokeUserSessions,
+  type LoginUserRow,
+} from '../repo/users';
 import { openDbFromEnv } from './openDbFromEnv';
 
 // Quản lý tài khoản trên server (design §12, ADR 0003 §1). Người dùng thường tự tạo tài khoản trên
@@ -18,15 +25,8 @@ import { openDbFromEnv } from './openDbFromEnv';
 /** Lỗi do người chạy lệnh nhập sai; in ra cho họ đọc, không phải lỗi lập trình. */
 export class CliError extends Error {}
 
-// Bỏ 0 O 1 l I: người dùng phải gõ tay mật khẩu tạm, dễ nhầm các ký tự này với nhau.
-const TEMP_PASSWORD_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-const TEMP_PASSWORD_LENGTH = 12;
-
-export function newTempPassword(): string {
-  let s = '';
-  for (let i = 0; i < TEMP_PASSWORD_LENGTH; i++) s += TEMP_PASSWORD_ALPHABET[randomInt(TEMP_PASSWORD_ALPHABET.length)];
-  return s;
-}
+// Sinh mật khẩu tạm và ba thao tác hỗ trợ nằm ở repo/users.ts, dùng chung với API /admin/users (TV2-17).
+export { newTempPassword };
 
 function requireUser(db: Db, username: string): LoginUserRow {
   const user = findUserByUsername(db, username.toLowerCase());
@@ -61,28 +61,27 @@ export async function addUser(
   return { userId, username, password };
 }
 
+/** Tài khoản vừa tra thấy mà repo báo không có: chỉ xảy ra nếu bị xoá giữa hai bước. */
+function gone(username: string): never {
+  throw new CliError(`Không có tài khoản ${username}.`);
+}
+
 /** Quên mật khẩu: cấp mật khẩu tạm mới. Không thu hồi phiên (máy đang giữ phiếu chưa gửi vẫn gửi được). */
 export async function resetPassword(db: Db, username: string): Promise<string> {
   const user = requireUser(db, username);
-  const password = newTempPassword();
-  const passwordHash = await hashPassword(password);
-  tx(db, () => db.prepare(`UPDATE users SET password_hash = ? WHERE id = ?`).run(passwordHash, user.id));
-  return password;
+  return (await resetUserPassword(db, user.id)) ?? gone(username);
 }
 
 /** Mất máy: mọi phiên của người này hết hiệu lực. Trả số phiên đã thu hồi. */
 export function revokeSessions(db: Db, username: string): number {
   const user = requireUser(db, username);
-  return tx(db, () => Number(db.prepare(`DELETE FROM sessions WHERE user_id = ?`).run(user.id).changes));
+  return revokeUserSessions(db, user.id) ?? gone(username);
 }
 
 /** Khoá tài khoản và thu hồi mọi phiên (ADR 0003 §1). Phiếu đã gửi vẫn giữ nguyên. Trả số phiên đã thu hồi. */
 export function disableUser(db: Db, username: string): number {
   const user = requireUser(db, username);
-  return tx(db, () => {
-    db.prepare(`UPDATE users SET disabled = 1 WHERE id = ?`).run(user.id);
-    return Number(db.prepare(`DELETE FROM sessions WHERE user_id = ?`).run(user.id).changes);
-  });
+  return disableUserAccount(db, user.id) ?? gone(username);
 }
 
 interface Output {
