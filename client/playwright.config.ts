@@ -4,6 +4,9 @@ import { defineConfig, devices } from '@playwright/test';
 // Máy có sẵn Chromium khác phiên bản: đặt PW_CHROMIUM_PATH=/đường/dẫn/chromium.
 export default defineConfig({
   testDir: 'e2e',
+  // Bộ đo hiệu năng chạy riêng bằng `npm run test:perf` (playwright.perf.config.ts, docs/perf.md): chạy lâu
+  // và seed hàng nghìn phiếu vào server E2E dùng chung.
+  testIgnore: 'perf/**',
   // Các test dùng chung một server và cơ chế tiêm lỗi toàn cục, nên chạy tuần tự
   workers: 1,
   timeout: 60_000,
