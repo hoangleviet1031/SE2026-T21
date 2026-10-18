@@ -22,6 +22,14 @@ export function listLatestForms(ctx: Ctx, db: Db): FormSchema[] {
   return rows.map(toForm);
 }
 
+/** Mọi phiên bản của một form trong dự án, cũ đến mới (xuất dữ liệu gộp nhiều phiên bản, design §4.6). */
+export function listFormVersions(ctx: Ctx, db: Db, id: string): FormSchema[] {
+  const rows = db
+    .prepare(`SELECT schema FROM forms WHERE project_id = ? AND id = ? ORDER BY version`)
+    .all(ctx.projectId, id) as unknown as FormRow[];
+  return rows.map(toForm);
+}
+
 export function getFormVersion(ctx: Ctx, db: Db, id: string, version: number): FormSchema | undefined {
   const row = db
     .prepare(`SELECT schema FROM forms WHERE project_id = ? AND id = ? AND version = ?`)

@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-18 | TV3-09 | feat | Xuất CSV/JSON `P/export/:formId` (RFC 4180, BOM, chống CSV injection, gộp nhiều bản form, gps 3 cột, URL ảnh, cột `updatedByName`); nút Xuất CSV/JSON ở trang chủ; test csv, exportTable, export (A3), E2E tải file | nhánh `feat/tv3-09-export` | chờ review |
+| 2026-10-18 | TV3-08 | docs | PR #47 đã merge; ghi ✅ trong plan | PR #47 | xong |
 | 2026-10-18 | TV3-08 | feat | Hộp thoại xoá vs sửa trong màn hình xung đột (đúng câu chữ §4.5, không chọn sẵn, Áp dụng khoá tới khi trả lời), `deleted` theo lựa chọn; E2E C4, C5 (4 ca) | nhánh `feat/tv3-08-delete-conflict` | chờ review |
 | 2026-10-18 | TV3-07 | docs | PR #41 đã merge; ghi ✅ trong plan | PR #41 | xong |
 | 2026-10-17 | TV3-07 | feat | Màn hình xung đột thẻ mỗi trường (nhãn theo form, "Gộp cả hai", "Đã gộp tự động"), xoá vs sửa khoá Áp dụng; phiếu conflict chỉ đọc + banner (C7); bộ lọc trạng thái §4.8 + "Cần xử lý (n)" | nhánh `feat/tv3-07-conflict-ui` | chờ review |

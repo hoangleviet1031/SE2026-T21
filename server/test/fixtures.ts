@@ -26,12 +26,15 @@ export interface TestServer {
 /**
  * Server thật cổng ngẫu nhiên với bộ dữ liệu demo (hai dự án; lan, minh, chu là Owner, admin).
  * `enableTestRoutes`: bật /api/__test/* (tiêm lỗi, nhật ký request) như server E2E.
+ * `publicBaseUrl`: gốc URL ảnh trong file xuất (PUBLIC_BASE_URL, design §12).
  */
-export async function createTestServer(opts: { enableTestRoutes?: boolean } = {}): Promise<TestServer> {
+export async function createTestServer(
+  opts: { enableTestRoutes?: boolean; publicBaseUrl?: string } = {},
+): Promise<TestServer> {
   const db = openDb(':memory:');
   seedDemo(db);
   const uploadDir = mkdtempSync(join(tmpdir(), 'field-survey-uploads-'));
-  const server: Server = createApp(db, { uploadDir, enableTestRoutes: opts.enableTestRoutes }).listen(0);
+  const server: Server = createApp(db, { uploadDir, enableTestRoutes: opts.enableTestRoutes, publicBaseUrl: opts.publicBaseUrl }).listen(0);
   await new Promise((r) => server.once('listening', r));
   const base = `http://localhost:${(server.address() as AddressInfo).port}`;
 

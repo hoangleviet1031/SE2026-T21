@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { RemovedProjectBanners } from '../components/RemovedProjectBanners';
+import { ExportButtons } from '../components/ExportButtons';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { canManageProject } from '../projects';
@@ -91,6 +92,7 @@ function ProjectHome({ db }: { db: ProjectDb }) {
               <span>{f.title}</span>
               <span>
                 {canManage && <a href={`#/builder/${encodeURIComponent(f.id)}`}>Sửa form</a>}{' '}
+                {canManage && project && <ExportButtons projectId={project.id} formId={f.id} />}{' '}
                 <button onClick={() => navigate('fill', f.id, crypto.randomUUID())}>Tạo phiếu mới</button>
               </span>
             </li>

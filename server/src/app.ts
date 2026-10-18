@@ -19,7 +19,10 @@ export function testRoutesEnabled(env: NodeJS.ProcessEnv): boolean {
   return env.ENABLE_TEST_ROUTES === '1';
 }
 
-export function createApp(db: Db, opts: { enableTestRoutes?: boolean; uploadDir?: string } = {}) {
+export function createApp(
+  db: Db,
+  opts: { enableTestRoutes?: boolean; uploadDir?: string; publicBaseUrl?: string } = {},
+) {
   const app = express();
   // Sau Caddy (cùng máy) mọi request tới từ loopback: chỉ khi đó mới tin X-Forwarded-For, để giới hạn
   // tần suất theo IP đếm đúng người dùng (ADR 0003 §1). Request đến thẳng cổng 3001 từ máy khác
@@ -58,6 +61,12 @@ export function createApp(db: Db, opts: { enableTestRoutes?: boolean; uploadDir?
   // Thư mục ảnh: UPLOAD_DIR (design §12); test truyền thư mục tạm.
   const uploads = createUploadStore(opts.uploadDir ?? 'uploads');
   app.use('/api/projects/:projectId/attachments', ...asMember, attachmentsRouter(db, uploads));
-  app.use('/api/export', exportRouter(db));
+  // Xuất dữ liệu: supervisor và owner (design §4.6); PUBLIC_BASE_URL là gốc URL ảnh trong file (§12).
+  app.use(
+    '/api/projects/:projectId/export',
+    requireAuth,
+    requireMember('supervisor'),
+    exportRouter(db, opts.publicBaseUrl ?? 'http://localhost:3001'),
+  );
   return app;
 }
