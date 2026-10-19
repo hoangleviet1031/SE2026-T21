@@ -90,7 +90,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-15 | Yêu cầu mở tổ chức, danh bạ công khai, API admin mới (server) · **Lõi** | Phần `/admin/projects` của TV2-04 | ✅ PR #49 |
 | TV2-16 | Client: đăng nhập bằng phiên, vai trò `owner`, chặn tài khoản admin · **Lõi** | `auth.ts`, `api.ts` | ✅ `feat/tv2-16-client-session` |
 | TV2-17 | API quản lý tài khoản cho màn hình A3 · **Cắt được** | CLI `user:*` | — |
-| TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | ⏳ PR |
+| TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | ⏳ PR #53 |
 | TV1-15 | Màn hình Tổ chức (danh bạ, mở tổ chức mới) | – | — |
 | TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | — |
 | TV1-17 | Tên người tạo/sửa trong `ServerRecord`; ẩn Xoá với surveyor theo người tạo | Phần bỏ của TV1-13 | ✅ PR #44 (phần 1: shared + server), PR #45 (phần 2: client) |
