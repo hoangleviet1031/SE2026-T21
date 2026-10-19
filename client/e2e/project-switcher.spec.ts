@@ -86,11 +86,12 @@ test.describe('chưa thuộc dự án nào', () => {
     await setMembership(request, 'demo-yte', 'u_minh', 'surveyor');
   });
 
-  test('hiện mã người dùng để gửi giám sát viên, không có bộ chọn', async ({ page, request }) => {
+  // Câu tạm tới TV1-15 (màn hình Tổ chức): hiện tên đăng nhập thay cho userId (TV1-14)
+  test('hiện tên đăng nhập để gửi giám sát viên, không có bộ chọn', async ({ page, request }) => {
     await setMembership(request, 'demo-yte', 'u_minh', null);
     await login(page, 'minh');
     await expect(page.getByTestId('no-project')).toHaveText(
-      'Bạn chưa được thêm vào dự án nào. Gửi mã người dùng u_minh cho giám sát viên.',
+      'Bạn chưa thuộc tổ chức nào. Gửi tên đăng nhập minh cho giám sát viên của tổ chức để được thêm vào.',
     );
     await expect(switcher(page)).toHaveCount(0);
   });

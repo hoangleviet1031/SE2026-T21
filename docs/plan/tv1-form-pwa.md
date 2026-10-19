@@ -30,7 +30,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 ## TV1-02 · Màn hình nhập mã đăng nhập
 
 - **Trạng thái:** ✅ PR #6
-- ⚠ **ADR 0003:** màn hình nhập mã (token) là **bản cũ, vẫn đang chạy**; TV1-14 thay bằng Đăng nhập / Tạo tài khoản (tên + mật khẩu). Nội dung dưới đây giữ nguyên như lúc làm.
+- ⚠ **ADR 0003:** màn hình nhập mã (token) là **bản cũ, đã bỏ**: TV1-14 thay bằng Đăng nhập / Tạo tài khoản (tên + mật khẩu). Nội dung dưới đây giữ nguyên như lúc làm.
 - **Tuần:** 2 · **Phụ thuộc:** không (dùng stub); nối thật sau TV2-05
 - **Spec:** design §4.7 (Lần đầu mở app), §9
 - **File:** `client/src/pages/LoginPage.tsx` (mới), `client/src/auth.ts` (mới, stub), `client/src/App.tsx`
@@ -252,7 +252,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-14 · Màn hình Đăng nhập / Tạo tài khoản
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #53
 - **Tuần:** 4 · **Phụ thuộc:** TV2-16 (hàm `register`, `login`); thay cho TV1-02
 - **Spec:** design §4.7 (🆕 Tài khoản, Sau khi đăng nhập), §7.1 (`invalid_credentials`, `username_taken`, `too_many_requests`); ui.md màn hình 1 (🆕)
 - **File:** `client/src/pages/LoginPage.tsx`, `client/src/App.tsx`, `client/e2e/login.spec.ts`
@@ -263,6 +263,8 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 - Tài khoản admin: hiện "Tài khoản quản trị dùng trang /admin" kèm link (lỗi `AdminAccountError` từ TV2-16).
 - Sau khi đăng nhập: chưa thuộc tổ chức nào → màn hình 9 (TV1-15), có → trang chủ.
 - `data-testid`: `login-username`, `login-password`, `register-name`, `register-password2`.
+- Thông báo từ chối "còn phiếu chưa gửi" có nút "Xuất JSON" (design §4.7).
+- Dương chốt 2026-10-19: bỏ hẳn màn hình nhập mã; tab Đăng nhập không kiểm mẫu tên (tài khoản cũ `u_xxxxxxxx`); chưa thuộc tổ chức nào thì tạm hiện tên đăng nhập ở trang chủ tới TV1-15; `docs/deploy.md` ghi bước `user:reset-password` cho tài khoản cũ trên staging.
 
 **Xong khi:** E2E **U7** (tạo tài khoản, tải lại vẫn đăng nhập; offline báo cần mạng); sửa `login.spec.ts` cũ theo màn hình mới, ghi rõ trong PR là thay spec TV1-02 chứ không nới assertion.
 

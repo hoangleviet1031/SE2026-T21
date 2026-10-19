@@ -27,7 +27,7 @@ test('Cài đặt hiện mã người dùng; Đăng xuất xoá CSDL dự án v�
 
   page.once('dialog', (d) => void d.accept());
   await page.getByTestId('logout-button').click();
-  await expect(page.getByTestId('login-token')).toBeVisible();
+  await expect(page.getByTestId('login-username')).toBeVisible();
   await expect.poll(() => databaseNames(page)).not.toContain(PROJECT_DB);
   expect(await readStore(page, 'field-survey-account', 'account')).toEqual([]);
   expect(await readStore(page, 'field-survey-account', 'projects')).toEqual([]);
@@ -92,7 +92,7 @@ test('Đăng xuất xoá cache me và forms của SW, giữ precache nên offlin
 
   page.once('dialog', (d) => void d.accept());
   await page.getByTestId('logout-button').click();
-  await expect(page.getByTestId('login-token')).toBeVisible();
+  await expect(page.getByTestId('login-username')).toBeVisible();
 
   const names = await cacheNames(page);
   expect(names).not.toContain('me');
@@ -101,7 +101,7 @@ test('Đăng xuất xoá cache me và forms của SW, giữ precache nên offlin
 
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByTestId('login-token')).toBeVisible();
+  await expect(page.getByTestId('login-username')).toBeVisible();
 });
 
 test('Đăng xuất bị chặn vì còn phiếu chưa gửi thì cache me và forms còn nguyên', async ({ page, context }) => {

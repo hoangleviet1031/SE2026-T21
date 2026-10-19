@@ -1,6 +1,6 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.12 (2026-10-19): màn hình 1 Đăng nhập / Tạo tài khoản có code, bỏ bản nhập mã (TV1-14). 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md; header giữ mỗi phần tử một dòng, tên app tự rút gọn bằng "…"); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
@@ -8,7 +8,7 @@
 
 | # | Màn hình | Route (hash) | Vai trò | Cần online | Spec | Ticket |
 |---|---|---|---|---|---|---|
-| 1 | 🆕 Đăng nhập / Tạo tài khoản (🕘 đang chạy: nhập mã) | (khi chưa có token) | mọi | lần đầu | §4.7 | 🆕 TV1-14 (🕘 TV1-02 đã xong) |
+| 1 | Đăng nhập / Tạo tài khoản | (khi chưa có token) | mọi | lần đầu | §4.7 | TV1-14 (thay màn hình nhập mã của TV1-02) |
 | 2 | Danh sách phiếu (trang chủ) + bộ chọn dự án | `#/` | mọi | không | §4.7, §4.8 | TV1-06, TV3-07 |
 | 3 | Xung đột | `#/conflict/<recordId>` | mọi | không | §4.5 | TV3-07, TV3-08 |
 | 4 | Điền / xem phiếu | `#/fill/<formId>/<recordId>` | mọi | không | §4.1, §5.7 | TV1-05, TV1-10, TV1-13 |
@@ -57,8 +57,6 @@ Không tự ẩn, không tự tải lại. Đang ở màn hình 4 thì bấm [T�
 
 ## 1. Đăng nhập / Tạo tài khoản
 
-### 🆕 Bản mới (ADR 0003, TV1-14; chưa có code)
-
 ```
 ┌────────────────────────────────┐   ┌────────────────────────────────┐
 │  Khảo sát thực địa             │   │  Khảo sát thực địa             │
@@ -80,29 +78,9 @@ Không tự ẩn, không tự tải lại. Đang ở màn hình 4 thì bấm [T�
 
 - Tài khoản admin đăng nhập ở đây: "Tài khoản quản trị dùng trang /admin" kèm link, không lưu token.
 - Sau khi đăng nhập: chưa thuộc tổ chức nào → màn hình 9; có → màn hình 2.
-- Biến thể: đăng nhập tài khoản khác khi máy còn phiếu chưa gửi (design §4.7) hiện thông báo chặn kèm nút "Xuất JSON" (như bản cũ).
-
-### 🕘 Bản cũ (đang chạy, TV1-02)
-
-```
-┌────────────────────────────────┐
-│  Khảo sát thực địa             │
-│                                │
-│  Mã đăng nhập                  │
-│  ┌──────────────────────────┐  │
-│  │                          │  │  data-testid="login-token"
-│  └──────────────────────────┘  │
-│  Nhận mã từ quản trị viên.     │
-│                                │
-│  [        Tiếp tục        ]    │
-│                                │
-│  ⚠ Mã không đúng               │  (401)
-│  ⚠ Cần kết nối mạng để đăng    │  (offline, chưa có token)
-│    nhập lần đầu                │
-└────────────────────────────────┘
-```
-
-Biến thể: nhập mã người khác khi máy còn phiếu chưa gửi (design §4.7) hiện thông báo chặn kèm nút "Xuất JSON".
+- Biến thể: đăng nhập tài khoản khác khi máy còn phiếu chưa gửi (design §4.7) hiện thông báo chặn kèm nút "Xuất JSON".
+- Có code (TV1-14, `client/src/pages/LoginPage.tsx`): hai tab có `role="tab"`; nút gửi là "Tiếp tục" (Đăng nhập) hoặc "Tạo tài khoản". Gợi ý "chữ thường, số, . _ (3–32)" chỉ hiện ở tab Tạo tài khoản. Tab Đăng nhập không kiểm mẫu tên (tài khoản cũ tên là `u_xxxxxxxx`). Đổi tab thì xoá thông báo cũ. Câu lỗi phía client và câu từ chối đổi tài khoản: design §4.7.
+- Chưa thuộc tổ chức nào: màn hình 9 chưa có (TV1-15), tạm thời màn hình 2 hiện "Bạn chưa thuộc tổ chức nào. Gửi tên đăng nhập `<username>` cho giám sát viên của tổ chức để được thêm vào."
 
 ## 2. Danh sách phiếu (trang chủ)
 

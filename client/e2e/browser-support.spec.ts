@@ -8,7 +8,7 @@ test('thiếu Web Locks thì hiện "Trình duyệt không được hỗ trợ" 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Trình duyệt không được hỗ trợ' })).toBeVisible();
   await expect(page.getByTestId('unsupported-browser')).toContainText('Thiếu: Web Locks');
-  await expect(page.getByTestId('login-token')).toHaveCount(0);
+  await expect(page.getByTestId('login-username')).toHaveCount(0);
   // App không chạy nên không tạo CSDL nào
   expect(await page.evaluate(async () => (await indexedDB.databases()).length)).toBe(0);
 });
