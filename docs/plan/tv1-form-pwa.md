@@ -122,7 +122,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 **Việc**
 - Thanh trên: tên dự án đang chọn; mở ra liệt kê dự án từ `field-survey-account` kèm vai trò, số cần xử lý, số chưa đồng bộ; dự án `removed` hiện mờ "Đã rời".
 - Chọn dự án → `setCurrentProject(id)` (API của TV2-05), mọi trang dùng CSDL dự án đó.
-- Chỉ một dự án → không hiện danh sách, chỉ hiện tên. Không có dự án nào → màn hình "Bạn chưa được thêm vào dự án nào. Gửi mã người dùng `<userId>` cho giám sát viên."
+- Chỉ một dự án → không hiện danh sách, chỉ hiện tên. Không có dự án nào → trang chủ là màn hình Tổ chức (TV1-15; bản đầu: câu "Gửi mã người dùng `<userId>`…", đã bỏ theo ADR 0003).
 - Ẩn/hiện nút builder, Xuất, Thành viên theo vai trò.
 - Banner "Bạn không còn thuộc dự án X. N phiếu chưa gửi được" với nút "Xuất JSON" / "Xoá khỏi máy" (gọi hàm TV2-07).
 
@@ -216,7 +216,8 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-12 · Hoàn thiện UI, tài liệu người dùng
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ phần a1 chờ review (hộp xác nhận trong app, lỗi nhỏ đã gom); a2 (trạng thái lỗi các trang gọi API), (b), (c) chưa
+- **Chia phần (a)** (Dương duyệt 2026-10-19; Dương tự thiết kế UI sau, phần (a) chỉ sửa hành vi, trạng thái, chữ): **a1** `feat/tv1-12-confirm-dialogs`: 5 `window.confirm` → `ConfirmDialog` (prop `danger`), E2E đổi theo + ca Esc; hộp Xoá phiếu đóng khi phiếu thành xung đột; chữ "…và Owner…"; Xuất JSON khi bị từ chối báo kết quả; docs chữ cũ. **a2** `feat/tv1-12-api-states`: `ServerError` ở `api.ts`, câu lỗi theo loại (mạng, 5xx, 401, không còn thành viên) ở Thành viên, Tổ chức, builder lưu form, Xuất; server từ chối thêm tài khoản bị khoá (`404 not_found`).
 - **Tuần:** 7–8
 - **File:** `docs/user-guide.md` (mới), các trang UI
 
