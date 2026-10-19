@@ -24,7 +24,7 @@ export function ExportButtons({ projectId, formId }: { projectId: string; formId
     } catch (e) {
       if (e instanceof NetworkError) setError('Không kết nối được máy chủ, thử lại sau');
       else if (e instanceof ExportError) {
-        setError(e.code === 'forbidden' ? 'Chỉ giám sát viên được xuất dữ liệu' : `Xuất thất bại (mã ${e.status})`);
+        setError(e.code === 'forbidden' ? 'Chỉ giám sát viên và Owner được xuất dữ liệu' : `Xuất thất bại (mã ${e.status})`);
       } else throw e;
     } finally {
       setBusy(false);

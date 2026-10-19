@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { accountErrorMessage, blockedMessage, loginReady, registerError } from './loginForm';
+import { accountErrorMessage, blockedMessage, exportResultText, loginReady, registerError } from './loginForm';
 
 const ok = { username: 'minh.nguyen_2', name: 'Minh', password: '12345678', password2: '12345678' };
 
@@ -71,5 +71,14 @@ describe('blockedMessage', () => {
     expect(blockedMessage('', 0)).toBe(
       'Máy này còn dữ liệu chưa gửi. Đăng nhập lại bằng tài khoản của người đó để gửi, hoặc xuất JSON trước.',
     );
+  });
+});
+
+describe('exportResultText', () => {
+  it('đã tải file: báo số file', () => {
+    expect(exportResultText(2)).toBe('Đã tải 2 file.');
+  });
+  it('không còn phiếu chưa gửi: bảo đăng nhập lại, không im lặng', () => {
+    expect(exportResultText(0)).toBe('Máy không còn phiếu chưa gửi. Bấm Tiếp tục để đăng nhập lại.');
   });
 });
