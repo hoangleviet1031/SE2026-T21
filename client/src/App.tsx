@@ -9,6 +9,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { BuilderPage } from './pages/BuilderPage';
 import { MembersPage } from './pages/MembersPage';
+import { OrgsPage } from './pages/OrgsPage';
 import { ProjectSwitcher } from './components/ProjectSwitcher';
 import { UpdatePrompt } from './components/UpdatePrompt';
 import { syncNow } from './sync/engine';
@@ -63,6 +64,8 @@ export function App() {
           <BuilderPage formId={args[0] === 'new' ? undefined : args[0]} />
         ) : page === 'members' ? (
           <MembersPage />
+        ) : page === 'orgs' ? (
+          <OrgsPage />
         ) : page === 'settings' ? (
           <SettingsPage />
         ) : (

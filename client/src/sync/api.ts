@@ -1,11 +1,14 @@
 import type {
   AddMemberRequest,
   AuthResponse,
+  CreateProjectRequestBody,
+  DirectoryEntry,
   FormSchema,
   LoginRequest,
   MeResponse,
   RegisterRequest,
   Member,
+  ProjectRequest,
   ProjectSettings,
   PullResponse,
   PushRecordRequest,
@@ -14,6 +17,7 @@ import type {
   UpdateSettingsRequest,
 } from '@field-survey/shared';
 import { MEMBER_ERROR_CODES, type MemberErrorCode } from '../members';
+import { ORG_ERROR_CODES, type OrgErrorCode } from '../orgs';
 
 import { clearToken, getToken } from '../auth';
 
@@ -342,4 +346,44 @@ export async function downloadExport(projectId: string, formId: string, format: 
   );
   if (!res.ok) throw new ExportError(res.status, await errorCode(res));
   return res.blob();
+}
+
+/**
+ * Kết quả gọi `/directory`, `/project-requests` (màn hình Tổ chức, cần mạng): giá trị, hoặc mã lỗi để hiện
+ * cho người dùng (design §7.1). Mất mạng ném NetworkError.
+ */
+export type OrgResult<T> = { ok: true; value: T } | { ok: false; error: OrgErrorCode };
+
+async function orgCall<T>(path: string, init: RequestInit, read: (res: Response) => Promise<T>): Promise<OrgResult<T>> {
+  const res = await request(path, init);
+  if (res.ok) return { ok: true, value: await read(res) };
+  const code = await errorCode(res);
+  const known = ORG_ERROR_CODES.find((c) => c === code);
+  if (known) return { ok: false, error: known };
+  throw new Error(`${init.method ?? 'GET'} ${path} ${res.status}`);
+}
+
+/** Tên các tổ chức công khai mình chưa thuộc. */
+export function fetchDirectory(): Promise<DirectoryEntry[]> {
+  return orgCall('/api/directory', {}, readJson<DirectoryEntry[]>).then(unwrap);
+}
+
+/** Mọi yêu cầu mở tổ chức của chính mình, kể cả đã xử lý (để đọc lý do từ chối). */
+export function listMyProjectRequests(): Promise<ProjectRequest[]> {
+  return orgCall('/api/project-requests', {}, readJson<ProjectRequest[]>).then(unwrap);
+}
+
+export function requestProject(body: CreateProjectRequestBody): Promise<OrgResult<ProjectRequest>> {
+  return orgCall('/api/project-requests', json('POST', body), readJson<ProjectRequest>);
+}
+
+/** Huỷ yêu cầu đang chờ; đã được xử lý trước đó thì `not_found`. */
+export function cancelProjectRequest(id: string): Promise<OrgResult<void>> {
+  return orgCall(`/api/project-requests/${encodeURIComponent(id)}`, { method: 'DELETE' }, async () => undefined);
+}
+
+/** Hai lệnh GET không có lỗi nào người dùng sửa được: mã lỗi ở đây là lỗi lập trình. */
+function unwrap<T>(r: OrgResult<T>): T {
+  if (r.ok) return r.value;
+  throw new Error(`lỗi không mong đợi: ${r.error}`);
 }

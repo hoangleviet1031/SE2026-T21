@@ -30,11 +30,11 @@ test('U7: tạo tài khoản trên app là đăng nhập luôn; tải lại vẫ
   await fillRegister(page, { username, name: 'Người U7', password: 'mat-khau-u7', password2: 'mat-khau-u7' });
 
   await expect(page.getByTestId('login-username')).toHaveCount(0);
-  // Tài khoản mới chưa thuộc tổ chức nào (câu tạm tới TV1-15)
-  await expect(page.getByTestId('no-project')).toContainText(`Gửi tên đăng nhập ${username}`);
+  // Tài khoản mới chưa thuộc tổ chức nào: trang chủ là màn hình Tổ chức (TV1-15)
+  await expect(page.getByTestId('orgs-username')).toHaveText(username);
 
   await page.reload();
-  await expect(page.getByTestId('no-project')).toContainText(`Gửi tên đăng nhập ${username}`);
+  await expect(page.getByTestId('orgs-username')).toHaveText(username);
   await expect(page.getByTestId('login-username')).toHaveCount(0);
 });
 

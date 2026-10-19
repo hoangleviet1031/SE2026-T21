@@ -7,7 +7,7 @@ import { navigate } from '../useHashRoute';
 
 // Bộ chọn dự án (design §4.7, ui.md màn hình 2). Chỉ đọc CSDL account nên đổi dự án được cả khi
 // offline; số đếm là bản lưu sau vòng đồng bộ gần nhất (design §4.2).
-// TODO(TV1-15): thêm mục "Tổ chức khác…" mở màn hình 9 (ADR 0003).
+// "Tổ chức khác…" mở màn hình Tổ chức (ui.md màn hình 9, ADR 0003).
 export function ProjectSwitcher() {
   const projects = useLiveQuery(() => accountDb.projects.toArray(), []);
   const currentId = useLiveQuery(getCurrentProjectId, []);
@@ -20,7 +20,7 @@ export function ProjectSwitcher() {
   if (projects.length === 1) {
     return (
       <div className="project-switcher" data-testid="project-switcher">
-        <strong>{current.name}</strong>
+        <strong>{current.name}</strong> <a href="#/orgs">Tổ chức khác…</a>
       </div>
     );
   }
@@ -59,6 +59,12 @@ export function ProjectSwitcher() {
             ),
           )}
         </ul>
+      )}
+      {/* Ngoài danh sách: danh sách chỉ gồm tổ chức của mình */}
+      {open && (
+        <button className="other-orgs" onClick={() => (setOpen(false), navigate('orgs'))}>
+          Tổ chức khác…
+        </button>
       )}
     </div>
   );

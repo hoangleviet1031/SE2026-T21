@@ -75,10 +75,13 @@ test('đổi dự án khi offline trong 1 s, mỗi dự án chỉ hiện phiếu
   await expect(switcher(page).getByRole('button', { expanded: false })).toHaveText(`${YTE} ▾`);
 });
 
-test('chỉ một dự án: chỉ hiện tên, không có danh sách', async ({ page }) => {
+// Thêm link "Tổ chức khác…" cạnh tên (TV1-15, ui.md màn hình 9)
+test('chỉ một dự án: chỉ hiện tên và link Tổ chức khác…, không có danh sách', async ({ page }) => {
   await login(page, 'minh');
-  await expect(switcher(page)).toHaveText(YTE);
+  await expect(switcher(page)).toHaveText(`${YTE} Tổ chức khác…`);
   await expect(switcher(page).getByRole('button')).toHaveCount(0);
+  await switcher(page).getByRole('link', { name: 'Tổ chức khác…' }).click();
+  await expect(page.getByTestId('orgs')).toBeVisible();
 });
 
 test.describe('chưa thuộc dự án nào', () => {
@@ -86,13 +89,13 @@ test.describe('chưa thuộc dự án nào', () => {
     await setMembership(request, 'demo-yte', 'u_minh', 'surveyor');
   });
 
-  // Câu tạm tới TV1-15 (màn hình Tổ chức): hiện tên đăng nhập thay cho userId (TV1-14)
-  test('hiện tên đăng nhập để gửi giám sát viên, không có bộ chọn', async ({ page, request }) => {
+  // Trang chủ là màn hình Tổ chức (TV1-15, ui.md màn hình 9), thay câu tạm của TV1-14
+  test('trang chủ là màn hình Tổ chức có tên đăng nhập để gửi giám sát viên, không có bộ chọn', async ({ page, request }) => {
     await setMembership(request, 'demo-yte', 'u_minh', null);
     await login(page, 'minh');
-    await expect(page.getByTestId('no-project')).toHaveText(
-      'Bạn chưa thuộc tổ chức nào. Gửi tên đăng nhập minh cho giám sát viên của tổ chức để được thêm vào.',
-    );
+    await expect(page.getByTestId('orgs')).toContainText('Bạn chưa thuộc tổ chức nào.');
+    await expect(page.getByTestId('orgs-username')).toHaveText('minh');
+    await expect(page.getByTestId('orgs')).toContainText('Gửi tên này cho giám sát viên của tổ chức để được thêm vào.');
     await expect(switcher(page)).toHaveCount(0);
   });
 });
