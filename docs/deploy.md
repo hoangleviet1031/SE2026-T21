@@ -195,9 +195,10 @@ Từ máy bất kỳ (PowerShell):
 curl.exe -s https://se2026-t21.koreacentral.cloudapp.azure.com/api/health
 curl.exe -s -o NUL -w "%{http_code}`n" -X POST https://se2026-t21.koreacentral.cloudapp.azure.com/api/__test/faults
 curl.exe -s -o NUL -w "%{http_code}`n" https://se2026-t21.koreacentral.cloudapp.azure.com/
+curl.exe -s https://se2026-t21.koreacentral.cloudapp.azure.com/admin/ | Select-String -Pattern "<title>"
 ```
 
-Đúng: `{"ok":true}`, `404`, `200`.
+Đúng: `{"ok":true}`, `404`, `200`, `<title>Quản trị · Khảo sát thực địa</title>`. Dòng cuối ra `Khảo sát thực địa` (không có "Quản trị") nghĩa là Caddy đưa `/admin/` về trang PWA: kiểm `client/dist/admin/index.html` có trên máy chủ (build mới), rồi xem lại `try_files` ở mục 7 (TV1-16, design §12).
 
 Trên điện thoại:
 
@@ -267,7 +268,7 @@ curl -s -X POST https://se2026-t21.koreacentral.cloudapp.azure.com/api/auth/logi
 
 `seed:demo` **từ chối chạy** vì `NODE_ENV=production` là đúng: mật khẩu và token demo công khai trong repo. Không lách bằng cách bỏ `NODE_ENV`.
 
-**API admin** (design §7, TV2-15), gọi với token admin (lấy bằng lệnh `curl` đăng nhập ở trên). Tới khi có trang quản trị `/admin/` (TV1-16) thì dùng các lệnh này. Admin **không tạo tổ chức trực tiếp** nữa: người dùng gửi yêu cầu mở tổ chức, admin duyệt, người gửi thành Owner.
+**API admin** (design §7, TV2-15), gọi với token admin (lấy bằng lệnh `curl` đăng nhập ở trên). Trang quản trị `/admin/` (TV1-16) mới có đăng nhập, chưa có A1, A2: tới khi có thì dùng các lệnh này. Admin **không tạo tổ chức trực tiếp** nữa: người dùng gửi yêu cầu mở tổ chức, admin duyệt, người gửi thành Owner.
 
 ```bash
 TOKEN=<token admin>

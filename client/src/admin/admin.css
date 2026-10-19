@@ -1,0 +1,15 @@
+/* Trang quản trị (design §4.9): bố cục cho máy tính, ở 360px bảng cuộn ngang trong khung, không vỡ trang */
+.admin { max-width: 1100px; margin: 0 auto; padding: 0 16px 48px; }
+.admin-login { max-width: 360px; margin: 48px auto 0; }
+.admin-nav { display: flex; gap: 16px; margin-right: auto; }
+.admin-nav a { text-decoration: none; }
+.admin-nav a[aria-current=page] { font-weight: 600; text-decoration: underline; }
+.admin .brand { margin-right: 0; }
+.table-wrap { overflow-x: auto; }
+table.admin-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+table.admin-table th, table.admin-table td { text-align: left; padding: 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+table.admin-table th { white-space: nowrap; color: #475569; font-weight: 600; }
+@media (max-width: 480px) {
+  .admin header { flex-wrap: wrap; }
+  .admin-nav { gap: 12px; }
+}

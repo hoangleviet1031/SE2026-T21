@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.32 (2026-10-19)
+- **Phiên bản:** 0.5.33 (2026-10-19)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -66,6 +66,7 @@
 | 0.5.30 | 2026-10-18 | TV2-16: client đăng nhập bằng phiên có code (§4.2, §4.7): `register`, `login`, `logoutSession`, `fetchMeWithToken` ở `api.ts`; `signIn.ts` biết người dùng là ai rồi mới lưu token, trong Web Lock `field-survey-sync` (tài khoản admin → `AdminAccountError`, cùng người → thay token, khác người mà máy trống → xoá dữ liệu người cũ, khác người mà còn dữ liệu chưa gửi → từ chối, không xoá gì); phiên bị từ chối được huỷ trên server; màn hình nhập mã kiểm mã trước khi lưu ("Mã không đúng"); vòng đồng bộ bỏ token admin đã lưu từ trước; Đăng xuất gọi `POST /auth/logout` khi online. Q11 có E2E (§10.1) |
 | 0.5.31 | 2026-10-19 | TV1-14: màn hình Đăng nhập / Tạo tài khoản có code (§4.7), bỏ màn hình nhập mã (`signInWithToken`, `fetchMeWithToken`, mã lỗi client `invalid_token`); câu lỗi phía client, tab Đăng nhập không kiểm mẫu tên; câu từ chối đổi tài khoản và nút Xuất JSON; tạm khi chưa thuộc tổ chức nào hiện tên đăng nhập (tới TV1-15); xoá đoạn 🕘 "Lần đầu mở app". U7 có test, Q11 qua màn hình mới (§10.1) |
 | 0.5.32 | 2026-10-19 | TV1-15: màn hình Tổ chức có code (§4.7): danh bạ, mở tổ chức mới, yêu cầu của mình kèm trạng thái và Huỷ; chưa thuộc tổ chức nào thì trang chủ là màn hình này (thay câu tạm của TV1-14); bộ chọn dự án có "Tổ chức khác…" (phần 🆕 còn lại của TV1-06). Q8, M3 có test (§10.1) |
+| 0.5.33 | 2026-10-19 | TV1-16 phần 1: khung trang quản trị `/admin/` có code (§4.3, §4.9): Vite build hai trang, đăng nhập admin (token + thông tin admin trong `sessionStorage`, không gọi `/api/me`; tài khoản thường bị từ chối và phiên vừa cấp bị huỷ), Đăng xuất, thanh trên A1/A2 (A3 ẩn tới TV2-17); precache PWA và manifest không có trang admin; Q10 một phần (§10.1); §12 cách kiểm `/admin/` trên Caddy. A1, A2 chưa có (phần 2) |
 
 ## Mục lục
 
@@ -282,7 +283,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - `vite-plugin-pwa` chế độ `generateSW`.
 - **Precache** toàn bộ app shell (HTML, JS, CSS, icon). Điều hướng bất kỳ (trừ `/api/`) trả `index.html` khi offline.
 - **Runtime cache** `GET /api/projects/*/forms` và `GET /api/me` theo NetworkFirst (timeout 3s). Dữ liệu phiếu **không** cache qua SW vì nguồn là IndexedDB.
-- **Không đụng tới trang quản trị:** `/admin/` nằm trong `navigateFallbackDenylist` (đã có code) và không có trong precache (TV1-16 lo khi thêm `admin/index.html`), để trang quản trị luôn lấy bản mới từ server và không chạy offline (§4.9).
+- **Không đụng tới trang quản trị:** `/admin/` nằm trong `navigateFallbackDenylist` và không có trong precache, để trang quản trị luôn lấy bản mới từ server và không chạy offline (§4.9). Có code (TV1-16): `globIgnores` loại `admin/**` và entry `assets/admin-*`; chunk dùng chung cho cả hai trang (`assets/shared-*`: React, `shared/`…) vẫn precache vì app khảo sát cần. vite-plugin-pwa chèn `<link rel="manifest">` vào mọi trang nên `vite.config.ts` có plugin nhỏ bỏ thẻ này khỏi `admin/index.html`.
 - **Cập nhật phiên bản app:** dùng `registerType: 'prompt'`: khi có SW mới, hiện dải "Có phiên bản mới" với nút [Tải lại] (`client/src/components/UpdatePrompt.tsx`); không tự reload. Đang ở trang nhập phiếu thì hỏi "Phiếu đang nhập chưa lưu sẽ mất. Tải lại?" trước. Trình duyệt kiểm bản mới khi mở trang; app kiểm thêm mỗi 60 phút vì app đã cài thường mở cả ngày.
 - **Lần cài đầu:** `clientsClaim` để SW nắm luôn trang đang mở (rời mạng ngay sau lần mở đầu vẫn tải lại được). Không có `skipWaiting`, nên bản cập nhật vẫn chờ người dùng bấm Tải lại. Lần deploy đầu tiên sau khi đổi từ `autoUpdate` thì SW cũ vẫn tự thay như trước.
 - **Đồng bộ nền:** sync engine chạy trong trang (§5.3). Background Sync API chỉ có trên Chromium nên là tuỳ chọn nâng cao, không phải yêu cầu.
@@ -386,13 +387,14 @@ Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), kh
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).
 
-### 4.9 Trang quản trị 🆕 (ADR 0003 §8, chưa có code)
+### 4.9 Trang quản trị 🆕 (ADR 0003 §8; khung và đăng nhập có code, A1, A2 chưa)
 
 Trang riêng cho admin tại `/admin/`, **tách khỏi PWA khảo sát**:
 - Cùng origin và cùng API; là trang thứ hai trong bản build Vite của `client/` (`admin/index.html`), dùng chung `shared/`, không thêm thư viện.
 - Chỉ chạy online: không service worker, không manifest, không IndexedDB, không sync engine. Token phiên lưu trong `sessionStorage` (đóng tab thì đăng nhập lại).
 - Đăng nhập bằng `POST /api/auth/login`; tài khoản không có `is_admin` → "Tài khoản này không phải quản trị", không lưu token.
 - Bố cục cho máy tính, vẫn dùng được trên điện thoại.
+- **Có code (TV1-16 phần 1):** `client/admin/index.html`, `client/src/admin/`. Gọi API qua `adminApi.ts` riêng, không dùng `src/sync/api.ts` vì file đó lấy token qua `auth.ts` (IndexedDB); chỉ dùng chung kiểu và hàm thuần (`shared/`, `loginForm.ts`, `useHashRoute.ts`). Thông tin admin lấy từ response đăng nhập, **không gọi `/api/me`**: SW của app khảo sát cùng origin cache `/api/me`, mạng chập chờn thì có thể trả `/me` của tài khoản thường đã dùng app trên máy. Đăng nhập tài khoản thường: huỷ phiên vừa cấp rồi mới báo lỗi. Đăng xuất gọi `POST /auth/logout`; mất mạng thì báo "Cần kết nối mạng để đăng xuất" và giữ token. Đường dẫn: A1 `/admin/#/` (mặc định), A2 `/admin/#/projects`; mục Tài khoản (A3) ẩn tới khi có API TV2-17. Gặp 401 ở API admin (phiên bị thu hồi) thì về form đăng nhập: làm cùng A1, A2.
 
 | Màn hình | Nội dung | Bắt buộc |
 |---|---|---|
@@ -911,7 +913,7 @@ Phạm vi đồ án giữ đơn giản:
 | Q7 | Integration | Sau khi duyệt, admin gọi `P/forms`, `P/records` | `403 not_member` | Có (`server/test/projectRequests.test.ts`) |
 | Q8 | E2E | Tạo tài khoản → gửi yêu cầu → admin duyệt (API) → sau một vòng đồng bộ thấy tổ chức với vai trò Owner, tạo được form | Như T6 | Có (`client/e2e/orgs.spec.ts`) |
 | Q9 | Integration | Thêm tài khoản admin vào tổ chức | `409 admin_account` | Có (`server/test/members.test.ts`) |
-| Q10 | E2E | `/admin/`: tài khoản thường bị từ chối; admin duyệt ở A1, khoá ở A2; trang admin không có IndexedDB | Như mô tả | TV1-16 |
+| Q10 | E2E | `/admin/`: tài khoản thường bị từ chối; admin duyệt ở A1, khoá ở A2; trang admin không có IndexedDB | Như mô tả | Một phần (`client/e2e/admin.spec.ts`: từ chối tài khoản thường và huỷ phiên; không IndexedDB, SW, manifest; máy đã có SW của app vẫn ra trang admin). Duyệt A1, khoá A2: TV1-16 phần 2 |
 | Q11 | E2E | Đăng nhập app khảo sát bằng tài khoản admin | "Tài khoản quản trị dùng trang /admin", không tạo CSDL | Có (`client/e2e/account.spec.ts`, qua màn hình Đăng nhập; thêm ca token admin đã lưu từ trước) |
 | D1 | Integration | `GET /directory` | Chỉ `id`, `name` của tổ chức công khai, chưa lưu trữ, mình chưa thuộc | Có (`server/test/projectRequests.test.ts`) |
 | D2 | Integration | Supervisor/surveyor `PATCH P/settings`; Owner | `403`; `200` và tổ chức hiện/ẩn ở D1 | Có (`server/test/members.test.ts` kiểm quyền và cột `public`; vế hiện/ẩn ở D1 trong `server/test/projectRequests.test.ts`) |
@@ -1012,7 +1014,7 @@ Người dùng thường tự tạo tài khoản trên app; CLI để tạo admi
 
 - **Sao lưu:** mỗi ngày chạy `VACUUM INTO 'backup/survey-<ngày>.db'` và sao chép thư mục `uploads/`; giữ 7 bản.
 - **Migration CSDL server:** đánh số trong `db.ts` (`PRAGMA user_version`), chỉ thêm cột/bảng, không sửa câu lệnh cũ. Ngoại lệ đã được nhóm chấp nhận: migration 2 (tạo lại bảng dữ liệu, ADR 0002) và migration 4 (tạo lại `memberships` có chép dữ liệu, ADR 0003 §5).
-- 🆕 **Trang quản trị** `/admin/` được build cùng `client/dist`; Caddy phục vụ như file tĩnh; TV1-16 phải kiểm tra `/admin/` không bị `try_files` đưa về `/index.html` của PWA (sửa Caddyfile nếu cần) và cập nhật [deploy.md](deploy.md).
+- **Trang quản trị** `/admin/` được build cùng `client/dist` (`dist/admin/index.html`); Caddy phục vụ như file tĩnh. Theo tài liệu Caddy, `try_files` coi đường dẫn có `/` ở cuối là thư mục, nên `/admin/` khớp thư mục `admin/` có sẵn và trả `admin/index.html`, không về `/index.html` của PWA (chưa kiểm được trên máy dev vì không có Caddy; kiểm trên staging khi deploy TV1-16 phần 1). Sau mỗi lần deploy kiểm theo [deploy.md](deploy.md) "Kiểm tra sau khi triển khai".
 
 ## 13. Rủi ro và hạn chế
 
