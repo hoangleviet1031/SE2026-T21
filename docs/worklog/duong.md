@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-19 | TV1-07 | feat | Cài đặt hiện tên đăng nhập thay mã người dùng (ADR 0003); `accountUsername` dùng chung với màn hình Tổ chức (máy cũ chưa có username → userId) + unit; E2E `settings.spec.ts` đổi testid, thêm ca user cũ | PR #57 | xong |
 | 2026-10-19 | TV1-16 | feat | Phần 2: A1 duyệt/từ chối (lý do bắt buộc), A2 khoá/mở + Đổi Owner, "Yêu cầu (n)"; lỗi API admin (401/403 về đăng nhập, 5xx, mất mạng); denylist SW khớp `/admin`; E2E Q10 đủ; deploy.md Caddyfile có khối `/admin/*` | PR #56 | xong |
 | 2026-10-19 | TV1-16 | feat | Phần 1: khung trang quản trị `/admin/` (Vite hai trang, đăng nhập admin bằng `sessionStorage`, tài khoản thường bị từ chối, Đăng xuất; precache và manifest không có trang admin); E2E Q10 một phần | PR #55 | xong |
 | 2026-10-19 | TV1-15 | feat | Màn hình Tổ chức (danh bạ, mở tổ chức mới, yêu cầu của mình, Huỷ), trang chủ khi chưa thuộc tổ chức nào, "Tổ chức khác…" ở bộ chọn; E2E Q8, M3 | PR #54 | xong |

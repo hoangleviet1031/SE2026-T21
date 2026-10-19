@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { DirectoryEntry, MeResponse, ProjectRequest } from '@field-survey/shared';
+import { accountUsername } from '../accountDisplay';
 import { getAccountValue } from '../db/accountDb';
 import { ORG_ERROR_TEXT, ORG_OFFLINE_MSG, orgRequestBody, requestStatusText, sortRequests } from '../orgs';
 import { NetworkError, cancelProjectRequest, fetchDirectory, listMyProjectRequests, requestProject } from '../sync/api';
@@ -85,8 +86,7 @@ export function OrgsPage({ home = false }: { home?: boolean }) {
   }
 
   if (user === undefined) return null;
-  // user lưu từ trước TV2-14 chưa có username; tài khoản cũ có username = id (migration 4)
-  const username = user ? user.username || user.id : '';
+  const username = user ? accountUsername(user) : '';
 
   return (
     <section className="orgs" data-testid="orgs">
