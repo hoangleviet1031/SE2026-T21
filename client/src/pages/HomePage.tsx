@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { RemovedProjectBanners } from '../components/RemovedProjectBanners';
+import { OrgsPage } from './OrgsPage';
 import { ExportButtons } from '../components/ExportButtons';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
@@ -29,21 +30,15 @@ export function HomePage() {
 
 /**
  * Chưa có dự án active nào. Chưa từng nhận /me thì đang tải (vừa đăng nhập, hoặc mất mạng ngay sau
- * đó); đã nhận mà không có dự án thì người dùng phải nhờ giám sát viên thêm vào.
+ * đó); đã nhận mà không có dự án thì trang chủ là màn hình Tổ chức (design §4.7 "Sau khi đăng nhập").
+ * Hiện tại chỗ thay vì chuyển sang #/orgs: yêu cầu được duyệt thì vòng đồng bộ kế tiếp tự đưa về trang
+ * chủ của tổ chức mới.
  */
-// TODO(TV1-15): câu này là tạm; bản mới vào màn hình Tổ chức (design §4.7, ui.md màn hình 9). Tạm hiện
-// phần đầu của màn hình đó: tên đăng nhập để gửi cho giám sát viên.
 function NoProject() {
   const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
   if (user === undefined) return null;
   if (user === null) return <p data-testid="no-project">Đang tải danh sách dự án…</p>;
-  return (
-    <p data-testid="no-project">
-      {/* user lưu từ trước TV2-14 chưa có username; tài khoản cũ có username = id (migration 4) */}
-      Bạn chưa thuộc tổ chức nào. Gửi tên đăng nhập <code>{user.username || user.id}</code> cho giám sát viên
-      của tổ chức để được thêm vào.
-    </p>
-  );
+  return <OrgsPage home />;
 }
 
 function ProjectHome({ db }: { db: ProjectDb }) {
