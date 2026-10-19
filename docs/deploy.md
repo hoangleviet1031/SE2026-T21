@@ -225,7 +225,21 @@ Migration 4 chạy khi server khởi động lần đầu với bản mới. Nó
 2. Chạy `deploy.sh`. Nếu bước 4 báo server không lên, xem lý do bằng `journalctl -u survey-api -n 50`: dòng `Migration 4 dừng` liệt kê `userId (tên) – projectId – vai trò` cần xử lý; làm như bước 1 rồi `sudo systemctl restart survey-api`.
 3. Sau khi lên: mọi mã đăng nhập cũ vẫn dùng được (được chép thành phiên trong bảng `sessions`), tên đăng nhập của tài khoản cũ là `userId`, chưa có mật khẩu. **Mọi tổ chức cũ chưa có Owner**; giám sát viên vẫn làm việc bình thường. Admin chỉ định Owner bằng lệnh `curl` "Chỉ định Owner" ở mục API admin dưới đây.
 
-`POST /api/auth/register` đã mở trên staging (tối đa 5 tài khoản/giờ/IP), nhưng app chưa có màn hình tạo tài khoản (TV1-14).
+`POST /api/auth/register` đã mở trên staging (tối đa 5 tài khoản/giờ/IP); app có màn hình Tạo tài khoản từ TV1-14.
+
+### Sau khi deploy TV1-14 (bỏ màn hình nhập mã)
+
+Từ TV1-14 app chỉ đăng nhập bằng tên + mật khẩu. Máy đang đăng nhập vẫn chạy (phiên còn hiệu lực), nhưng đăng xuất, bị thu hồi phiên hay dùng máy khác thì phải có mật khẩu. Tài khoản cũ (tạo trước migration 4) **chưa có mật khẩu**, nên sau khi deploy admin chạy cho từng tài khoản cũ còn dùng, rồi gửi mật khẩu tạm riêng cho từng người:
+
+```bash
+cd ~/app
+npm run user:reset-password -w server -- --user u_ovwt7i59   # Dương (tài khoản thường)
+npm run user:reset-password -w server -- --user u_s7yb7uhm   # Hoàng
+npm run user:reset-password -w server -- --user u_c0w5n6eh   # Đại
+npm run user:reset-password -w server -- --user u_q6ylmk6e   # Dương admin (đăng nhập curl và trang /admin/)
+```
+
+Người dùng đăng nhập bằng tên `u_xxxxxxxx` và mật khẩu tạm. Lệnh không thu hồi phiên đang có. Đây là thao tác đổi dữ liệu staging: người chạy deploy hỏi Dương trước khi chạy.
 
 ### Tài khoản bằng CLI (TV3-12)
 
@@ -244,7 +258,7 @@ npm run user:disable -w server -- --user lan                          # khoá t�
 
 `user:rotate-token` đã bỏ. Tài khoản cũ (tạo trước migration 4) có tên đăng nhập là `userId`, nên `--user u_xxxxxxxx` vẫn dùng được.
 
-**Lấy mã để nhập vào app** (tới khi có màn hình đăng nhập tên + mật khẩu, TV1-14): mỗi lần đăng nhập tạo một phiên mới, `token` trong kết quả là mã nhập vào app.
+**Lấy token để gọi API bằng `curl`**: mỗi lần đăng nhập tạo một phiên mới, `token` trong kết quả dùng làm `Authorization: Bearer`. App không nhập token nữa (TV1-14), đăng nhập trên app bằng tên + mật khẩu.
 
 ```bash
 curl -s -X POST https://se2026-t21.koreacentral.cloudapp.azure.com/api/auth/login \
