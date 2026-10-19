@@ -252,7 +252,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-14 · Màn hình Đăng nhập / Tạo tài khoản
 
-- **Trạng thái:** ⏳ PR #53
+- **Trạng thái:** ✅ PR #53
 - **Tuần:** 4 · **Phụ thuộc:** TV2-16 (hàm `register`, `login`); thay cho TV1-02
 - **Spec:** design §4.7 (🆕 Tài khoản, Sau khi đăng nhập), §7.1 (`invalid_credentials`, `username_taken`, `too_many_requests`); ui.md màn hình 1 (🆕)
 - **File:** `client/src/pages/LoginPage.tsx`, `client/src/App.tsx`, `client/e2e/login.spec.ts`

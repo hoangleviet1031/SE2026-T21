@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-19 | TV1-14 | feat | Màn hình Đăng nhập / Tạo tài khoản thay màn hình nhập mã; kiểm form ở `loginForm.ts` + unit; Xuất JSON khi bị từ chối đổi tài khoản; E2E U7, Q11 qua màn hình mới | PR #53 | chờ review |
+| 2026-10-19 | TV1-14 | feat | Màn hình Đăng nhập / Tạo tài khoản thay màn hình nhập mã; kiểm form ở `loginForm.ts` + unit; Xuất JSON khi bị từ chối đổi tài khoản; E2E U7, Q11 qua màn hình mới | PR #53 | xong |
 | 2026-10-19 | — | test | E2E T10 chờ cả form của hai dự án về máy rồi mới offline (vòng đồng bộ tải phiếu trước form), hết chập chờn khi chạy cả bộ | PR #52 | xong |
 | 2026-10-17 | — | fix | Vòng đồng bộ: `syncNow()` gọi lúc đang chạy thì chạy thêm đúng một vòng (`coalesce.ts` + unit), bỏ `syncAfterChange`; sửa E2E O8 kẹt "Chờ đồng bộ" (trước 5/30 hỏng, sau 30/30) | PR #46, design §5.3 | xong |
 | 2026-10-17 | TV1-17 | feat | Phần 2: phiếu trên máy lưu `createdBy`, `createdByName` theo server; màn hình xung đột hiện tên người sửa; surveyor không thấy "Xoá phiếu" ở phiếu người khác tạo (`canDeleteRecord` + unit); E2E `record-owner.spec.ts`, `conflict.spec` kiểm tên | PR #45, design §5.7, §6.2 | xong |
