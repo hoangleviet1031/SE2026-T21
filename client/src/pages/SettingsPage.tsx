@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
+import { accountUsername } from '../accountDisplay';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
 import { formatBytes } from '../formatBytes';
@@ -21,7 +22,7 @@ function blockedMessage(blocked: BlockedProject[]): string {
 
 export function SettingsPage() {
   const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
-  // Đã thuộc dự án thì câu hướng dẫn đổi theo: mã chỉ còn cần khi được thêm vào dự án khác
+  // Đã thuộc tổ chức thì câu hướng dẫn đổi theo: tên đăng nhập chỉ còn cần khi được thêm vào tổ chức khác
   const project = useCurrentProject();
   // Tính lại mỗi khi outbox/phiếu của dự án nào đó đổi, nên nút tự bật khi đồng bộ xong
   const blocked = useLiveQuery(projectsBlockingLogout, []);
@@ -61,18 +62,17 @@ export function SettingsPage() {
       {user === undefined ? null : user ? (
         <>
           <p>{user.name}</p>
-          {/* TODO(TV2-14): hiện tên đăng nhập thay mã người dùng khi /me trả `username` (design §4.7 🆕) */}
           <p>
-            Mã người dùng: <code data-testid="settings-user-id">{user.id}</code>
+            Tên đăng nhập: <code data-testid="settings-username">{accountUsername(user)}</code>
           </p>
           <p>
             {project === null
-              ? 'Gửi mã này cho giám sát viên để được thêm vào dự án.'
-              : 'Giám sát viên cần mã này nếu muốn thêm bạn vào dự án khác.'}
+              ? 'Gửi tên này cho giám sát viên của tổ chức để được thêm vào.'
+              : 'Giám sát viên hoặc Owner cần tên này nếu muốn thêm bạn vào tổ chức khác.'}
           </p>
         </>
       ) : (
-        <p data-testid="settings-user-id">Chưa có, cần kết nối mạng một lần.</p>
+        <p data-testid="settings-username">Chưa có, cần kết nối mạng một lần.</p>
       )}
 
       {storage && (
