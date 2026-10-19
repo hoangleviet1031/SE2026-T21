@@ -1,4 +1,10 @@
-import type { AuthResponse, LoginRequest } from '@field-survey/shared';
+import type {
+  AdminProject,
+  AdminProjectRequest,
+  AuthResponse,
+  DecideProjectRequest,
+  LoginRequest,
+} from '@field-survey/shared';
 import type { AccountErrorCode } from '../sync/api';
 import type { AdminSession } from './session';
 
@@ -16,6 +22,15 @@ export class AccountError extends Error {
     super(`tài khoản: ${code}`);
   }
 }
+
+/** Máy chủ trả 5xx hoặc mã không lường trước. Trang quản trị chạy online: báo một lần, người dùng tự bấm lại. */
+export class ServerError extends Error {}
+
+/**
+ * Phiên admin không còn dùng được: 401 (bị thu hồi, tài khoản bị khoá) hoặc 403 (không còn là admin).
+ * Trang xoá phiên đã lưu và về form đăng nhập.
+ */
+export class SessionLostError extends Error {}
 
 /** Tài khoản đăng nhập được nhưng không phải admin. Phiên vừa cấp đã bị huỷ, không lưu gì. */
 export class NotAdminError extends Error {
@@ -58,7 +73,7 @@ async function timedFetch(path: string, init: RequestInit): Promise<Response> {
 export async function logoutSession(token: string): Promise<void> {
   const res = await timedFetch('/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
   if (res.status === 204 || res.status === 401) return;
-  throw new Error(`POST /api/auth/logout ${res.status}`);
+  throw new ServerError(`POST /api/auth/logout ${res.status}`);
 }
 
 /**
@@ -76,7 +91,7 @@ export async function adminLogin(body: LoginRequest): Promise<AdminSession> {
     const code = await errorCode(res);
     const known = ACCOUNT_ERROR_CODES.find((c) => c === code);
     if (known) throw new AccountError(known);
-    throw new Error(`POST /api/auth/login ${res.status}`);
+    throw new ServerError(`POST /api/auth/login ${res.status}`);
   }
   const session: AuthResponse = await res.json();
   if (!session.user.isAdmin) {
@@ -90,4 +105,70 @@ export async function adminLogin(body: LoginRequest): Promise<AdminSession> {
     throw new NotAdminError();
   }
   return session;
+}
+
+// API quản trị (design §7, `/api/admin/*`). Lỗi người dùng sửa được trả về dạng kết quả; phiên mất và
+// máy chủ lỗi thì ném, để AdminApp xử lý chung.
+
+/** Mã lỗi API admin mà màn hình hiện câu riêng (design §7.1) */
+export type AdminErrorCode = 'request_decided' | 'project_limit_reached' | 'not_found' | 'admin_account' | 'invalid_body';
+
+const ADMIN_ERROR_CODES: readonly AdminErrorCode[] = [
+  'request_decided',
+  'project_limit_reached',
+  'not_found',
+  'admin_account',
+  'invalid_body',
+];
+
+export type AdminResult<T> = { ok: true; value: T } | { ok: false; error: AdminErrorCode };
+
+async function adminCall<T>(token: string, method: string, path: string, body?: unknown): Promise<AdminResult<T>> {
+  const res = await timedFetch(`/api/admin${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (res.status === 401 || res.status === 403) throw new SessionLostError(`${method} ${path} ${res.status}`);
+  if (res.ok) return { ok: true, value: await res.json() };
+  const code = await errorCode(res);
+  const known = res.status < 500 ? ADMIN_ERROR_CODES.find((c) => c === code) : undefined;
+  if (known) return { ok: false, error: known };
+  throw new ServerError(`${method} ${path} ${res.status}`);
+}
+
+/** A1: yêu cầu đang chờ, cũ nhất trước */
+export function fetchPendingRequests(token: string): Promise<AdminResult<AdminProjectRequest[]>> {
+  return adminCall(token, 'GET', '/project-requests?status=pending');
+}
+
+/** A1: duyệt (trả mã tổ chức mới) hoặc từ chối kèm lý do */
+export function decideRequest(
+  token: string,
+  id: string,
+  body: DecideProjectRequest,
+): Promise<AdminResult<{ projectId?: string }>> {
+  return adminCall(token, 'POST', `/project-requests/${encodeURIComponent(id)}`, body);
+}
+
+/** A2: mọi tổ chức, kể cả đã khoá */
+export function fetchProjects(token: string): Promise<AdminResult<AdminProject[]>> {
+  return adminCall(token, 'GET', '/projects');
+}
+
+/** A2: khoá (lưu trữ) hoặc mở tổ chức */
+export function setProjectArchived(token: string, projectId: string, archived: boolean): Promise<AdminResult<AdminProject>> {
+  return adminCall(token, 'PATCH', `/projects/${encodeURIComponent(projectId)}`, { archived });
+}
+
+/** A2: thêm hoặc nâng người có tên đăng nhập này thành Owner; Owner cũ giữ nguyên (ADR 0003 §8) */
+export function assignOwner(token: string, projectId: string, username: string): Promise<AdminResult<unknown>> {
+  return adminCall(
+    token,
+    'PUT',
+    `/projects/${encodeURIComponent(projectId)}/owners/${encodeURIComponent(username.trim())}`,
+  );
 }

@@ -345,7 +345,7 @@ Có code (TV1-15, `client/src/pages/OrgsPage.tsx`): là trang chủ thì có th�
 
 # Trang quản trị 🆕 (`/admin/`, TV1-16)
 
-Tách khỏi PWA (design §4.9): bố cục cho máy tính, luôn online, không lưu gì trên máy ngoài token phiên trong `sessionStorage`. Thanh trên: "Quản trị · Yêu cầu (n) · Tổ chức · Tài khoản · [tên admin] Đăng xuất".
+Tách khỏi PWA (design §4.9): bố cục cho máy tính, luôn online, không lưu gì trên máy ngoài token phiên trong `sessionStorage`. Thanh trên: "Quản trị · Yêu cầu (n) · Tổ chức · Tài khoản · [tên admin] Đăng xuất" (mục Tài khoản ẩn tới khi có A3). Đường dẫn: A1 `/admin/#/`, A2 `/admin/#/projects`. Kết quả thao tác hiện một dòng trên bảng ("Đã duyệt: … (mã p-…)", lỗi bắt đầu bằng ⚠); phiên bị thu hồi thì về form đăng nhập với "Phiên đăng nhập hết hạn, đăng nhập lại".
 
 ## A1. Yêu cầu mở tổ chức
 
@@ -356,7 +356,7 @@ Tách khỏi PWA (design §4.9): bố cục cho máy tính, luôn online, không
 │                                       [Duyệt] [Từ chối…]         │
 │ (rỗng: Không có yêu cầu nào đang chờ)                            │
 └──────────────────────────────────────────────────────────────────┘
-Từ chối… mở ô nhập lý do (bắt buộc) rồi [Xác nhận từ chối].
+Từ chối… mở ô nhập lý do (bắt buộc) rồi [Xác nhận từ chối] (khoá tới khi có lý do). [Duyệt] không hỏi lại.
 ```
 
 ## A2. Tổ chức
@@ -368,7 +368,8 @@ Từ chối… mở ô nhập lý do (bắt buộc) rồi [Xác nhận từ ch�
 │ HTX Rau sạch   hoa       2           Đã khoá     [Mở]            │
 │                                       [Đổi Owner…]               │
 └──────────────────────────────────────────────────────────────────┘
-Khoá hỏi xác nhận: "Mọi thành viên sẽ không đồng bộ được với tổ chức này."
+Khoá hỏi xác nhận: "Khoá "<tên>"? Mọi thành viên sẽ không đồng bộ được với tổ chức này." Mở không hỏi.
+Đổi Owner… mở ô "Tên đăng nhập của Owner mới" + [Thêm làm Owner], dưới ô: "Owner cũ vẫn giữ quyền; muốn bỏ thì Owner rút ở màn hình Thành viên." Owner rỗng hiện "Chưa có Owner".
 ```
 
 ## A3. Tài khoản (cắt được)

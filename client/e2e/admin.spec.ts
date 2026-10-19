@@ -1,10 +1,39 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { DEMO_PASSWORD, authHeaders, databaseNames, login } from './helpers';
+import type { MeResponse, ProjectRequest } from '@field-survey/shared';
+import { DEMO_PASSWORD, TOKENS, authHeaders, createProject, databaseNames, login } from './helpers';
 
-// TV1-16: trang quản trị `/admin/` tách khỏi PWA (design §4.9, ADR 0003 §8). Phần 1: khung trang và
-// đăng nhập (Q10 vế "tài khoản thường bị từ chối" và "không có IndexedDB"); A1, A2 ở phần 2.
+// TV1-16: trang quản trị `/admin/` tách khỏi PWA (design §4.9, ADR 0003 §8), ca Q10 (§10.1): tài khoản
+// thường bị từ chối, admin duyệt ở A1, khoá ở A2, trang admin không có IndexedDB.
+// Server E2E dùng chung cả lượt chạy: bảng A1 có cả yêu cầu của spec khác, nên tìm dòng theo tên duy
+// nhất, không đếm dòng. Không duyệt hay thêm Owner cho tài khoản demo (đổi /me của spec khác): dùng một
+// tài khoản đăng ký mới (giới hạn đăng ký 5 lần/giờ/IP, cả lượt E2E đang dùng 3).
 
 const SESSION_KEY = 'field-survey-admin-session';
+const BASE = 'http://localhost:3001/api';
+
+const suffix = () => Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+
+async function sendRequest(request: APIRequestContext, token: string, name: string, note?: string) {
+  const res = await request.post(`${BASE}/project-requests`, { headers: authHeaders(token), data: { name, note } });
+  expect(res.status()).toBe(201);
+}
+
+async function me(request: APIRequestContext, token: string): Promise<MeResponse> {
+  const res = await request.get(`${BASE}/me`, { headers: authHeaders(token) });
+  expect(res.status()).toBe(200);
+  return res.json();
+}
+
+/** Mở trang quản trị và đăng nhập admin demo, trả token phiên của trang. */
+async function openAdmin(page: Page): Promise<string> {
+  await page.goto('/admin/');
+  const token = await adminSignIn(page, 'admin');
+  await expect(page.getByTestId('admin-user')).toBeVisible();
+  return token;
+}
+
+const requestRow = (page: Page, name: string) =>
+  page.getByTestId('admin-requests').getByRole('row').filter({ hasText: name });
 
 async function meStatus(request: APIRequestContext, token: string): Promise<number> {
   return (await request.get('http://localhost:3001/api/me', { headers: authHeaders(token) })).status();
@@ -86,8 +115,130 @@ test('Máy đã dùng app khảo sát (SW đang chạy): /admin/ vẫn ra trang 
   await page.goto('/admin/');
   await expect(page.getByTestId('admin-username')).toBeVisible();
   await expect(page.getByTestId('login-username')).toHaveCount(0);
+  // Gõ thiếu "/" cuối: SW không được trả index.html của PWA (denylist khớp cả `/admin`), để request tới
+  // máy chủ; Caddy chuyển sang `/admin/` (deploy.md §7). `vite preview` không chuyển hướng như Caddy nên
+  // chỉ kiểm được response không đến từ SW.
+  const bare = await page.goto('/admin');
+  expect(bare?.fromServiceWorker()).toBe(false);
+  await page.goto('/admin/');
   await adminSignIn(page, 'admin');
   await expect(page.getByRole('heading', { name: 'Yêu cầu mở tổ chức' })).toBeVisible();
-  // Trang quản trị không tạo thêm CSDL nào (CSDL của app khảo sát cùng origin vẫn còn nguyên)
-  expect((await databaseNames(page)).sort()).toEqual(before.sort());
+  // Trang quản trị không tạo CSDL nào: cùng origin nên vẫn thấy CSDL của app khảo sát (vòng đồng bộ có
+  // thể vừa tạo thêm CSDL dự án), nhưng không có tên nào khác
+  const after = await databaseNames(page);
+  expect(after).toEqual(expect.arrayContaining(before));
+  expect(after.filter((n) => !n.startsWith('field-survey-'))).toEqual([]);
+});
+
+test('Q10: A1 từ chối bắt buộc lý do; người gửi thấy lý do', async ({ page, request }) => {
+  const name = `Từ chối Q10 ${suffix()}`;
+  await sendRequest(request, TOKENS.lan, name, 'Khảo sát 200 hộ');
+  await openAdmin(page);
+
+  const row = requestRow(page, name);
+  await expect(row).toContainText('lan (lan)');
+  await expect(row).toContainText('Khảo sát 200 hộ');
+  await row.getByRole('button', { name: 'Từ chối…' }).click();
+  const confirm = row.getByRole('button', { name: 'Xác nhận từ chối' });
+  await expect(confirm).toBeDisabled();
+  await row.getByTestId('reject-reason').fill('   ');
+  await expect(confirm).toBeDisabled();
+  await row.getByTestId('reject-reason').fill('Trùng tên tổ chức đã có');
+  await confirm.click();
+
+  await expect(page.getByTestId('admin-notice')).toHaveText(`Đã từ chối: ${name}`);
+  await expect(requestRow(page, name)).toHaveCount(0);
+  const res = await request.get(`${BASE}/project-requests`, { headers: authHeaders(TOKENS.lan) });
+  const mine = (await res.json()) as ProjectRequest[];
+  expect(mine.find((r) => r.name === name)).toMatchObject({ status: 'rejected', reason: 'Trùng tên tổ chức đã có' });
+});
+
+test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) → mất khỏi /me, mở lại; Đổi Owner', async ({
+  page,
+  request,
+}) => {
+  const id = suffix();
+  const username = `q10${id}`.slice(0, 32);
+  const reg = await request.post(`${BASE}/auth/register`, {
+    data: { username, name: 'Người Q10', password: 'mat-khau-q10' },
+  });
+  expect(reg.status()).toBe(201);
+  const userToken = ((await reg.json()) as { token: string }).token;
+  const name = `Duyệt Q10 ${id}`;
+  await sendRequest(request, userToken, name);
+
+  await openAdmin(page);
+  await expect(page.getByRole('link', { name: /^Yêu cầu \(\d+\)$/ })).toBeVisible();
+  await requestRow(page, name).getByRole('button', { name: 'Duyệt' }).click();
+  await expect(page.getByTestId('admin-notice')).toHaveText(new RegExp(`^Đã duyệt: ${name} \\(mã p-[a-z0-9]{8}\\)$`));
+  await expect(requestRow(page, name)).toHaveCount(0);
+  const project = (await me(request, userToken)).projects.find((p) => p.name === name);
+  expect(project?.role).toBe('owner');
+  const projectId = project?.id ?? '';
+
+  // A2: khoá có hỏi lại; huỷ thì không đổi gì
+  await page.getByRole('link', { name: 'Tổ chức' }).click();
+  const row = page.getByTestId(`project-row-${projectId}`);
+  await expect(row.getByTestId('project-owners')).toHaveText(username);
+  await expect(row.getByTestId('project-status')).toHaveText('Đang dùng');
+  await row.getByRole('button', { name: 'Khoá' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('Mọi thành viên sẽ không đồng bộ được với tổ chức này.');
+  await dialog.getByRole('button', { name: 'Huỷ' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(row.getByTestId('project-status')).toHaveText('Đang dùng');
+
+  await row.getByRole('button', { name: 'Khoá' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Khoá' }).click();
+  await expect(row.getByTestId('project-status')).toHaveText('Đã khoá');
+  expect((await me(request, userToken)).projects.map((p) => p.id)).not.toContain(projectId);
+
+  await row.getByRole('button', { name: 'Mở' }).click();
+  await expect(row.getByTestId('project-status')).toHaveText('Đang dùng');
+  expect((await me(request, userToken)).projects.map((p) => p.id)).toContain(projectId);
+
+  // Đổi Owner ở tổ chức chưa có Owner (như tổ chức có từ trước migration 4)
+  const orphan = `x-${id}`;
+  await createProject(request, orphan, `Chưa có Owner ${id}`);
+  await page.reload();
+  const orphanRow = page.getByTestId(`project-row-${orphan}`);
+  await expect(orphanRow.getByTestId('project-owners')).toHaveText('Chưa có Owner');
+  await orphanRow.getByRole('button', { name: 'Đổi Owner…' }).click();
+  await expect(orphanRow).toContainText('Owner cũ vẫn giữ quyền; muốn bỏ thì Owner rút ở màn hình Thành viên.');
+  await orphanRow.getByTestId('owner-username').fill('khongcoai_q10');
+  await orphanRow.getByRole('button', { name: 'Thêm làm Owner' }).click();
+  await expect(page.getByTestId('admin-notice')).toHaveText('⚠ Không có tài khoản hoặc tổ chức này');
+  await orphanRow.getByTestId('owner-username').fill(` ${username.toUpperCase()} `);
+  await orphanRow.getByRole('button', { name: 'Thêm làm Owner' }).click();
+  await expect(orphanRow.getByTestId('project-owners')).toHaveText(username);
+  expect((await me(request, userToken)).projects.find((p) => p.id === orphan)?.role).toBe('owner');
+});
+
+test('Phiên admin bị thu hồi giữa chừng: về form đăng nhập, báo đăng nhập lại', async ({ page, request }) => {
+  const token = await openAdmin(page);
+  await expect(page.getByRole('heading', { name: 'Yêu cầu mở tổ chức' })).toBeVisible();
+  const res = await request.post(`${BASE}/auth/logout`, { headers: authHeaders(token) });
+  expect(res.status()).toBe(204);
+
+  await page.getByRole('link', { name: 'Tổ chức' }).click();
+  await expect(page.getByTestId('admin-username')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveText('⚠ Phiên đăng nhập hết hạn, đăng nhập lại');
+  expect(await storedSession(page)).toBeNull();
+});
+
+test('Máy chủ lỗi (5xx): trang quản trị báo "Máy chủ đang lỗi, thử lại sau", vẫn giữ đăng nhập', async ({ page }) => {
+  await page.route('**/api/auth/login', (route) => route.fulfill({ status: 500, body: 'lỗi' }));
+  await page.goto('/admin/');
+  await page.getByTestId('admin-username').fill('admin');
+  await page.getByTestId('admin-password').fill(DEMO_PASSWORD);
+  await page.getByRole('button', { name: 'Đăng nhập' }).click();
+  await expect(page.getByRole('alert')).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
+  await page.unroute('**/api/auth/login');
+
+  await adminSignIn(page, 'admin');
+  await expect(page.getByRole('heading', { name: 'Yêu cầu mở tổ chức' })).toBeVisible();
+  await page.route('**/api/admin/**', (route) => route.fulfill({ status: 500, body: 'lỗi' }));
+  await page.getByRole('link', { name: 'Tổ chức' }).click();
+  await expect(page.getByTestId('admin-notice')).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
+  await expect(page.getByTestId('admin-user')).toBeVisible();
 });

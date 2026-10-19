@@ -5,10 +5,16 @@
 .admin-nav a { text-decoration: none; }
 .admin-nav a[aria-current=page] { font-weight: 600; text-decoration: underline; }
 .admin .brand { margin-right: 0; }
-.table-wrap { overflow-x: auto; }
+/* position: relative để chữ ẩn (.visually-hidden) trong bảng nằm trong khung cuộn, không kéo rộng cả trang */
+.table-wrap { overflow-x: auto; position: relative; }
 table.admin-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
 table.admin-table th, table.admin-table td { text-align: left; padding: 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
 table.admin-table th { white-space: nowrap; color: #475569; font-weight: 600; }
+table.admin-table td.note { max-width: 320px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.row-form { display: grid; gap: 8px; margin-top: 8px; min-width: 260px; }
+.row-form textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; min-height: 60px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 480px) {
   .admin header { flex-wrap: wrap; }
   .admin-nav { gap: 12px; }
