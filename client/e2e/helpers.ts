@@ -13,24 +13,22 @@ export const TOKENS = {
 } as const;
 export const PROJECT = 'demo-yte';
 export const API = `http://localhost:3001/api/projects/${PROJECT}`;
-const LOGIN_API = 'http://localhost:3001/api/auth/login';
 
 /** Header xác thực cho request gọi thẳng API (đóng vai người dùng khác). */
 export const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
 
-/**
- * Mở app và đăng nhập bằng tên + mật khẩu (ADR 0003 §1). Mỗi test có context mới nên luôn phải đăng nhập.
- * Màn hình tên + mật khẩu (TV1-14) chưa có: lấy token phiên qua /api/auth/login rồi nhập vào màn hình
- * nhập mã hiện tại. TV1-14 xong thì chỉ sửa thân hàm này, các spec giữ nguyên.
- */
+/** Mở app và đăng nhập bằng tên + mật khẩu (ADR 0003 §1). Mỗi test có context mới nên luôn phải đăng nhập. */
 export async function login(page: Page, username = 'minh', password = DEMO_PASSWORD) {
-  const res = await page.request.post(LOGIN_API, { data: { username, password } });
-  expect(res.status(), `đăng nhập ${username}`).toBe(200);
-  const { token } = (await res.json()) as { token: string };
   await page.goto('/');
-  await page.getByTestId('login-token').fill(token);
+  await fillLogin(page, username, password);
+  await expect(page.getByTestId('login-username')).toHaveCount(0);
+}
+
+/** Điền tab Đăng nhập rồi bấm Tiếp tục, không chờ kết quả. */
+export async function fillLogin(page: Page, username: string, password = DEMO_PASSWORD) {
+  await page.getByTestId('login-username').fill(username);
+  await page.getByTestId('login-password').fill(password);
   await page.getByRole('button', { name: 'Tiếp tục' }).click();
-  await expect(page.getByTestId('login-token')).toHaveCount(0);
 }
 
 /** Tên mọi CSDL IndexedDB của origin, đọc bằng API gốc của trình duyệt. */
