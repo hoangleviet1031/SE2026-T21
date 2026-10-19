@@ -113,7 +113,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-06 · Bộ chọn dự án
 
-- **Trạng thái:** ✅ PR #23 (phần đang chạy; 🆕 nhãn Owner chờ TV2-16, "Tổ chức khác…" và màn hình 9 chờ TV1-15; nút builder/Xuất/Thành viên chưa có màn hình, dùng `canManageProject` trong `client/src/projects.ts`)
+- **Trạng thái:** ✅ PR #23 (phần đang chạy; 🆕 nhãn Owner chờ TV2-16; "Tổ chức khác…" và 0 tổ chức → màn hình 9 làm ở TV1-15, ⏳ PR; nút builder/Xuất/Thành viên chưa có màn hình, dùng `canManageProject` trong `client/src/projects.ts`)
 - 🆕 **Cập nhật theo ADR 0003:** nhãn vai trò có thêm "Owner"; nút builder, Xuất, Thành viên hiện cho cả `owner`; mục "Tổ chức khác…" mở màn hình 9 (TV1-15); không có tổ chức nào thì vào màn hình 9 thay cho câu "Gửi mã người dùng `<userId>`".
 - **Tuần:** 4 · **Phụ thuộc:** TV2-05, TV2-06
 - **Spec:** design §4.7, ADR 0002 §4
@@ -272,7 +272,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-15 · Màn hình Tổ chức (danh bạ công khai, mở tổ chức mới)
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ PR (nhánh `feat/tv1-15-orgs-page`)
 - **Tuần:** 4 · **Phụ thuộc:** TV2-15, TV1-14
 - **Spec:** design §4.7 (🆕 Màn hình Tổ chức); ui.md màn hình 9
 - **File:** `client/src/pages/OrgsPage.tsx` (mới), `client/src/App.tsx` (route `#/orgs`), `client/src/sync/api.ts` (`fetchDirectory`, `requestProject`, `listMyProjectRequests`, `cancelProjectRequest`), `client/e2e/orgs.spec.ts` (mới)
@@ -282,6 +282,9 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 - Danh sách tên tổ chức công khai (không có nút xin vào).
 - Form "Mở tổ chức mới" (tên, ghi chú), danh sách yêu cầu của mình kèm trạng thái, nút Huỷ khi đang chờ. Lỗi `409 project_limit_reached`: "Bạn đã có yêu cầu đang chờ hoặc đã sở hữu 3 tổ chức".
 - Màn hình cần mạng: offline hiện "Cần kết nối mạng để dùng chức năng này".
+- Chưa thuộc tổ chức nào: trang chủ hiện thẳng màn hình này (thay câu tạm của TV1-14), không có link quay lại.
+- Mục "Tổ chức khác…" trong bộ chọn dự án (phần 🆕 còn lại của TV1-06).
+- Dương chốt 2026-10-19: người chỉ có một tổ chức thấy link "Tổ chức khác…" cạnh tên; câu "Đã duyệt", "Đã huỷ", "Nhập tên tổ chức", "Tên tổ chức tối đa 100 ký tự", "Ghi chú tối đa 500 ký tự"; ô tên `data-testid="org-request-name"`.
 
 **Xong khi:** E2E **Q8** (gửi yêu cầu → admin duyệt qua API → sau một vòng đồng bộ thấy tổ chức với vai trò Owner, tạo được form) và **M3**.
 

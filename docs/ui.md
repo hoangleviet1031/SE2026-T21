@@ -1,6 +1,6 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.12 (2026-10-19): màn hình 1 Đăng nhập / Tạo tài khoản có code, bỏ bản nhập mã (TV1-14). 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.13 (2026-10-19): màn hình 9 Tổ chức có code, mục "Tổ chức khác…" ở màn hình 2 (TV1-15). 0.2.12 (2026-10-19): màn hình 1 Đăng nhập / Tạo tài khoản có code, bỏ bản nhập mã (TV1-14). 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md; header giữ mỗi phần tử một dòng, tên app tự rút gọn bằng "…"); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
@@ -16,7 +16,7 @@
 | 6 | Thành viên (kèm cài đặt tổ chức cho owner) | `#/members` | supervisor, owner | có | §4.7 | TV1-08 |
 | 7 | ~~Dự án (quản trị)~~ | ~~`#/admin/projects`~~ | – | – | – | 🕘 Bỏ, thay bằng trang quản trị A1–A3 (TV1-16) |
 | 8 | Cài đặt | `#/settings` | mọi | không | §4.2, §4.7 | TV1-07 |
-| 9 | 🆕 Tổ chức (danh sách công khai, mở tổ chức mới) | `#/orgs` | mọi | có | §4.7 | TV1-15 |
+| 9 | Tổ chức (danh sách công khai, mở tổ chức mới) | `#/orgs` | mọi | có | §4.7 | TV1-15 |
 
 **🆕 Trang quản trị `/admin/`** (tách khỏi PWA, chỉ admin, luôn cần online; design §4.9)
 
@@ -110,7 +110,7 @@ Không tự ẩn, không tự tải lại. Đang ở màn hình 4 thì bấm [T�
 └────────────────────────────────┘
 ```
 
-ADR 0003: các nút ghi "(supervisor)" hiện cho cả `owner` (có code: Sửa form, Thành viên); 🆕 bộ chọn có thêm mục "Tổ chức khác…" mở màn hình 9; nhãn vai trò có thêm "Owner".
+ADR 0003: các nút ghi "(supervisor)" hiện cho cả `owner` (có code: Sửa form, Thành viên); bộ chọn có thêm "Tổ chức khác…" mở màn hình 9 (có code, TV1-15: nút dưới danh sách tổ chức; chỉ một tổ chức thì là link cạnh tên); nhãn vai trò có thêm "Owner".
 
 Bộ chọn dự án mở ra:
 
@@ -312,7 +312,7 @@ Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng 
 - **Đăng xuất** chỉ bật khi mọi dự án không còn dữ liệu chưa gửi (`hasUnsentData`). Bấm → hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." [Huỷ] [Đăng xuất]. Đồng ý → xoá mọi CSDL dự án, cache `me`/`forms` của SW và token, về màn hình 1.
 - Đang mở từ app đã cài (design §4.3): mục cài chỉ ghi "Đã cài lên màn hình chính."
 
-## 9. Tổ chức 🆕 (TV1-15)
+## 9. Tổ chức (TV1-15)
 
 ```
 ┌────────────────────────────────┐
@@ -338,6 +338,8 @@ Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng 
 ```
 
 Vào được từ bộ chọn dự án ("Tổ chức khác…") và là màn hình mặc định khi chưa thuộc tổ chức nào. Cần mạng.
+
+Có code (TV1-15, `client/src/pages/OrgsPage.tsx`): là trang chủ thì có thêm dòng "Bạn chưa thuộc tổ chức nào." và không có link "← Về danh sách phiếu"; mở từ bộ chọn thì có link đó ở cuối trang. `data-testid`: `orgs`, `orgs-username`, `directory`, `directory-empty`, `org-request-name`, `org-request-note`, `org-request-error`, `org-requests`, `org-request-status`. Câu chữ: design §4.7.
 
 ---
 
