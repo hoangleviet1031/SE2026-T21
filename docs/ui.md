@@ -269,7 +269,7 @@ Code (`client/src/pages/MembersPage.tsx`, luật hiển thị ở `client/src/me
 
 ## 8. Cài đặt
 
-🕘 Bản đang chạy (TV1-07 phần 1). 🆕 Theo ADR 0003: dòng "Mã người dùng" thay bằng **tên đăng nhập** (sau TV2-14/TV2-16); Đăng xuất gọi thêm `POST /api/auth/logout` khi online.
+Theo ADR 0003 (TV1-07): hiện **tên đăng nhập** thay mã người dùng; Đăng xuất gọi thêm `POST /api/auth/logout` khi online (TV2-16). Máy lưu thông tin tài khoản từ bản cũ (chưa có tên đăng nhập) thì hiện mã người dùng tới lần đồng bộ kế tiếp; tài khoản cũ có tên đăng nhập trùng mã.
 
 Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng được khi offline.
 
@@ -279,11 +279,12 @@ Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng 
 ├────────────────────────────────┤
 │ Tài khoản                      │
 │ Dương                          │
-│ Mã người dùng: u_ovwt7i59      │  settings-user-id
-│ (Gửi mã này cho giám sát viên  │  chưa thuộc dự án nào
-│  để được thêm vào dự án)       │
-│ (Giám sát viên cần mã này nếu  │  đã thuộc dự án
-│  muốn thêm bạn vào dự án khác) │
+│ Tên đăng nhập: duong           │  settings-username
+│ (Gửi tên này cho giám sát viên │  chưa thuộc tổ chức nào
+│  của tổ chức để được thêm vào.)│
+│ (Giám sát viên hoặc Owner cần  │  đã thuộc tổ chức
+│  tên này nếu muốn thêm bạn vào │
+│  tổ chức khác.)                │
 ├────────────────────────────────┤
 │ Dung lượng                     │
 │ Đã dùng 1,2 MB / 2,0 GB        │  settings-storage

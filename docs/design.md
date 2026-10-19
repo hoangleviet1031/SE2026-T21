@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.34 (2026-10-19)
+- **Phiên bản:** 0.5.35 (2026-10-19)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -68,6 +68,7 @@
 | 0.5.32 | 2026-10-19 | TV1-15: màn hình Tổ chức có code (§4.7): danh bạ, mở tổ chức mới, yêu cầu của mình kèm trạng thái và Huỷ; chưa thuộc tổ chức nào thì trang chủ là màn hình này (thay câu tạm của TV1-14); bộ chọn dự án có "Tổ chức khác…" (phần 🆕 còn lại của TV1-06). Q8, M3 có test (§10.1) |
 | 0.5.33 | 2026-10-19 | TV1-16 phần 1: khung trang quản trị `/admin/` có code (§4.3, §4.9): Vite build hai trang, đăng nhập admin (token + thông tin admin trong `sessionStorage`, không gọi `/api/me`; tài khoản thường bị từ chối và phiên vừa cấp bị huỷ), Đăng xuất, thanh trên A1/A2 (A3 ẩn tới TV2-17); precache PWA và manifest không có trang admin; Q10 một phần (§10.1); §12 cách kiểm `/admin/` trên Caddy. A1, A2 chưa có (phần 2) |
 | 0.5.34 | 2026-10-19 | TV1-16 phần 2: A1 (duyệt, từ chối bắt buộc lý do) và A2 (khoá có xác nhận/mở, Đổi Owner = thêm Owner, Owner cũ giữ quyền) có code (§4.9); số yêu cầu đang chờ trên thanh trên; lỗi API admin: 401/403 về form đăng nhập, 5xx "Máy chủ đang lỗi, thử lại sau", mất mạng "Cần kết nối mạng"; `navigateFallbackDenylist` khớp cả `/admin` không có `/` (§4.3). Q10 có E2E đủ (§10.1). §12: sửa nhận định sai về `try_files` (Caddy 2.11 đưa `/admin/` về trang PWA), Caddyfile có khối `/admin/*` riêng |
+| 0.5.35 | 2026-10-19 | TV1-07 (cập nhật theo ADR 0003): trang Cài đặt hiện **tên đăng nhập** thay mã người dùng (§4.7); `account.user` lưu từ bản cũ chưa có `username` thì hiện `userId` (tài khoản cũ có username = id), cùng luật với màn hình Tổ chức (`client/src/accountDisplay.ts`) |
 
 ## Mục lục
 
@@ -372,6 +373,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
   - Cùng người (đăng nhập lại, hoặc mã mới sau `user:revoke-sessions`): chỉ thay token, giữ nguyên mọi CSDL, đồng bộ tiếp.
   - Khác người và máy **không** còn dữ liệu chưa gửi ở mọi dự án (định nghĩa như `hasUnsentData`, ADR 0002 §6): xoá mọi CSDL dự án của người cũ rồi đăng nhập người mới.
   - Khác người và máy **còn** dữ liệu chưa gửi: từ chối, hiện "Máy này còn N phiếu chưa gửi của <tên người cũ>. Nhập lại mã của người đó để gửi, hoặc xuất JSON trước." kèm nút "Xuất JSON". Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
+- **Trang Cài đặt** (ui.md màn hình 8): tên hiển thị và **tên đăng nhập** (`settings-username`) để gửi cho giám sát viên hoặc Owner. Chưa thuộc tổ chức nào: "Gửi tên này cho giám sát viên của tổ chức để được thêm vào."; đã thuộc: "Giám sát viên hoặc Owner cần tên này nếu muốn thêm bạn vào tổ chức khác." `account.user` lưu từ trước TV2-14 chưa có `username` tới vòng `/me` kế tiếp: hiện `userId` (tài khoản cũ có username = id, migration 4), không bao giờ rỗng; luật này dùng chung với màn hình Tổ chức (`client/src/accountDisplay.ts`). Có code (TV1-07).
 - **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Đăng xuất xoá cả cache runtime `me` và `forms` của SW (§4.3; tên ở `client/src/swCaches.ts`) để dữ liệu của người cũ không nằm lại trên máy dùng chung, nhưng giữ precache để app vẫn mở được offline. Có code.
 
 **Tiêu chí chấp nhận:** đủ các ca T1–T10 ở ADR 0002; 🆕 thêm U1–U7, Q1–Q9, Q11, D1–D2, M1–M3, A5–A8 ở ADR 0003 (§10.1).
