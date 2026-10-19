@@ -49,7 +49,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-03 | Validate form + `POST P/forms` | ✅ PR #19 |
 | TV1-04 | Form builder | ✅ PR #24 |
 | TV1-05 | Validate phiếu + nháp | ✅ PR #7 (`validateRecord`), PR #17 (client) |
-| TV1-06 | Bộ chọn dự án | ✅ PR #23 · 🆕 Owner sau TV2-16; "Tổ chức khác…" ở TV1-15 (⏳ PR) |
+| TV1-06 | Bộ chọn dự án | ✅ PR #23 · 🆕 Owner sau TV2-16; "Tổ chức khác…" ở TV1-15 (⏳ PR #54) |
 | TV1-07 | Cập nhật SW, Cài đặt, kiểm tra trình duyệt | ✅ phần 1 PR #20 (Cài đặt + Đăng xuất) · ✅ phần 2a PR #27 (cập nhật SW, icon PNG) · ✅ phần 2b PR #28 (kiểm tra trình duyệt, `persist()`, hướng dẫn cài, Đăng xuất xoá cache SW) · 🆕 cập nhật theo ADR 0003 |
 | TV1-08 | Thành viên dự án (API + màn hình) | ✅ PR #38 (phần 1: API), PR #39 (phần 2: màn hình) · theo ADR 0003 |
 | TV1-09 | ~~Màn hình Dự án cho admin~~ | ❌ Bỏ, thay bởi TV1-16 |
@@ -91,7 +91,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-16 | Client: đăng nhập bằng phiên, vai trò `owner`, chặn tài khoản admin · **Lõi** | `auth.ts`, `api.ts` | ✅ `feat/tv2-16-client-session` |
 | TV2-17 | API quản lý tài khoản cho màn hình A3 · **Cắt được** | CLI `user:*` | — |
 | TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | ✅ PR #53 |
-| TV1-15 | Màn hình Tổ chức (danh bạ, mở tổ chức mới) | – | ⏳ PR |
+| TV1-15 | Màn hình Tổ chức (danh bạ, mở tổ chức mới) | – | ⏳ PR #54 |
 | TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | — |
 | TV1-17 | Tên người tạo/sửa trong `ServerRecord`; ẩn Xoá với surveyor theo người tạo | Phần bỏ của TV1-13 | ✅ PR #44 (phần 1: shared + server), PR #45 (phần 2: client) |
 | TV3-12 | CLI, fixture, helper E2E theo tài khoản mới | Phần CLI/helper của TV3-02 | ✅ PR #36 |
