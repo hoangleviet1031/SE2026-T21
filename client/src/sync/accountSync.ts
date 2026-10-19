@@ -69,7 +69,7 @@ export function needsRescope(storedScope: PullScope | null, role: Role): boolean
 }
 
 /**
- * Sau khi đăng nhập (hoặc nhập mã), trước khi lưu token: làm gì với dữ liệu đang có trên máy
+ * Sau khi đăng nhập (hoặc tạo tài khoản), trước khi lưu token: làm gì với dữ liệu đang có trên máy
  * (design §4.7, ADR 0003 §1, §8). `stored` là người dùng đang lưu trong `field-survey-account`.
  * - `admin`: tài khoản quản trị không dùng app khảo sát; không lưu token, không đụng dữ liệu.
  * - `same`: cùng người, chỉ thay token.

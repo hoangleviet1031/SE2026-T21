@@ -2,69 +2,130 @@ import { useState, type FormEvent } from 'react';
 import { useOnline } from '../useOnline';
 import { syncNow } from '../sync/engine';
 import { AccountError, AdminAccountError, NetworkError } from '../sync/api';
-import { SignInBlockedError, signInWithToken } from '../signIn';
+import { SignInBlockedError, downloadUnsentOnDevice, registerAndSignIn, signIn } from '../signIn';
+import { OFFLINE_MSG, accountErrorMessage, blockedMessage, loginReady, registerError } from '../loginForm';
 
-const OFFLINE_MSG = 'Cần kết nối mạng để đăng nhập lần đầu';
+type Tab = 'login' | 'register';
 
-/** Câu báo khi máy còn dữ liệu chưa gửi của người khác (design §4.7). */
-function blockedMessage(err: SignInBlockedError): string {
-  const who = err.previousName ? ` của ${err.previousName}` : '';
-  const what = err.unsentRecords > 0 ? `${err.unsentRecords} phiếu chưa gửi` : 'dữ liệu chưa gửi';
-  return `Máy này còn ${what}${who}. Nhập lại mã của người đó để gửi, hoặc xuất JSON trước.`;
-}
+type Problem = { kind: 'text'; text: string } | { kind: 'admin' } | { kind: 'blocked'; text: string };
 
-// Xem docs/design.md §4.7 (Lần đầu mở app) và docs/ui.md màn hình 1. Màn hình tên + mật khẩu là
-// việc của TV1-14; tới lúc đó vẫn nhập mã phiên, nhưng mã được kiểm bằng /me trước khi lưu (TV2-16).
+// Xem docs/design.md §4.7 (Tài khoản, Sau khi đăng nhập) và docs/ui.md màn hình 1. Lần đầu luôn cần
+// mạng: server cấp phiên, và signIn.ts phải biết người dùng là ai trước khi lưu token.
 export function LoginPage() {
   const online = useOnline();
-  const [token, setTokenInput] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('login');
+  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
+  const [problem, setProblem] = useState<Problem | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const message = online ? error : OFFLINE_MSG;
+  const shown: Problem | null = online ? problem : { kind: 'text', text: OFFLINE_MSG };
+
+  function switchTab(next: Tab) {
+    setTab(next);
+    setProblem(null);
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    const value = token.trim();
-    if (!value) return;
-    // Lần đầu phải có mạng để kiểm tra mã; lưu mã chưa kiểm tra thì người dùng
-    // chỉ biết mã sai khi đã ra thực địa. Thông báo offline hiện sẵn bên dưới.
+    // Thông báo offline đã hiện sẵn bên dưới
     if (!navigator.onLine) return;
+    if (tab === 'register') {
+      const invalid = registerError({ username, name, password, password2 });
+      if (invalid) return setProblem({ kind: 'text', text: invalid });
+    } else if (!loginReady({ username, password })) {
+      return;
+    }
     setBusy(true);
-    setError(null);
+    setProblem(null);
     try {
-      await signInWithToken(value);
-      // Chưa có mã thì các lần đồng bộ trước đều dừng; có mã rồi thì tải form và phiếu ngay.
+      if (tab === 'register') await registerAndSignIn({ username: username.trim(), name: name.trim(), password });
+      else await signIn({ username: username.trim(), password });
+      // Chưa có token thì các lần đồng bộ trước đều dừng; có rồi thì tải form và phiếu ngay.
       void syncNow().catch((e) => console.warn('sync failed', e));
     } catch (err) {
-      if (err instanceof AccountError) setError('Mã không đúng');
-      else if (err instanceof AdminAccountError) setError('Tài khoản quản trị dùng trang /admin');
-      else if (err instanceof SignInBlockedError) setError(blockedMessage(err));
-      else if (err instanceof NetworkError) setError(OFFLINE_MSG);
+      if (err instanceof AccountError) setProblem({ kind: 'text', text: accountErrorMessage(err.code) });
+      else if (err instanceof AdminAccountError) setProblem({ kind: 'admin' });
+      else if (err instanceof SignInBlockedError) {
+        setProblem({ kind: 'blocked', text: blockedMessage(err.previousName, err.unsentRecords) });
+      } else if (err instanceof NetworkError) setProblem({ kind: 'text', text: OFFLINE_MSG });
       else throw err;
     } finally {
       setBusy(false);
     }
   }
 
+  const ready = tab === 'login' ? loginReady({ username, password }) : username.trim() !== '' && password !== '';
+
   return (
     <form className="form" onSubmit={(e) => void submit(e)}>
+      <div className="tabs" role="tablist">
+        <button type="button" role="tab" aria-selected={tab === 'login'} onClick={() => switchTab('login')}>
+          Đăng nhập
+        </button>
+        <button type="button" role="tab" aria-selected={tab === 'register'} onClick={() => switchTab('register')}>
+          Tạo tài khoản
+        </button>
+      </div>
       <label className="field">
-        <span>Mã đăng nhập</span>
+        <span>Tên đăng nhập</span>
         <input
-          data-testid="login-token"
-          value={token}
-          onChange={(e) => setTokenInput(e.target.value)}
-          autoComplete="off"
+          data-testid="login-username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="username"
           autoCapitalize="off"
           spellCheck={false}
         />
+        {tab === 'register' && <small>chữ thường, số, . _ (3–32)</small>}
       </label>
-      <p>Nhận mã từ quản trị viên.</p>
-      <button type="submit" disabled={busy || !token.trim()}>
-        Tiếp tục
+      {tab === 'register' && (
+        <label className="field">
+          <span>Tên hiển thị</span>
+          <input data-testid="register-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+        </label>
+      )}
+      <label className="field">
+        <span>Mật khẩu</span>
+        <input
+          data-testid="login-password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
+        />
+      </label>
+      {tab === 'register' && (
+        <label className="field">
+          <span>Nhập lại mật khẩu</span>
+          <input
+            data-testid="register-password2"
+            type="password"
+            value={password2}
+            onChange={(e) => setPassword2(e.target.value)}
+            autoComplete="new-password"
+          />
+        </label>
+      )}
+      <button type="submit" disabled={busy || !ready}>
+        {tab === 'login' ? 'Tiếp tục' : 'Tạo tài khoản'}
       </button>
-      {message && <p role="alert">⚠ {message}</p>}
+      {shown?.kind === 'text' && <p role="alert">⚠ {shown.text}</p>}
+      {shown?.kind === 'admin' && (
+        <p role="alert">
+          ⚠ Tài khoản quản trị dùng trang <a href="/admin/">/admin</a>
+        </p>
+      )}
+      {shown?.kind === 'blocked' && (
+        <div>
+          <p role="alert">⚠ {shown.text}</p>
+          <button type="button" onClick={() => void downloadUnsentOnDevice()}>
+            Xuất JSON
+          </button>
+        </div>
+      )}
     </form>
   );
 }

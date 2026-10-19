@@ -24,7 +24,7 @@ const projectPath = (projectId: string) => `/api/projects/${encodeURIComponent(p
 
 export class NetworkError extends Error {}
 
-/** Mã đăng nhập thiếu hoặc bị server từ chối (401). Dữ liệu cục bộ giữ nguyên; người dùng nhập lại mã. */
+/** Mã đăng nhập thiếu hoặc bị server từ chối (401). Dữ liệu cục bộ giữ nguyên; người dùng đăng nhập lại. */
 export class AuthError extends Error {}
 
 /**
@@ -73,7 +73,7 @@ async function request(path: string, init: RequestInit = {}, projectId?: string)
       signal: ctrl.signal,
     });
     if (res.status === 401) {
-      // Màn hình tự quay về nhập mã khi token biến mất (design §7.1)
+      // Màn hình tự quay về đăng nhập khi token biến mất (design §7.1)
       await clearToken();
       throw new AuthError('mã đăng nhập không còn hiệu lực');
     }
@@ -101,8 +101,8 @@ export async function fetchMe(): Promise<MeResponse> {
 // token khi gặp 401: lúc gọi, token trên máy có thể là của người khác (đang đổi tài khoản), và token
 // mới chỉ được lưu sau khi signIn.ts kiểm xong.
 
-/** Mã lỗi người dùng sửa được khi đăng nhập/đăng ký (design §7.1). `invalid_token`: mã dán vào bị 401. */
-export type AccountErrorCode = 'invalid_credentials' | 'username_taken' | 'too_many_requests' | 'invalid_body' | 'invalid_token';
+/** Mã lỗi người dùng sửa được khi đăng nhập/đăng ký (design §7.1). */
+export type AccountErrorCode = 'invalid_credentials' | 'username_taken' | 'too_many_requests' | 'invalid_body';
 
 const ACCOUNT_ERROR_CODES: readonly AccountErrorCode[] = [
   'invalid_credentials',
@@ -141,14 +141,6 @@ export function register(body: RegisterRequest): Promise<AuthResponse> {
 /** Đăng nhập bằng tên + mật khẩu; mỗi lần là một phiên mới cho máy này. */
 export function login(body: LoginRequest): Promise<AuthResponse> {
   return authCall('/api/auth/login', body);
-}
-
-/** `GET /api/me` bằng một token cho trước (màn hình nhập mã), chưa lưu token đó. Sai mã: AccountError. */
-export async function fetchMeWithToken(token: string): Promise<MeResponse> {
-  const res = await timedFetch('/api/me', { headers: { Authorization: `Bearer ${token}` } });
-  if (res.status === 401) throw new AccountError('invalid_token');
-  if (!res.ok) throw new Error(`GET /api/me ${res.status}`);
-  return res.json();
 }
 
 /**
