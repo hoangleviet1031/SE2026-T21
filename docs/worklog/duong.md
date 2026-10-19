@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-19 | TV1-16 | feat | Phần 1: khung trang quản trị `/admin/` (Vite hai trang, đăng nhập admin bằng `sessionStorage`, tài khoản thường bị từ chối, Đăng xuất; precache và manifest không có trang admin); E2E Q10 một phần | nhánh `feat/tv1-16-admin-shell` | chờ review |
+| 2026-10-19 | TV1-16 | feat | Phần 1: khung trang quản trị `/admin/` (Vite hai trang, đăng nhập admin bằng `sessionStorage`, tài khoản thường bị từ chối, Đăng xuất; precache và manifest không có trang admin); E2E Q10 một phần | PR #55 | chờ review |
 | 2026-10-19 | TV1-15 | feat | Màn hình Tổ chức (danh bạ, mở tổ chức mới, yêu cầu của mình, Huỷ), trang chủ khi chưa thuộc tổ chức nào, "Tổ chức khác…" ở bộ chọn; E2E Q8, M3 | PR #54 | xong |
 | 2026-10-19 | TV1-14 | feat | Màn hình Đăng nhập / Tạo tài khoản thay màn hình nhập mã; kiểm form ở `loginForm.ts` + unit; Xuất JSON khi bị từ chối đổi tài khoản; E2E U7, Q11 qua màn hình mới | PR #53 | xong |
 | 2026-10-19 | — | test | E2E T10 chờ cả form của hai dự án về máy rồi mới offline (vòng đồng bộ tải phiếu trước form), hết chập chờn khi chạy cả bộ | PR #52 | xong |
