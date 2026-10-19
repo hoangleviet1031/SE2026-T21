@@ -163,5 +163,5 @@ test('điều tra viên không thấy nút sửa form và không mở được b
   await expect(page.getByRole('link', { name: 'Sửa form' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toHaveCount(0);
   await page.goto('/#/builder/new');
-  await expect(page.getByText('Chỉ giám sát viên được sửa biểu mẫu.')).toBeVisible();
+  await expect(page.getByText('Chỉ giám sát viên và Owner được sửa biểu mẫu.')).toBeVisible();
 });

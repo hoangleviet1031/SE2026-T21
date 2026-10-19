@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { PROJECT, databaseNames, login, putRow, readStore } from './helpers';
+import { PROJECT, answerConfirm, databaseNames, login, putRow, readStore } from './helpers';
 
 // Trang Cài đặt và Đăng xuất (TV1-07; design §4.7, ui.md màn hình 8).
 
@@ -22,14 +22,16 @@ test('Cài đặt hiện tên đăng nhập; Đăng xuất xoá CSDL dự án v�
   ).toBeVisible();
   await expect(page.getByTestId('settings-storage')).toContainText('Đã dùng');
 
-  // Huỷ ở hộp xác nhận thì không đổi gì
-  page.once('dialog', (d) => void d.dismiss());
+  // Huỷ (hoặc Esc) ở hộp xác nhận thì không đổi gì
   await page.getByTestId('logout-button').click();
+  await answerConfirm(page, 'Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.', 'Huỷ');
+  await page.getByTestId('logout-button').click();
+  await answerConfirm(page, 'Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.', 'Esc');
   await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
   expect(await databaseNames(page)).toContain(PROJECT_DB);
 
-  page.once('dialog', (d) => void d.accept());
   await page.getByTestId('logout-button').click();
+  await answerConfirm(page, 'Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.', 'Đăng xuất');
   await expect(page.getByTestId('login-username')).toBeVisible();
   await expect.poll(() => databaseNames(page)).not.toContain(PROJECT_DB);
   expect(await readStore(page, 'field-survey-account', 'account')).toEqual([]);
@@ -107,8 +109,8 @@ test('Đăng xuất xoá cache me và forms của SW, giữ precache nên offlin
   await fillRuntimeCaches(page);
   await openSettings(page);
 
-  page.once('dialog', (d) => void d.accept());
   await page.getByTestId('logout-button').click();
+  await answerConfirm(page, 'Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.', 'Đăng xuất');
   await expect(page.getByTestId('login-username')).toBeVisible();
 
   const names = await cacheNames(page);

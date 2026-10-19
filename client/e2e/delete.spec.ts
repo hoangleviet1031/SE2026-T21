@@ -289,3 +289,49 @@ test('phiếu đang xung đột không xoá được: không có nút Xoá, có 
   expect(await ops(page, id)).toHaveLength(0);
   expect(await photos(page, id)).toHaveLength(1);
 });
+
+test('hộp xác nhận xoá đang mở thì phiếu thành xung đột: hộp đóng, hết xung đột cũng không tự hiện lại', async ({
+  page,
+  context,
+  request,
+}) => {
+  await login(page);
+  const name = uniq('Hộ hộp xoá');
+  const id = await createWithPhoto(page, name);
+  await expect(recordRow(page, name).getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 15_000 });
+
+  // Máy A sửa offline; người khác sửa trên server cùng lúc
+  await context.setOffline(true);
+  await recordRow(page, name).getByRole('link').first().click();
+  await page.locator('input[name=householdName]').fill(`${name} Máy A`);
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  const photoIds = (await records(page)).find((r) => r.id === id)?.data.housePhoto;
+  const put = await request.put(`${API}/records/${id}`, {
+    headers: { ...authHeaders(TOKENS.lan), 'Idempotency-Key': crypto.randomUUID() },
+    data: {
+      formId: 'household-survey',
+      formVersion: 1,
+      baseVersion: 1,
+      deleted: false,
+      data: { householdName: `${name} Máy B`, housePhoto: photoIds },
+    },
+  });
+  expect(put.status()).toBe(200);
+
+  // Đang mở hộp xoá thì có mạng lại, vòng đồng bộ biến phiếu thành conflict
+  await page.goto(`/#/fill/household-survey/${id}`);
+  await page.getByRole('button', { name: 'Xoá phiếu' }).click();
+  await expect(page.getByRole('dialog')).toContainText(CONFIRM_TEXT);
+  await context.setOffline(false);
+  await expect(page.getByTestId('record-in-conflict')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
+  // Tab khác xử lý xung đột: trang phiếu hết chỉ đọc, hộp xoá không tự hiện lại
+  const other = await context.newPage();
+  await other.goto(`/#/conflict/${id}`);
+  await other.getByTestId('conflict-table').getByLabel(`${name} Máy A`).check();
+  await other.getByRole('button', { name: 'Áp dụng và đồng bộ' }).click();
+  await expect(page.getByTestId('record-in-conflict')).toHaveCount(0, { timeout: 15_000 });
+  await expect(page.getByRole('button', { name: 'Xoá phiếu' })).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
