@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
-import { PROJECT, databaseNames, login, readStore } from './helpers';
+import { PROJECT, databaseNames, login, putRow, readStore } from './helpers';
 
-// Trang Cài đặt và Đăng xuất (TV1-07 phần 1; design §4.7, ui.md màn hình 8).
+// Trang Cài đặt và Đăng xuất (TV1-07; design §4.7, ui.md màn hình 8).
 
 const PROJECT_DB = `field-survey-p-${PROJECT}`;
 
@@ -11,12 +11,15 @@ async function openSettings(page: Page) {
   await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
 }
 
-test('Cài đặt hiện mã người dùng; Đăng xuất xoá CSDL dự án và token, đăng nhập lại được', async ({ page }) => {
+test('Cài đặt hiện tên đăng nhập; Đăng xuất xoá CSDL dự án và token, đăng nhập lại được', async ({ page }) => {
   await login(page);
   await openSettings(page);
-  await expect(page.getByTestId('settings-user-id')).toHaveText('u_minh');
-  // Đã thuộc dự án: câu hướng dẫn nói về dự án khác, không bảo gửi mã để được thêm vào
-  await expect(page.getByText('Giám sát viên cần mã này nếu muốn thêm bạn vào dự án khác.')).toBeVisible();
+  // Tên đăng nhập (không phải userId u_minh): giám sát viên, Owner thêm người bằng tên này (design §4.7)
+  await expect(page.getByTestId('settings-username')).toHaveText('minh');
+  // Đã thuộc tổ chức: câu hướng dẫn nói về tổ chức khác, không bảo gửi tên để được thêm vào
+  await expect(
+    page.getByText('Giám sát viên hoặc Owner cần tên này nếu muốn thêm bạn vào tổ chức khác.'),
+  ).toBeVisible();
   await expect(page.getByTestId('settings-storage')).toContainText('Đã dùng');
 
   // Huỷ ở hộp xác nhận thì không đổi gì
@@ -54,6 +57,20 @@ test('còn phiếu chưa gửi: nút Đăng xuất bị khoá; đồng bộ xong
   await page.getByRole('button', { name: 'Đồng bộ' }).click();
   await expect(page.getByTestId('logout-button')).toBeEnabled({ timeout: 15_000 });
   await expect(page.getByTestId('logout-blocked')).toHaveCount(0);
+});
+
+test('máy lưu thông tin tài khoản từ bản cũ (chưa có username): Cài đặt hiện userId, không hiện rỗng', async ({
+  page,
+  context,
+}) => {
+  await login(page);
+  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  // Offline để vòng đồng bộ không gọi /me ghi đè lại user đầy đủ
+  await context.setOffline(true);
+  await putRow(page, 'field-survey-account', 'account', { key: 'user', value: { id: 'u_minh', name: 'minh' } });
+  await openSettings(page);
+  // Tài khoản cũ có username = id (migration 4), nên id chính là tên đăng nhập
+  await expect(page.getByTestId('settings-username')).toHaveText('u_minh');
 });
 
 test('Cài đặt có hướng dẫn cài lên màn hình chính; mở từ app đã cài thì báo đã cài', async ({ page, context }) => {
