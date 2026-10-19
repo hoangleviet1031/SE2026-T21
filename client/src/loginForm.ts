@@ -66,3 +66,14 @@ export function blockedMessage(previousName: string, unsentRecords: number): str
   const what = unsentRecords > 0 ? `${unsentRecords} phiếu chưa gửi` : 'dữ liệu chưa gửi';
   return `Máy này còn ${what}${who}. Đăng nhập lại bằng tài khoản của người đó để gửi, hoặc xuất JSON trước.`;
 }
+
+/** Lỗi khi tải file Xuất JSON lúc bị từ chối đổi tài khoản (dữ liệu trên máy không bị đụng tới) */
+export const EXPORT_FAILED_MSG = 'Không xuất được file, thử lại.';
+
+/**
+ * Kết quả nút "Xuất JSON" khi bị từ chối đổi tài khoản: số file đã tải. 0 nghĩa là phiếu chưa gửi đã
+ * được gửi xong trong lúc chờ (vòng đồng bộ chạy nền), nên đăng nhập lại là được.
+ */
+export function exportResultText(files: number): string {
+  return files === 0 ? 'Máy không còn phiếu chưa gửi. Bấm Tiếp tục để đăng nhập lại.' : `Đã tải ${files} file.`;
+}

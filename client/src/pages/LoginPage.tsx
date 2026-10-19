@@ -3,7 +3,15 @@ import { useOnline } from '../useOnline';
 import { syncNow } from '../sync/engine';
 import { AccountError, AdminAccountError, NetworkError } from '../sync/api';
 import { SignInBlockedError, downloadUnsentOnDevice, registerAndSignIn, signIn } from '../signIn';
-import { OFFLINE_MSG, accountErrorMessage, blockedMessage, loginReady, registerError } from '../loginForm';
+import {
+  EXPORT_FAILED_MSG,
+  OFFLINE_MSG,
+  accountErrorMessage,
+  blockedMessage,
+  exportResultText,
+  loginReady,
+  registerError,
+} from '../loginForm';
 
 type Tab = 'login' | 'register';
 
@@ -20,12 +28,26 @@ export function LoginPage() {
   const [password2, setPassword2] = useState('');
   const [problem, setProblem] = useState<Problem | null>(null);
   const [busy, setBusy] = useState(false);
+  // Kết quả nút Xuất JSON khi bị từ chối đổi tài khoản
+  const [exportNote, setExportNote] = useState<string | null>(null);
+
+  async function exportUnsent() {
+    setExportNote(null);
+    try {
+      setExportNote(exportResultText(await downloadUnsentOnDevice()));
+    } catch (err) {
+      // Chỉ đọc dữ liệu trên máy để tải file, không xoá gì: báo cho người dùng bấm lại, ghi lỗi để tra
+      console.error('xuất JSON lỗi', err);
+      setExportNote(EXPORT_FAILED_MSG);
+    }
+  }
 
   const shown: Problem | null = online ? problem : { kind: 'text', text: OFFLINE_MSG };
 
   function switchTab(next: Tab) {
     setTab(next);
     setProblem(null);
+    setExportNote(null);
   }
 
   async function submit(e: FormEvent) {
@@ -40,6 +62,7 @@ export function LoginPage() {
     }
     setBusy(true);
     setProblem(null);
+    setExportNote(null);
     try {
       if (tab === 'register') await registerAndSignIn({ username: username.trim(), name: name.trim(), password });
       else await signIn({ username: username.trim(), password });
@@ -121,9 +144,10 @@ export function LoginPage() {
       {shown?.kind === 'blocked' && (
         <div>
           <p role="alert">⚠ {shown.text}</p>
-          <button type="button" onClick={() => void downloadUnsentOnDevice()}>
+          <button type="button" onClick={() => void exportUnsent()}>
             Xuất JSON
           </button>
+          {exportNote && <p data-testid="export-note">{exportNote}</p>}
         </div>
       )}
     </form>

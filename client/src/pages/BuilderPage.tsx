@@ -47,7 +47,7 @@ export function BuilderPage({ formId }: { formId?: string }) {
 
   if (db === undefined || project === undefined || prev === undefined || (db && !formIds)) return null;
   if (!db || !project || !canManageProject(project.role)) {
-    return <p>Chỉ giám sát viên được sửa biểu mẫu.</p>;
+    return <p>Chỉ giám sát viên và Owner được sửa biểu mẫu.</p>;
   }
   if (formId && !prev) return <p>Không tìm thấy biểu mẫu.</p>;
   // key chỉ theo form: vòng đồng bộ tải bản mới hơn trong lúc sửa không được xoá phần đang sửa;

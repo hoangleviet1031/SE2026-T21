@@ -70,6 +70,9 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // dẫn tới màn hình xung đột. Phiếu có thể thành conflict ngay lúc form đang mở (đồng bộ chạy nền):
   // liveQuery đổi record là trang tự chuyển sang chỉ đọc, phần đang nhập vẫn hiện trên màn hình.
   const readOnly = record?.syncState === 'conflict' || inConflict;
+  // Phiếu thành chỉ đọc lúc hộp xoá đang mở: đóng hẳn hộp, để khi hết xung đột hộp không tự hiện lại.
+  // Chỉnh state ngay lúc render (không dùng effect vì phía trên có return sớm)
+  if (readOnly && confirmingDelete) setConfirmingDelete(false);
   const canDelete = !!record && !!project && !!user && canDeleteRecord(project.role, user.id, record.createdBy);
   // Bấm Lưu đúng lúc phiếu vừa thành conflict (trước khi liveQuery kịp cập nhật): tầng dữ liệu từ chối.
   const unlessInConflict = async <T,>(write: () => Promise<T>): Promise<T | undefined> => {
@@ -141,7 +144,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
           {canDelete && <button onClick={() => setConfirmingDelete(true)}>Xoá phiếu</button>}
         </div>
       )}
-      {confirmingDelete && !readOnly && (
+      {confirmingDelete && (
         <ConfirmDialog
           message="Xoá phiếu này? Không hoàn tác được trên máy."
           confirmLabel="Xoá"

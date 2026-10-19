@@ -1,6 +1,17 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { API, DEMO_PASSWORD, TOKENS, authHeaders, databaseNames, fillLogin, login, putRow, readStore } from './helpers';
+import {
+  API,
+  DEMO_PASSWORD,
+  TOKENS,
+  answerConfirm,
+  authHeaders,
+  databaseNames,
+  fillLogin,
+  login,
+  putRow,
+  readStore,
+} from './helpers';
 
 // TV2-16: đăng nhập bằng phiên, chặn tài khoản admin (Q11, ADR 0003 §8), đổi tài khoản trên máy đang
 // có dữ liệu (design §4.7), đăng xuất huỷ phiên trên server. Từ TV1-14 nhập tên + mật khẩu trên màn
@@ -155,8 +166,8 @@ test('Đăng xuất khi online huỷ phiên của máy này trên server', async
   expect(await meStatus(request, token)).toBe(200);
 
   await page.getByRole('link', { name: 'Cài đặt' }).click();
-  page.once('dialog', (d) => void d.accept());
   await page.getByTestId('logout-button').click();
+  await answerConfirm(page, 'Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.', 'Đăng xuất');
   await expect(page.getByTestId('login-username')).toBeVisible();
   expect(await meStatus(request, token)).toBe(401);
 });

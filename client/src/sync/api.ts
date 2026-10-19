@@ -198,7 +198,7 @@ export async function saveForm(projectId: string, body: SaveFormRequest): Promis
         : [];
     return { ok: false, errors: details.length > 0 ? details : ['Biểu mẫu không hợp lệ'] };
   }
-  if (code === 'forbidden') return { ok: false, errors: ['Chỉ giám sát viên được lưu biểu mẫu'] };
+  if (code === 'forbidden') return { ok: false, errors: ['Chỉ giám sát viên và Owner được lưu biểu mẫu'] };
   if (code === 'invalid_body') return { ok: false, errors: ['Biểu mẫu không đúng định dạng'] };
   throw new Error(`POST forms ${res.status}`);
 }

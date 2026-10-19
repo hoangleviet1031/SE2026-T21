@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { TOKENS, authHeaders, createProject, login, setMembership } from './helpers';
+import { TOKENS, answerConfirm, authHeaders, createProject, login, setMembership } from './helpers';
 
 // Màn hình Thành viên (TV1-08 phần 2; ui.md màn hình 6, design §4.7). Server E2E dùng chung một CSDL,
 // nên mỗi test có dự án riêng "b-…" (đứng trước "demo-…" trong /me, nên đăng nhập là vào thẳng dự án
@@ -59,19 +59,16 @@ test('Owner thêm bằng tên đăng nhập, báo lỗi đúng, đổi vai trò 
   await page.getByLabel('Đổi vai trò minh').selectOption({ label: 'Giám sát viên' });
   await expect(row(page, 'minh')).toContainText('Giám sát viên');
 
-  // Huỷ hộp xác nhận thì không rút
-  page.once('dialog', (d) => void d.dismiss());
+  // Huỷ (hoặc Esc) ở hộp xác nhận thì không rút
   await page.getByRole('button', { name: 'Rút minh' }).click();
+  await answerConfirm(page, 'Rút minh (minh) khỏi tổ chức?', 'Huỷ');
+  await page.getByRole('button', { name: 'Rút minh' }).click();
+  await answerConfirm(page, 'Rút minh (minh) khỏi tổ chức?', 'Esc');
   await expect(row(page, 'minh')).toBeVisible();
 
-  let question = '';
-  page.once('dialog', (d) => {
-    question = d.message();
-    void d.accept();
-  });
   await page.getByRole('button', { name: 'Rút minh' }).click();
+  await answerConfirm(page, 'Rút minh (minh) khỏi tổ chức?', 'Rút');
   await expect(row(page, 'minh')).toHaveCount(0);
-  expect(question).toBe('Rút minh (minh) khỏi tổ chức?');
 
   expect((await serverMembers(request)).map((m) => [m.username, m.role])).toEqual([
     ['chu', 'owner'],
@@ -82,17 +79,12 @@ test('Owner thêm bằng tên đăng nhập, báo lỗi đúng, đổi vai trò 
 test('Owner cuối cùng không tự hạ, tự rút được: hỏi rõ mất quyền rồi báo lỗi last_owner', async ({ page, request }) => {
   await openMembers(page, 'chu');
 
-  let question = '';
-  page.once('dialog', (d) => {
-    question = d.message();
-    void d.accept();
-  });
   await page.getByLabel('Đổi vai trò chu').selectOption({ label: 'Giám sát viên' });
+  await answerConfirm(page, 'Bạn sẽ mất quyền Owner ngay, chỉ còn quyền Giám sát viên. Tiếp tục?', 'Đổi vai trò');
   await expect(error(page)).toHaveText('Tổ chức phải còn ít nhất một Owner');
-  expect(question).toBe('Bạn sẽ mất quyền Owner ngay, chỉ còn quyền Giám sát viên. Tiếp tục?');
 
-  page.once('dialog', (d) => void d.accept());
   await page.getByRole('button', { name: 'Rút chu' }).click();
+  await answerConfirm(page, 'Bạn sẽ rời tổ chức này ngay và không xem được dữ liệu của tổ chức nữa. Tiếp tục?', 'Rút');
   await expect(error(page)).toHaveText('Tổ chức phải còn ít nhất một Owner');
   expect(await serverMembers(request)).toEqual([expect.objectContaining({ username: 'chu', role: 'owner' })]);
 });
@@ -101,8 +93,8 @@ test('Owner tự hạ khi còn Owner khác: về trang chủ, vai trò mới có
   await setMembership(request, project, 'u_lan', 'owner');
   await openMembers(page, 'chu');
 
-  page.once('dialog', (d) => void d.accept());
   await page.getByLabel('Đổi vai trò chu').selectOption({ label: 'Điều tra viên' });
+  await answerConfirm(page, 'Bạn sẽ mất quyền Owner ngay, chỉ còn quyền Điều tra viên. Tiếp tục?', 'Đổi vai trò');
 
   await expect(page.getByRole('heading', { name: 'Phiếu đã nhập' })).toBeVisible({ timeout: 10_000 });
   // /me đã tải lại: điều tra viên không còn thấy nút Thành viên
@@ -126,8 +118,8 @@ test('supervisor chỉ thấy thao tác với điều tra viên, không có ở 
   await expect(page.getByRole('combobox', { name: 'Vai trò', exact: true }).getByRole('option')).toHaveText(['Điều tra viên']);
   await expect(page.getByTestId('org-public')).toHaveCount(0);
 
-  page.once('dialog', (d) => void d.accept());
   await page.getByRole('button', { name: 'Rút minh' }).click();
+  await answerConfirm(page, 'Rút minh (minh) khỏi tổ chức?', 'Rút');
   await expect(row(page, 'minh')).toHaveCount(0);
 });
 

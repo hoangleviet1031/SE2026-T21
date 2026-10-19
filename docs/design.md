@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.35 (2026-10-19)
+- **Phiên bản:** 0.5.36 (2026-10-19)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -69,6 +69,7 @@
 | 0.5.33 | 2026-10-19 | TV1-16 phần 1: khung trang quản trị `/admin/` có code (§4.3, §4.9): Vite build hai trang, đăng nhập admin (token + thông tin admin trong `sessionStorage`, không gọi `/api/me`; tài khoản thường bị từ chối và phiên vừa cấp bị huỷ), Đăng xuất, thanh trên A1/A2 (A3 ẩn tới TV2-17); precache PWA và manifest không có trang admin; Q10 một phần (§10.1); §12 cách kiểm `/admin/` trên Caddy. A1, A2 chưa có (phần 2) |
 | 0.5.34 | 2026-10-19 | TV1-16 phần 2: A1 (duyệt, từ chối bắt buộc lý do) và A2 (khoá có xác nhận/mở, Đổi Owner = thêm Owner, Owner cũ giữ quyền) có code (§4.9); số yêu cầu đang chờ trên thanh trên; lỗi API admin: 401/403 về form đăng nhập, 5xx "Máy chủ đang lỗi, thử lại sau", mất mạng "Cần kết nối mạng"; `navigateFallbackDenylist` khớp cả `/admin` không có `/` (§4.3). Q10 có E2E đủ (§10.1). §12: sửa nhận định sai về `try_files` (Caddy 2.11 đưa `/admin/` về trang PWA), Caddyfile có khối `/admin/*` riêng |
 | 0.5.35 | 2026-10-19 | TV1-07 (cập nhật theo ADR 0003): trang Cài đặt hiện **tên đăng nhập** thay mã người dùng (§4.7); `account.user` lưu từ bản cũ chưa có `username` thì hiện `userId` (tài khoản cũ có username = id), cùng luật với màn hình Tổ chức (`client/src/accountDisplay.ts`) |
+| 0.5.36 | 2026-10-19 | TV1-12 phần a1: mọi hộp hỏi xác nhận trong PWA là hộp trong app `ConfirmDialog` (Đăng xuất, đổi vai trò/rút thành viên, Tải lại khi đang nhập phiếu, Xoá khỏi máy ở banner dự án đã rời; trước đây `window.confirm`), nút xác nhận đỏ chỉ cho việc mất dữ liệu/quyền (§4.3, §4.7); hộp Xoá phiếu đóng hẳn khi phiếu thành xung đột (§5.7); chữ "Chỉ giám sát viên và Owner…" ở builder, lưu form, xuất; nút Xuất JSON khi bị từ chối đổi tài khoản báo kết quả (§4.7); bỏ dòng 🕘 Màn hình Thành viên "thêm bằng `userId`" (đã thay ở TV1-08) |
 
 ## Mục lục
 
@@ -366,14 +367,14 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003.
 - **Đăng xuất** như bản cũ, thêm: gọi `POST /api/auth/logout` để huỷ phiên của máy này nếu đang online. Có code (TV2-16, `client/src/logout.ts`): gọi sau khi đã xoá dữ liệu trên máy, trước khi xoá token; lỗi mạng thì vẫn đăng xuất trên máy (phiên còn trên server, admin thu hồi được bằng `user:revoke-sessions`).
 
 **🕘 Bản cũ (đang chạy, ADR 0002)**
-- **Màn hình Thành viên** (`supervisor`, cần online): danh sách thành viên và vai trò; thêm bằng `userId`; đổi vai trò; rút khỏi dự án (có hỏi xác nhận). Không cho tự rút giám sát viên cuối cùng. *(Chưa có code; TV1-08 sẽ làm theo bản mới.)*
 - **Màn hình Dự án** (`admin`, cần online, trong PWA): tạo dự án, đổi tên, lưu trữ; chỉ định giám sát viên đầu tiên. *(Chưa có code; thay bằng trang quản trị §4.9.)*
 - **Tạo người dùng** không có UI: quản trị chạy CLI ở server (§12).
 - **Nhập mã của người khác trên máy đang có dữ liệu** (sau `401`, hoặc người dùng tự nhập lại):** sau khi `GET /api/me` trả về, so `user.id` mới với `userId` đang lưu trong `field-survey-account`.
   - Cùng người (đăng nhập lại, hoặc mã mới sau `user:revoke-sessions`): chỉ thay token, giữ nguyên mọi CSDL, đồng bộ tiếp.
   - Khác người và máy **không** còn dữ liệu chưa gửi ở mọi dự án (định nghĩa như `hasUnsentData`, ADR 0002 §6): xoá mọi CSDL dự án của người cũ rồi đăng nhập người mới.
-  - Khác người và máy **còn** dữ liệu chưa gửi: từ chối, hiện "Máy này còn N phiếu chưa gửi của <tên người cũ>. Nhập lại mã của người đó để gửi, hoặc xuất JSON trước." kèm nút "Xuất JSON". Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
+  - Khác người và máy **còn** dữ liệu chưa gửi: từ chối, hiện "Máy này còn N phiếu chưa gửi của <tên người cũ>. Nhập lại mã của người đó để gửi, hoặc xuất JSON trước." kèm nút "Xuất JSON" (tải mỗi dự án còn phiếu chưa gửi một file; xong báo "Đã tải N file.", không còn phiếu nào thì "Máy không còn phiếu chưa gửi. Bấm Tiếp tục để đăng nhập lại.", lỗi thì "Không xuất được file, thử lại."; TV1-12). Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
 - **Trang Cài đặt** (ui.md màn hình 8): tên hiển thị và **tên đăng nhập** (`settings-username`) để gửi cho giám sát viên hoặc Owner. Chưa thuộc tổ chức nào: "Gửi tên này cho giám sát viên của tổ chức để được thêm vào."; đã thuộc: "Giám sát viên hoặc Owner cần tên này nếu muốn thêm bạn vào tổ chức khác." `account.user` lưu từ trước TV2-14 chưa có `username` tới vòng `/me` kế tiếp: hiện `userId` (tài khoản cũ có username = id, migration 4), không bao giờ rỗng; luật này dùng chung với màn hình Tổ chức (`client/src/accountDisplay.ts`). Có code (TV1-07).
+- **Hộp hỏi xác nhận** trong PWA đều là hộp xác nhận trong app (`ConfirmDialog`, không dùng hộp của trình duyệt; Esc = Huỷ); nút xác nhận màu đỏ cho việc mất dữ liệu hoặc mất quyền (Đăng xuất, Rút, Xoá khỏi máy, Xoá phiếu), màu thường cho Tải lại, Đổi vai trò (TV1-12).
 - **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Đăng xuất xoá cả cache runtime `me` và `forms` của SW (§4.3; tên ở `client/src/swCaches.ts`) để dữ liệu của người cũ không nằm lại trên máy dùng chung, nhưng giữ precache để app vẫn mở được offline. Có code.
 
 **Tiêu chí chấp nhận:** đủ các ca T1–T10 ở ADR 0002; 🆕 thêm U1–U7, Q1–Q9, Q11, D1–D2, M1–M3, A5–A8 ở ADR 0003 (§10.1).
@@ -524,7 +525,7 @@ Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu
 - **Xung đột:** server đã có người sửa trong lúc mình xoá thì nhận `409` và đi theo ADR 0001 quy tắc 6 (hỏi giữ hay xoá, §4.5). Không tự quyết.
 - **Ảnh của phiếu đã xoá:** ngừng upload (hàng đợi upload của TV3-06 phải bỏ qua phiếu `deleted`); blob chưa upload được xoá cùng lúc op xoá được server xác nhận, trong cùng transaction với việc xoá phiếu.
 - **Sau khi xác nhận:** op xoá nhận `200/201` và phiếu không còn op nào thì phiếu và ảnh bị xoá khỏi máy. Pull sau đó nhận lại tombstone của chính phiếu này; pull **bỏ qua tombstone của phiếu máy không có** để không chèn lại. Phiếu máy đang có (không có thay đổi chưa gửi) thì vẫn nhận tombstone và bị ẩn khỏi danh sách.
-- **Code:** `deleteRecordLocally` trong `client/src/sync/outbox.ts` (TV2-13); nút "Xoá phiếu" ở trang phiếu hỏi bằng `confirm()` của trình duyệt (đúng câu chữ trên) rồi gọi hàm này; TV1-13 thay bằng hộp thoại của app.
+- **Code:** `deleteRecordLocally` trong `client/src/sync/outbox.ts` (TV2-13); nút "Xoá phiếu" ở trang phiếu hỏi bằng hộp xác nhận trong app `ConfirmDialog` (đúng câu chữ trên, TV1-13) rồi gọi hàm này. Phiếu thành `conflict` lúc hộp đang mở thì hộp đóng hẳn, hết xung đột cũng không tự hiện lại (TV1-12).
 - Khôi phục phiếu đã xoá (bỏ tombstone) ngoài phạm vi MVP, trừ trường hợp người dùng chọn "Khôi phục" trong màn hình xung đột.
 
 ## 6. Mô hình dữ liệu

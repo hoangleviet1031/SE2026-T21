@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { accountUsername } from '../accountDisplay';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
 import { formatBytes } from '../formatBytes';
@@ -29,6 +30,7 @@ export function SettingsPage() {
   const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
 
   useEffect(() => {
     if (!navigator.storage?.estimate) return;
@@ -42,7 +44,7 @@ export function SettingsPage() {
   }, []);
 
   async function onLogout() {
-    if (!window.confirm('Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.')) return;
+    setConfirmingLogout(false);
     setBusy(true);
     setError(null);
     try {
@@ -104,12 +106,20 @@ export function SettingsPage() {
       <div className="actions">
         <button
           data-testid="logout-button"
-          onClick={() => void onLogout()}
+          onClick={() => setConfirmingLogout(true)}
           disabled={busy || blocked === undefined || blocked.length > 0}
         >
           Đăng xuất
         </button>
       </div>
+      {confirmingLogout && (
+        <ConfirmDialog
+          message="Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng."
+          confirmLabel="Đăng xuất"
+          onConfirm={() => void onLogout()}
+          onCancel={() => setConfirmingLogout(false)}
+        />
+      )}
       {blocked && blocked.length > 0 && (
         <p className="warning" data-testid="logout-blocked">
           {blockedMessage(blocked)}

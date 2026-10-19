@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse, Member, ProjectSettings, Role } from '@field-survey/shared';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { getAccountValue, type AccountProject } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
 import { MEMBER_ERROR_TEXT, assignableRoles, confirmText, memberActions } from '../members';
@@ -51,6 +52,10 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
   const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Thao tác đang chờ người dùng xác nhận trong hộp thoại (đổi vai trò, rút)
+  const [pending, setPending] = useState<{ text: string; label: string; danger: boolean; act: () => void } | null>(
+    null,
+  );
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -101,20 +106,34 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
   }
 
   const onChangeRole = (m: Member, role: Role) => {
+    const act = () => void run(() => changeMemberRole(project.id, m.userId, role), { self: m.userId === myUserId });
     const text = confirmText(myUserId, m, role);
-    if (text && !window.confirm(text)) return;
-    void run(() => changeMemberRole(project.id, m.userId, role), { self: m.userId === myUserId });
+    if (text) setPending({ text, label: 'Đổi vai trò', danger: false, act });
+    else act();
   };
 
   const onRemove = (m: Member) => {
+    const act = () => void run(() => removeMember(project.id, m.userId), { self: m.userId === myUserId });
     const text = confirmText(myUserId, m, null);
-    if (text && !window.confirm(text)) return;
-    void run(() => removeMember(project.id, m.userId), { self: m.userId === myUserId });
+    if (text) setPending({ text, label: 'Rút', danger: true, act });
+    else act();
   };
 
   return (
     <section>
       <h2>Thành viên · {project.name}</h2>
+      {pending && (
+        <ConfirmDialog
+          message={pending.text}
+          confirmLabel={pending.label}
+          danger={pending.danger}
+          onConfirm={() => {
+            setPending(null);
+            pending.act();
+          }}
+          onCancel={() => setPending(null)}
+        />
+      )}
       {loadError ? (
         <p className="field-error" role="alert">
           {loadError}{' '}

@@ -152,3 +152,15 @@ export async function makeImage(
   }, opts);
   return Buffer.from(base64, 'base64');
 }
+
+/**
+ * Trả lời hộp xác nhận trong app (`ConfirmDialog`, thay `window.confirm`): kiểm đúng câu hỏi rồi bấm
+ * nút có nhãn `answer`, hoặc nhấn Esc (tương đương Huỷ). Hộp đóng sau khi trả lời.
+ */
+export async function answerConfirm(page: Page, message: string, answer: string | 'Esc') {
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText(message, { exact: true })).toBeVisible();
+  if (answer === 'Esc') await page.keyboard.press('Escape');
+  else await dialog.getByRole('button', { name: answer, exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+}
