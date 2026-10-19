@@ -292,7 +292,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-16 · Trang quản trị `/admin/` (thay TV1-09)
 
-- **Trạng thái:** ⏳ PR #55 (phần 1: khung + đăng nhập)
+- **Trạng thái:** ⏳ phần 1 ✅ PR #55 (khung + đăng nhập); phần 2 (A1, A2, Q10 đủ) chưa
 - **Tuần:** 5 · **Phụ thuộc:** TV2-15 (A1, A2); TV2-17 (A3, cắt được)
 - **Spec:** design §4.3 (🆕), §4.9; ADR 0003 §8; ui.md "Trang quản trị" A1–A3
 - **File:** `client/admin/index.html` (mới), `client/src/admin/` (mới: `main.tsx`, `AdminApp.tsx`, `RequestsPage.tsx`, `ProjectsPage.tsx`, `UsersPage.tsx`), `client/vite.config.ts` (nhiều trang; SW bỏ qua `/admin/`), `client/e2e/admin.spec.ts` (mới), `docs/deploy.md` (Caddy cho `/admin/`)
