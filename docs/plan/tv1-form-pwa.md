@@ -292,7 +292,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-16 · Trang quản trị `/admin/` (thay TV1-09)
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ phần 1 (khung + đăng nhập) chờ review
 - **Tuần:** 5 · **Phụ thuộc:** TV2-15 (A1, A2); TV2-17 (A3, cắt được)
 - **Spec:** design §4.3 (🆕), §4.9; ADR 0003 §8; ui.md "Trang quản trị" A1–A3
 - **File:** `client/admin/index.html` (mới), `client/src/admin/` (mới: `main.tsx`, `AdminApp.tsx`, `RequestsPage.tsx`, `ProjectsPage.tsx`, `UsersPage.tsx`), `client/vite.config.ts` (nhiều trang; SW bỏ qua `/admin/`), `client/e2e/admin.spec.ts` (mới), `docs/deploy.md` (Caddy cho `/admin/`)
@@ -302,6 +302,11 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 - Đăng nhập bằng `/api/auth/login`; tài khoản không phải admin → "Tài khoản này không phải quản trị", không lưu token. Token trong `sessionStorage`.
 - A1 duyệt/từ chối (lý do bắt buộc), A2 khoá/mở, đổi Owner. A3 **cắt được**.
 - Bố cục bảng cho máy tính.
+
+**Chia 2 phần** (Dương duyệt 2026-10-19)
+- **Phần 1 – khung** `feat/tv1-16-admin-shell`: Vite build hai trang, `admin/index.html`, `src/admin/` (`main.tsx`, `AdminApp.tsx`, `AdminLogin.tsx`, `adminApi.ts`, `session.ts` + unit, `admin.css`); đăng nhập/đăng xuất admin; A1 `/admin/#/`, A2 `/admin/#/projects` (trang trống), A3 ẩn; precache và manifest không có trang admin; E2E `admin.spec.ts` phần đăng nhập (Q10 một phần); deploy.md bước kiểm `/admin/`.
+- **Phần 2 – A1, A2** `feat/tv1-16-admin-pages`: bảng yêu cầu (Duyệt, Từ chối có lý do), bảng tổ chức (Khoá/Mở, Đổi Owner), 401 về đăng nhập, E2E Q10 đủ, thử trên staging.
+- A3 (TV2-17, PR #51) lượt riêng sau khi #51 merge; cắt được.
 
 **Xong khi:** E2E **Q10** (tài khoản thường bị từ chối; admin duyệt ở A1, khoá ở A2; `indexedDB.databases()` trên trang admin rỗng); thử trên staging, `deploy.md` cập nhật.
 
