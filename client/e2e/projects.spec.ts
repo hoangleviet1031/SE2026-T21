@@ -113,6 +113,12 @@ test('T10: offline, chuyển qua lại giữa hai dự án đã tải: mỗi d�
   await login(page, 'lan');
   for (const p of [a, b]) {
     await expect.poll(async () => (await localRecords(page, p.id)).length, { timeout: 15_000 }).toBe(2);
+    // Vòng đồng bộ tải phiếu trước rồi mới tải form (design §5.3), nên có phiếu chưa chắc đã có form
+    await expect
+      .poll(async () => (await readStore(page, `field-survey-p-${p.id}`, 'forms').catch(() => [])).length, {
+        timeout: 15_000,
+      })
+      .toBe(1);
   }
   await context.setOffline(true);
 
