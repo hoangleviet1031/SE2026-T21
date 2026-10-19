@@ -40,8 +40,9 @@ export default defineConfig({
         // Lần cài đầu SW nắm luôn trang đang mở, để rời mạng ngay vẫn chạy được (O1). Không ảnh hưởng
         // bản cập nhật: SW mới vẫn chờ tới khi người dùng bấm Tải lại (không có skipWaiting)
         clientsClaim: true,
-        // Trang quản trị luôn lấy bản mới từ server, không chạy offline (design §4.3, §4.9)
-        navigateFallbackDenylist: [/^\/api\//, /^\/admin\//],
+        // Trang quản trị luôn lấy bản mới từ server, không chạy offline (design §4.3, §4.9). Khớp cả `/admin`
+        // không có `/`: nếu không SW trả index.html của PWA trước khi request tới Caddy (redir sang `/admin/`)
+        navigateFallbackDenylist: [/^\/api\//, /^\/admin(\/|$)/],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => /^\/api\/projects\/[^/]+\/forms$/.test(url.pathname),

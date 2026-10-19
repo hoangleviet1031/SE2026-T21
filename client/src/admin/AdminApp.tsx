@@ -1,52 +1,88 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useHashRoute } from '../useHashRoute';
-import { NetworkError, logoutSession } from './adminApi';
+import { NetworkError, ServerError, SessionLostError, fetchPendingRequests, logoutSession } from './adminApi';
 import { AdminLogin } from './AdminLogin';
+import { OFFLINE_MSG, SERVER_ERROR_MSG, SESSION_LOST_MSG, adminErrorMessage } from './adminMessages';
+import { ProjectsPage } from './ProjectsPage';
+import { RequestsPage } from './RequestsPage';
 import { clearSession, readSession, saveSession, type AdminSession } from './session';
 
 // Khung trang quản trị (design §4.9, ui.md "Trang quản trị"): A1 Yêu cầu ở `#/` (mặc định), A2 Tổ chức
 // ở `#/projects`. Mục Tài khoản (A3) chưa hiện tới khi có API của TV2-17.
 export function AdminApp() {
   const [session, setSession] = useState<AdminSession | null>(readSession);
+  // Câu hiện ở form đăng nhập khi bị đẩy ra do phiên mất
+  const [loginNotice, setLoginNotice] = useState<string | null>(null);
+
+  const signOutLocally = useCallback((notice: string | null) => {
+    clearSession();
+    setLoginNotice(notice);
+    setSession(null);
+  }, []);
 
   if (!session) {
     return (
       <main className="admin">
         <AdminLogin
+          notice={loginNotice}
           onSignedIn={(s) => {
             saveSession(s);
+            setLoginNotice(null);
             setSession(s);
           }}
         />
       </main>
     );
   }
-  return (
-    <AdminShell
-      session={session}
-      onSignedOut={() => {
-        clearSession();
-        setSession(null);
-      }}
-    />
-  );
+  return <AdminShell session={session} onSignedOut={signOutLocally} />;
 }
 
-function AdminShell({ session, onSignedOut }: { session: AdminSession; onSignedOut: () => void }) {
+function AdminShell({ session, onSignedOut }: { session: AdminSession; onSignedOut: (notice: string | null) => void }) {
   const [page] = useHashRoute();
   const [problem, setProblem] = useState<string | null>(null);
+  const [pending, setPending] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const onProjects = page === 'projects';
+  const { token } = session;
+
+  // Lỗi chung của mọi lời gọi API admin. Phiên mất thì về form đăng nhập (trả null: không còn gì để hiện
+  // ở trang); lỗi khác ném tiếp để không che lỗi lập trình.
+  const handleError = useCallback(
+    (err: unknown): string | null => {
+      if (err instanceof SessionLostError) {
+        onSignedOut(SESSION_LOST_MSG);
+        return null;
+      }
+      if (err instanceof NetworkError) return OFFLINE_MSG;
+      if (err instanceof ServerError) return SERVER_ERROR_MSG;
+      throw err;
+    },
+    [onSignedOut],
+  );
+
+  // Số yêu cầu đang chờ trên thanh trên cả khi mở thẳng A2; A1 cập nhật lại mỗi lần tải danh sách
+  useEffect(() => {
+    fetchPendingRequests(token)
+      .then((res) => {
+        if (res.ok) setPending(res.value.length);
+        else setProblem(adminErrorMessage(res.error));
+      })
+      .catch((err: unknown) => {
+        const text = handleError(err);
+        if (text) setProblem(text);
+      });
+  }, [token, handleError]);
 
   async function signOut() {
     setBusy(true);
     setProblem(null);
     try {
-      await logoutSession(session.token);
-      onSignedOut();
+      await logoutSession(token);
+      onSignedOut(null);
     } catch (err) {
-      // Còn giữ token để bấm lại khi có mạng; bỏ token mà phiên vẫn sống trên server thì không ai thu hồi được
+      // Còn giữ token để bấm lại; bỏ token mà phiên vẫn sống trên server thì không ai thu hồi được
       if (err instanceof NetworkError) setProblem('Cần kết nối mạng để đăng xuất');
+      else if (err instanceof ServerError) setProblem(SERVER_ERROR_MSG);
       else throw err;
     } finally {
       setBusy(false);
@@ -59,7 +95,7 @@ function AdminShell({ session, onSignedOut }: { session: AdminSession; onSignedO
         <span className="brand">Quản trị</span>
         <nav className="admin-nav">
           <a href="#/" aria-current={onProjects ? undefined : 'page'}>
-            Yêu cầu
+            Yêu cầu{pending === null ? '' : ` (${pending})`}
           </a>
           <a href="#/projects" aria-current={onProjects ? 'page' : undefined}>
             Tổ chức
@@ -73,15 +109,9 @@ function AdminShell({ session, onSignedOut }: { session: AdminSession; onSignedO
       {problem && <p role="alert">⚠ {problem}</p>}
       <main>
         {onProjects ? (
-          <section>
-            <h1>Tổ chức</h1>
-            <p className="hint">Màn hình này đang làm.</p>
-          </section>
+          <ProjectsPage token={token} onError={handleError} />
         ) : (
-          <section>
-            <h1>Yêu cầu mở tổ chức</h1>
-            <p className="hint">Màn hình này đang làm.</p>
-          </section>
+          <RequestsPage token={token} onError={handleError} onCount={setPending} />
         )}
       </main>
     </div>

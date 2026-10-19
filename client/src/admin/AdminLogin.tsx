@@ -1,12 +1,18 @@
 import { useState, type FormEvent } from 'react';
-import { OFFLINE_MSG, accountErrorMessage, loginReady } from '../loginForm';
-import { AccountError, NetworkError, NotAdminError, adminLogin } from './adminApi';
+import { accountErrorMessage, loginReady } from '../loginForm';
+import { AccountError, NetworkError, NotAdminError, ServerError, adminLogin } from './adminApi';
+import { NOT_ADMIN_MSG, OFFLINE_MSG, SERVER_ERROR_MSG } from './adminMessages';
 import type { AdminSession } from './session';
 
-const NOT_ADMIN_MSG = 'Tài khoản này không phải quản trị';
-
 // Đăng nhập trang quản trị (design §4.9, ADR 0003 §8). Chỉ tab Đăng nhập: admin tạo bằng CLI.
-export function AdminLogin({ onSignedIn }: { onSignedIn: (session: AdminSession) => void }) {
+export function AdminLogin({
+  notice,
+  onSignedIn,
+}: {
+  /** Vì sao phải đăng nhập lại (vd. phiên bị thu hồi) */
+  notice: string | null;
+  onSignedIn: (session: AdminSession) => void;
+}) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
@@ -23,11 +29,14 @@ export function AdminLogin({ onSignedIn }: { onSignedIn: (session: AdminSession)
       if (err instanceof AccountError) setProblem(accountErrorMessage(err.code));
       else if (err instanceof NotAdminError) setProblem(NOT_ADMIN_MSG);
       else if (err instanceof NetworkError) setProblem(OFFLINE_MSG);
+      else if (err instanceof ServerError) setProblem(SERVER_ERROR_MSG);
       else throw err;
     } finally {
       setBusy(false);
     }
   }
+
+  const shown = problem ?? notice;
 
   return (
     <form className="form admin-login" onSubmit={(e) => void submit(e)}>
@@ -56,7 +65,7 @@ export function AdminLogin({ onSignedIn }: { onSignedIn: (session: AdminSession)
       <button type="submit" className="primary" disabled={busy || !loginReady({ username, password })}>
         Đăng nhập
       </button>
-      {problem && <p role="alert">⚠ {problem}</p>}
+      {shown && <p role="alert">⚠ {shown}</p>}
     </form>
   );
 }
