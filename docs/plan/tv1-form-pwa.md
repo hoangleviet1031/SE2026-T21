@@ -216,7 +216,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-12 · Hoàn thiện UI
 
-- **Trạng thái:** ⏳ phần a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ đã gom); a2 ✅ PR #62 (trạng thái lỗi các trang gọi API, hết phiên N5, nhãn ui.md N4); a3 ✅ nhánh `feat/tv1-12-a3-loi-le` (lỗi lẻ); (b) chưa
+- **Trạng thái:** ⏳ phần a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ đã gom); a2 ✅ PR #62 (trạng thái lỗi các trang gọi API, hết phiên N5, nhãn ui.md N4); a3 ✅ PR #68 (lỗi lẻ); (b) chưa
 - **Chia phần (a)** (Dương duyệt 2026-10-19; Dương tự thiết kế UI sau, phần (a) chỉ sửa hành vi, trạng thái, chữ): **a1** `feat/tv1-12-confirm-dialogs`: 5 `window.confirm` → `ConfirmDialog` (prop `danger`), E2E đổi theo + ca Esc; hộp Xoá phiếu đóng khi phiếu thành xung đột; chữ "…và Owner…"; Xuất JSON khi bị từ chối báo kết quả; docs chữ cũ. **a2** `feat/tv1-12-api-states`: `ServerError` ở `api.ts`, câu lỗi theo loại (mạng, 5xx, 401, không còn thành viên) ở Thành viên, Tổ chức, builder lưu form, Xuất; server từ chối thêm tài khoản bị khoá (`404 not_found`). **a3** `feat/tv1-12-a3-loi-le` (A chốt 2026-10-22): Xuất gặp mã lỗi không xử lý báo "Máy chủ đang lỗi, thử lại sau" (§8); E2E nút Xuất JSON khi bị từ chối (đã tải N file, không còn phiếu); ui.md màn hình 1 bỏ câu "màn hình 9 chưa có".
 - **Chuyển đi** (nhóm chốt 2026-10-22): tài liệu người dùng `docs/user-guide.md` sang **TV3-16**; rà khả năng tiếp cận (design §11.3, [tech-debt](../tech-debt.md) N8) sang **TV3-15**, chỗ cần sửa UI theo kết quả rà thì Dương làm trong (b).
 - **Tuần:** 7–8
