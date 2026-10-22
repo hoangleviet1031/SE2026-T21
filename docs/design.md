@@ -890,7 +890,7 @@ Content-Type: application/json
 | `GET /admin/project-requests?status=pending` | – | `200 [{ id, name, note, user: { id, username, name }, createdAt }]` |
 | `POST /admin/project-requests/:id` | `{ decision: 'approve' \| 'reject', reason? }` | Duyệt: `200 { projectId }`; một transaction tạo dự án (`id` = `p-` + 8 ký tự `a-z0-9`, không công khai) và membership `owner` cho người gửi, `added_by` = admin; admin **không** thành thành viên. Từ chối: `reason` bắt buộc. Không còn `pending` → `409 request_decided` |
 | `PUT /admin/projects/:projectId/owners/:username` | – | `200`; không có dự án hoặc tên → `404`; tài khoản admin → `409 admin_account` |
-| `POST P/members` | `{ username, role }` | `201 Member`; không có tên → `404 not_found`; `409 already_member`; `409 admin_account`; supervisor thêm vai trò khác `surveyor` → `403 forbidden` |
+| `POST P/members` | `{ username, role }` | `201 Member`; không có tên hoặc tài khoản bị khoá → `404 not_found`; `409 already_member`; `409 admin_account`; supervisor thêm vai trò khác `surveyor` → `403 forbidden` |
 | `PUT P/members/:userId`, `DELETE P/members/:userId` | `{ role }` / – | `200` / `204`; `409 last_owner`; supervisor đụng vào supervisor/owner → `403 forbidden` |
 | `GET P/settings`, `PATCH P/settings` | – / `{ name?, public? }` | `200 ProjectSettings`; không phải owner → `403 forbidden` |
 
