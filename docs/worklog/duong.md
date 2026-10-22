@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-22 | TV1-19 | docs | Phần 1: gỡ dòng IP tĩnh khỏi bảng máy trong `deploy.md` (giữ `azureuser`, tên miền) | PR #63 | xong |
 | 2026-10-22 | TV1-12 | feat | a2: Thành viên, Tổ chức, builder lưu form, Xuất báo "Máy chủ đang lỗi, thử lại sau" khi 5xx (`ServerError`, `apiFailureText`); 401 về Đăng nhập kèm "Phiên đăng nhập hết hạn, đăng nhập lại" (N5); bỏ nhãn 🆕/🕘 ui.md (N4); server từ chối thêm tài khoản bị khoá (404); E2E `api-errors.spec.ts`; design 0.5.42, ui 0.2.15, requirements 0.2 | PR #62 | xong |
 | 2026-10-22 | — | docs | Chia việc chưa ai nhận theo MVP: ticket TV1-19, TV2-18, TV2-19, TV3-13…TV3-16 (dòng Mức MoSCoW); TV1-12 chuyển tài liệu người dùng sang TV3-16, rà khả năng tiếp cận sang TV3-15; tech-debt trỏ ticket; design 0.5.41 §1; team-plan lộ trình tuần 8, thứ tự cắt | PR #61 | xong |
 | 2026-10-22 | — | docs | Chỉnh tài liệu theo slide Lecture 01–05: design 0.5.37–0.5.39 (ghi lại chỗ cũ, vấn đề/giả định/MoSCoW, mâu thuẫn, kịch bản chất lượng, 3 góc nhìn kiến trúc, sở hữu dữ liệu); thêm requirements.md, tech-debt.md; deploy rollback; quy trình team-plan | PR #59 | xong |
