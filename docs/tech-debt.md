@@ -27,6 +27,7 @@ Không ghi vào đây việc đã có ticket trong [plan/](plan/README.md) (ví 
 | N5 | `401` trong PWA không hiện "Phiên đăng nhập hết hạn, đăng nhập lại" | `client/src/sync/api.ts` (gặp `401` thì `clearToken()` rồi ném `AuthError`); app chỉ quay về màn hình Đăng nhập, không có câu nào ([design.md §8](design.md#8-xử-lý-lỗi)) | Người bị thu hồi phiên không hiểu vì sao bị đẩy ra | TV1-12 (hoàn thiện UI) | Hoàng (`api.ts`), Dương (màn hình Đăng nhập) | Vừa |
 | N6 | Danh sách phiếu chưa lọc theo người tạo, chưa có ô tìm kiếm | [design.md §4.8](design.md#48-danh-sách-phiếu): "Lọc theo người tạo và ô tìm kiếm: chưa có code"; `createdBy` đã có từ TV1-17 | Supervisor khó tìm phiếu khi dự án có nhiều người | Khi làm lại trang chủ, hoặc cắt nếu hết thời gian | Dương | Thấp |
 | N7 | `seed:demo` vẫn tạo phiên token cố định `demo-token-<tên>` | `server/src/seedDemo.ts` dòng 19–22; app đã bỏ màn hình nhập mã (TV1-14) | Ai có bản dev là gọi API bằng token đoán được; không ảnh hưởng staging vì `seed:demo` từ chối khi `NODE_ENV=production` | Khi sửa `seedDemo.ts` lần tới; cần xem E2E/test còn dùng không (4 chỗ trong `client/e2e`, `server/test`) | Đại | Thấp |
+| N8 | Chưa có yêu cầu và chưa kiểm khả năng tiếp cận | [design.md §11.3](design.md#113-khả-năng-tiếp-cận) mới thêm; chưa có E2E nào kiểm nhãn ô nhập hay độ tương phản | Ngoài trời nắng khó đọc; người dùng trình đọc màn hình không dùng được | Rà một lượt trong TV1-12 | Dương | Thấp |
 
 ## Đã trả
 

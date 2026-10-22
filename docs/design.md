@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.37 (2026-10-22)
+- **Phiên bản:** 0.5.38 (2026-10-22)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -71,6 +71,7 @@
 | 0.5.35 | 2026-10-19 | TV1-07 (cập nhật theo ADR 0003): trang Cài đặt hiện **tên đăng nhập** thay mã người dùng (§4.7); `account.user` lưu từ bản cũ chưa có `username` thì hiện `userId` (tài khoản cũ có username = id), cùng luật với màn hình Tổ chức (`client/src/accountDisplay.ts`) |
 | 0.5.36 | 2026-10-19 | TV1-12 phần a1: mọi hộp hỏi xác nhận trong PWA là hộp trong app `ConfirmDialog` (Đăng xuất, đổi vai trò/rút thành viên, Tải lại khi đang nhập phiếu, Xoá khỏi máy ở banner dự án đã rời; trước đây `window.confirm`), nút xác nhận đỏ chỉ cho việc mất dữ liệu/quyền (§4.3, §4.7); hộp Xoá phiếu đóng hẳn khi phiếu thành xung đột (§5.7); chữ "Chỉ giám sát viên và Owner…" ở builder, lưu form, xuất; nút Xuất JSON khi bị từ chối đổi tài khoản báo kết quả (§4.7); bỏ dòng 🕘 Màn hình Thành viên "thêm bằng `userId`" (đã thay ở TV1-08) |
 | 0.5.37 | 2026-10-22 | Ghi lại spec cho đúng code: bỏ đoạn 🕘 và nhãn 🆕 của phần ADR 0003 đã có code (§1, §2, §3, §4.6, §4.7, §5.5, §6.1, §7, §7.1 bỏ `last_supervisor`, §9, §10.1, §13–§15; chỉ còn 🆕 ở A3/TV2-17); §3 cấu trúc mã nguồn hết "Chưa có"; §8 cảnh báo sau 5 lần retry đã có code, `401` ghi đúng hành vi hiện tại; §10.1 T5 đã có test (`isolation.test.ts`); §12 token demo. Thêm [tech-debt.md](tech-debt.md) (sổ nợ kỹ thuật, Lecture 05), trỏ từ §3, §8, §12, §13; [deploy.md](deploy.md) thêm "Quay lại bản trước" và tín hiệu sau deploy |
+| 0.5.38 | 2026-10-22 | Bổ sung phần yêu cầu theo Lecture 03, không đổi hành vi: §1 thêm vấn đề, kết quả mong muốn K1–K4, giả định, cột MoSCoW cho bảng phạm vi; §2 thêm bên liên quan không dùng app, bảng mâu thuẫn giữa các bên, nhánh phụ của kịch bản; §11.2 ghi nguồn chỉ tiêu; thêm §11.3 khả năng tiếp cận, §11.4 kịch bản chất lượng 6 phần. Thêm [requirements.md](requirements.md): 12 user story có Given/When/Then và bảng truy vết story → test → ticket/PR |
 
 ## Mục lục
 
@@ -94,22 +95,42 @@
 
 ## 1. Mục tiêu và phạm vi
 
+**Vấn đề** (nói không kèm công nghệ): các nhóm khảo sát thực địa (y tế, nông nghiệp, giáo dục, ...) thu thập phiếu ở nơi sóng yếu hoặc không có mạng. Ghi giấy hay bảng tính rời thì phải nhập lại, dễ thất lạc hoặc trùng phiếu; khi người giám sát sửa một phiếu mà người đi thu thập cũng đang sửa thì không ai biết bản nào đúng. Hậu quả: chậm có dữ liệu, mất phiếu, số liệu sai mà không ai hay.
+
+**Kết quả mong muốn** (story và test tương ứng ở [requirements.md](requirements.md)):
+
+| Mã | Kết quả | Đo bằng |
+|---|---|---|
+| K1 | Không mất phiếu: mọi phiếu đã lưu trên máy lên server đúng một lần, kể cả khi mạng hoặc server lỗi | Số phiếu trên server bằng số phiếu đã lưu, không trùng (O2, R1–R4) |
+| K2 | Không ghi đè âm thầm: hai nơi cùng sửa một trường thì người dùng thấy và tự chọn | Không trường nào bị thay mà người dùng không được hỏi (C2, C4, C5, C8) |
+| K3 | Không phải nhập lại: giám sát viên lấy được dữ liệu dạng bảng ngay từ app | Xuất CSV mở được bằng Excel, đủ phiếu (§4.6) |
+| K4 | Không lẫn dữ liệu giữa các tổ chức, kể cả với người vận hành app | Không route nào trả dữ liệu cho người ngoài tổ chức (T1–T5, Q7) |
+
+**Giả định** (chưa có bằng chứng; Lecture 03 yêu cầu ghi rõ):
+- Chưa phỏng vấn hay thử với nhóm khảo sát thật (§14 câu 1). Người dùng, nhu cầu và mâu thuẫn ở §2 là giả định của nhóm; `demo-yte`, `demo-nongnghiep` là dự án mẫu tự đặt.
+- Chưa có số liệu quy trình hiện tại (thời gian nhập lại, tỉ lệ mất phiếu) nên K1–K4 đo bằng test chứ chưa so được với trước.
+- Chỉ tiêu §11.2 là mục tiêu nhóm tự đặt theo thiết bị tham chiếu, chưa đo (TV2-11).
+- **Giả định rủi ro nhất:** điện thoại giữ được dữ liệu trong trình duyệt nhiều ngày khi offline (iOS có thể xoá, §13) và điều tra viên chịu dùng PWA thay app native. Bằng chứng đã có: 3 thành viên cài và chạy offline trên Android và iPhone thật (TV1-01). Bằng chứng còn thiếu: một đợt thử thật nhiều ngày.
+
 **Mục tiêu:** một hệ thống dùng chung cho **nhiều nhóm thuộc các tổ chức khác nhau** (y tế, nông nghiệp, giáo dục, ...). Mỗi nhóm tự tạo form cho lĩnh vực của mình; điều tra viên thu thập phiếu ở nơi không có mạng, dữ liệu tự đồng bộ khi có kết nối, và khi hai nơi cùng sửa một phiếu thì hệ thống giải thích rõ chuyện gì xảy ra để người dùng tự quyết. Dữ liệu của các nhóm tách biệt hoàn toàn (ADR 0002).
 
 **Trong phạm vi (MVP)**
 
-| Nhóm chức năng | Nội dung |
-|---|---|
-| Dự án và thành viên | Mỗi nhóm là một dự án (tổ chức) có form, phiếu, ảnh và thành viên riêng. Một người thuộc được nhiều dự án với vai trò khác nhau; đổi dự án ngay trong app, kể cả khi offline. |
-| Tài khoản và tổ chức | Tự tạo tài khoản (tên + mật khẩu); gửi yêu cầu mở tổ chức, admin duyệt, người gửi thành Owner; tổ chức công khai hiện tên trong danh sách; trang quản trị riêng cho admin (ADR 0003). |
-| Form builder | Tạo/sửa form với 7 loại trường: text, number, select, multiselect, date, photo, gps. Form có phiên bản, thuộc một dự án. |
-| Offline storage | Form, phiếu, ảnh, hàng đợi đồng bộ trong IndexedDB (Dexie). App shell được service worker precache. |
-| Sync queue | Outbox bền vững, retry với exponential backoff, idempotency key. |
-| Attachments | Nén ảnh ở client, upload theo chunk, tiếp tục khi mất mạng giữa chừng. |
-| Conflict UI | Merge theo trường, hiển thị ai sửa, lúc nào, giá trị gốc/của bạn/trên máy chủ. |
-| Export | CSV (UTF-8 có BOM) và JSON theo từng dự án; ảnh xuất dạng URL. |
+Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công dưới đây; **Should** giá trị cao nhưng có cách làm thay; **Could** cắt được nếu trễ (theo thứ tự cắt trong [team-plan](team-plan.md#lộ-trình)); **Won't** là "Ngoài phạm vi".
 
-**Ngoài phạm vi:** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, builder kéo thả (dùng nút lên/xuống), so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
+| Nhóm chức năng | Nội dung | Mức |
+|---|---|---|
+| Dự án và thành viên | Mỗi nhóm là một dự án (tổ chức) có form, phiếu, ảnh và thành viên riêng. Một người thuộc được nhiều dự án với vai trò khác nhau; đổi dự án ngay trong app, kể cả khi offline. | Must |
+| Tài khoản và tổ chức | Tự tạo tài khoản (tên + mật khẩu); gửi yêu cầu mở tổ chức, admin duyệt, người gửi thành Owner; tổ chức công khai hiện tên trong danh sách; trang quản trị riêng cho admin (ADR 0003). | Must; màn hình A3 Tài khoản: Could (CLI làm thay) |
+| Form builder | Tạo/sửa form với 7 loại trường: text, number, select, multiselect, date, photo, gps. Form có phiên bản, thuộc một dự án. | Must; xuất/nhập form JSON: Could |
+| Offline storage | Form, phiếu, ảnh, hàng đợi đồng bộ trong IndexedDB (Dexie). App shell được service worker precache. | Must |
+| Sync queue | Outbox bền vững, retry với exponential backoff, idempotency key. | Must |
+| Attachments | Nén ảnh ở client, upload theo chunk, tiếp tục khi mất mạng giữa chừng. | Must |
+| Conflict UI | Merge theo trường, hiển thị ai sửa, lúc nào, giá trị gốc/của bạn/trên máy chủ. | Must; "Gộp cả hai" cho multiselect: Could |
+| Export | CSV (UTF-8 có BOM) và JSON theo từng dự án; ảnh xuất dạng URL. | Must (CSV), Should (JSON) |
+| Đo hiệu năng (§11.2) | Đo các chỉ tiêu trên bộ dữ liệu mẫu. | Should (pull 2.000 phiếu); đo đầy đủ: Could |
+
+**Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, builder kéo thả (dùng nút lên/xuống), so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
 
 **Tiêu chí thành công (dùng để demo tuần 8)**
 - Hai dự án mẫu (`demo-yte`, `demo-nongnghiep`) với form khác nhau; một người là điều tra viên ở dự án này và giám sát viên ở dự án kia, đổi qua lại khi offline, không thấy lẫn dữ liệu.
@@ -129,6 +150,19 @@
 
 Thứ hạng trong tổ chức: `surveyor < supervisor < owner`. Một tài khoản thuộc được nhiều tổ chức với vai trò khác nhau. Surveyor, supervisor, Owner dùng PWA khảo sát; **admin dùng trang quản trị riêng `/admin/`** (§4.9), không đăng nhập được vào PWA.
 
+**Bên liên quan không dùng app:** người được khảo sát (hộ dân, bệnh nhân, ...) có tên, vị trí GPS, ảnh nằm trong phiếu nhưng không có tài khoản; nhóm phát triển vận hành staging và giữ bản sao lưu.
+
+**Mâu thuẫn giữa các bên** (giả định, §1) và cách spec giải quyết. Mâu thuẫn là thông tin yêu cầu, không phải chuyện để AI hay một người tự chọn:
+
+| Mâu thuẫn | Giữa | Cách giải quyết |
+|---|---|---|
+| Lưu nhanh dù phiếu chưa đủ ↔ chỉ nhận phiếu đủ trường | Điều tra viên ↔ giám sát viên | Phiếu chưa hợp lệ lưu thành nháp, không lên server (§4.1, §5.1) |
+| Ai sửa sau thì thắng ↔ không mất phần mình đã sửa | Điều tra viên ↔ giám sát viên | Khác trường tự gộp, cùng trường hỏi người dùng; máy không tự chọn (ADR 0001) |
+| Giám sát viên muốn mọi phiếu trên điện thoại ↔ riêng tư của người được khảo sát, dung lượng máy | Giám sát viên ↔ người được khảo sát, điều tra viên | Điều tra viên chỉ tải phiếu mình tạo (§5.5) |
+| Sửa form giữa đợt khảo sát ↔ phiếu cũ phải mở được | Giám sát viên ↔ điều tra viên | Form có phiên bản, chỉ được thêm hoặc ẩn trường (§4.1) |
+| Owner sở hữu và giữ kín dữ liệu ↔ người vận hành cần hỗ trợ khi mất tài khoản | Owner ↔ admin | Admin không là thành viên, không xem dữ liệu; chỉ duyệt, khoá, chỉ định Owner (ADR 0003) |
+| Đăng xuất hoặc đổi người dùng ngay ↔ không mất phiếu chưa gửi | Người dùng chung máy | Chặn khi còn dữ liệu chưa gửi, cho Xuất JSON (§4.7) |
+
 **Kịch bản**
 0. *Mở tổ chức mới:* khách hàng tự tạo tài khoản trên app, gửi yêu cầu mở tổ chức; admin duyệt ở trang quản trị; khách hàng thành Owner, thêm giám sát viên và điều tra viên bằng tên đăng nhập của họ (họ cũng tự tạo tài khoản).
 1. *Chuẩn bị:* giám sát viên tạo form. Điều tra viên đăng nhập bằng tên + mật khẩu, mở app khi có Wi-Fi, app tải danh sách tổ chức và form, cài lên màn hình chính.
@@ -136,6 +170,20 @@ Thứ hạng trong tổ chức: `surveyor < supervisor < owner`. Một tài kho�
 3. *Về vùng có mạng:* app tự đồng bộ; nhãn đổi thành "Đã đồng bộ" khi cả phiếu và ảnh đã lên. Nếu giám sát viên đã sửa cùng phiếu, phiếu hiện "Cần xử lý xung đột".
 4. *Xử lý xung đột:* màn hình liệt kê trường bị sửa ở cả hai nơi, người sửa và thời điểm; điều tra viên chọn giá trị giữ lại.
 5. *Tổng hợp:* giám sát viên xuất CSV.
+
+**Nhánh phụ** (chi tiết ở §8 và các mục được trỏ):
+- 2a. Phiếu thiếu trường bắt buộc: lưu thành "Nháp", không đồng bộ, hiện lỗi khi mở lại (§4.1).
+- 2b. Ảnh không đọc được (vd. HEIC trên Chrome Android): báo, không lưu ảnh (§8).
+- 2c. Bộ nhớ máy đầy: không lưu ảnh mới, nhắc đồng bộ rồi dọn ảnh đã tải lên (§8).
+- 3a. Mất mạng, timeout hoặc server lỗi giữa chừng: thử lại theo backoff, không gửi trùng (§5.3, §5.4).
+- 3b. Mất mạng giữa lúc tải ảnh: lần sau chỉ gửi phần thiếu (§5.6).
+- 3c. Server từ chối phiếu (`4xx`): phiếu "Lỗi", nút "Thử lại" và "Xuất JSON phiếu này" (§8).
+- 3d. Điều tra viên đã bị rút khỏi tổ chức: banner, phiếu chưa gửi giữ trên máy, Xuất JSON (§4.7).
+- 3e. Phiên bị thu hồi (`401`): về màn hình Đăng nhập, dữ liệu trên máy giữ nguyên (§8).
+- 4a. Một bên xoá, một bên sửa: hỏi giữ hay xoá, không chọn sẵn (§4.5).
+- 4b. Máy chủ đổi tiếp trong lúc đang chọn: khác trường tự gộp, cùng trường hiện xung đột mới (§4.5).
+- 4c. Phiếu đang xung đột: chỉ đọc tới khi xử lý xong (§4.5).
+- 5a. Không có mạng: nút Xuất khoá kèm "Cần kết nối mạng để xuất" (§4.6).
 
 ## 3. Kiến trúc tổng quan
 
@@ -175,7 +223,7 @@ field-survey-pwa/
             src/db (accountDb, projectDb), src/sync (api, engine, outbox, attachments),
             src/pages, src/components, src/media; e2e/
             admin/index.html + src/admin/ (trang quản trị, không dùng Dexie/sync)
-  docs/     design.md, ui.md, team-plan.md, vibe-coding.md, tech-debt.md,
+  docs/     design.md, requirements.md, ui.md, team-plan.md, vibe-coding.md, tech-debt.md,
             adr/, plan/, deploy.md, worklog/
 ```
 
@@ -967,6 +1015,30 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 | Đổi dự án (đã tải) | ≤ 1 s, kể cả offline | Playwright |
 | Số dự án mỗi người dùng | Tối đa 10 | Thiết kế |
 | Kích thước ảnh sau nén | ≤ 600 KB | E2E `photo.spec.ts` (canvas chỉ có trong trình duyệt); unit test `fitWithin` |
+
+Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chiếu (§11.1), chưa có số đo trước để so (§1 "Giả định"). Đã có số đo: kích thước ảnh, đổi dự án (`project-switcher.spec.ts`); các dòng khác đo ở TV2-11.
+
+### 11.3 Khả năng tiếp cận
+
+Điều tra viên dùng điện thoại ngoài trời, có khi một tay, nên:
+- Mọi ô nhập có nhãn gắn với ô (`<label>`); E2E chọn ô theo nhãn (CLAUDE.md), nên ô nào có E2E thì đã có nhãn.
+- Trạng thái không chỉ thể hiện bằng màu: nhãn phiếu luôn có chữ ("Nháp", "Lỗi", "Chờ đồng bộ", ...), nút xoá đỏ vẫn có chữ.
+- Chữ và nền đạt độ tương phản tối thiểu 4,5:1 (WCAG 2.1 AA); nút đủ lớn để bấm bằng ngón tay (khoảng 44×44 px).
+- Dùng được bằng bàn phím trên máy tính: hộp xác nhận nhận Esc = Huỷ (§4.7), thứ tự Tab theo thứ tự trên màn hình.
+
+Chưa rà hết theo các điểm trên ([tech-debt.md](tech-debt.md) N8).
+
+### 11.4 Kịch bản chất lượng
+
+Các thuộc tính chất lượng quan trọng nhất, viết theo 6 phần để kiểm chứng được (Lecture 03, 04). Mỗi kịch bản có test hoặc phép đo tương ứng.
+
+| # | Thuộc tính | Nguồn | Tác nhân | Môi trường | Thành phần | Phản hồi | Số đo | Kiểm chứng |
+|---|---|---|---|---|---|---|---|---|
+| QS1 | Tin cậy đồng bộ | Điện thoại điều tra viên | Gửi phiếu; server trả 500, giữ request quá 10 s, hoặc cắt kết nối sau khi đã ghi | Mạng chập chờn | Outbox, `PUT P/records/:id`, bảng `idempotency` | Thử lại với cùng `opId`; server trả lại kết quả đã lưu | Mỗi phiếu đúng một bản trên server, version 1; 0 bản trùng | R1, R2, R3, O2 |
+| QS2 | Toàn vẹn khi sửa đồng thời | Điều tra viên và giám sát viên | Cùng sửa một phiếu, một bên offline | Hai thiết bị | Sync engine, `threeWayMerge` | Khác trường tự gộp; cùng trường hoặc xoá vs sửa thì hỏi, không chọn sẵn | 0 trường bị thay mà người dùng không được hỏi | C1, C2, C4, C5, C8 |
+| QS3 | Cách ly dữ liệu | Thành viên tổ chức A, hoặc admin | Gọi mọi route theo dự án của tổ chức B | Bình thường | `requireMember`, lớp `repo` theo `ctx` | Từ chối; id thuộc tổ chức khác trả `404` | 0 route trả `2xx` | T1–T5, Q7 |
+| QS4 | Hiệu năng mở offline | Điều tra viên | Mở app đã cài | Không có mạng, máy tầm trung (CPU throttle 4×) | Service worker, IndexedDB | Hiện danh sách phiếu, nhập được | ≤ 3 s | Chưa đo (TV2-11) |
+| QS5 | Khôi phục được | Người vận hành | Bản deploy mới làm hỏng việc chính | Staging | `deploy.sh`, bản sao lưu CSDL | Quay lại bản trước theo [deploy.md](deploy.md) "Quay lại bản trước" | Chưa đặt mục tiêu thời gian; đo ở lần diễn tập đầu | Chưa diễn tập ([tech-debt.md](tech-debt.md) N3) |
 
 ## 12. Triển khai
 
