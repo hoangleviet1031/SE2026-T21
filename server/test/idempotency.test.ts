@@ -4,7 +4,7 @@ import type { Server } from 'node:http';
 import { openDb, type Db } from '../src/db';
 import { createApp } from '../src/app';
 import { deleteExpiredKeys } from '../src/repo/idempotency';
-import { DEMO_PROJECTS, DEMO_TOKENS, seedDemo } from '../src/seedDemo';
+import { DEMO_PASSWORD, DEMO_PROJECTS, seedDemo } from '../src/seedDemo';
 
 // Dọn key idempotency sau 30 ngày (ADR 0001 quy tắc 3) và fault `drop` cắt kết nối SAU khi ghi
 // (design §10.1, R3). Server bật route kiểm thử để tiêm lỗi.
@@ -12,6 +12,7 @@ import { DEMO_PROJECTS, DEMO_TOKENS, seedDemo } from '../src/seedDemo';
 let db: Db;
 let server: Server;
 let base: string;
+let minhToken: string;
 
 beforeAll(async () => {
   db = openDb(':memory:');
@@ -19,13 +20,20 @@ beforeAll(async () => {
   server = createApp(db, { enableTestRoutes: true }).listen(0);
   await new Promise((r) => server.once('listening', r));
   base = `http://localhost:${(server.address() as AddressInfo).port}`;
+  // Token lấy bằng đăng nhập thật: seed không còn tạo phiên token cố định (tech-debt N7)
+  const res = await fetch(`${base}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'minh', password: DEMO_PASSWORD }),
+  });
+  minhToken = ((await res.json()) as { token: string }).token;
 });
 afterAll(() => server.close());
 
 function push(id: string, key: string) {
   return fetch(`${base}/api/projects/${DEMO_PROJECTS.yte}/records/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${DEMO_TOKENS.minh}`, 'Idempotency-Key': key },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${minhToken}`, 'Idempotency-Key': key },
     body: JSON.stringify({
       formId: 'household-survey',
       formVersion: 1,
