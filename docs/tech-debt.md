@@ -23,7 +23,6 @@ Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](pla
 |---|---|---|---|---|---|---|
 | N1 | Server không ghi log request, log không có cấu trúc | `server/src/index.ts` chỉ có 3 dòng `console.log` lúc khởi động và dọn dữ liệu; `journalctl -u survey-api` không cho biết request nào lỗi, của ai, mất bao lâu ([deploy.md](deploy.md) "Xem log") | Sự cố trên staging phải đoán; không có số liệu sau deploy (tỉ lệ 5xx) | TV2-19 (phần log, Could), tuần 5–6 | Hoàng | Vừa |
 | N2 | Chưa sao lưu hằng ngày; ảnh chưa nằm trong bản sao lưu | [deploy.md](deploy.md) "Việc chưa làm": chỉ sao lưu CSDL lúc `deploy.sh` chạy; `UPLOAD_DIR` chưa đưa ra ngoài repo | Hỏng đĩa hoặc lỡ tay giữa hai lần deploy thì mất phiếu và ảnh đã nhận | TV3-13 (script, tuần 4), Dương bật trên staging ở TV1-19 | Đại + Dương | **Cao** |
-| N3 | Chưa diễn tập quay lại bản trước | [deploy.md](deploy.md) "Quay lại bản trước" mới viết, chưa chạy thử lần nào | Deploy lỗi lúc gần demo thì không biết mất bao lâu để phục hồi | TV1-19, tuần 5–6 (trước đóng băng giữa tuần 7) | Dương | Vừa |
 | N6 | Danh sách phiếu chưa lọc theo người tạo, chưa có ô tìm kiếm | [design.md §4.8](design.md#48-danh-sách-phiếu): "Lọc theo người tạo và ô tìm kiếm: chưa có code"; `createdBy` đã có từ TV1-17 | Supervisor khó tìm phiếu khi dự án có nhiều người | TV2-18 (Could), tuần 5–6, trễ thì cắt | Hoàng | Thấp |
 | N8 | Chưa có yêu cầu và chưa kiểm khả năng tiếp cận | [design.md §11.3](design.md#113-khả-năng-tiếp-cận) mới thêm; chưa có E2E nào kiểm nhãn ô nhập hay độ tương phản | Ngoài trời nắng khó đọc; người dùng trình đọc màn hình không dùng được | TV3-15 rà và ghi (Could, tuần 5–6); sửa UI trong TV1-12 (b) | Đại + Dương | Thấp |
 
@@ -34,4 +33,5 @@ Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](pla
 | N7 | `seed:demo` vẫn tạo phiên token cố định `demo-token-<tên>` | Seed bỏ token cố định, xoá phiên token cũ trong DB dev; E2E lấy token bằng đăng nhập (`client/e2e/global-setup.ts`), test server đăng nhập qua API (nhánh `fix/n7-demo-tokens`) |
 | N4 | `ui.md` còn nhãn 🆕/🕘 của phần đã có code | ui 0.2.15: bỏ nhãn ở màn hình 5, 7 và trang quản trị A1–A2; A3 ghi "chưa có code" (PR #62) |
 | N5 | `401` trong PWA không hiện "Phiên đăng nhập hết hạn, đăng nhập lại" | design 0.5.42: `api.ts` gặp `401` gọi `expireSession` (xoá token, ghi `sessionExpired`), màn hình Đăng nhập hiện câu; E2E `api-errors.spec.ts` (PR #62) |
+| N3 | Chưa diễn tập quay lại bản trước | Diễn tập 2026-10-22 trên staging theo `deploy.md` nhánh 2a: 19 s quay lại, 21 s quay về `main`; `deploy.md` thêm vòng chờ health và `git switch main` (design 0.5.43 QS5, PR #64) |
 | – | Tài liệu design.md còn đoạn 🕘 và nhãn 🆕 của phần đã có code (§2, §3, §4.7, §8, §9, §10.1, §12–§15) | design 0.5.37 |

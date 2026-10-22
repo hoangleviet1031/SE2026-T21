@@ -339,7 +339,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-m
 
 ## TV1-19 · Vận hành staging: gỡ IP, diễn tập quay lại bản trước, sao lưu hằng ngày
 
-- **Trạng thái:** ⏳ phần 1 ✅ PR #63 (gỡ IP); N3 + QS5, sao lưu hằng ngày chưa
+- **Trạng thái:** ⏳ phần 1 ✅ PR #63 (gỡ IP); phần 2 ✅ PR #64 (diễn tập N3, đo QS5); sao lưu hằng ngày chờ TV3-13
 - **Mức:** Should
 - **Tuần:** 4 (gỡ IP), 5–6 (diễn tập N3, đo QS5; xong trước đóng băng giữa tuần 7) · **Phụ thuộc:** TV3-13 (phần chạy sao lưu hằng ngày)
 - **Spec:** [deploy.md](../deploy.md) "Quay lại bản trước", "Việc chưa làm"; design §11.4 (QS5), §12; [tech-debt](../tech-debt.md) N2, N3
