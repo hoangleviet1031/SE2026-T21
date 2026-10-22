@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { downloadBlob } from '../download';
-import { apiFailureText } from '../apiErrors';
+import { SERVER_ERROR_MSG, apiFailureText } from '../apiErrors';
 import { ExportError, apiFailure, downloadExport, type ExportFormat } from '../sync/api';
 import { useOnline } from '../useOnline';
 
@@ -26,7 +26,8 @@ export function ExportButtons({ projectId, formId }: { projectId: string; formId
       const failure = apiFailure(e);
       if (failure) setError(apiFailureText(failure, 'Không kết nối được máy chủ, thử lại sau'));
       else if (e instanceof ExportError) {
-        setError(e.code === 'forbidden' ? 'Chỉ giám sát viên và Owner được xuất dữ liệu' : `Xuất thất bại (mã ${e.status})`);
+        // Mã màn hình không xử lý (vd. 404 khi form vừa bị xoá) báo câu chung, không hiện mã HTTP (design §8)
+        setError(e.code === 'forbidden' ? 'Chỉ giám sát viên và Owner được xuất dữ liệu' : SERVER_ERROR_MSG);
       } else throw e;
     } finally {
       setBusy(false);
