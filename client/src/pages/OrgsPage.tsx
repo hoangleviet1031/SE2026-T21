@@ -4,17 +4,19 @@ import type { DirectoryEntry, MeResponse, ProjectRequest } from '@field-survey/s
 import { accountUsername } from '../accountDisplay';
 import { getAccountValue } from '../db/accountDb';
 import { ORG_ERROR_TEXT, ORG_OFFLINE_MSG, orgRequestBody, requestStatusText, sortRequests } from '../orgs';
-import { NetworkError, cancelProjectRequest, fetchDirectory, listMyProjectRequests, requestProject } from '../sync/api';
+import { apiFailureText } from '../apiErrors';
+import { apiFailure, cancelProjectRequest, fetchDirectory, listMyProjectRequests, requestProject } from '../sync/api';
 import { useOnline } from '../useOnline';
 
 // Màn hình Tổ chức (ui.md màn hình 9, design §4.7). Cần mạng: gọi API thẳng, không qua IndexedDB
 // (CLAUDE.md bất biến 7 cho phép). Không có nút xin vào tổ chức: muốn vào thì gửi tên đăng nhập cho
 // giám sát viên. Yêu cầu được duyệt thì tổ chức hiện trong bộ chọn sau vòng đồng bộ kế tiếp.
 
-/** Lỗi gọi API thành câu hiển thị; lỗi khác (lỗi lập trình, 5xx) ném tiếp. */
+/** Lỗi gọi API thành câu hiển thị (mất mạng, 5xx, 401); lỗi lập trình ném tiếp. */
 function failureText(err: unknown): string {
-  if (err instanceof NetworkError) return ORG_OFFLINE_MSG;
-  throw err;
+  const failure = apiFailure(err);
+  if (!failure) throw err;
+  return apiFailureText(failure, ORG_OFFLINE_MSG);
 }
 
 /**

@@ -23,7 +23,8 @@ import { formFileName, formFileText, parseFormFile } from '../formFile';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { formKey, type ProjectDb } from '../db/projectDb';
 import { canManageProject } from '../projects';
-import { NetworkError, saveForm } from '../sync/api';
+import { apiFailureText } from '../apiErrors';
+import { apiFailure, saveForm } from '../sync/api';
 import { navigate } from '../useHashRoute';
 
 const OFFLINE_MSG = 'Cần kết nối để lưu form';
@@ -96,8 +97,10 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
       await db.forms.put({ ...result.form, key: formKey(result.form.id, result.form.version) });
       navigate();
     } catch (err) {
-      if (err instanceof NetworkError) return setErrors([OFFLINE_MSG]);
-      throw err;
+      // Mất mạng, 5xx, 401, không còn thành viên: báo rồi giữ nguyên phần đang sửa để bấm Lưu lại
+      const failure = apiFailure(err);
+      if (!failure) throw err;
+      setErrors([apiFailureText(failure, OFFLINE_MSG)]);
     } finally {
       setSaving(false);
     }

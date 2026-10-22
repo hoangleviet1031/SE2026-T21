@@ -1,4 +1,8 @@
 import { useState, type FormEvent } from 'react';
+import Dexie from 'dexie';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { SESSION_EXPIRED_MSG } from '../apiErrors';
+import { isSessionExpired } from '../auth';
 import { useOnline } from '../useOnline';
 import { syncNow } from '../sync/engine';
 import { AccountError, AdminAccountError, NetworkError } from '../sync/api';
@@ -21,6 +25,8 @@ type Problem = { kind: 'text'; text: string } | { kind: 'admin' } | { kind: 'blo
 // mạng: server cấp phiên, và signIn.ts phải biết người dùng là ai trước khi lưu token.
 export function LoginPage() {
   const online = useOnline();
+  // Bị đẩy về đây vì server từ chối token (401): báo lý do tới khi đăng nhập lại (design §8)
+  const expired = useLiveQuery(isSessionExpired, []);
   const [tab, setTab] = useState<Tab>('login');
   const [username, setUsername] = useState('');
   const [name, setName] = useState('');
@@ -36,7 +42,9 @@ export function LoginPage() {
     try {
       setExportNote(exportResultText(await downloadUnsentOnDevice()));
     } catch (err) {
-      // Chỉ đọc dữ liệu trên máy để tải file, không xoá gì: báo cho người dùng bấm lại, ghi lỗi để tra
+      // Lỗi đọc IndexedDB: chỉ đọc để tải file, không xoá gì, nên báo cho người dùng bấm lại và ghi lỗi
+      // để tra. Lỗi khác là lỗi lập trình, ném tiếp
+      if (!(err instanceof Dexie.DexieError)) throw err;
       console.error('xuất JSON lỗi', err);
       setExportNote(EXPORT_FAILED_MSG);
     }
@@ -135,6 +143,7 @@ export function LoginPage() {
       <button type="submit" disabled={busy || !ready}>
         {tab === 'login' ? 'Tiếp tục' : 'Tạo tài khoản'}
       </button>
+      {expired && !problem && <p data-testid="session-expired">⚠ {SESSION_EXPIRED_MSG}</p>}
       {shown?.kind === 'text' && <p role="alert">⚠ {shown.text}</p>}
       {shown?.kind === 'admin' && (
         <p role="alert">
