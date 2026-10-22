@@ -13,6 +13,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 | **Lõi** | Chạm bất biến trong CLAUDE.md. Viết test trước, ghi rõ trong PR (team-plan "Quy trình làm việc") |
 | **Người làm** | Không giao AI viết; AI chỉ gợi ý |
 | **Cắt được** | Bỏ được nếu trễ (team-plan, thứ tự cắt) |
+| **Mức** | Dòng trong ticket: Must / Should / Could theo bảng MoSCoW ở [design §1](../design.md#1-mục-tiêu-và-phạm-vi). Ticket Could có thêm nhãn **Cắt được** |
 
 ## Cách đánh dấu tiến độ
 
@@ -34,11 +35,13 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | 1 | TV1-01 | TV2-01 | TV3-01 | Cả nhóm chạy được dự án, CI xanh |
 | 2 | TV1-02, TV1-03 | TV2-02, TV2-03 | TV3-02, TV3-03 | Điền phiếu trong một dự án trên điện thoại thật |
 | 3 | TV1-04, TV1-05 | TV2-04, TV2-05, TV2-06, 🆕 TV2-14, TV2-15 | TV3-04, TV3-05, 🆕 TV3-12 (cùng PR TV2-14) | Cách ly dự án có test xanh |
-| 4 | TV1-06, TV1-07, 🆕 TV1-14, TV1-15 | TV2-07, TV2-08, 🆕 TV2-16 | TV3-06 | **Giữa kỳ:** hai dự án tách biệt, offline có ảnh; 🆕 tự tạo tài khoản, mở tổ chức |
-| 5 | TV1-08, ~~TV1-09~~ 🆕 TV1-16, TV1-10, TV1-13 | TV2-09, TV2-10, TV2-13 | TV3-07 | 🆕 Trang quản trị chạy trên staging |
-| 6 | TV1-11 | TV2-11, 🆕 TV2-17 (cắt được) | TV3-08 | Mọi ca conflict và cách ly có test |
+| 4 | TV1-06, TV1-07, 🆕 TV1-14, TV1-15, ➕ TV1-19 (gỡ IP) | TV2-07, TV2-08, 🆕 TV2-16, ➕ TV2-19 (`invalid_body`) | TV3-06, ➕ TV3-13, TV3-14 | **Giữa kỳ:** hai dự án tách biệt, offline có ảnh; 🆕 tự tạo tài khoản, mở tổ chức |
+| 5 | TV1-08, ~~TV1-09~~ 🆕 TV1-16, TV1-10, TV1-13, ➕ TV1-19 (N3, QS5) | TV2-09, TV2-10, TV2-13, ➕ TV2-19 (`invalid_body`, log), TV2-18 | TV3-07, ➕ TV3-14, TV3-15 | 🆕 Trang quản trị chạy trên staging |
+| 6 | TV1-11, ➕ TV1-19 (N3, QS5) | TV2-11, 🆕 TV2-17 (cắt được), ➕ TV2-18, TV2-19 (log) | TV3-08, ➕ TV3-15 | Mọi ca conflict và cách ly có test |
 | 7 | TV1-12 | TV2-12 | TV3-09, TV3-10 | Đóng băng giữa tuần |
-| 8 | TV1-12 | TV2-12 | TV3-11 | **Cuối kỳ** |
+| 8 | TV1-12 | TV2-12 | TV3-11, ➕ TV3-16 | **Cuối kỳ** |
+
+➕ = chia thêm sau PR #59 (bảng "Chia thêm" dưới đây). Ticket Could (TV2-18, TV3-15, phần log của TV2-19) trễ thì cắt, không làm qua đóng băng giữa tuần 7.
 
 ## Trạng thái
 
@@ -55,7 +58,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-09 | ~~Màn hình Dự án cho admin~~ | ❌ Bỏ, thay bởi TV1-16 |
 | TV1-10 | `formVersion`, `hidden`, xuất/nhập form | ✅ PR #32 (phần 1), PR #33 (phần 2) |
 | TV1-11 | E2E O2, O4, T6, T10 | ✅ PR #43 |
-| TV1-12 | Hoàn thiện UI, tài liệu người dùng | ⏳ a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ); a2, (b), (c) chưa |
+| TV1-12 | Hoàn thiện UI (tài liệu người dùng → TV3-16, rà khả năng tiếp cận → TV3-15) | ⏳ a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ); a2, (b) chưa |
 | TV1-13 | Nút xoá phiếu + hộp xác nhận | ✅ PR #42 · chưa ẩn nút theo người tạo (thiếu `createdBy`) |
 | TV2-01 | Migration + schema multi-tenancy | ✅ PR #8 (chung với TV2-02, TV2-03, TV3-02) |
 | TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ PR #8 · `requireAuth` đã đổi sang `sessions` ở TV2-14 |
@@ -95,6 +98,20 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | ✅ PR #55 (khung), PR #56 (A1, A2); A3 lượt riêng sau #51 |
 | TV1-17 | Tên người tạo/sửa trong `ServerRecord`; ẩn Xoá với surveyor theo người tạo | Phần bỏ của TV1-13 | ✅ PR #44 (phần 1: shared + server), PR #45 (phần 2: client) |
 | TV3-12 | CLI, fixture, helper E2E theo tài khoản mới | Phần CLI/helper của TV3-02 | ✅ PR #36 |
+
+### Chia thêm sau PR #59 (nhóm chốt 2026-10-22)
+
+Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mục-tiêu-và-phạm-vi)) và nợ ở [tech-debt.md](../tech-debt.md). Không dùng số TV1-18.
+
+| Ticket | Tên | Mức | Nợ trả | Trạng thái |
+|---|---|---|---|---|
+| TV1-19 | Vận hành staging: gỡ IP, diễn tập quay lại bản trước (QS5), bật sao lưu hằng ngày | Should | N3 (cùng TV3-13: N2) | — |
+| TV2-18 | Danh sách phiếu: tìm kiếm, lọc theo người tạo, 2.000 phiếu · **Cắt được** | Could | N6 | — |
+| TV2-19 | Thân JSON hỏng trả `invalid_body`; log request | Should; log: Could | N1 | — |
+| TV3-13 | Sao lưu hằng ngày, `UPLOAD_DIR` ngoài repo | Must | N2 | — |
+| TV3-14 | E2E lấy GPS (US-03), điều tra viên thấy form sau đồng bộ (US-07) | Must | – | — |
+| TV3-15 | Rà khả năng tiếp cận · **Cắt được** | Could | N8 | — |
+| TV3-16 | Tài liệu người dùng (chuyển từ TV1-12) | Must | – | — |
 
 ## Phụ thuộc quan trọng
 

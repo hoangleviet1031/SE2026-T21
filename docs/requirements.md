@@ -135,7 +135,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
 | US-03 | Ảnh sau nén ≤ 600 KB | `photo.spec.ts`; unit `fitWithin` (`client/src/media/compress.test.ts`) | TV3-03 (#31) |
-| US-03 | Lấy GPS khi offline | Unit luật `gps` trong `recordValidation.test.ts`. **Chưa có E2E bấm lấy GPS** | TV1-05 |
+| US-03 | Lấy GPS khi offline | Unit luật `gps` trong `recordValidation.test.ts`. **Chưa có E2E bấm lấy GPS** | TV1-05; E2E: TV3-14 |
 | US-04 | 500 hai lần → một bản ghi | R1 `offline.spec.ts` | TV2-09 (#16) |
 | US-04 | Cắt kết nối sau khi ghi → replay | R3 `server/test/idempotency.test.ts`, `retry.spec.ts`; R2 timeout `retry.spec.ts`; R6 `records.test.ts` | TV2-08 (#15) |
 | US-04 | Hai tab không gửi trùng | O6 `tabs.spec.ts` | TV2-06 (#13) |
@@ -148,7 +148,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-06 | Xoá phiếu đã đồng bộ → tombstone | O8 `delete.spec.ts` | TV2-13 (#35) |
 | US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts` | TV3-08 (#47) |
 | US-06 | Điều tra viên không xoá phiếu người khác | `record-owner.spec.ts` | TV1-17 (#44, #45) |
-| US-07 | Tạo form 7 loại trường | `builder.spec.ts`; A5 `forms.test.ts`. **Chưa có E2E "điều tra viên thấy form sau vòng đồng bộ"** (builder.spec kiểm ở chính máy giám sát viên) | TV1-03 (#19), TV1-04 (#24) |
+| US-07 | Tạo form 7 loại trường | `builder.spec.ts`; A5 `forms.test.ts`. **Chưa có E2E "điều tra viên thấy form sau vòng đồng bộ"** (builder.spec kiểm ở chính máy giám sát viên) | TV1-03 (#19), TV1-04 (#24); E2E: TV3-14 |
 | US-07 | Sửa form lên version mới, phiếu cũ mở bằng version cũ | `builder.spec.ts`, `form-version.spec.ts` | TV1-04 (#24), TV1-10 (#32) |
 | US-07 | Đổi `type`/bỏ trường → `400 invalid_form` | `server/test/forms.test.ts`; unit `formValidation.test.ts` | TV1-03 (#19) |
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |

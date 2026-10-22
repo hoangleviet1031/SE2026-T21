@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.40 (2026-10-22)
+- **Phiên bản:** 0.5.41 (2026-10-22)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -74,6 +74,7 @@
 | 0.5.38 | 2026-10-22 | Bổ sung phần yêu cầu theo Lecture 03, không đổi hành vi: §1 thêm vấn đề, kết quả mong muốn K1–K4, giả định, cột MoSCoW cho bảng phạm vi; §2 thêm bên liên quan không dùng app, bảng mâu thuẫn giữa các bên, nhánh phụ của kịch bản; §11.2 ghi nguồn chỉ tiêu; thêm §11.3 khả năng tiếp cận, §11.4 kịch bản chất lượng 6 phần. Thêm [requirements.md](requirements.md): 12 user story có Given/When/Then và bảng truy vết story → test → ticket/PR |
 | 0.5.39 | 2026-10-22 | Bổ sung phần kiến trúc theo Lecture 04, không đổi hành vi: §3.1 kiểu kiến trúc (modular monolith, local-first) và phương án đã loại; §3.2 góc nhìn module và quy tắc phụ thuộc; §3.3 góc nhìn chạy (vòng đồng bộ); §3.4 góc nhìn triển khai; §6.3 ai sở hữu dữ liệu nào; §12 log và theo dõi. team-plan: quy trình theo cách nhóm đang làm (tự merge, không demo hằng tuần) và 3 vai (gộp 4 vai của Lecture 02 cho nhóm 3 người); vibe-coding: bằng chứng dùng AI ghi trong PR thay `Assisted-by:`, thêm 2 câu checklist |
 | 0.5.40 | 2026-10-22 | Trả nợ N7: `seed:demo` không tạo phiên token cố định nữa và xoá phiên token demo cũ trong DB dev (§12); E2E lấy token bằng đăng nhập trong `client/e2e/global-setup.ts` |
+| 0.5.41 | 2026-10-22 | Chia việc chưa ai nhận theo MVP, không đổi hành vi: §1 bảng phạm vi thêm Danh sách phiếu (§4.8), Khả năng tiếp cận (§11.3), Log (§12), Vận hành staging kèm mức MoSCoW và ticket mới (TV1-19, TV2-18, TV2-19, TV3-13…TV3-16 ở [plan/](plan/README.md)); §4.8 trỏ phần chưa có code sang TV2-18 |
 
 ## Mục lục
 
@@ -131,6 +132,10 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Conflict UI | Merge theo trường, hiển thị ai sửa, lúc nào, giá trị gốc/của bạn/trên máy chủ. | Must; "Gộp cả hai" cho multiselect: Could |
 | Export | CSV (UTF-8 có BOM) và JSON theo từng dự án; ảnh xuất dạng URL. | Must (CSV), Should (JSON) |
 | Đo hiệu năng (§11.2) | Đo các chỉ tiêu trên bộ dữ liệu mẫu. | Should (pull 2.000 phiếu); đo đầy đủ: Could |
+| Danh sách phiếu (§4.8) | Nhóm theo form, nhãn trạng thái, lọc theo trạng thái; tìm theo tiêu đề, lọc theo người tạo, 2.000 phiếu cuộn mượt. | Must (lọc theo trạng thái); tìm kiếm, lọc người tạo, 2.000 phiếu: Could (TV2-18) |
+| Khả năng tiếp cận (§11.3) | Rà nhãn ô nhập, trạng thái không chỉ bằng màu, tương phản, bàn phím. | Could (TV3-15) |
+| Log và theo dõi (§12) | Một dòng log mỗi request, không ghi token. | Could (TV2-19) |
+| Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
 **Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, builder kéo thả (dùng nút lên/xuống), so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
 
@@ -515,7 +520,7 @@ Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), kh
 - **Nhóm theo form**, mỗi form một mục có số phiếu; trong mục, phiếu sắp theo `updatedAt` cục bộ mới nhất trước.
 - **Mỗi dòng:** tiêu đề phiếu (giá trị trường `text` đầu tiên không ẩn, rỗng thì "Phiếu chưa có tên"), nhãn trạng thái hiển thị (§5.1, §5.6), giờ sửa cuối. Với `supervisor` thêm tên người tạo (`createdByName`, kèm "(đã rời dự án)" nếu cần).
 - **Bộ lọc:** trạng thái ("Tất cả", "Cần xử lý", "Chưa đồng bộ", "Nháp", "Lỗi"); với `supervisor` thêm lọc theo người tạo (cần `createdBy`, §6.2). Ô tìm kiếm theo tiêu đề phiếu. Bộ lọc chạy trên index `syncState` và lọc trong bộ nhớ, đủ cho 2.000 phiếu (§11.2).
-  - Có code (TV3-07, `client/src/recordFilter.ts`): lọc theo nhãn hiển thị (§5.6) chứ không theo `syncState` thô. "Cần xử lý" = xung đột, lỗi, lỗi ảnh; "Chưa đồng bộ" = chờ đồng bộ, đang tải ảnh; "Nháp"; "Lỗi" = lỗi, lỗi ảnh. Số "Cần xử lý (n)" đầu danh sách, bấm vào thì bật bộ lọc đó. Lọc theo người tạo và ô tìm kiếm: chưa có code.
+  - Có code (TV3-07, `client/src/recordFilter.ts`): lọc theo nhãn hiển thị (§5.6) chứ không theo `syncState` thô. "Cần xử lý" = xung đột, lỗi, lỗi ảnh; "Chưa đồng bộ" = chờ đồng bộ, đang tải ảnh; "Nháp"; "Lỗi" = lỗi, lỗi ảnh. Số "Cần xử lý (n)" đầu danh sách, bấm vào thì bật bộ lọc đó. Lọc theo người tạo và ô tìm kiếm: chưa có code (TV2-18).
 - **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định, **trừ khi đang `conflict`** (vd. xoá ở máy này, sửa ở máy kia): người dùng phải thấy để xử lý.
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).

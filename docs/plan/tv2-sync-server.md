@@ -314,3 +314,42 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 **Việc:** `GET /api/admin/users?q=`, `POST /api/admin/users/:id/disable | reset-password | revoke-sessions`; cùng hành vi với CLI (dùng chung hàm trong `repo/users.ts`).
 
 **Xong khi:** integration: admin làm được ba thao tác; người thường → `403`; mật khẩu tạm chỉ trả một lần, DB chỉ có hash.
+
+---
+
+# Chia thêm sau PR #59 (nhóm chốt 2026-10-22)
+
+Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-mục-tiêu-và-phạm-vi).
+
+---
+
+## TV2-18 · Danh sách phiếu: tìm kiếm, lọc theo người tạo, 2.000 phiếu · **Cắt được**
+
+- **Trạng thái:** —
+- **Mức:** Could (lọc theo trạng thái là Must, đã có ở TV3-07)
+- **Tuần:** 5–6 (trễ thì cắt, không làm qua đóng băng giữa tuần 7) · **Phụ thuộc:** TV1-17 (`createdBy`, `createdByName`), TV3-07 (`recordFilter.ts`)
+- **Spec:** design §4.8, §11.2; [tech-debt](../tech-debt.md) N6
+- **File:** `client/src/recordFilter.ts` (+ unit), `client/src/pages/HomePage.tsx`, E2E mới
+
+**Việc**
+- Ô tìm kiếm theo tiêu đề phiếu (cách lấy tiêu đề như §4.8), lọc trong bộ nhớ cùng bộ lọc trạng thái.
+- Với `supervisor`: lọc theo người tạo (`createdBy`), hiện tên người tạo trên mỗi dòng.
+- Kiểm danh sách 2.000 phiếu cuộn mượt (§4.8 "Hiệu năng"); không đạt thì chỉ render phần đang thấy, tự viết, không thêm thư viện.
+
+**Xong khi:** unit cho hàm lọc (tìm theo tiêu đề, theo người tạo, kết hợp với trạng thái); E2E supervisor lọc theo người tạo và tìm theo tiêu đề; ghi số đo 2.000 phiếu (cùng chỗ với TV2-11). N6 chuyển xuống "Đã trả".
+
+---
+
+## TV2-19 · Thân JSON hỏng trả `invalid_body`; log request
+
+- **Trạng thái:** —
+- **Mức:** Should (`invalid_body`); Could (log request, **cắt được**)
+- **Tuần:** 4–5 (`invalid_body`), 5–6 (log, trễ thì cắt) · **Phụ thuộc:** không
+- **Spec:** design §7.1, §8, §12 (log và theo dõi); [tech-debt](../tech-debt.md) N1
+- **File:** `server/src/app.ts`, `server/test/` (integration mới)
+
+**Việc**
+- Thân request không phải JSON hợp lệ: hiện `express.json` (`server/src/app.ts`) ném lỗi mà không có chỗ bắt, Express trả trang HTML. Thêm chỗ xử lý lỗi trả `400 { error: 'invalid_body' }` (mã đã có trong §7.1); lỗi khác giữ như hiện tại.
+- Log request (Could): một dòng JSON mỗi request bằng middleware trong `app.ts` (method, đường dẫn, mã trả về, thời gian, `userId`), **không ghi token** hay thân request; không thêm thư viện (§12).
+
+**Xong khi:** integration: gửi thân JSON hỏng tới một route có thân → `400 invalid_body` dạng JSON. Nếu làm log: test middleware không ghi header `Authorization`; `deploy.md` "Xem log" ghi cách đọc; N1 chuyển xuống "Đã trả".
