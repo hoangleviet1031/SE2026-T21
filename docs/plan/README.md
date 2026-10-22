@@ -10,7 +10,7 @@ Chi tiết hoá [team-plan.md](../team-plan.md) thành các ticket nhỏ (1–3 
 
 | Nhãn | Nghĩa |
 |---|---|
-| **Lõi** | Chạm bất biến trong CLAUDE.md. Viết test trước, hai người duyệt |
+| **Lõi** | Chạm bất biến trong CLAUDE.md. Viết test trước, ghi rõ trong PR (team-plan "Quy trình làm việc") |
 | **Người làm** | Không giao AI viết; AI chỉ gợi ý |
 | **Cắt được** | Bỏ được nếu trễ (team-plan, thứ tự cắt) |
 

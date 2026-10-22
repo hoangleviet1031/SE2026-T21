@@ -1,6 +1,6 @@
 # Triển khai staging
 
-Staging là bản chạy thật của `main` trên HTTPS, dùng để thử app trên điện thoại và demo cuối tuần. Ticket TV1-01, spec ở [design.md §12](design.md#12-triển-khai).
+Staging là bản chạy thật của `main` trên HTTPS, dùng để thử app trên điện thoại và demo cuối kỳ. Ticket TV1-01, spec ở [design.md §12](design.md#12-triển-khai).
 
 - **Địa chỉ:** https://se2026-t21.koreacentral.cloudapp.azure.com
 - **Người quản lý:** Dương (giữ khoá SSH, tài khoản Azure)
@@ -191,7 +191,7 @@ ssh -i "$HOME\.ssh\se2026-staging_key.pem" azureuser@se2026-t21.koreacentral.clo
 
 Lỗi ở bước nào thì script dừng và in lý do. Lỗi trước bước 4 thì server chưa khởi động lại (API vẫn là bản cũ), nhưng nếu build đã xong thì `client/dist` đã là bản mới; sửa lỗi rồi chạy lại script.
 
-Sau khi triển khai, điện thoại đã cài app nhận bản mới ở lần mở app kế tiếp có mạng: service worker đang để `registerType: 'autoUpdate'` nên tự tải bản mới và tải lại trang (TV1-07 sẽ đổi sang hỏi người dùng trước).
+Sau khi triển khai, điện thoại đã cài app thấy dải "Có phiên bản mới" ở lần mở app kế tiếp có mạng (hoặc trong vòng 60 phút nếu app đang mở); bản mới chỉ chạy khi người dùng bấm [Tải lại] (`registerType: 'prompt'`, TV1-07, design §4.3).
 
 ## Kiểm tra sau khi triển khai
 
@@ -208,8 +208,43 @@ curl.exe -s https://se2026-t21.koreacentral.cloudapp.azure.com/admin/ | Select-S
 
 Trên điện thoại:
 
-- **Android (Chrome):** mở địa chỉ staging → ⋮ → **Cài đặt và tạo lối tắt** → mở app "Khảo sát" một lần khi có mạng → bật chế độ máy bay → tắt hẳn app → mở lại: vẫn hiện màn hình nhập mã.
-- **iPhone (Safari 16.4+, không dùng Chrome):** nút Chia sẻ → **Thêm vào MH chính**, rồi làm như trên. Icon có thể chỉ là chữ cái vì chưa có icon PNG (TV1-07).
+- **Android (Chrome):** mở địa chỉ staging → ⋮ → **Cài đặt và tạo lối tắt** → mở app "Khảo sát" một lần khi có mạng → bật chế độ máy bay → tắt hẳn app → mở lại: vẫn hiện app (màn hình Đăng nhập, hoặc trang chủ nếu đã đăng nhập).
+- **iPhone (Safari 16.4+, không dùng Chrome):** nút Chia sẻ → **Thêm vào MH chính**, rồi làm như trên.
+
+**Tín hiệu cần xem trong 15 phút sau deploy** (trên máy staging):
+
+```bash
+journalctl -u survey-api --since "15 min ago" --no-pager | grep -iE "error|lỗi" | tail -20
+systemctl status survey-api --no-pager | head -5   # active (running), không restart liên tục
+```
+
+Có lỗi lặp lại, server tự khởi động lại nhiều lần, hoặc một thành viên báo không đồng bộ được trên điện thoại thì xem mục dưới. Server chưa có log theo request ([tech-debt.md](tech-debt.md) N1), nên hiện chỉ thấy lỗi server ném ra, không thấy tỉ lệ request lỗi.
+
+## Quay lại bản trước
+
+Dùng khi bản vừa deploy làm hỏng việc chính (đăng nhập, lưu hay đồng bộ phiếu) mà không sửa nhanh được. `deploy.sh` chỉ chạy trên `main`, nên quay lại làm tay. Chưa diễn tập lần nào ([tech-debt.md](tech-debt.md) N3).
+
+**1. Xem bản mới có nâng CSDL không.** Tên file sao lưu cuối cùng có commit cũ: `ls -1t ~/backup | head -1` → `survey-<ngày giờ>-<commit cũ>.db`. So `user_version` của file đó với CSDL đang chạy (lệnh `node -e` ở mục "Nâng cấp lên migration 4", đổi đường dẫn file).
+
+**2a. `user_version` không đổi: chỉ quay code, không mất dữ liệu.**
+
+```bash
+cd ~/app
+git checkout --detach <commit cũ>
+npm ci && npm run build
+sudo systemctl restart survey-api
+curl -fsS http://localhost:3001/api/health
+```
+
+Kiểm như mục "Kiểm tra sau khi triển khai". Sửa xong trên `main` thì `git switch main` rồi chạy `deploy.sh` như thường.
+
+**2b. `user_version` đã tăng: ưu tiên sửa tiến** (vá trên `main` rồi deploy lại), không quay lại. Code cũ từ chối mở CSDL mới hơn nó (`migrate` trong `server/src/db.ts` báo "CSDL ở phiên bản …, mới hơn mã nguồn"), nên muốn chạy code cũ thì phải khôi phục bản sao lưu ở mục "Sao lưu và khôi phục", và:
+- **Mất mọi phiếu, ảnh, tài khoản server đã nhận từ lúc deploy.** Điện thoại đã nhận `200` thì đã xoá op, sẽ không gửi lại.
+- **Bộ đếm `seq` lùi lại**, trong khi điện thoại đã lưu cursor lớn hơn, nên phiếu ghi sau khi khôi phục có thể không tới máy nào (design §5.5). Trước khi khởi động lại phải đặt `meta.seq` của bản khôi phục lớn hơn giá trị trong CSDL đang hỏng.
+
+Vì hai hậu quả này, chỉ làm 2b khi CSDL mới bị hỏng thật, và **hỏi cả nhóm trước** (CLAUDE.md bất biến 1: không mất dữ liệu người dùng). Giữ file CSDL đang hỏng trong `~/backup/hong/` như mục khôi phục.
+
+**3. Điện thoại:** máy đã bấm "Tải lại" lên bản mới sẽ nhận bản cũ như một bản cập nhật bình thường ở lần mở app kế tiếp (dải "Có phiên bản mới"). Dữ liệu trên máy giữ nguyên vì schema IndexedDB chỉ thêm, không bớt; nếu bản mới đã nâng schema Dexie thì báo nhóm trước khi quay lại, vì bản cũ không mở được CSDL đã nâng.
 
 ## Tài khoản
 
@@ -328,6 +363,7 @@ Dòng `ExperimentalWarning: SQLite is an experimental feature` trong log là bì
 
 ## Việc chưa làm
 
+Theo dõi ở [tech-debt.md](tech-debt.md) (N1 log, N2 sao lưu, N3 diễn tập quay lại).
+
 - **Sao lưu hằng ngày** (design §12): hiện chỉ sao lưu khi triển khai lại. Muốn đủ thì thêm cron gọi `scripts/backup-db.mjs` mỗi ngày.
 - **Ảnh:** khi có upload (TV3-05), đặt `UPLOAD_DIR` ra ngoài repo (vd. `/home/azureuser/survey-data/uploads`) và sao lưu cùng CSDL. `server/uploads/` (mặc định khi không đặt `UPLOAD_DIR`) đã có trong `.gitignore`.
-- **Icon PNG 192/512** cho iOS và Android cũ: TV1-07.
