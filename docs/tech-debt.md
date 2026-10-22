@@ -2,11 +2,12 @@
 
 Chỗ nhóm đã biết là làm tắt hoặc chưa làm, khiến việc sửa, vận hành hay kiểm chứng sau này tốn hơn. Mỗi dòng có bằng chứng trong repo, lúc phải trả và người giữ, để không thành "dọn sau" chung chung (Lecture 05: technical debt register).
 
-Không ghi vào đây việc đã có ticket trong [plan/](plan/README.md) (ví dụ đo hiệu năng là TV2-11) hay rủi ro sản phẩm ([design.md §13](design.md#13-rủi-ro-và-hạn-chế)). Chỉ ghi phần **đã chốt trong spec mà code hoặc vận hành chưa theo**, và chỗ làm tắt có chủ ý.
+Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](plan/README.md) (ví dụ đo hiệu năng là TV2-11) hay rủi ro sản phẩm ([design.md §13](design.md#13-rủi-ro-và-hạn-chế)). Chỉ ghi phần **đã chốt trong spec mà code hoặc vận hành chưa theo**, và chỗ làm tắt có chủ ý.
 
 ## Cách dùng
 
 - Thêm dòng khi làm tắt có chủ ý (ghi luôn trong PR đó) hoặc khi review thấy spec và code lệch mà ngoài phạm vi ticket.
+- Nợ được giao cho ticket mới thì giữ dòng, "Lúc phải trả" trỏ tới ticket đó.
 - Trả xong thì chuyển dòng xuống "Đã trả" kèm PR, không xoá.
 - **Ưu tiên** theo hai trục: phần đó có hay bị sửa không, và hỏng thì nặng cỡ nào. Hay sửa + hỏng nặng thì trả trước.
 
