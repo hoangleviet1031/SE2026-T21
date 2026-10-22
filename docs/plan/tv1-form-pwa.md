@@ -214,16 +214,16 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ---
 
-## TV1-12 · Hoàn thiện UI, tài liệu người dùng
+## TV1-12 · Hoàn thiện UI
 
 - **Trạng thái:** ⏳ phần a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ đã gom); a2 (trạng thái lỗi các trang gọi API), (b), (c) chưa
 - **Chia phần (a)** (Dương duyệt 2026-10-19; Dương tự thiết kế UI sau, phần (a) chỉ sửa hành vi, trạng thái, chữ): **a1** `feat/tv1-12-confirm-dialogs`: 5 `window.confirm` → `ConfirmDialog` (prop `danger`), E2E đổi theo + ca Esc; hộp Xoá phiếu đóng khi phiếu thành xung đột; chữ "…và Owner…"; Xuất JSON khi bị từ chối báo kết quả; docs chữ cũ. **a2** `feat/tv1-12-api-states`: `ServerError` ở `api.ts`, câu lỗi theo loại (mạng, 5xx, 401, không còn thành viên) ở Thành viên, Tổ chức, builder lưu form, Xuất; server từ chối thêm tài khoản bị khoá (`404 not_found`).
+- **Chuyển đi** (nhóm chốt 2026-10-22): tài liệu người dùng `docs/user-guide.md` sang **TV3-16**; rà khả năng tiếp cận (design §11.3, [tech-debt](../tech-debt.md) N8) sang **TV3-15**, chỗ cần sửa UI theo kết quả rà thì Dương làm trong (b).
 - **Tuần:** 7–8
-- **File:** `docs/user-guide.md` (mới), các trang UI
+- **File:** các trang UI
 
 **Việc**
 - Rà UI ở bề ngang 360px, chữ đúng design, trạng thái rỗng/đang tải/lỗi ở mọi trang.
-- `docs/user-guide.md`: cho điều tra viên (cài app, nhập mã, điền phiếu, xử lý xung đột, khi nào an toàn để đổi máy), giám sát viên (form, thành viên, xuất), quản trị (CLI, tạo dự án). 🆕 ADR 0003: viết theo bản mới: tạo tài khoản và đăng nhập (thay "nhập mã"); Owner (gửi yêu cầu mở tổ chức, thêm giám sát viên, công khai); admin (trang `/admin/`: duyệt yêu cầu, khoá tổ chức, CLI cho tài khoản). AI viết nháp, người sửa theo app thật, kèm ảnh chụp màn hình.
 
 ---
 
@@ -328,3 +328,27 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 - Ngoài phạm vi: danh sách phiếu §4.8 (tên người tạo, lọc theo người tạo, "(đã rời dự án)").
 
 **Xong khi:** phần 1: integration pull/PUT/409/history có tên, người tạo giữ nguyên sau khi người khác sửa, tài khoản không tìm thấy thì tên rỗng. Phần 2: màn hình xung đột hiện tên người sửa; E2E surveyor mở phiếu người khác tạo thì không có nút "Xoá phiếu", phiếu của mình thì có.
+
+---
+
+# Chia thêm sau PR #59 (nhóm chốt 2026-10-22)
+
+Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-mục-tiêu-và-phạm-vi). Không dùng số TV1-18.
+
+---
+
+## TV1-19 · Vận hành staging: gỡ IP, diễn tập quay lại bản trước, sao lưu hằng ngày
+
+- **Trạng thái:** —
+- **Mức:** Should
+- **Tuần:** 4 (gỡ IP), 5–6 (diễn tập N3, đo QS5; xong trước đóng băng giữa tuần 7) · **Phụ thuộc:** TV3-13 (phần chạy sao lưu hằng ngày)
+- **Spec:** [deploy.md](../deploy.md) "Quay lại bản trước", "Việc chưa làm"; design §11.4 (QS5), §12; [tech-debt](../tech-debt.md) N2, N3
+- **File:** `docs/deploy.md`, `docs/design.md` (§11.4), `docs/tech-debt.md`
+
+**Việc**
+- Gỡ dòng IP tĩnh khỏi bảng máy trong `deploy.md`. Giữ `azureuser` (tên mặc định của Azure, có trong lệnh và đường dẫn) và tên miền. Ghi trong PR: lịch sử git vẫn còn IP, tên miền vẫn trỏ về IP đó, nên việc này chỉ để tài liệu không phô thêm, không phải bí mật.
+- N3: diễn tập quay lại bản trước trên staging đúng theo `deploy.md`, bấm giờ từ lúc quyết định quay lại tới lúc `/api/health` trả `200` ở bản cũ. Ghi số đo vào QS5 (§11.4), sửa `deploy.md` chỗ nào chạy thật thấy khác.
+- Khi TV3-13 merge: bật sao lưu hằng ngày trên staging theo `deploy.md`, kiểm có file sao lưu sau một ngày.
+- Mỗi thao tác trên máy staging hỏi Dương trước.
+
+**Xong khi:** `deploy.md` không còn IP; có một lần diễn tập ghi giờ và số đo QS5; staging có bản sao lưu hằng ngày (CSDL và ảnh). N3 chuyển xuống "Đã trả"; N2 chuyển cùng TV3-13.

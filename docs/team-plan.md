@@ -62,13 +62,16 @@ Sở hữu: `client/src/pages/ConflictPage.tsx`, `server/src/routes/attachments.
 | 5 | Màn hình Thành viên, Dự án; `formVersion`, `hidden` | Op `failed`, retry thủ công, R5; Web Locks, O6; C1, C6, C8 | Conflict UI đầy đủ, chế độ chỉ đọc (cùng TV1), C7 | |
 | 6 | E2E O2, O4, T6, T10; A4 | Pull phân trang, đo hiệu năng §11.2 | Hộp thoại xoá vs sửa; C4, C5 | **Toàn bộ ca conflict và cách ly có test** |
 | 7 | Sửa lỗi, hoàn thiện UI | Sửa lỗi, cập nhật ADR | Export CSV/JSON; O3, R4 | Đóng băng tính năng **giữa tuần 7** |
-| 8 | Tài liệu người dùng (gồm hướng dẫn cho giám sát viên và quản trị) | Tài liệu kỹ thuật sync và multi-tenancy | Báo cáo kiểm thử | **Demo cuối kỳ**, nộp báo cáo |
+| 8 | Sửa lỗi, hoàn thiện UI | Tài liệu kỹ thuật sync và multi-tenancy | Báo cáo kiểm thử; tài liệu người dùng (gồm hướng dẫn cho giám sát viên và quản trị, TV3-16) | **Demo cuối kỳ**, nộp báo cáo |
 
 Nửa sau tuần 7 là thời gian dự phòng: chỉ sửa lỗi và bù việc trễ. Việc bị cắt trước tiên nếu trễ, theo thứ tự:
 1. ~~Màn hình Dự án cho admin (dùng CLI thay).~~ 🆕 ADR 0003: thay bằng trang quản trị TV1-16; chỉ màn hình A3 (Tài khoản) còn cắt được (dùng CLI thay).
 2. Xuất/nhập form JSON.
 3. "Gộp cả hai" cho multiselect.
 4. Đo hiệu năng đầy đủ (giữ phép đo pull 2.000 phiếu).
+5. Log request (TV2-19 phần log, [tech-debt](tech-debt.md) N1).
+6. Rà khả năng tiếp cận (TV3-15).
+7. Tìm kiếm, lọc theo người tạo ở danh sách phiếu (TV2-18).
 
 Không được cắt: bộ test cách ly T1–T5, xử lý bị rút khỏi dự án khi còn phiếu chưa gửi (T7).
 
@@ -93,9 +96,9 @@ Ngoài mảng code ở trên, mỗi người giữ một vai trong quy trình (L
 
 | Vai | Người | Giữ gì | Dựa trên ticket |
 |---|---|---|---|
-| Product & Release (Product lead + Release owner) | Dương (TV1, nhóm trưởng) | Vấn đề, kết quả mong muốn, phạm vi MoSCoW (design §1), user story và truy vết ([requirements.md](requirements.md)), thứ tự ticket; staging, deploy, sao lưu, quay lại bản trước ([deploy.md](deploy.md)), nợ vận hành ([tech-debt.md](tech-debt.md)) | Màn hình người dùng và form (TV1-02…TV1-17), staging (TV1-01), tài liệu người dùng (TV1-12) |
+| Product & Release (Product lead + Release owner) | Dương (TV1, nhóm trưởng) | Vấn đề, kết quả mong muốn, phạm vi MoSCoW (design §1), user story và truy vết ([requirements.md](requirements.md)), thứ tự ticket; staging, deploy, sao lưu, quay lại bản trước ([deploy.md](deploy.md)), nợ vận hành ([tech-debt.md](tech-debt.md)) | Màn hình người dùng và form (TV1-02…TV1-17), staging (TV1-01, TV1-19) |
 | Tech lead | Hoàng (TV2) | Kiến trúc và ADR, tích hợp giữa các mảng, kiểu dùng chung (`shared/`), lõi đồng bộ và multi-tenancy | Schema, xác thực, sync engine (TV2-01…TV2-17), giữ ADR (team-plan TV2) |
-| Quality owner | Đại (TV3) | CI, ma trận test (design §10.1), fixture và API kiểm thử, báo cáo kiểm thử | CI (TV3-01), test cách ly T1–T5 (TV3-04), API tiêm lỗi và E2E O3/R4 (TV3-10), báo cáo kiểm thử (TV3-11) |
+| Quality owner | Đại (TV3) | CI, ma trận test (design §10.1), fixture và API kiểm thử, báo cáo kiểm thử | CI (TV3-01), test cách ly T1–T5 (TV3-04), API tiêm lỗi và E2E O3/R4 (TV3-10), báo cáo kiểm thử (TV3-11), sao lưu hằng ngày (TV3-13), tài liệu người dùng (TV3-16) |
 
 ## Nếu nhóm thay đổi số người
 
