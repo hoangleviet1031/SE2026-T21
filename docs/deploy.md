@@ -221,7 +221,7 @@ Có lỗi lặp lại, server tự khởi động lại nhiều lần, hoặc m�
 
 ## Quay lại bản trước
 
-Dùng khi bản vừa deploy làm hỏng việc chính (đăng nhập, lưu hay đồng bộ phiếu) mà không sửa nhanh được. `deploy.sh` chỉ chạy trên `main`, nên quay lại làm tay. Chưa diễn tập lần nào ([tech-debt.md](tech-debt.md) N3).
+Dùng khi bản vừa deploy làm hỏng việc chính (đăng nhập, lưu hay đồng bộ phiếu) mà không sửa nhanh được. `deploy.sh` chỉ chạy trên `main`, nên quay lại làm tay. Diễn tập lần đầu 2026-10-22 (8d93233 → f5dba4f, nhánh 2a): quay lại mất 19 giây, quay về `main` bằng `deploy.sh` mất 21 giây, phần lớn là `npm ci` và build (design §11.4 QS5).
 
 **1. Xem bản mới có nâng CSDL không.** Tên file sao lưu cuối cùng có commit cũ: `ls -1t ~/backup | head -1` → `survey-<ngày giờ>-<commit cũ>.db`. So `user_version` của file đó với CSDL đang chạy (lệnh `node -e` ở mục "Nâng cấp lên migration 4", đổi đường dẫn file).
 
@@ -232,10 +232,19 @@ cd ~/app
 git checkout --detach <commit cũ>
 npm ci && npm run build
 sudo systemctl restart survey-api
-curl -fsS http://localhost:3001/api/health
+# tsx cần vài giây mới mở cổng 3001: gọi ngay sau restart sẽ lỗi "Couldn't connect", nên chờ tối đa 30 giây
+for i in $(seq 1 30); do curl -fsS http://localhost:3001/api/health && break; sleep 1; done
 ```
 
-Kiểm như mục "Kiểm tra sau khi triển khai". Sửa xong trên `main` thì `git switch main` rồi chạy `deploy.sh` như thường.
+Sau 30 giây vẫn chưa ra `{"ok":true}` thì xem `journalctl -u survey-api -n 50`. Kiểm như mục "Kiểm tra sau khi triển khai". Sửa xong trên `main` thì quay về:
+
+```bash
+cd ~/app
+git switch main            # deploy.sh từ chối chạy khi đang detached HEAD
+~/app/scripts/deploy.sh
+```
+
+Bản sao lưu lần này mang tên commit của `main` (vd. `survey-…-<commit mới>.db`) dù server đang chạy commit cũ, vì `deploy.sh` đặt tên theo `HEAD` lúc chạy.
 
 **2b. `user_version` đã tăng: ưu tiên sửa tiến** (vá trên `main` rồi deploy lại), không quay lại. Code cũ từ chối mở CSDL mới hơn nó (`migrate` trong `server/src/db.ts` báo "CSDL ở phiên bản …, mới hơn mã nguồn"), nên muốn chạy code cũ thì phải khôi phục bản sao lưu ở mục "Sao lưu và khôi phục", và:
 - **Mất mọi phiếu, ảnh, tài khoản server đã nhận từ lúc deploy.** Điện thoại đã nhận `200` thì đã xoá op, sẽ không gửi lại.
@@ -362,7 +371,7 @@ Dòng `ExperimentalWarning: SQLite is an experimental feature` trong log là bì
 
 ## Việc chưa làm
 
-Theo dõi ở [tech-debt.md](tech-debt.md) (N1 log, N2 sao lưu, N3 diễn tập quay lại).
+Theo dõi ở [tech-debt.md](tech-debt.md) (N1 log, N2 sao lưu).
 
 - **Sao lưu hằng ngày** (design §12): hiện chỉ sao lưu khi triển khai lại. Muốn đủ thì thêm cron gọi `scripts/backup-db.mjs` mỗi ngày.
 - **Ảnh:** khi có upload (TV3-05), đặt `UPLOAD_DIR` ra ngoài repo (vd. `/home/azureuser/survey-data/uploads`) và sao lưu cùng CSDL. `server/uploads/` (mặc định khi không đặt `UPLOAD_DIR`) đã có trong `.gitignore`.

@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.42 (2026-10-22)
+- **Phiên bản:** 0.5.43 (2026-10-22)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -76,6 +76,7 @@
 | 0.5.40 | 2026-10-22 | Trả nợ N7: `seed:demo` không tạo phiên token cố định nữa và xoá phiên token demo cũ trong DB dev (§12); E2E lấy token bằng đăng nhập trong `client/e2e/global-setup.ts` |
 | 0.5.41 | 2026-10-22 | Chia việc chưa ai nhận theo MVP, không đổi hành vi: §1 bảng phạm vi thêm Danh sách phiếu (§4.8), Khả năng tiếp cận (§11.3), Log (§12), Vận hành staging kèm mức MoSCoW và ticket mới (TV1-19, TV2-18, TV2-19, TV3-13…TV3-16 ở [plan/](plan/README.md)); §4.8 trỏ phần chưa có code sang TV2-18 |
 | 0.5.42 | 2026-10-22 | TV1-12 a2: `401` hiện "Phiên đăng nhập hết hạn, đăng nhập lại" ở màn hình Đăng nhập (khoá `sessionExpired` trong `account`, §4.2; trả nợ N5); màn hình cần online (Thành viên, Tổ chức, builder lưu form, Xuất) gặp `5xx` hoặc mã lạ báo "Máy chủ đang lỗi, thử lại sau", không tự thử lại (§8); thêm thành viên bằng tài khoản bị khoá trả `404 not_found` như tên không có (§7) |
+| 0.5.43 | 2026-10-22 | TV1-19 phần 2: diễn tập quay lại bản trước trên staging lần đầu, QS5 có số đo (quay lại 19 s, quay về `main` 21 s) (§11.4), chưa đặt mục tiêu; `deploy.md` sửa theo lúc chạy thật; trả nợ N3 |
 
 ## Mục lục
 
@@ -1163,7 +1164,7 @@ Các thuộc tính chất lượng quan trọng nhất, viết theo 6 phần đ�
 | QS2 | Toàn vẹn khi sửa đồng thời | Điều tra viên và giám sát viên | Cùng sửa một phiếu, một bên offline | Hai thiết bị | Sync engine, `threeWayMerge` | Khác trường tự gộp; cùng trường hoặc xoá vs sửa thì hỏi, không chọn sẵn | 0 trường bị thay mà người dùng không được hỏi | C1, C2, C4, C5, C8 |
 | QS3 | Cách ly dữ liệu | Thành viên tổ chức A, hoặc admin | Gọi mọi route theo dự án của tổ chức B | Bình thường | `requireMember`, lớp `repo` theo `ctx` | Từ chối; id thuộc tổ chức khác trả `404` | 0 route trả `2xx` | T1–T5, Q7 |
 | QS4 | Hiệu năng mở offline | Điều tra viên | Mở app đã cài | Không có mạng, máy tầm trung (CPU throttle 4×) | Service worker, IndexedDB | Hiện danh sách phiếu, nhập được | ≤ 3 s | Chưa đo (TV2-11) |
-| QS5 | Khôi phục được | Người vận hành | Bản deploy mới làm hỏng việc chính | Staging | `deploy.sh`, bản sao lưu CSDL | Quay lại bản trước theo [deploy.md](deploy.md) "Quay lại bản trước" | Chưa đặt mục tiêu thời gian; đo ở lần diễn tập đầu | Chưa diễn tập ([tech-debt.md](tech-debt.md) N3) |
+| QS5 | Khôi phục được | Người vận hành | Bản deploy mới làm hỏng việc chính | Staging | `deploy.sh`, bản sao lưu CSDL | Quay lại bản trước theo [deploy.md](deploy.md) "Quay lại bản trước" | Chưa đặt mục tiêu thời gian. Đo lần đầu 2026-10-22, bản mới không đổi `user_version`: 19 s từ lúc chạy lệnh quay lại tới khi `/api/health` trả `200` ở bản cũ; 21 s quay về `main` bằng `deploy.sh` | Diễn tập tay 2026-10-22 trên staging (8d93233 → f5dba4f → 8d93233), làm lại khi đổi cách deploy. Nhánh khôi phục CSDL (2b) chưa diễn tập |
 
 ## 12. Triển khai
 
