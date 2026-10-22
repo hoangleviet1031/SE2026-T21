@@ -119,6 +119,7 @@ test('khác người khi máy còn phiếu chưa gửi: từ chối, không xoá
   expect(file.suggestedFilename()).toBe('chua-gui-demo-yte.json');
   const exported = JSON.parse(await readFile(await file.path(), 'utf8')) as { records: { data: { householdName?: string } }[] };
   expect(exported.records.map((r) => r.data.householdName)).toEqual(['Hộ của Minh chưa gửi']);
+  await expect(page.getByTestId('export-note')).toHaveText('Đã tải 1 file.');
 
   expect(await storedToken(page)).toBeUndefined();
   expect(await projectDbs(page)).toContain('field-survey-p-demo-yte');
@@ -136,6 +137,51 @@ test('khác người khi máy còn phiếu chưa gửi: từ chối, không xoá
   const saved = pulled.records.find((r) => r.data.householdName === 'Hộ của Minh chưa gửi');
   expect(saved?.createdBy).toBe('u_minh');
   expect(saved?.updatedBy).toBe('u_minh');
+});
+
+test('bị từ chối nhưng không còn phiếu chưa gửi (chỉ còn op trong outbox): Xuất JSON báo không còn phiếu, không tải file', async ({
+  page,
+  context,
+  request,
+}) => {
+  await login(page, 'minh');
+  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  const minhToken = await storedToken(page);
+  if (!minhToken) throw new Error('chưa lưu mã của minh');
+
+  await context.setOffline(true);
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await page.locator('input[name=householdName]').fill('Hộ chỉ còn op');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  const row = page.getByTestId('records').getByRole('listitem').filter({ hasText: 'Hộ chỉ còn op' });
+  await expect(row.getByTestId('sync-state')).toHaveText('Chờ đồng bộ');
+
+  expect((await request.post('http://localhost:3001/api/auth/logout', { headers: authHeaders(minhToken) })).status()).toBe(204);
+  await context.setOffline(false);
+  await expect(page.getByTestId('login-username')).toBeVisible({ timeout: 15_000 });
+
+  // Dựng trạng thái bằng tay: phiếu đã đánh dấu gửi xong nhưng op còn trong outbox (vẫn bị chặn đổi
+  // tài khoản, design §4.7), nên Xuất JSON không có phiếu nào để xuất. Thực tế gặp khi chỉ còn op
+  // hoặc ảnh chưa lên; E2E khó dựng đúng lúc đó nên sửa thẳng IndexedDB.
+  const stored = (await readStore(page, 'field-survey-p-demo-yte', 'records')) as {
+    syncState: string;
+    data: { householdName?: string };
+  }[];
+  const unsent = stored.find((r) => r.data.householdName === 'Hộ chỉ còn op');
+  if (!unsent) throw new Error('không thấy phiếu vừa lưu');
+  await putRow(page, 'field-survey-p-demo-yte', 'records', { ...unsent, syncState: 'synced' });
+  expect(((await readStore(page, 'field-survey-p-demo-yte', 'outbox')) as unknown[]).length).toBeGreaterThan(0);
+
+  await signInOnScreen(page, 'lan');
+  await expect(page.getByRole('alert')).toHaveText(
+    '⚠ Máy này còn dữ liệu chưa gửi của minh. Đăng nhập lại bằng tài khoản của người đó để gửi, hoặc xuất JSON trước.',
+  );
+
+  let downloads = 0;
+  page.on('download', () => (downloads += 1));
+  await page.getByRole('button', { name: 'Xuất JSON' }).click();
+  await expect(page.getByTestId('export-note')).toHaveText('Máy không còn phiếu chưa gửi. Bấm Tiếp tục để đăng nhập lại.');
+  expect(downloads).toBe(0);
 });
 
 test('khác người khi máy không còn gì chưa gửi: xoá dữ liệu người cũ, vào bằng người mới', async ({ page, context, request }) => {

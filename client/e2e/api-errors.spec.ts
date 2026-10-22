@@ -70,6 +70,18 @@ test('Xuất: 5xx báo "Máy chủ đang lỗi", không hiện mã HTTP', async 
   await expect(row.getByRole('alert')).toHaveText(SERVER_ERROR);
 });
 
+test('Xuất: mã lỗi màn hình không xử lý (404 form vừa bị xoá) báo "Máy chủ đang lỗi", không hiện mã HTTP', async ({
+  page,
+}) => {
+  await openYteAsOwner(page);
+  await page.route('**/api/projects/*/export/**', (route) =>
+    route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'not_found' }) }),
+  );
+  const row = page.getByRole('listitem').filter({ hasText: 'Khảo sát hộ gia đình' });
+  await row.getByRole('button', { name: 'Xuất JSON' }).click();
+  await expect(row.getByRole('alert')).toHaveText(SERVER_ERROR);
+});
+
 test('401: phiên bị huỷ trên server → về Đăng nhập, báo hết phiên, giữ CSDL dự án; đăng nhập lại thì hết câu', async ({
   page,
   request,
