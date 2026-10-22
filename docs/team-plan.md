@@ -80,11 +80,22 @@ Không được cắt: bộ test cách ly T1–T5, xử lý bị rút khỏi d�
 
 ## Quy trình làm việc
 
-- **Git:** nhánh `main` luôn chạy được. Mỗi ticket một nhánh `feat/<mã-ticket>-<tên-ngắn>` (vibe-coding §2), mở PR, ít nhất một bạn review. CI phải xanh mới merge.
-- **Phần lõi cần hai người duyệt:** PR sửa `shared/`, `docs/adr/`, `client/src/db/`, `client/src/sync/engine.ts`, `server/src/auth.ts` hoặc bất kỳ câu SQL nào trên dữ liệu dự án cần cả hai bạn còn lại duyệt. Người duyệt kiểm tra riêng: truy vấn có đi qua `ctx` không.
+- **Git:** nhánh `main` luôn chạy được. Mỗi ticket một nhánh `feat/<mã-ticket>-<tên-ngắn>` (vibe-coding §2), mở PR, CI phải xanh mới merge. Không push thẳng `main`, không force-push.
+- **Review và merge** (nhóm chốt 2026-10-12): PR không bắt buộc người khác duyệt, **người mở tự merge** khi CI xanh và đã tự kiểm theo checklist [vibe-coding.md](vibe-coding.md) §4 (`/self-check`). Góp ý review (nếu có) để thành comment trên PR; người mở trả lời hoặc sửa trước khi merge, để PR là bằng chứng review.
+- **Phần lõi:** PR sửa `shared/`, `docs/adr/`, `client/src/db/`, `client/src/sync/engine.ts`, `server/src/auth.ts` hoặc bất kỳ câu SQL nào trên dữ liệu dự án thì viết test trước (nhãn **Lõi**, [plan/](plan/README.md)), ghi rõ ở mục "Người review cần đọc kỹ" của PR. Kiểm riêng: truy vấn có đi qua `ctx` không.
 - **Giao diện giữa các mảng** là kiểu trong `shared/src/types.ts` và API ở design §7. Đổi kiểu dùng chung thì báo cả nhóm và cập nhật tài liệu (kể cả bảng lịch sử thay đổi trong design.md) trong cùng PR.
-- **Họp:** 15 phút đầu tuần (kế hoạch), 30 phút cuối tuần (demo nội bộ trên staging với hai dự án mẫu, cập nhật bảng tiến độ).
+- **Trao đổi:** không họp hay demo hằng tuần (nhóm chốt); chỉ nhắn nhóm khi bị chặn hoặc cần chốt quyết định, góp ý về code để trên PR. Demo và báo cáo vào cuối kỳ. Tiến độ xem ở bảng trạng thái [plan/](plan/README.md#trạng-thái) và [worklog/](worklog/README.md).
 - **Định nghĩa "xong":** có test, CI xanh, tài liệu liên quan đã cập nhật, demo được trên điện thoại thật qua staging HTTPS ít nhất một lần.
+
+## Vai trong quy trình
+
+Ngoài mảng code ở trên, mỗi người giữ một vai trong quy trình (Lecture 02, "lightweight process for project teams"). Bài giảng gợi ý 4 vai cho nhóm 3–5 người; nhóm 3 người nên gộp Product lead với Release owner, mỗi người đúng một vai, gán theo mảng ticket đang giữ (Dương chốt 2026-10-22). Vai nói ai chịu trách nhiệm cuối cho bằng chứng, không có nghĩa người khác không được làm. **Ai cũng phải hiểu toàn hệ thống đủ để bảo vệ đồ án.**
+
+| Vai | Người | Giữ gì | Dựa trên ticket |
+|---|---|---|---|
+| Product & Release (Product lead + Release owner) | Dương (TV1, nhóm trưởng) | Vấn đề, kết quả mong muốn, phạm vi MoSCoW (design §1), user story và truy vết ([requirements.md](requirements.md)), thứ tự ticket; staging, deploy, sao lưu, quay lại bản trước ([deploy.md](deploy.md)), nợ vận hành ([tech-debt.md](tech-debt.md)) | Màn hình người dùng và form (TV1-02…TV1-17), staging (TV1-01), tài liệu người dùng (TV1-12) |
+| Tech lead | Hoàng (TV2) | Kiến trúc và ADR, tích hợp giữa các mảng, kiểu dùng chung (`shared/`), lõi đồng bộ và multi-tenancy | Schema, xác thực, sync engine (TV2-01…TV2-17), giữ ADR (team-plan TV2) |
+| Quality owner | Đại (TV3) | CI, ma trận test (design §10.1), fixture và API kiểm thử, báo cáo kiểm thử | CI (TV3-01), test cách ly T1–T5 (TV3-04), API tiêm lỗi và E2E O3/R4 (TV3-10), báo cáo kiểm thử (TV3-11) |
 
 ## Nếu nhóm thay đổi số người
 

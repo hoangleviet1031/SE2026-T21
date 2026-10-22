@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.38 (2026-10-22)
+- **Phiên bản:** 0.5.39 (2026-10-22)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -72,6 +72,7 @@
 | 0.5.36 | 2026-10-19 | TV1-12 phần a1: mọi hộp hỏi xác nhận trong PWA là hộp trong app `ConfirmDialog` (Đăng xuất, đổi vai trò/rút thành viên, Tải lại khi đang nhập phiếu, Xoá khỏi máy ở banner dự án đã rời; trước đây `window.confirm`), nút xác nhận đỏ chỉ cho việc mất dữ liệu/quyền (§4.3, §4.7); hộp Xoá phiếu đóng hẳn khi phiếu thành xung đột (§5.7); chữ "Chỉ giám sát viên và Owner…" ở builder, lưu form, xuất; nút Xuất JSON khi bị từ chối đổi tài khoản báo kết quả (§4.7); bỏ dòng 🕘 Màn hình Thành viên "thêm bằng `userId`" (đã thay ở TV1-08) |
 | 0.5.37 | 2026-10-22 | Ghi lại spec cho đúng code: bỏ đoạn 🕘 và nhãn 🆕 của phần ADR 0003 đã có code (§1, §2, §3, §4.6, §4.7, §5.5, §6.1, §7, §7.1 bỏ `last_supervisor`, §9, §10.1, §13–§15; chỉ còn 🆕 ở A3/TV2-17); §3 cấu trúc mã nguồn hết "Chưa có"; §8 cảnh báo sau 5 lần retry đã có code, `401` ghi đúng hành vi hiện tại; §10.1 T5 đã có test (`isolation.test.ts`); §12 token demo. Thêm [tech-debt.md](tech-debt.md) (sổ nợ kỹ thuật, Lecture 05), trỏ từ §3, §8, §12, §13; [deploy.md](deploy.md) thêm "Quay lại bản trước" và tín hiệu sau deploy |
 | 0.5.38 | 2026-10-22 | Bổ sung phần yêu cầu theo Lecture 03, không đổi hành vi: §1 thêm vấn đề, kết quả mong muốn K1–K4, giả định, cột MoSCoW cho bảng phạm vi; §2 thêm bên liên quan không dùng app, bảng mâu thuẫn giữa các bên, nhánh phụ của kịch bản; §11.2 ghi nguồn chỉ tiêu; thêm §11.3 khả năng tiếp cận, §11.4 kịch bản chất lượng 6 phần. Thêm [requirements.md](requirements.md): 12 user story có Given/When/Then và bảng truy vết story → test → ticket/PR |
+| 0.5.39 | 2026-10-22 | Bổ sung phần kiến trúc theo Lecture 04, không đổi hành vi: §3.1 kiểu kiến trúc (modular monolith, local-first) và phương án đã loại; §3.2 góc nhìn module và quy tắc phụ thuộc; §3.3 góc nhìn chạy (vòng đồng bộ); §3.4 góc nhìn triển khai; §6.3 ai sở hữu dữ liệu nào; §12 log và theo dõi. team-plan: quy trình theo cách nhóm đang làm (tự merge, không demo hằng tuần) và 3 vai (gộp 4 vai của Lecture 02 cho nhóm 3 người); vibe-coding: bằng chứng dùng AI ghi trong PR thay `Assisted-by:`, thêm 2 câu checklist |
 
 ## Mục lục
 
@@ -228,6 +229,104 @@ field-survey-pwa/
 ```
 
 Mọi thư mục trên đã có code. Việc chưa làm của spec ghi ở [tech-debt.md](tech-debt.md) và chỗ đánh dấu 🆕.
+
+### 3.1 Kiểu kiến trúc
+
+**Modular monolith, client local-first.** Server là một tiến trình Node, chia module theo route và lớp `repo/`, dùng một file SQLite. Client là PWA làm việc trên IndexedDB, đồng bộ nền.
+
+| Phương án | Vì sao không chọn |
+|---|---|
+| Một app không chia lớp (route gọi SQL trực tiếp, UI gọi API trực tiếp) | Không có chỗ bắt buộc lọc `project_id` (ADR 0002), UI phải chờ mạng nên không chạy offline |
+| Microservices (sync, ảnh, tài khoản tách dịch vụ) | 3 người, 8 tuần, một máy 1 GiB RAM; tách mạng làm transaction "ghi phiếu + `seq` + idempotency" thành giao dịch phân tán |
+
+Hệ quả: deploy một đơn vị, một lệnh (`deploy.sh`); ranh giới module chỉ giữ được nhờ quy ước và review (bảng phụ thuộc dưới đây, checklist [vibe-coding.md](vibe-coding.md) §4). Bước tiếp theo nếu phải lớn lên: đổi SQLite sang Postgres (§6.1 "Nếu đổi sang Postgres"), chưa cần tách dịch vụ.
+
+### 3.2 Góc nhìn module (code tổ chức thế nào)
+
+```mermaid
+flowchart TB
+  subgraph client["client/"]
+    pages["pages/, components/<br/>(React)"]
+    clientLogic["hàm thuần<br/>builder.ts, recordFilter.ts, ..."]
+    cdb["db/ (Dexie)"]
+    sync["sync/ (engine, outbox, api)"]
+    admin["admin/ (trang quản trị)"]
+  end
+  subgraph server["server/"]
+    routes["routes/ (Express)"]
+    auth["auth.ts<br/>requireAuth, requireMember"]
+    repo["repo/ (SQL theo ctx)"]
+    sdb["db.ts (migration)"]
+  end
+  shared["shared/<br/>kiểu, merge, validate, backoff<br/>(không I/O)"]
+  pages --> cdb
+  pages --> clientLogic
+  sync --> cdb
+  sync -- "HTTP /api" --> routes
+  admin -- "HTTP /api" --> routes
+  routes --> auth
+  routes --> repo
+  repo --> sdb
+  client --> shared
+  server --> shared
+```
+
+| Quy tắc phụ thuộc | Vì sao | Giữ bằng |
+|---|---|---|
+| `shared/` không import gì của client/server, không I/O | Client và server dùng chung một bản merge/validate, test được bằng unit | CLAUDE.md "Cấu trúc"; review |
+| UI chỉ đọc/ghi IndexedDB, không gọi API (trừ màn hình cần online) | Local-first: UI không chờ mạng | CLAUDE.md bất biến 7; review |
+| Route không viết SQL dữ liệu dự án, đi qua `repo/` với `ctx` | Không truy vấn nào quên `project_id` | CLAUDE.md bất biến 5; T5 tự duyệt mọi route |
+| `admin/` không dùng `db/`, `sync/` | Trang quản trị không giữ dữ liệu trên máy (§4.9) | Q10 kiểm không có IndexedDB |
+
+Ai sở hữu dữ liệu nào: §6.3.
+
+### 3.3 Góc nhìn chạy (một vòng đồng bộ)
+
+Chi tiết các nhánh ở §5.3; sơ đồ dưới là đường chính khi có một phiếu chờ gửi.
+
+```mermaid
+sequenceDiagram
+  participant UI as UI (React)
+  participant IDB as IndexedDB
+  participant SE as Sync engine
+  participant API as Express API
+  participant SQL as SQLite
+  UI->>IDB: saveRecordLocally (phiếu + op, một transaction)
+  UI->>SE: syncNow()
+  SE->>API: GET /api/me
+  API-->>SE: danh sách dự án, vai trò
+  SE->>IDB: đọc op đến hạn
+  SE->>API: PUT P/records/:id (Idempotency-Key: opId)
+  API->>SQL: kiểm key, so baseVersion, ghi phiếu + seq + key (một transaction)
+  alt baseVersion khớp
+    API-->>SE: 200 (version mới)
+    SE->>IDB: xoá op, cập nhật base
+  else lệch
+    API-->>SE: 409 (bản server)
+    SE->>SE: threeWayMerge
+    SE->>IDB: tự gộp và gửi lại, hoặc lưu conflicts
+  end
+  SE->>API: upload ảnh theo chunk (§5.6)
+  SE->>API: GET P/records?since=cursor
+  API-->>SE: phiếu mới (theo seq), hasMore
+  SE->>IDB: ghi phiếu không có thay đổi chờ gửi, lưu cursor
+  IDB-->>UI: liveQuery cập nhật màn hình
+```
+
+### 3.4 Góc nhìn triển khai (staging)
+
+```mermaid
+flowchart LR
+  phone["Điện thoại / máy tính<br/>trình duyệt + SW + IndexedDB"] -- "HTTPS 443" --> caddy
+  subgraph vm["Azure VM (Ubuntu 24.04, 2 vCPU, 1 GiB)"]
+    caddy["Caddy<br/>HTTPS, file tĩnh client/dist"] -- "/api → localhost:3001" --> api["survey-api (systemd)<br/>Node 22, Express"]
+    api --> dbfile[("server/data/survey.db")]
+    api --> up[("uploads/")]
+    deploy["scripts/deploy.sh"] -. "sao lưu trước khi khởi động lại" .-> bk[("~/backup/ (7 bản)")]
+  end
+```
+
+Một máy, một tiến trình API, cổng 3001 không mở ra ngoài. Cài đặt, deploy, sao lưu và quay lại bản trước: [deploy.md](deploy.md).
 
 ## 4. Thành phần
 
@@ -667,6 +766,24 @@ Luật thân request mở tổ chức ở `shared/src/projectRequestValidation.t
 
 `CreateProjectRequest` (thân `POST /admin/projects` cũ) đã bỏ: tổ chức chỉ được tạo khi admin duyệt yêu cầu.
 
+### 6.3 Ai sở hữu dữ liệu nào
+
+Mỗi bảng có một module ghi và một người giữ (theo [team-plan](team-plan.md#vai-trò)). Module khác cần dữ liệu thì gọi hàm của module đó, không tự viết SQL hay tự ghi bảng Dexie. Đổi cột hoặc ý nghĩa một bảng thì người giữ phải biết (review cùng PR).
+
+| Dữ liệu | Module ghi | Ai đọc thêm | Người giữ |
+|---|---|---|---|
+| `users`, `sessions` | `repo/users.ts` (route `auth`, CLI `user:*`) | `auth.ts` (xác thực mỗi request) | Hoàng; CLI: Đại |
+| `projects`, `project_requests` | `repo/projects.ts`, `repo/projectRequests.ts` (route `admin`, `projectRequests`, `settings`) | `/me`, `/directory` | Hoàng |
+| `memberships` | `repo/memberships.ts` (route `members`); `repo/projects.ts` khi duyệt yêu cầu và khi admin chỉ định Owner | `requireMember` | Dương (route `members`), Hoàng (phần còn lại) |
+| `forms` | `repo/forms.ts` (route `forms`) | export, pull form ở client | Dương |
+| `records`, `record_history`, `meta.seq`, `idempotency` | `repo/records.ts`, `repo/idempotency.ts` (route `records`) | export | Hoàng |
+| `attachments`, thư mục `uploads/` | `repo/attachments.ts`, `uploads.ts` (route `attachments`) | export (URL ảnh) | Đại |
+| Client `field-survey-account` | `client/src/db/accountDb.ts`, `sync/accountSync.ts`, `signIn.ts`, `logout.ts` | Bộ chọn dự án, Cài đặt | Hoàng |
+| Client `records`, `outbox`, `meta` (mỗi dự án) | `sync/outbox.ts` (`saveRecordLocally`, `deleteRecordLocally`), `sync/engine.ts` | Trang chủ, trang điền phiếu (`liveQuery`) | Hoàng |
+| Client `conflicts` | `sync/engine.ts` (ghi khi gặp 409; `resolveConflict` khi người dùng chọn xong) | Trang chủ (số "Cần xử lý") | Hoàng; màn hình: Đại |
+| Client `attachments` | `client/src/media/`, `sync/attachments.ts` | Trang điền phiếu | Đại |
+| Client `forms` | `sync/engine.ts` (pull), builder (sau khi lưu) | Trang điền phiếu, builder | Hoàng; builder: Dương |
+
 ## 7. REST API
 
 Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <token>` (§9). Route theo dự án nằm dưới `/api/projects/:projectId` (viết tắt `P` trong bảng) và đi qua middleware kiểm tra thành viên (ADR 0002 §3). Các route `forms`, `records` (TV2-03) và `attachments` (TV3-05) đã theo dự án và có xác thực; `export` vẫn dùng đường dẫn cũ, chưa xác thực.
@@ -1069,6 +1186,7 @@ Người dùng thường tự tạo tài khoản trên app; CLI để tạo admi
 | `npm run seed:demo -w server` | Tạo hai dự án mẫu `demo-yte`, `demo-nongnghiep`; tài khoản `lan`, `minh`, `admin`, `chu` (Owner cả hai dự án) mật khẩu `demo-password`. Mỗi tài khoản demo còn một phiên token cố định `demo-token-<tên>` từ thời màn hình nhập mã; app không dùng nữa nhưng `seedDemo.ts` vẫn tạo (tiện gọi API bằng `curl` khi dev, [tech-debt.md](tech-debt.md) N7). Từ chối khi `NODE_ENV=production` |
 | ~~`user:rotate-token`~~ | Đã bỏ (không còn token theo người dùng) |
 
+- **Log và theo dõi:** server ghi ra stdout, systemd giữ trong `journalctl -u survey-api`; có `GET /api/health` cho `deploy.sh` và kiểm tra sau deploy. Chưa có log theo request (method, đường dẫn, mã trả về, thời gian, `userId`, không ghi token) và chưa có số liệu lỗi sau deploy ([tech-debt.md](tech-debt.md) N1). Khi làm: một dòng JSON mỗi request bằng middleware trong `app.ts`, không thêm thư viện.
 - **Sao lưu:** mỗi ngày chạy `VACUUM INTO 'backup/survey-<ngày>.db'` và sao chép thư mục `uploads/`; giữ 7 bản.
 - **Migration CSDL server:** đánh số trong `db.ts` (`PRAGMA user_version`), chỉ thêm cột/bảng, không sửa câu lệnh cũ. Ngoại lệ đã được nhóm chấp nhận: migration 2 (tạo lại bảng dữ liệu, ADR 0002) và migration 4 (tạo lại `memberships` có chép dữ liệu, ADR 0003 §5).
 - **Trang quản trị** `/admin/` được build cùng `client/dist` (`dist/admin/index.html`); Caddy phục vụ như file tĩnh qua khối `handle /admin/*` riêng (không `try_files`) cùng `redir /admin /admin/ 308`, đặt trước khối PWA: kiểm trên staging (Caddy 2.11.7) cho thấy `try_files {path} /index.html` đưa cả `/admin/` về `/index.html` của PWA dù `admin/index.html` có sẵn. Caddyfile ở [deploy.md](deploy.md) §7. Sau mỗi lần deploy kiểm theo [deploy.md](deploy.md) "Kiểm tra sau khi triển khai".

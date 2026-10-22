@@ -1,6 +1,6 @@
 # Triển khai staging
 
-Staging là bản chạy thật của `main` trên HTTPS, dùng để thử app trên điện thoại và demo cuối tuần. Ticket TV1-01, spec ở [design.md §12](design.md#12-triển-khai).
+Staging là bản chạy thật của `main` trên HTTPS, dùng để thử app trên điện thoại và demo cuối kỳ. Ticket TV1-01, spec ở [design.md §12](design.md#12-triển-khai).
 
 - **Địa chỉ:** https://se2026-t21.koreacentral.cloudapp.azure.com
 - **Người quản lý:** Dương (giữ khoá SSH, tài khoản Azure)
