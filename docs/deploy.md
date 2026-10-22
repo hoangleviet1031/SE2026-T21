@@ -365,7 +365,10 @@ cd ~/app && node --no-warnings scripts/backup-db.mjs server/data/survey.db ~/bac
 sudo systemctl stop survey-api
 mkdir -p ~/survey-data
 mv ~/app/server/uploads ~/survey-data/uploads    # chưa có ảnh nào thì: mkdir -p ~/survey-data/uploads
-sudo nano /etc/systemd/system/survey-api.service  # thêm dòng Environment=UPLOAD_DIR=... như mục 6
+sudo nano /etc/systemd/system/survey-api.service  # thêm dòng Environment=UPLOAD_DIR=... như mục 6, hoặc không cần gõ tay: 3 dòng dưới
+# sudo cp /etc/systemd/system/survey-api.service /etc/systemd/system/survey-api.service.bak-$(date +%Y%m%d)
+# grep -q '^Environment=UPLOAD_DIR=' /etc/systemd/system/survey-api.service || sudo sed -i '/^Environment=DB_PATH=data\/survey\.db$/a Environment=UPLOAD_DIR=/home/azureuser/survey-data/uploads' /etc/systemd/system/survey-api.service
+# systemctl cat survey-api | grep -c '^Environment=UPLOAD_DIR='   # phải là 1; khác thì chép bản .bak trả lại
 sudo systemctl daemon-reload
 sudo systemctl start survey-api
 for i in $(seq 1 30); do curl -fsS http://localhost:3001/api/health && break; sleep 1; done
@@ -471,7 +474,7 @@ for i in $(seq 1 30); do curl -fsS http://localhost:3001/api/health && break; sl
 
 Kiểm như mục "Kiểm tra sau khi triển khai", rồi mở một phiếu có ảnh trên app. Khôi phục từ bản trước deploy (chỉ CSDL) thì làm như trên nhưng chỉ thay `survey.db` (`cp ~/backup/<bản>.db ~/app/server/data/survey.db`), **không** đụng thư mục ảnh. Ảnh nhận sau lúc sao lưu vẫn nằm trên đĩa nhưng không phiếu nào trỏ tới.
 
-Đã thử trên máy dev (Windows) ngày 2026-10-22: chạy `backup-daily.mjs` khi server đang chạy (1 phiếu, 3 ảnh), tắt server, thay CSDL và thư mục ảnh bằng bản sao, bật lại thì tải 3 ảnh qua API đều khớp SHA-256; lệnh nâng `seq` thử riêng trên cặp CSDL hỏng/khôi phục. Chưa làm trên staging, và các lệnh `systemctl` ở trên chưa chạy lần nào.
+Đã thử trên máy dev (Windows) ngày 2026-10-22: chạy `backup-daily.mjs` khi server đang chạy (1 phiếu, 3 ảnh), tắt server, thay CSDL và thư mục ảnh bằng bản sao, bật lại thì tải 3 ảnh qua API đều khớp SHA-256; lệnh nâng `seq` thử riêng trên cặp CSDL hỏng/khôi phục. Chưa thử khôi phục trên staging. Phần cài đặt đã chạy trên staging ngày 2026-10-22 (TV1-19): chuyển ảnh (0 ảnh nên dùng `mkdir`, sửa unit bằng `sed`, server dừng khoảng 1 giây), bật timer, chạy thử một lần ra bản `daily/20261022-133806` (0 ảnh, 0.1 MB), kéo bản đó về máy Dương.
 
 ## Xem log, xử lý sự cố
 
@@ -487,7 +490,6 @@ Dòng `ExperimentalWarning: SQLite is an experimental feature` trong log là bì
 
 ## Việc chưa làm
 
-Theo dõi ở [tech-debt.md](tech-debt.md) (N1 log, N2 sao lưu, N9 bản sao lưu cùng ổ đĩa).
+Theo dõi ở [tech-debt.md](tech-debt.md) (N1 log, N9 bản sao lưu cùng ổ đĩa).
 
-- **Bật sao lưu hằng ngày trên staging** (TV1-19, Dương): script và các bước đã có (TV3-13). Còn phải làm trên máy theo thứ tự: [Chuyển ảnh ra ngoài repo](#chuyển-ảnh-ra-ngoài-repo-một-lần), [Bật sao lưu hằng ngày](#bật-sao-lưu-hằng-ngày), chạy thử một lần, kéo bản đầu tiên về máy.
 - **Bản sao lưu ngoài máy ảo:** hiện chỉ có bản kéo tay hằng tuần, nên mất ổ đĩa thì mất tới một tuần dữ liệu (N9).
