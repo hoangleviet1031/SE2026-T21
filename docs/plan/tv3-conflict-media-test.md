@@ -143,7 +143,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-09 · Export CSV/JSON
 
-- **Trạng thái:** ⏳ `feat/tv3-09-export`
+- **Trạng thái:** ✅ PR #48
 - **Tuần:** 7 · **Phụ thuộc:** TV2-03
 - **Spec:** design §4.6
 - **File:** `server/src/lib/csv.ts` (mới), `server/test/csv.test.ts` (mới), `server/src/routes/export.ts`, `server/test/export.test.ts` (mới), nút Xuất trong trang form (phối hợp TV1)

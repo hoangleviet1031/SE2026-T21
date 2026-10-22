@@ -78,7 +78,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV3-06 | Hàng đợi upload ảnh (client) | ✅ PR #37 |
 | TV3-07 | Màn hình conflict đầy đủ + chỉ đọc | ✅ PR #41 |
 | TV3-08 | Xoá vs sửa | ✅ PR #47 |
-| TV3-09 | Export CSV/JSON | ⏳ `feat/tv3-09-export` |
+| TV3-09 | Export CSV/JSON | ✅ PR #48 |
 | TV3-10 | E2E O3, R4 | ✅ PR #40 |
 | TV3-11 | Báo cáo kiểm thử | — |
 
