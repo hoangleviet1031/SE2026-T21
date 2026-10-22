@@ -4,6 +4,8 @@ import { defineConfig, devices } from '@playwright/test';
 // Máy có sẵn Chromium khác phiên bản: đặt PW_CHROMIUM_PATH=/đường/dẫn/chromium.
 export default defineConfig({
   testDir: 'e2e',
+  // Đăng nhập tài khoản demo lấy token cho test gọi API thẳng (chạy sau khi webServer đã lên)
+  globalSetup: './e2e/global-setup.ts',
   // Các test dùng chung một server và cơ chế tiêm lỗi toàn cục, nên chạy tuần tự
   workers: 1,
   timeout: 60_000,
