@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-22 | TV1-19 | ops | Phần 2: diễn tập quay lại bản trước trên staging (8d93233 → f5dba4f → 8d93233), 19 s / 21 s; QS5 có số đo, `deploy.md` 2a thêm vòng chờ health và `git switch main`; N3 → Đã trả; design 0.5.43 | nhánh `docs/tv1-19-dien-tap` | chờ review |
+| 2026-10-22 | TV1-19 | ops | Phần 2: diễn tập quay lại bản trước trên staging (8d93233 → f5dba4f → 8d93233), 19 s / 21 s; QS5 có số đo, `deploy.md` 2a thêm vòng chờ health và `git switch main`; N3 → Đã trả; design 0.5.43 | PR #64 | chờ review |
 | 2026-10-22 | TV1-19 | docs | Phần 1: gỡ dòng IP tĩnh khỏi bảng máy trong `deploy.md` (giữ `azureuser`, tên miền) | PR #63 | xong |
 | 2026-10-22 | TV1-12 | feat | a2: Thành viên, Tổ chức, builder lưu form, Xuất báo "Máy chủ đang lỗi, thử lại sau" khi 5xx (`ServerError`, `apiFailureText`); 401 về Đăng nhập kèm "Phiên đăng nhập hết hạn, đăng nhập lại" (N5); bỏ nhãn 🆕/🕘 ui.md (N4); server từ chối thêm tài khoản bị khoá (404); E2E `api-errors.spec.ts`; design 0.5.42, ui 0.2.15, requirements 0.2 | PR #62 | xong |
 | 2026-10-22 | — | docs | Chia việc chưa ai nhận theo MVP: ticket TV1-19, TV2-18, TV2-19, TV3-13…TV3-16 (dòng Mức MoSCoW); TV1-12 chuyển tài liệu người dùng sang TV3-16, rà khả năng tiếp cận sang TV3-15; tech-debt trỏ ticket; design 0.5.41 §1; team-plan lộ trình tuần 8, thứ tự cắt | PR #61 | xong |
