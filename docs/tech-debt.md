@@ -32,6 +32,6 @@ Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](pla
 | # | Món nợ | Trả ở |
 |---|---|---|
 | N7 | `seed:demo` vẫn tạo phiên token cố định `demo-token-<tên>` | Seed bỏ token cố định, xoá phiên token cũ trong DB dev; E2E lấy token bằng đăng nhập (`client/e2e/global-setup.ts`), test server đăng nhập qua API (nhánh `fix/n7-demo-tokens`) |
-| N4 | `ui.md` còn nhãn 🆕/🕘 của phần đã có code | ui 0.2.15: bỏ nhãn ở màn hình 5, 7 và trang quản trị A1–A2; A3 ghi "chưa có code" (nhánh `feat/tv1-12-api-states`) |
-| N5 | `401` trong PWA không hiện "Phiên đăng nhập hết hạn, đăng nhập lại" | design 0.5.42: `api.ts` gặp `401` gọi `expireSession` (xoá token, ghi `sessionExpired`), màn hình Đăng nhập hiện câu; E2E `api-errors.spec.ts` (nhánh `feat/tv1-12-api-states`) |
+| N4 | `ui.md` còn nhãn 🆕/🕘 của phần đã có code | ui 0.2.15: bỏ nhãn ở màn hình 5, 7 và trang quản trị A1–A2; A3 ghi "chưa có code" (PR #62) |
+| N5 | `401` trong PWA không hiện "Phiên đăng nhập hết hạn, đăng nhập lại" | design 0.5.42: `api.ts` gặp `401` gọi `expireSession` (xoá token, ghi `sessionExpired`), màn hình Đăng nhập hiện câu; E2E `api-errors.spec.ts` (PR #62) |
 | – | Tài liệu design.md còn đoạn 🕘 và nhãn 🆕 của phần đã có code (§2, §3, §4.7, §8, §9, §10.1, §12–§15) | design 0.5.37 |
