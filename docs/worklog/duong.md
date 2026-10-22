@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-22 | — | docs | Chỉnh tài liệu theo slide Lecture 01–05: design 0.5.37–0.5.39 (ghi lại chỗ cũ, vấn đề/giả định/MoSCoW, mâu thuẫn, kịch bản chất lượng, 3 góc nhìn kiến trúc, sở hữu dữ liệu); thêm requirements.md, tech-debt.md; deploy rollback; quy trình team-plan | nhánh `docs/lecture-alignment` | chờ review |
+| 2026-10-22 | — | docs | Chỉnh tài liệu theo slide Lecture 01–05: design 0.5.37–0.5.39 (ghi lại chỗ cũ, vấn đề/giả định/MoSCoW, mâu thuẫn, kịch bản chất lượng, 3 góc nhìn kiến trúc, sở hữu dữ liệu); thêm requirements.md, tech-debt.md; deploy rollback; quy trình team-plan | PR #59 | chờ review |
 | 2026-10-19 | TV1-12 | fix | Phần a1: mọi `window.confirm` → hộp trong app `ConfirmDialog` (Đăng xuất, đổi vai trò/rút, Tải lại, Xoá khỏi máy) + E2E đổi theo, ca Esc; hộp Xoá phiếu đóng khi phiếu thành xung đột (E2E); chữ "…và Owner…"; Xuất JSON khi bị từ chối báo kết quả; docs chữ cũ | PR #58 | xong |
 | 2026-10-19 | TV1-07 | feat | Cài đặt hiện tên đăng nhập thay mã người dùng (ADR 0003); `accountUsername` dùng chung với màn hình Tổ chức (máy cũ chưa có username → userId) + unit; E2E `settings.spec.ts` đổi testid, thêm ca user cũ | PR #57 | xong |
 | 2026-10-19 | TV1-16 | feat | Phần 2: A1 duyệt/từ chối (lý do bắt buộc), A2 khoá/mở + Đổi Owner, "Yêu cầu (n)"; lỗi API admin (401/403 về đăng nhập, 5xx, mất mạng); denylist SW khớp `/admin`; E2E Q10 đủ; deploy.md Caddyfile có khối `/admin/*` | PR #56 | xong |
