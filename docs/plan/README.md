@@ -105,7 +105,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 
 | Ticket | Tên | Mức | Nợ trả | Trạng thái |
 |---|---|---|---|---|
-| TV1-19 | Vận hành staging: gỡ IP, diễn tập quay lại bản trước (QS5), bật sao lưu hằng ngày | Should | N3 (cùng TV3-13: N2) | — |
+| TV1-19 | Vận hành staging: gỡ IP, diễn tập quay lại bản trước (QS5), bật sao lưu hằng ngày | Should | N3 (cùng TV3-13: N2) | ⏳ chờ PR (phần 1: gỡ IP) |
 | TV2-18 | Danh sách phiếu: tìm kiếm, lọc theo người tạo, 2.000 phiếu · **Cắt được** | Could | N6 | — |
 | TV2-19 | Thân JSON hỏng trả `invalid_body`; log request | Should; log: Could | N1 | — |
 | TV3-13 | Sao lưu hằng ngày, `UPLOAD_DIR` ngoài repo | Must | N2 | — |

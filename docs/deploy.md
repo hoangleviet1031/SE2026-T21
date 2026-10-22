@@ -28,7 +28,6 @@ Azure for Students đăng ký bằng email trường, không cần thẻ, ổ đ
 | Hệ điều hành | Ubuntu 24.04 LTS |
 | Ổ đĩa | 64 GiB |
 | Người dùng | `azureuser`, đăng nhập bằng khoá SSH `se2026-staging_key.pem` |
-| IP tĩnh | 52.141.61.76 |
 | Tên miền | `se2026-t21.koreacentral.cloudapp.azure.com` (Public IP → Configuration → DNS name label) |
 | Cổng mở (NSG) | 22 (SSH), 80, 443. **Không** mở 3001 |
 
