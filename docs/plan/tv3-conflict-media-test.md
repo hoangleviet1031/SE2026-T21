@@ -170,7 +170,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-11 · Báo cáo kiểm thử
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `docs/test-report.md` bản 0.2: ma trận, truy vết, CI, lỗi đã biết xong; §6 hiệu năng chờ TV2-11, §7 chờ thử trên điện thoại thật
 - **Tuần:** 8
 - **File:** `docs/test-report.md` (mới)
 
