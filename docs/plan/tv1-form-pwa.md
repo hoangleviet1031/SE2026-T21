@@ -349,6 +349,6 @@ Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-m
 - Gỡ dòng IP tĩnh khỏi bảng máy trong `deploy.md`. Giữ `azureuser` (tên mặc định của Azure, có trong lệnh và đường dẫn) và tên miền. Ghi trong PR: lịch sử git vẫn còn IP, tên miền vẫn trỏ về IP đó, nên việc này chỉ để tài liệu không phô thêm, không phải bí mật.
 - N3: diễn tập quay lại bản trước trên staging đúng theo `deploy.md`, bấm giờ từ lúc quyết định quay lại tới lúc `/api/health` trả `200` ở bản cũ. Ghi số đo vào QS5 (§11.4), sửa `deploy.md` chỗ nào chạy thật thấy khác.
 - Khi TV3-13 merge: bật sao lưu hằng ngày trên staging theo `deploy.md`, kiểm có file sao lưu sau một ngày.
-- Mỗi thao tác trên máy staging hỏi Dương trước.
+- Thao tác trên máy theo kế hoạch Dương đã duyệt; gặp bất thường thì dừng, hỏi Dương.
 
 **Xong khi:** `deploy.md` không còn IP; có một lần diễn tập ghi giờ và số đo QS5; staging có bản sao lưu hằng ngày (CSDL và ảnh). N3 chuyển xuống "Đã trả"; N2 chuyển cùng TV3-13.
