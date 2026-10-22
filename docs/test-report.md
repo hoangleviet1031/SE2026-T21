@@ -1,22 +1,23 @@
 # Báo cáo kiểm thử
 
-- **Phiên bản:** 0.1 nháp (2026-10-22)
+- **Phiên bản:** 0.2 (2026-10-22)
 - **Người viết:** Đại (TV3, Quality owner), ticket [TV3-11](plan/tv3-conflict-media-test.md)
-- **Bản được kiểm:** `main` ở commit `5a9891d` (sau PR #59)
+- **Bản được kiểm:** `main` ở commit `5db0c36` (sau PR #64)
 - **Liên quan:** ma trận ca ở [design.md §10.1](design.md#101-ma-trận-e2e-bắt-buộc), ca cách ly ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng), chỉ tiêu ở [§11.2](design.md#112-chỉ-tiêu), story ở [requirements.md](requirements.md), nợ ở [tech-debt.md](tech-debt.md)
 
-File này trả lời: hệ thống đã được kiểm chứng tới đâu, bằng chứng nằm ở file nào, và còn gì chưa đạt hoặc chưa kiểm. Đây là **bản nháp**: chỗ đánh dấu ⏳ còn chờ số liệu (hiệu năng TV2-11, thử trên điện thoại thật), và trạng thái cuối được chốt lại sau khi đóng băng tính năng.
+File này trả lời: hệ thống đã được kiểm chứng tới đâu, bằng chứng nằm ở file nào, và còn gì chưa đạt hoặc chưa kiểm. Bản 0.2 chốt phần đã kiểm được bằng test tự động và CI (§1–§5, §8). Hai phần còn mở, đánh dấu ⏳: hiệu năng (§6, chờ `docs/perf.md` của TV2-11) và thử trên điện thoại thật (§7). Ticket TV3-11 chỉ xong khi hai phần này có kết quả và số liệu được chạy lại trên commit cuối sau đóng băng tính năng (§9).
 
 ## 1. Tóm tắt
 
 | Hạng mục | Kết quả |
 |---|---|
 | Ca bắt buộc trong ma trận (§10.1 + T1–T10) | **64/64 đạt**, A4 bỏ theo ADR 0003 (thay bằng A7) |
-| Test tự động | 678 unit và integration (shared 130, server 377, client 171), 113 E2E trong 29 file, không ca nào `skip` |
-| CI (2026-10-07 → 2026-10-22) | 178 lần chạy: 145 xanh, 32 bị huỷ vì có push mới hơn, **0 đỏ**; trung bình 1,9 phút |
+| Test tự động | 682 unit và integration (shared 130, server 379, client 173), 118 E2E trong 30 file, không ca nào `skip` |
+| CI (2026-10-07 → 2026-10-22) | 198 lần chạy: 159 xanh, 39 bị huỷ vì có push mới hơn, **0 đỏ**; trung vị 1,9 phút |
+| Kịch bản chất lượng §11.4 | QS1, QS2, QS3, QS5 đạt; QS4 ⏳ TV2-11 |
 | Chỉ tiêu hiệu năng §11.2 | 2/10 có số đo (ảnh ≤ 600 KB, đổi dự án ≤ 1 s); còn lại ⏳ TV2-11 |
-| Điện thoại thật | ⏳ chưa ghi kết quả (§7) |
-| User story | 12/12 story có test; 2 tiêu chí còn thiếu E2E (§4) |
+| Điện thoại thật | ⏳ chưa thử (§7) |
+| User story | 12/12 story có test; 2 tiêu chí còn thiếu E2E, đã giao TV3-14 (§4) |
 
 ## 2. Phương pháp
 
@@ -28,7 +29,7 @@ File này trả lời: hệ thống đã được kiểm chứng tới đâu, b�
 | Integration | Vitest + `fetch` vào server thật cổng ngẫu nhiên, SQLite `:memory:` | Route, phân quyền, cách ly dự án, idempotency, migration, CLI | `server/test/*.test.ts`, fixture `server/test/fixtures.ts` |
 | E2E | Playwright, Chromium | Luồng người dùng trên **bản build** (`vite preview`) để service worker chạy như production; API in-memory có dữ liệu demo | `client/e2e/*.spec.ts` |
 
-Phần lớn logic nằm ở unit và integration (chạy dưới 15 giây); E2E giữ cho các ca chỉ kiểm được khi có trình duyệt thật: offline, service worker, IndexedDB, nhiều tab, nén ảnh bằng canvas, tải file.
+Phần lớn logic nằm ở unit và integration (chạy khoảng 20 giây); E2E giữ cho các ca chỉ kiểm được khi có trình duyệt thật: offline, service worker, IndexedDB, nhiều tab, nén ảnh bằng canvas, tải file.
 
 ### 2.2 Tạo điều kiện lỗi
 
@@ -61,7 +62,7 @@ E2E chạy tuần tự (`workers: 1`) vì dùng chung một server và cơ chế
 
 ## 3. Ma trận ca kiểm thử
 
-Mọi ca dưới đây **đạt** trên `main` ở commit `5a9891d` (`npm test`, `npm run test:e2e` xanh). Cột "Mức": U = unit, I = integration, E = E2E.
+Mọi ca dưới đây **đạt** trên `main` ở commit `5db0c36` (`npm test`, `npm run test:e2e` xanh). Cột "Mức": U = unit, I = integration, E = E2E.
 
 ### 3.1 Offline
 
@@ -154,7 +155,7 @@ Mọi ca dưới đây **đạt** trên `main` ở commit `5a9891d` (`npm test`,
 
 ### 3.7 Ngoài ma trận
 
-E2E còn kiểm các luồng không có mã ca: trình duyệt thiếu API và xin giữ bộ nhớ (`browser-support.spec.ts`), builder và phiên bản form (`builder.spec.ts`, `form-version.spec.ts`, `form-import-export.spec.ts`), trang điền phiếu (`fill.spec.ts`), ảnh và nén (`photo.spec.ts`), tách CSDL theo dự án trên máy (`storage.spec.ts`), cập nhật bản mới của app (`update.spec.ts`), trang Cài đặt và Đăng xuất (`settings.spec.ts`), điều tra viên không xoá được phiếu người khác (`record-owner.spec.ts`), xuất CSV/JSON (`export.spec.ts`).
+E2E còn kiểm các luồng không có mã ca: trình duyệt thiếu API và xin giữ bộ nhớ (`browser-support.spec.ts`), builder và phiên bản form (`builder.spec.ts`, `form-version.spec.ts`, `form-import-export.spec.ts`), trang điền phiếu (`fill.spec.ts`), ảnh và nén (`photo.spec.ts`), tách CSDL theo dự án trên máy (`storage.spec.ts`), cập nhật bản mới của app (`update.spec.ts`), trang Cài đặt và Đăng xuất (`settings.spec.ts`), điều tra viên không xoá được phiếu người khác (`record-owner.spec.ts`), xuất CSV/JSON (`export.spec.ts`), báo lỗi máy chủ ở trang cần online và báo hết phiên khi `401` (`api-errors.spec.ts`).
 
 ## 4. Truy vết user story
 
@@ -164,18 +165,18 @@ Bảng đầy đủ tiêu chí → test → PR ở [requirements.md "Truy vết"
 |---|---|---|---|---|
 | US-01 Nhập phiếu offline | K1 | O1, O2, O4 | 3/3 | |
 | US-02 Lưu nháp | K1 | O5 | 2/2 | |
-| US-03 Ảnh lên đủ | K1 | O3, R4, ảnh ≤ 600 KB | 3/4 | **Chưa có E2E bấm lấy GPS** (chỉ unit luật `gps`); bù bằng thử trên điện thoại thật (§7, P4) |
+| US-03 Ảnh lên đủ | K1 | O3, R4, ảnh ≤ 600 KB | 3/4 | **Chưa có E2E bấm lấy GPS** (chỉ unit luật `gps`); giao TV3-14, trong lúc chờ bù bằng thử trên điện thoại thật (§7, P4) |
 | US-04 Không trùng khi lỗi | K1 | R1–R6, O6 | 4/4 | |
 | US-05 Hai nơi cùng sửa | K2 | C1–C3, C6–C8 | 4/4 | |
 | US-06 Xoá an toàn | K1, K2 | O7, O8, C4, C5 | 4/4 | |
-| US-07 Tạo, sửa form | K3 | A3, A5 | 3/4 | **Chưa có E2E "điều tra viên thấy form sau vòng đồng bộ"** (`builder.spec.ts` chỉ kiểm trên máy giám sát viên) |
+| US-07 Tạo, sửa form | K3 | A3, A5 | 3/4 | **Chưa có E2E "điều tra viên thấy form sau vòng đồng bộ"** (`builder.spec.ts` chỉ kiểm trên máy giám sát viên); giao TV3-14 |
 | US-08 Xuất dữ liệu | K3 | A3, export | 3/3 | |
 | US-09 Nhiều tổ chức | K4 | T1–T10 | 3/3 | |
-| US-10 Tài khoản, mở tổ chức | K4 | U1–U7, Q1, Q2, Q8 | 4/4 | |
-| US-11 Thành viên | K4 | M1–M3, A7 | 4/4 | |
+| US-10 Tài khoản, mở tổ chức | K4 | U1–U7, Q1, Q2, Q8, `api-errors.spec.ts` (hết phiên) | 5/5 | |
+| US-11 Thành viên | K4 | M1–M3, A7, `api-errors.spec.ts` (máy chủ lỗi) | 5/5 | |
 | US-12 Admin không xem dữ liệu | K4 | T4, Q3, Q7, Q10, Q11 | 4/4 | |
 
-Kịch bản chất lượng (design §11.4): QS1 (R1, R2, R3, O2), QS2 (C1, C2, C4, C5, C8) và QS3 (T1–T5, Q7) đã có test đạt; QS4 (mở offline ≤ 3 s) chờ TV2-11; QS5 (khôi phục bản trước) chưa diễn tập (N3).
+Kịch bản chất lượng (design §11.4): QS1 (R1, R2, R3, O2), QS2 (C1, C2, C4, C5, C8) và QS3 (T1–T5, Q7) đã có test đạt; QS4 (mở offline ≤ 3 s) chờ TV2-11. QS5 (khôi phục bản trước) không có test tự động mà kiểm bằng diễn tập tay trên staging ngày 2026-10-22 (TV1-19, PR #64): quay lại nhánh 2a mất 19 s, quay về `main` 21 s, đạt mục tiêu ≤ 5 phút; nhánh khôi phục CSDL (2b) chưa diễn tập.
 
 ## 5. Số liệu CI
 
@@ -185,24 +186,25 @@ Số liệu lấy từ GitHub Actions API ngày 2026-10-22 (⏳ cập nhật l�
 
 | | Số lần |
 |---|---|
-| Tổng số lần chạy (2026-10-07 → 2026-10-22) | 178 (120 từ PR, 58 từ push lên `main`) |
-| Xanh | 145 |
-| Bị huỷ | 32 (do `concurrency: cancel-in-progress`: push tiếp lên cùng nhánh thì lần cũ bị huỷ, không phải lỗi) |
+| Tổng số lần chạy (2026-10-07 → 2026-10-22) | 198 (135 từ PR, 63 từ push lên `main`) |
+| Xanh | 159 |
+| Bị huỷ | 39 (do `concurrency: cancel-in-progress`: push tiếp lên cùng nhánh thì lần cũ bị huỷ, không phải lỗi) |
 | Đỏ | 0 |
-| Đang chạy lúc lấy số | 1 |
-| Push lên `main` | 57 xanh, 1 bị huỷ |
-| Thời gian một lần xanh | trung bình 1,9 phút, dài nhất 4,2 phút |
+| Push lên `main` | 62 xanh, 1 bị huỷ |
+| Thời gian một lần xanh | trung vị 1,9 phút, trung bình 2,2 phút, dài nhất 11,6 phút |
+
+Ba lần chạy dài nhất (9,7 đến 11,6 phút) đều rơi vào sáng 2026-10-22; các lần khác dưới 5 phút. Chưa tìm nguyên nhân, ghi lại để so ở lần lấy số cuối.
 
 Không có lần nào đỏ: mỗi người chạy `typecheck`, `npm test` và E2E liên quan trên máy trước khi push (quy trình "Khi xong một ticket" trong CLAUDE.md, `/self-check`), nên CI đóng vai lưới an toàn cuối thay vì nơi phát hiện lỗi chính. Mặt trái: số liệu CI không cho thấy bao nhiêu lỗi đã được test bắt ở máy dev.
 
-Số test trên `main` ở commit `5a9891d`:
+Số test trên `main` ở commit `5db0c36`:
 
 | Workspace | File | Test | Thời gian (máy dev) |
 |---|---|---|---|
 | `shared` (unit) | 6 | 130 | < 1 s |
-| `server` (integration, một ít unit) | 23 | 377 | khoảng 12 s |
-| `client` (unit) | 21 | 171 | khoảng 2 s |
-| `client/e2e` (E2E) | 29 | 113 | vài phút (gồm build) |
+| `server` (integration, một ít unit) | 23 | 379 | khoảng 17 s |
+| `client` (unit) | 22 | 173 | khoảng 2 s |
+| `client/e2e` (E2E) | 30 | 118 | 3,0 phút (chưa tính build) |
 
 ## 6. Hiệu năng
 
@@ -267,13 +269,12 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 
 | # | Vấn đề | Ảnh hưởng tới người dùng hoặc kiểm chứng | Ưu tiên | Trạng thái |
 |---|---|---|---|---|
-| N2 | Chưa sao lưu hằng ngày, ảnh chưa có trong bản sao lưu | Hỏng đĩa staging thì mất phiếu và ảnh | Cao | ⏳ |
-| N1 | Server không ghi log theo request | Sự cố staging khó dò, không có tỉ lệ 5xx sau deploy | Vừa | ⏳ |
-| N3 | Chưa diễn tập quay lại bản trước | QS5 chưa kiểm chứng | Vừa | ⏳ |
-| N5 | Bị thu hồi phiên chỉ quay về màn hình Đăng nhập, không có câu giải thích | Người dùng không hiểu vì sao bị đẩy ra | Vừa | ⏳ |
-| N6 | Danh sách phiếu chưa lọc theo người tạo, chưa có ô tìm | Supervisor khó tìm phiếu khi dự án lớn | Thấp | ⏳ |
-| N7 | `seed:demo` tạo token cố định | Chỉ ảnh hưởng bản dev | Thấp | Đang trả ở nhánh `fix/n7-demo-tokens` |
-| N8 | Chưa kiểm khả năng tiếp cận | Nắng khó đọc, trình đọc màn hình chưa thử | Thấp | ⏳ |
+| N2 | Chưa sao lưu hằng ngày, ảnh chưa có trong bản sao lưu | Hỏng đĩa staging thì mất phiếu và ảnh | Cao | ⏳ TV3-13, TV1-19 |
+| N1 | Server không ghi log theo request | Sự cố staging khó dò, không có tỉ lệ 5xx sau deploy | Vừa | ⏳ TV2-19 |
+| N6 | Danh sách phiếu chưa lọc theo người tạo, chưa có ô tìm | Supervisor khó tìm phiếu khi dự án lớn | Thấp | ⏳ TV2-18 |
+| N8 | Chưa kiểm khả năng tiếp cận | Nắng khó đọc, trình đọc màn hình chưa thử | Thấp | ⏳ TV3-15 |
+
+Đã trả từ bản 0.1: N3 diễn tập quay lại bản trước (PR #64), N5 báo "Phiên đăng nhập hết hạn" khi `401` (PR #62, kiểm bằng `api-errors.spec.ts`), N7 `seed:demo` bỏ token cố định (PR #60).
 
 ### 8.2 Phần chưa có kiểm thử tự động
 
@@ -282,15 +283,16 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 | Safari iOS, Firefox | E2E chỉ chạy Chromium (design §11.1: Firefox, Safari macOS best-effort) | Thử tay P1–P13 trên iPhone (§7) |
 | Camera, GPS thật | Trình duyệt headless không có; E2E dùng file ảnh tạo sẵn | P4, P5 |
 | Nhiều người dùng cùng lúc, tải cao | Ngoài phạm vi đồ án; server SQLite một tiến trình | Pull 5.000 phiếu ở TV2-11 |
-| Điều tra viên thấy form mới sau vòng đồng bộ | Chưa viết E2E hai vai (§4, US-07) | A5 integration và đồng bộ form trong các E2E khác |
-| Lấy GPS trong E2E | Chưa viết (§4, US-03) | Unit luật `gps`, P4 |
-| Khả năng tiếp cận (tương phản, cỡ nút) | Chưa có công cụ kiểm trong E2E (N8) | E2E chọn ô theo nhãn nên các ô có E2E đều có nhãn; P13 |
-| Khôi phục bản trước trên staging | Chưa diễn tập (N3) | – |
+| Điều tra viên thấy form mới sau vòng đồng bộ | Chưa viết E2E hai vai (§4, US-07); giao TV3-14 | A5 integration và đồng bộ form trong các E2E khác |
+| Lấy GPS trong E2E | Chưa viết (§4, US-03); giao TV3-14 | Unit luật `gps`, P4 |
+| Khả năng tiếp cận (tương phản, cỡ nút) | Chưa có công cụ kiểm trong E2E (N8, TV3-15) | E2E chọn ô theo nhãn nên các ô có E2E đều có nhãn; P13 |
+| Quay lại bản trước trên staging | Làm tay theo `deploy.md`, không tự động được trong CI | Diễn tập nhánh 2a ngày 2026-10-22 (QS5); nhánh 2b (khôi phục CSDL) chưa diễn tập |
 
 ## 9. Việc còn lại để chốt báo cáo
 
-- [ ] Điền §6 từ `docs/perf.md` khi TV2-11 xong.
-- [ ] Thử P1–P13 trên điện thoại thật, điền §7.
+- [ ] Điền §6 từ `docs/perf.md` khi TV2-11 xong (Hoàng đo, Đại điền).
+- [ ] Thử P1–P13 trên điện thoại thật, điền §7 (Đại, cần staging bản cuối).
+- [ ] Đưa ca của TV3-14 (GPS, điều tra viên thấy form) vào §3, §4 khi ticket đó xong.
 - [ ] Sau đóng băng tính năng: chạy lại toàn bộ test trên commit cuối, cập nhật số ở §1, §3, §5.
 - [ ] Cập nhật §8 theo tech-debt và lỗi tìm được khi thử tay.
 
@@ -299,3 +301,4 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 | Phiên bản | Ngày | Thay đổi |
 |---|---|---|
 | 0.1 | 2026-10-22 | Bản nháp: phương pháp, ma trận 64 ca với bằng chứng, truy vết story, số liệu CI, khung hiệu năng và kịch bản thử trên điện thoại thật |
+| 0.2 | 2026-10-22 | Chạy lại trên `5db0c36` (sau PR #64): số test, số CI; thêm `api-errors.spec.ts` (US-10, US-11 thêm tiêu chí); QS5 đạt theo diễn tập TV1-19; N3, N5, N7 đã trả; nợ và phần chưa kiểm trỏ tới ticket mới (TV2-18, TV2-19, TV3-13..15). §6, §7 vẫn chờ |
