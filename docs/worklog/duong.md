@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-22 | — | docs | Chia việc chưa ai nhận theo MVP: ticket TV1-19, TV2-18, TV2-19, TV3-13…TV3-16 (dòng Mức MoSCoW); TV1-12 chuyển tài liệu người dùng sang TV3-16, rà khả năng tiếp cận sang TV3-15; tech-debt trỏ ticket; design 0.5.41 §1; team-plan lộ trình tuần 8, thứ tự cắt | `docs/chia-viec-sau-59` | chờ review |
+| 2026-10-22 | — | docs | Chia việc chưa ai nhận theo MVP: ticket TV1-19, TV2-18, TV2-19, TV3-13…TV3-16 (dòng Mức MoSCoW); TV1-12 chuyển tài liệu người dùng sang TV3-16, rà khả năng tiếp cận sang TV3-15; tech-debt trỏ ticket; design 0.5.41 §1; team-plan lộ trình tuần 8, thứ tự cắt | PR #61 | chờ review |
 | 2026-10-22 | — | docs | Chỉnh tài liệu theo slide Lecture 01–05: design 0.5.37–0.5.39 (ghi lại chỗ cũ, vấn đề/giả định/MoSCoW, mâu thuẫn, kịch bản chất lượng, 3 góc nhìn kiến trúc, sở hữu dữ liệu); thêm requirements.md, tech-debt.md; deploy rollback; quy trình team-plan | PR #59 | chờ review |
 | 2026-10-19 | TV1-12 | fix | Phần a1: mọi `window.confirm` → hộp trong app `ConfirmDialog` (Đăng xuất, đổi vai trò/rút, Tải lại, Xoá khỏi máy) + E2E đổi theo, ca Esc; hộp Xoá phiếu đóng khi phiếu thành xung đột (E2E); chữ "…và Owner…"; Xuất JSON khi bị từ chối báo kết quả; docs chữ cũ | PR #58 | xong |
 | 2026-10-19 | TV1-07 | feat | Cài đặt hiện tên đăng nhập thay mã người dùng (ADR 0003); `accountUsername` dùng chung với màn hình Tổ chức (máy cũ chưa có username → userId) + unit; E2E `settings.spec.ts` đổi testid, thêm ca user cũ | PR #57 | xong |
