@@ -6,10 +6,10 @@ import { getAccountValue, type AccountProject } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
 import { MEMBER_ERROR_TEXT, assignableRoles, confirmText, memberActions } from '../members';
 import { ROLE_LABEL, canManageProject } from '../projects';
+import { apiFailureText } from '../apiErrors';
 import {
-  NetworkError,
-  NotMemberError,
   addMember,
+  apiFailure,
   changeMemberRole,
   fetchMembers,
   fetchSettings,
@@ -24,13 +24,12 @@ import { navigate } from '../useHashRoute';
 // (CLAUDE.md bất biến 7 cho phép). Luật ai đụng được vai trò nào giống server (canAssignRole).
 
 const OFFLINE_MSG = 'Cần kết nối mạng để quản lý thành viên';
-const NOT_MEMBER_MSG = 'Bạn không còn thuộc tổ chức này';
 
-/** Lỗi gọi API thành câu hiển thị; lỗi khác (lỗi lập trình, 5xx) ném tiếp. */
+/** Lỗi gọi API thành câu hiển thị (mất mạng, 5xx, 401, không còn thành viên); lỗi lập trình ném tiếp. */
 function failureText(err: unknown): string {
-  if (err instanceof NetworkError) return OFFLINE_MSG;
-  if (err instanceof NotMemberError) return NOT_MEMBER_MSG;
-  throw err;
+  const failure = apiFailure(err);
+  if (!failure) throw err;
+  return apiFailureText(failure, OFFLINE_MSG);
 }
 
 export function MembersPage() {

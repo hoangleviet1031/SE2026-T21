@@ -18,8 +18,9 @@ import type {
 } from '@field-survey/shared';
 import { MEMBER_ERROR_CODES, type MemberErrorCode } from '../members';
 import { ORG_ERROR_CODES, type OrgErrorCode } from '../orgs';
+import type { ApiFailure } from '../apiErrors';
 
-import { clearToken, getToken } from '../auth';
+import { expireSession, getToken } from '../auth';
 
 const TIMEOUT_MS = 10_000;
 
@@ -27,6 +28,12 @@ const TIMEOUT_MS = 10_000;
 const projectPath = (projectId: string) => `/api/projects/${encodeURIComponent(projectId)}`;
 
 export class NetworkError extends Error {}
+
+/**
+ * Server trả `5xx` hoặc mã lỗi màn hình không xử lý được, ở các màn hình cần online (Thành viên, Tổ chức,
+ * builder lưu form, Xuất). Trang báo "Máy chủ đang lỗi, thử lại sau", người dùng bấm lại.
+ */
+export class ServerError extends Error {}
 
 /** Mã đăng nhập thiếu hoặc bị server từ chối (401). Dữ liệu cục bộ giữ nguyên; người dùng đăng nhập lại. */
 export class AuthError extends Error {}
@@ -39,6 +46,15 @@ export class NotMemberError extends Error {
   constructor(readonly projectId: string) {
     super(`không còn là thành viên dự án ${projectId}`);
   }
+}
+
+/** Lỗi của màn hình cần online thành loại để chọn câu báo (apiErrors.ts); lỗi khác trả null để ném tiếp. */
+export function apiFailure(err: unknown): ApiFailure | null {
+  if (err instanceof NetworkError) return 'network';
+  if (err instanceof ServerError) return 'server';
+  if (err instanceof AuthError) return 'auth';
+  if (err instanceof NotMemberError) return 'not_member';
+  return null;
 }
 
 /** Đọc mã lỗi trong thân response mà không làm hỏng thân cho nơi gọi đọc tiếp. */
@@ -77,8 +93,8 @@ async function request(path: string, init: RequestInit = {}, projectId?: string)
       signal: ctrl.signal,
     });
     if (res.status === 401) {
-      // Màn hình tự quay về đăng nhập khi token biến mất (design §7.1)
-      await clearToken();
+      // Màn hình tự quay về đăng nhập khi token biến mất, kèm câu báo hết phiên (design §7.1, §8)
+      await expireSession();
       throw new AuthError('mã đăng nhập không còn hiệu lực');
     }
     if (projectId && res.status === 403 && (await errorCode(res)) === 'not_member') {
@@ -200,7 +216,7 @@ export async function saveForm(projectId: string, body: SaveFormRequest): Promis
   }
   if (code === 'forbidden') return { ok: false, errors: ['Chỉ giám sát viên và Owner được lưu biểu mẫu'] };
   if (code === 'invalid_body') return { ok: false, errors: ['Biểu mẫu không đúng định dạng'] };
-  throw new Error(`POST forms ${res.status}`);
+  throw new ServerError(`POST forms ${res.status}`);
 }
 
 /**
@@ -223,7 +239,7 @@ async function memberCall<T>(
   if (res.ok) return { ok: true, value: await read(res) };
   const code = await errorCode(res);
   if (isMemberErrorCode(code)) return { ok: false, error: code };
-  throw new Error(`${init.method ?? 'GET'} ${path} ${res.status}`);
+  throw new ServerError(`${init.method ?? 'GET'} ${path} ${res.status}`);
 }
 
 const json = (method: string, body: unknown): RequestInit => ({
@@ -344,6 +360,7 @@ export async function downloadExport(projectId: string, formId: string, format: 
     {},
     projectId,
   );
+  if (res.status >= 500) throw new ServerError(`GET export ${res.status}`);
   if (!res.ok) throw new ExportError(res.status, await errorCode(res));
   return res.blob();
 }
@@ -360,7 +377,7 @@ async function orgCall<T>(path: string, init: RequestInit, read: (res: Response)
   const code = await errorCode(res);
   const known = ORG_ERROR_CODES.find((c) => c === code);
   if (known) return { ok: false, error: known };
-  throw new Error(`${init.method ?? 'GET'} ${path} ${res.status}`);
+  throw new ServerError(`${init.method ?? 'GET'} ${path} ${res.status}`);
 }
 
 /** Tên các tổ chức công khai mình chưa thuộc. */

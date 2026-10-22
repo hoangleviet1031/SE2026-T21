@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.41 (2026-10-22)
+- **Phiên bản:** 0.5.42 (2026-10-22)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -75,6 +75,7 @@
 | 0.5.39 | 2026-10-22 | Bổ sung phần kiến trúc theo Lecture 04, không đổi hành vi: §3.1 kiểu kiến trúc (modular monolith, local-first) và phương án đã loại; §3.2 góc nhìn module và quy tắc phụ thuộc; §3.3 góc nhìn chạy (vòng đồng bộ); §3.4 góc nhìn triển khai; §6.3 ai sở hữu dữ liệu nào; §12 log và theo dõi. team-plan: quy trình theo cách nhóm đang làm (tự merge, không demo hằng tuần) và 3 vai (gộp 4 vai của Lecture 02 cho nhóm 3 người); vibe-coding: bằng chứng dùng AI ghi trong PR thay `Assisted-by:`, thêm 2 câu checklist |
 | 0.5.40 | 2026-10-22 | Trả nợ N7: `seed:demo` không tạo phiên token cố định nữa và xoá phiên token demo cũ trong DB dev (§12); E2E lấy token bằng đăng nhập trong `client/e2e/global-setup.ts` |
 | 0.5.41 | 2026-10-22 | Chia việc chưa ai nhận theo MVP, không đổi hành vi: §1 bảng phạm vi thêm Danh sách phiếu (§4.8), Khả năng tiếp cận (§11.3), Log (§12), Vận hành staging kèm mức MoSCoW và ticket mới (TV1-19, TV2-18, TV2-19, TV3-13…TV3-16 ở [plan/](plan/README.md)); §4.8 trỏ phần chưa có code sang TV2-18 |
+| 0.5.42 | 2026-10-22 | TV1-12 a2: `401` hiện "Phiên đăng nhập hết hạn, đăng nhập lại" ở màn hình Đăng nhập (khoá `sessionExpired` trong `account`, §4.2; trả nợ N5); màn hình cần online (Thành viên, Tổ chức, builder lưu form, Xuất) gặp `5xx` hoặc mã lạ báo "Máy chủ đang lỗi, thử lại sau", không tự thử lại (§8); thêm thành viên bằng tài khoản bị khoá trả `404 not_found` như tên không có (§7) |
 
 ## Mục lục
 
@@ -399,7 +400,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 
 | Bảng | Khoá | Nội dung |
 |---|---|---|
-| `account` | `key` | `token`; `user` = `{ id, name, isAdmin }` (bản sao `MeResponse.user`, ghi sau mỗi lần gọi `/me`); `currentProjectId` (dự án đang chọn). Token là token **phiên** của máy này (ADR 0003 §1); `user` có thêm `username`; tài khoản `isAdmin` không được lưu (bị chặn khi đăng nhập, §4.9). Có code (TV2-16): token chỉ được ghi sau khi `client/src/signIn.ts` kiểm xong người dùng, ghi `user` trước rồi `token` sau cùng |
+| `account` | `key` | `token`; `user` = `{ id, name, isAdmin }` (bản sao `MeResponse.user`, ghi sau mỗi lần gọi `/me`); `currentProjectId` (dự án đang chọn); `sessionExpired` (server vừa từ chối token bằng `401`: ghi cùng transaction với lúc xoá token, xoá khi lưu token mới). Token là token **phiên** của máy này (ADR 0003 §1); `user` có thêm `username`; tài khoản `isAdmin` không được lưu (bị chặn khi đăng nhập, §4.9). Có code (TV2-16): token chỉ được ghi sau khi `client/src/signIn.ts` kiểm xong người dùng, ghi `user` trước rồi `token` sau cùng |
 | `projects` | `id` | Bản sao `GET /api/me`: tên dự án, vai trò, trạng thái (`active` / `removed`), số phiếu cần xử lý (`needsAttention`: `conflict` + `error`) và chưa đồng bộ (`unsynced`: `pending` + `draft`), cập nhật sau mỗi vòng đồng bộ |
 
 **`field-survey-p-<projectId>`** (mỗi dự án một CSDL, cùng schema)
@@ -890,7 +891,7 @@ Content-Type: application/json
 | `GET /admin/project-requests?status=pending` | – | `200 [{ id, name, note, user: { id, username, name }, createdAt }]` |
 | `POST /admin/project-requests/:id` | `{ decision: 'approve' \| 'reject', reason? }` | Duyệt: `200 { projectId }`; một transaction tạo dự án (`id` = `p-` + 8 ký tự `a-z0-9`, không công khai) và membership `owner` cho người gửi, `added_by` = admin; admin **không** thành thành viên. Từ chối: `reason` bắt buộc. Không còn `pending` → `409 request_decided` |
 | `PUT /admin/projects/:projectId/owners/:username` | – | `200`; không có dự án hoặc tên → `404`; tài khoản admin → `409 admin_account` |
-| `POST P/members` | `{ username, role }` | `201 Member`; không có tên → `404 not_found`; `409 already_member`; `409 admin_account`; supervisor thêm vai trò khác `surveyor` → `403 forbidden` |
+| `POST P/members` | `{ username, role }` | `201 Member`; không có tên hoặc tài khoản bị khoá → `404 not_found`; `409 already_member`; `409 admin_account`; supervisor thêm vai trò khác `surveyor` → `403 forbidden` |
 | `PUT P/members/:userId`, `DELETE P/members/:userId` | `{ role }` / – | `200` / `204`; `409 last_owner`; supervisor đụng vào supervisor/owner → `403 forbidden` |
 | `GET P/settings`, `PATCH P/settings` | – / `{ name?, public? }` | `200 ProjectSettings`; không phải owner → `403 forbidden` |
 
@@ -956,10 +957,11 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | Offline | Không gửi; chờ sự kiện `online` | Nhãn "Ngoại tuyến", phiếu "Chờ đồng bộ" |
 | Timeout / mất kết nối giữa chừng | Retry với cùng `opId`; server trả lại response cũ nếu đã ghi | Không thấy gì khác |
 | `5xx`, `429` | Backoff, retry | Sau 5 lần: "Máy chủ đang lỗi, sẽ thử lại" |
-| `401` | Dừng đồng bộ, xoá token (giữ mọi CSDL dự án), về màn hình Đăng nhập | "Phiên đăng nhập hết hạn, đăng nhập lại" (code chưa hiện câu này, chỉ về màn hình Đăng nhập; [tech-debt.md](tech-debt.md) N5) |
+| `401` | Dừng đồng bộ, xoá token (giữ mọi CSDL dự án), về màn hình Đăng nhập | "Phiên đăng nhập hết hạn, đăng nhập lại" ở màn hình Đăng nhập, tới khi đăng nhập lại (`client/src/auth.ts`, `expireSession`). Token đã bị xoá trước đó (người dùng tự đăng xuất) thì không báo |
 | `403 not_member` | Dừng dự án đó | "Bạn không còn thuộc dự án X" (§4.7) |
 | `409` gộp được | Tự gộp, gửi lại | Không thấy gì |
 | `409` có xung đột | Chờ người dùng; phiếu chỉ đọc | "Cần xử lý xung đột" |
+| Màn hình cần online (Thành viên, Tổ chức, builder lưu form, Xuất) gặp `5xx` hoặc mã lỗi màn hình không xử lý | Không tự thử lại; giữ nguyên phần đang nhập | "Máy chủ đang lỗi, thử lại sau"; Thành viên khi tải danh sách có nút "Thử lại" (`client/src/apiErrors.ts`) |
 | `4xx` khác | Dừng op | "Lỗi" kèm chi tiết, nút "Thử lại" và "Xuất JSON phiếu này" |
 | Ảnh lỗi không retry được | Dừng ảnh đó | "Lỗi ảnh", nút "Thử lại" / "Bỏ ảnh này" |
 | IndexedDB đầy (`QuotaExceededError`) | Không lưu ảnh mới | "Bộ nhớ đầy: đồng bộ rồi dọn ảnh đã tải lên" |

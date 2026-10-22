@@ -86,7 +86,8 @@ export function addMember(ctx: Ctx, db: Db, input: AddMemberRequest, now: string
   if (!canAssignRole(ctx.role, input.role)) return { ok: false, error: 'forbidden' };
   return tx(db, (): AddMemberResult => {
     const user = findUserByUsername(db, input.username);
-    if (!user) return { ok: false, error: 'not_found' };
+    // Tài khoản bị khoá không đăng nhập được nên thêm vào cũng vô ích; báo như không có tên (design §7)
+    if (!user || user.disabled === 1) return { ok: false, error: 'not_found' };
     if (user.is_admin === 1) return { ok: false, error: 'admin_account' };
     if (getMember(ctx, db, user.id)) return { ok: false, error: 'already_member' };
     db.prepare(

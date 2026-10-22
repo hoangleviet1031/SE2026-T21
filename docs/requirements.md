@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.1 (2026-10-22)
+- **Phiên bản:** 0.2 (2026-10-22)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -102,6 +102,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tên đăng nhập chưa có, **when** tôi tạo tài khoản, **then** tôi đăng nhập luôn; tải lại trang vẫn đăng nhập.
 - **Given** tên đã có (khác hoa thường), **when** tạo tài khoản, **then** `409 username_taken`, báo "Tên đăng nhập đã có người dùng".
 - **Given** sai mật khẩu 11 lần trong 15 phút, **when** đăng nhập lần nữa, **then** `429` kể cả mật khẩu đúng.
+- **Given** phiên của máy bị thu hồi, **when** app gọi server, **then** về màn hình Đăng nhập với "Phiên đăng nhập hết hạn, đăng nhập lại", dữ liệu trên máy giữ nguyên.
 - **Given** tôi gửi yêu cầu mở tổ chức và admin duyệt, **when** vòng đồng bộ kế tiếp, **then** tôi thấy tổ chức với vai trò Owner và tạo được form.
 
 ### US-11 · Quản lý thành viên · Must
@@ -109,9 +110,10 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 *Là Owner hoặc giám sát viên, tôi muốn thêm người vào tổ chức bằng tên đăng nhập và đổi vai trò, mà không để tổ chức mất người quản lý.*
 
 - **Given** tôi là supervisor, **when** thêm điều tra viên bằng tên đăng nhập, **then** `201`; thêm giám sát viên thì `403 forbidden`.
-- **Given** tôi là Owner, **when** thêm người đã là thành viên hoặc tên không có, **then** `409 already_member` hoặc `404`.
+- **Given** tôi là Owner, **when** thêm người đã là thành viên hoặc tên không có (kể cả tài khoản bị khoá), **then** `409 already_member` hoặc `404`.
 - **Given** tổ chức chỉ còn một Owner, **when** rút hoặc hạ Owner đó, **then** `409 last_owner`.
 - **Given** tôi vừa được thêm, **when** vòng đồng bộ kế tiếp, **then** tôi thấy tổ chức và gửi được phiếu.
+- **Given** máy chủ lỗi (`5xx`), **when** tôi mở hoặc thao tác ở Thành viên, **then** báo "Máy chủ đang lỗi, thử lại sau" (khi tải có nút "Thử lại"), không kẹt ở "Đang tải…".
 
 ### US-12 · Admin duyệt tổ chức mà không xem dữ liệu · Must (màn hình Tài khoản A3: Could)
 
@@ -161,11 +163,13 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-10 | Tạo tài khoản, tải lại vẫn đăng nhập | U1 `accounts.test.ts`; U7 `login.spec.ts` | TV2-14 (#36), TV1-14 (#53) |
 | US-10 | Trùng tên → `409 username_taken` | U2 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Sai 11 lần → `429` | U4 `accounts.test.ts` | TV2-14 (#36) |
+| US-10 | Phiên bị thu hồi → về Đăng nhập, báo hết phiên, giữ dữ liệu | `api-errors.spec.ts` | TV1-12 (#62) |
 | US-10 | Gửi yêu cầu, được duyệt, thành Owner | Q1, Q2 `projectRequests.test.ts`; Q8 `orgs.spec.ts` | TV2-15 (#49), TV1-15 (#54) |
 | US-11 | Supervisor thêm surveyor; không thêm supervisor | M1 `members.test.ts` | TV1-08 (#38) |
-| US-11 | Đã là thành viên / tên không có | M2 `members.test.ts` | TV1-08 (#38) |
+| US-11 | Đã là thành viên / tên không có / tài khoản bị khoá | M2 và ca tài khoản bị khoá `members.test.ts` | TV1-08 (#38), TV1-12 (#62) |
 | US-11 | Owner cuối cùng | A7 `members.test.ts`; `members.spec.ts` | TV1-08 (#38, #39) |
 | US-11 | Người mới thêm thấy tổ chức, gửi được phiếu | M3 `orgs.spec.ts` | TV1-08 (#39), TV1-15 (#54) |
+| US-11 | Máy chủ lỗi ở Thành viên | `api-errors.spec.ts` (cả Tổ chức, builder lưu form, Xuất) | TV1-12 (#62) |
 | US-12 | Admin không đọc được dữ liệu | Q7 `projectRequests.test.ts`; T4 `isolation.test.ts`, `admin.test.ts` | TV2-15 (#49) |
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
 | US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` | TV1-16 (#55, #56) |
@@ -178,3 +182,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | Phiên bản | Ngày | Thay đổi |
 |---|---|---|
 | 0.1 | 2026-10-22 | Bản đầu: 12 story viết lại từ spec và code đã có, kèm bảng truy vết (Lecture 03) |
+| 0.2 | 2026-10-22 | TV1-12 a2: US-10 thêm tiêu chí hết phiên (`401`); US-11 thêm tài khoản bị khoá vào tiêu chí `404` và tiêu chí máy chủ lỗi |
