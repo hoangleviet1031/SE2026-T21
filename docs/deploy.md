@@ -120,6 +120,7 @@ WorkingDirectory=/home/azureuser/app
 Environment=NODE_ENV=production
 Environment=PORT=3001
 Environment=DB_PATH=data/survey.db
+Environment=UPLOAD_DIR=/home/azureuser/survey-data/uploads
 Environment=PUBLIC_BASE_URL=https://se2026-t21.koreacentral.cloudapp.azure.com
 ExecStart=/usr/bin/npm run start -w server
 Restart=always
@@ -130,12 +131,14 @@ WantedBy=multi-user.target
 ```
 
 ```bash
+mkdir -p ~/survey-data/uploads
 sudo systemctl daemon-reload
 sudo systemctl enable --now survey-api
 curl -s http://localhost:3001/api/health   # {"ok":true}
 ```
 
 - `npm run start -w server` chạy trong thư mục `server/`, nên CSDL nằm ở **`~/app/server/data/survey.db`**. `server/data/` có trong `.gitignore`, `git pull` không đụng tới.
+- Ảnh nằm ở **`~/survey-data/uploads`**, ngoài repo, để xoá hay clone lại `~/app` không mất ảnh (TV3-13). Không đặt `UPLOAD_DIR` thì server ghi vào `~/app/server/uploads`. Máy cài trước TV3-13 làm theo mục [Chuyển ảnh ra ngoài repo](#chuyển-ảnh-ra-ngoài-repo-một-lần).
 - Server chạy bằng `tsx` (chưa có bản build JS), nên **không** cài bằng `npm ci --omit=dev`.
 - Cố ý **không** đặt:
   - `ENABLE_TEST_ROUTES`: bật thì ai cũng gọi được `/api/__test/*` để tiêm lỗi (design §9).
@@ -342,20 +345,133 @@ Dự án `demo-yte` (có form mẫu) được server tạo sẵn khi khởi đ�
 
 ## Sao lưu và khôi phục
 
-- `deploy.sh` tự sao lưu trước mỗi lần khởi động lại, vào `~/backup/`, giữ 7 bản.
-- Sao lưu tay bất cứ lúc nào:
-  ```bash
-  cd ~/app && node --no-warnings scripts/backup-db.mjs server/data/survey.db ~/backup/survey-$(date +%Y%m%d-%H%M%S)-tay.db
-  ```
-  Script dùng `VACUUM INTO` qua `node:sqlite` (máy không cài `sqlite3`) và kiểm tra toàn vẹn bản sao.
-- Khôi phục:
-  ```bash
-  sudo systemctl stop survey-api
-  cd ~/app/server/data
-  mkdir -p ~/backup/hong && mv survey.db* ~/backup/hong/   # giữ bản đang hỏng, không xoá
-  cp ~/backup/<bản cần khôi phục>.db survey.db
-  sudo systemctl start survey-api
-  ```
+Có hai loại bản sao lưu, mỗi loại giữ 7 bản mới nhất và không xoá bản của loại kia:
+
+| | Lúc chạy | Gồm | Ở đâu |
+|---|---|---|---|
+| Trước deploy | `deploy.sh`, trước khi khởi động lại (bản mới có thể chạy migration) | CSDL | `~/backup/survey-<ngày giờ>-<commit cũ>.db` |
+| Hằng ngày | systemd timer, 03:00 giờ Việt Nam | CSDL **và ảnh** | `~/backup/daily/<ngày giờ>/` gồm `survey.db` và `uploads/` |
+
+Cả hai dùng `VACUUM INTO` qua `node:sqlite` (máy không cài `sqlite3`) nên chạy được khi server đang chạy, và kiểm tra toàn vẹn bản sao. Bản hằng ngày ([`scripts/backup-daily.mjs`](../scripts/backup-daily.mjs)) sao lưu CSDL trước rồi mới chép ảnh, vì server ghi file ảnh trước khi ghi dòng `attachments`. Sau đó script kiểm mọi ảnh CSDL nhắc tới có trong bản sao, đúng cỡ và SHA-256. Kiểm không qua thì không tạo bản mới, các bản cũ giữ nguyên, timer ghi lỗi (xem `systemctl --failed`).
+
+Hai loại đều nằm **cùng ổ đĩa với server**: cứu được khi lỡ tay hay CSDL hỏng, không cứu được khi mất ổ đĩa hay mất máy ảo. Phần đó dựa vào bản kéo về hằng tuần ở dưới ([tech-debt.md](tech-debt.md) N9).
+
+### Chuyển ảnh ra ngoài repo (một lần)
+
+Cho máy cài trước TV3-13, ảnh còn ở `~/app/server/uploads`. Làm trước khi bật sao lưu hằng ngày, vì timer đọc ảnh ở `~/survey-data/uploads`. Server dừng khoảng một phút; điện thoại gửi lỗi trong lúc đó sẽ tự thử lại.
+
+```bash
+cd ~/app && node --no-warnings scripts/backup-db.mjs server/data/survey.db ~/backup/survey-$(date +%Y%m%d-%H%M%S)-truoc-chuyen-anh.db
+sudo systemctl stop survey-api
+mkdir -p ~/survey-data
+mv ~/app/server/uploads ~/survey-data/uploads    # chưa có ảnh nào thì: mkdir -p ~/survey-data/uploads
+sudo nano /etc/systemd/system/survey-api.service  # thêm dòng Environment=UPLOAD_DIR=... như mục 6
+sudo systemctl daemon-reload
+sudo systemctl start survey-api
+for i in $(seq 1 30); do curl -fsS http://localhost:3001/api/health && break; sleep 1; done
+systemctl show survey-api -p Environment | grep -o 'UPLOAD_DIR=[^ ]*'   # UPLOAD_DIR=/home/azureuser/survey-data/uploads
+```
+
+Kiểm: mở trên app một phiếu đã có ảnh từ trước, ảnh phải hiện. Không hiện thì xem lại dòng `UPLOAD_DIR` và `ls ~/survey-data/uploads` (phải có thư mục theo `projectId`).
+
+### Bật sao lưu hằng ngày
+
+`/etc/systemd/system/survey-backup.service`:
+
+```ini
+[Unit]
+Description=Sao lưu hằng ngày CSDL và ảnh (TV3-13)
+
+[Service]
+Type=oneshot
+User=azureuser
+WorkingDirectory=/home/azureuser/app
+ExecStart=/usr/bin/node --no-warnings scripts/backup-daily.mjs server/data/survey.db /home/azureuser/survey-data/uploads /home/azureuser/backup/daily
+```
+
+`/etc/systemd/system/survey-backup.timer`:
+
+```ini
+[Unit]
+Description=Chạy survey-backup mỗi ngày
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 Asia/Ho_Chi_Minh
+# Máy ảo tắt qua 03:00 thì chạy bù ngay khi bật lại.
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now survey-backup.timer
+sudo systemctl start survey-backup      # chạy thử một lần ngay
+journalctl -u survey-backup -n 5 --no-pager   # "Đã sao lưu ... (N ảnh trong CSDL, ...); giữ 1 bản"
+systemctl list-timers survey-backup     # cột NEXT là 03:00 giờ Việt Nam hôm sau
+```
+
+Số "ảnh trong CSDL" là số ảnh đã kiểm. "File ảnh đã chép" có thể lớn hơn một chút: đó là ảnh server vừa ghi file nhưng chưa kịp ghi CSDL lúc sao lưu, vô hại.
+
+Thỉnh thoảng xem dung lượng (ổ 64 GiB; mỗi bản hằng ngày chứa toàn bộ ảnh):
+
+```bash
+df -h /
+du -sh ~/backup/daily/*
+```
+
+### Kéo bản sao lưu về máy khác (hằng tuần)
+
+Người có khoá SSH (hiện là Dương) kéo bản hằng ngày mới nhất về máy mình mỗi tuần, giữ 4 bản gần nhất. Trên máy Windows (PowerShell):
+
+```powershell
+$k = "$HOME\.ssh\se2026-staging_key.pem"; $h = "azureuser@se2026-t21.koreacentral.cloudapp.azure.com"
+$b = ssh -i $k $h 'ls -1 ~/backup/daily | tail -1'
+New-Item -ItemType Directory -Force "$HOME\se2026-backup" | Out-Null
+scp -r -i $k "${h}:backup/daily/$b" "$HOME\se2026-backup\"
+```
+
+Bản sao chứa dữ liệu khảo sát thật (phiếu, ảnh, hash mật khẩu): để trên máy cá nhân có khoá màn hình, không đưa lên chat hay ổ chia sẻ công khai.
+
+### Sao lưu tay
+
+```bash
+cd ~/app && node --no-warnings scripts/backup-db.mjs server/data/survey.db ~/backup/survey-$(date +%Y%m%d-%H%M%S)-tay.db   # chỉ CSDL
+sudo systemctl start survey-backup                                                                                      # CSDL và ảnh, như bản hằng ngày
+```
+
+### Khôi phục
+
+Khôi phục là **lùi dữ liệu về lúc sao lưu**: mất mọi phiếu, ảnh, tài khoản server nhận sau lúc đó, và điện thoại đã nhận `200` sẽ không gửi lại (như nhánh 2b ở [Quay lại bản trước](#quay-lại-bản-trước)). Chỉ làm khi CSDL hoặc ảnh hỏng thật, và **hỏi cả nhóm trước**. Ưu tiên bản hằng ngày vì có cả ảnh.
+
+```bash
+sudo systemctl stop survey-api
+b=~/backup/daily/<bản cần khôi phục>           # ls -1 ~/backup/daily
+hong=~/backup/hong/$(date +%Y%m%d-%H%M%S)
+mkdir -p "$hong"
+mv ~/app/server/data/survey.db* "$hong"/        # giữ bản đang hỏng, không xoá
+mv ~/survey-data/uploads "$hong"/uploads
+cp "$b/survey.db" ~/app/server/data/survey.db
+cp -r "$b/uploads" ~/survey-data/uploads
+```
+
+Trước khi bật server, nâng bộ đếm `seq` của bản khôi phục lên trên giá trị trong CSDL hỏng. Không làm thì điện thoại đang giữ cursor lớn hơn sẽ bỏ qua phiếu ghi sau khi khôi phục (design §5.5):
+
+```bash
+cd ~/app && node --no-warnings -e "const {DatabaseSync}=require('node:sqlite');const q=\"SELECT v FROM meta WHERE k='seq'\";const old=new DatabaseSync(process.argv[1],{readOnly:true}).prepare(q).get().v;const db=new DatabaseSync('server/data/survey.db');console.log('seq bản khôi phục',db.prepare(q).get().v,'· bản hỏng',old);db.prepare(\"UPDATE meta SET v = max(v, ?) + 1 WHERE k='seq'\").run(old);console.log('seq mới',db.prepare(q).get().v)" "$hong/survey.db"
+```
+
+Lệnh này báo lỗi vì không mở được CSDL hỏng thì dừng lại, hỏi nhóm, chưa bật server.
+
+```bash
+sudo systemctl start survey-api
+for i in $(seq 1 30); do curl -fsS http://localhost:3001/api/health && break; sleep 1; done
+```
+
+Kiểm như mục "Kiểm tra sau khi triển khai", rồi mở một phiếu có ảnh trên app. Khôi phục từ bản trước deploy (chỉ CSDL) thì làm như trên nhưng chỉ thay `survey.db` (`cp ~/backup/<bản>.db ~/app/server/data/survey.db`), **không** đụng thư mục ảnh. Ảnh nhận sau lúc sao lưu vẫn nằm trên đĩa nhưng không phiếu nào trỏ tới.
+
+Đã thử trên máy dev (Windows) ngày 2026-10-22: chạy `backup-daily.mjs` khi server đang chạy (1 phiếu, 3 ảnh), tắt server, thay CSDL và thư mục ảnh bằng bản sao, bật lại thì tải 3 ảnh qua API đều khớp SHA-256; lệnh nâng `seq` thử riêng trên cặp CSDL hỏng/khôi phục. Chưa làm trên staging, và các lệnh `systemctl` ở trên chưa chạy lần nào.
 
 ## Xem log, xử lý sự cố
 
@@ -371,7 +487,7 @@ Dòng `ExperimentalWarning: SQLite is an experimental feature` trong log là bì
 
 ## Việc chưa làm
 
-Theo dõi ở [tech-debt.md](tech-debt.md) (N1 log, N2 sao lưu).
+Theo dõi ở [tech-debt.md](tech-debt.md) (N1 log, N2 sao lưu, N9 bản sao lưu cùng ổ đĩa).
 
-- **Sao lưu hằng ngày** (design §12): hiện chỉ sao lưu khi triển khai lại. Muốn đủ thì thêm cron gọi `scripts/backup-db.mjs` mỗi ngày.
-- **Ảnh:** khi có upload (TV3-05), đặt `UPLOAD_DIR` ra ngoài repo (vd. `/home/azureuser/survey-data/uploads`) và sao lưu cùng CSDL. `server/uploads/` (mặc định khi không đặt `UPLOAD_DIR`) đã có trong `.gitignore`.
+- **Bật sao lưu hằng ngày trên staging** (TV1-19, Dương): script và các bước đã có (TV3-13). Còn phải làm trên máy theo thứ tự: [Chuyển ảnh ra ngoài repo](#chuyển-ảnh-ra-ngoài-repo-một-lần), [Bật sao lưu hằng ngày](#bật-sao-lưu-hằng-ngày), chạy thử một lần, kéo bản đầu tiên về máy.
+- **Bản sao lưu ngoài máy ảo:** hiện chỉ có bản kéo tay hằng tuần, nên mất ổ đĩa thì mất tới một tuần dữ liệu (N9).
