@@ -13,14 +13,10 @@ const DEMO_PASSWORD_HASH =
 export const DEMO_USERNAMES = { admin: 'admin', lan: 'lan', minh: 'minh', chu: 'chu' } as const;
 export const DEMO_USER_IDS = { admin: 'u_admin', lan: 'u_lan', minh: 'u_minh', chu: 'u_chu' } as const;
 
-// Phiên cố định, giữ tới khi màn hình đăng nhập bằng tên + mật khẩu (TV1-14) và client dùng phiên
-// (TV2-16) xong: màn hình hiện tại vẫn nhận token, E2E gọi API thẳng bằng các token này.
-export const DEMO_TOKENS = {
-  admin: 'demo-token-admin',
-  lan: 'demo-token-lan',
-  minh: 'demo-token-minh',
-  chu: 'demo-token-chu',
-} as const;
+// Token cố định mà seed tạo trước khi trả nợ N7 (docs/tech-debt.md): ai có bản dev là đoán được. Seed
+// không tạo nữa và xoá phiên của các token này nếu DB dev còn giữ từ bản cũ. Muốn có phiên thì đăng nhập
+// bằng mật khẩu demo như người dùng (E2E: client/e2e/global-setup.ts).
+const LEGACY_DEMO_TOKENS = ['demo-token-admin', 'demo-token-lan', 'demo-token-minh', 'demo-token-chu'];
 
 export const DEMO_PROJECTS = { yte: 'demo-yte', nongnghiep: 'demo-nongnghiep' } as const;
 
@@ -45,16 +41,15 @@ export function seedDemo(db: Db): void {
     );
     // DB dev tạo trước TV3-12 đã có lan, minh, admin nhưng chưa có mật khẩu: bổ sung, không đổi mật khẩu đã có.
     const setPassword = db.prepare(`UPDATE users SET password_hash = ? WHERE id = ? AND password_hash IS NULL`);
-    const addSession = db.prepare(
-      `INSERT OR IGNORE INTO sessions (token_hash, user_id, created_at, last_seen_at) VALUES (?, ?, ?, ?)`,
-    );
     for (const key of ['admin', 'lan', 'minh', 'chu'] as const) {
       const id = DEMO_USER_IDS[key];
-      const tokenHash = hashToken(DEMO_TOKENS[key]);
-      addUser.run(id, DEMO_USERNAMES[key], DEMO_NAMES[key], tokenHash, DEMO_PASSWORD_HASH, key === 'admin' ? 1 : 0, now);
+      // users.token_hash là NOT NULL UNIQUE từ migration 2; giá trị giữ chỗ không phải hex nên không bao
+      // giờ trùng SHA-256 của token nào, và requireAuth chỉ tra bảng sessions (như repo/users.ts insertUser).
+      addUser.run(id, DEMO_USERNAMES[key], DEMO_NAMES[key], `unused:demo-${key}`, DEMO_PASSWORD_HASH, key === 'admin' ? 1 : 0, now);
       setPassword.run(DEMO_PASSWORD_HASH, id);
-      addSession.run(tokenHash, id, now, now);
     }
+    const dropSession = db.prepare(`DELETE FROM sessions WHERE token_hash = ?`);
+    for (const token of LEGACY_DEMO_TOKENS) dropSession.run(hashToken(token));
 
     const addMember = db.prepare(
       `INSERT OR IGNORE INTO memberships (project_id, user_id, role, added_at) VALUES (?, ?, ?, ?)`,
