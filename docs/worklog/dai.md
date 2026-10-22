@@ -13,7 +13,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-22 | TV3-11 | docs | Bản nháp `docs/test-report.md`: phương pháp, ma trận 64 ca kèm file chứng minh, truy vết 12 story, số liệu CI (178 lần chạy, 0 đỏ), khung hiệu năng và 13 kịch bản thử trên điện thoại | nhánh `docs/tv3-11-test-report` | nháp |
+| 2026-10-22 | TV3-11 | docs | `docs/test-report.md` bản 0.2: phương pháp, ma trận 64 ca kèm file chứng minh, truy vết 12 story, số liệu CI (198 lần chạy, 0 đỏ), lỗi đã biết; chạy lại trên `5db0c36` (682 unit/integration, 118 E2E). §6 hiệu năng và §7 điện thoại thật còn chờ | nhánh `docs/tv3-11-test-report` | chờ review |
 | 2026-10-22 | — | fix | Trả nợ N7: seed bỏ token demo cố định và xoá phiên token cũ trong DB dev; E2E lấy token bằng đăng nhập (`global-setup.ts`), `TOKENS` giữ nguyên cách dùng nên 19 spec không đổi | nhánh `fix/n7-demo-tokens` | chờ review |
 | 2026-10-22 | TV3-09 | docs | PR #48 đã merge; ghi ✅ trong plan | PR #48 | xong |
 | 2026-10-18 | TV3-09 | feat | Xuất CSV/JSON `P/export/:formId` (RFC 4180, BOM, chống CSV injection, gộp nhiều bản form, gps 3 cột, URL ảnh, cột `updatedByName`); nút Xuất CSV/JSON ở trang chủ; test csv, exportTable, export (A3), E2E tải file | nhánh `feat/tv3-09-export` | chờ review |
