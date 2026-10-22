@@ -83,7 +83,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV3-08 | Xoá vs sửa | ✅ PR #47 |
 | TV3-09 | Export CSV/JSON | ✅ PR #48 |
 | TV3-10 | E2E O3, R4 | ✅ PR #40 |
-| TV3-11 | Báo cáo kiểm thử | — |
+| TV3-11 | Báo cáo kiểm thử | ⏳ nháp `docs/tv3-11-test-report` |
 
 ### Theo ADR 0003 (bản mới)
 
