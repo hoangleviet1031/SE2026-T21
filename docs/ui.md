@@ -1,6 +1,6 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.14 (2026-10-19): mọi hộp hỏi xác nhận là hộp trong app, Xuất JSON khi bị từ chối đổi tài khoản báo kết quả (TV1-12 a1). 0.2.13 (2026-10-19): màn hình 9 Tổ chức có code, mục "Tổ chức khác…" ở màn hình 2 (TV1-15). 0.2.12 (2026-10-19): màn hình 1 Đăng nhập / Tạo tài khoản có code, bỏ bản nhập mã (TV1-14). 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.15 (2026-10-22): bỏ nhãn 🆕/🕘 của phần đã có code (màn hình 5, 7, trang quản trị A1–A2; tech-debt N4, TV1-12 a2). 0.2.14 (2026-10-19): mọi hộp hỏi xác nhận là hộp trong app, Xuất JSON khi bị từ chối đổi tài khoản báo kết quả (TV1-12 a1). 0.2.13 (2026-10-19): màn hình 9 Tổ chức có code, mục "Tổ chức khác…" ở màn hình 2 (TV1-15). 0.2.12 (2026-10-19): màn hình 1 Đăng nhập / Tạo tài khoản có code, bỏ bản nhập mã (TV1-14). 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md; header giữ mỗi phần tử một dòng, tên app tự rút gọn bằng "…"); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
@@ -12,19 +12,19 @@
 | 2 | Danh sách phiếu (trang chủ) + bộ chọn dự án | `#/` | mọi | không | §4.7, §4.8 | TV1-06, TV3-07 |
 | 3 | Xung đột | `#/conflict/<recordId>` | mọi | không | §4.5 | TV3-07, TV3-08 |
 | 4 | Điền / xem phiếu | `#/fill/<formId>/<recordId>` | mọi | không | §4.1, §5.7 | TV1-05, TV1-10, TV1-13 |
-| 5 | Form builder | `#/builder/<formId>`, `#/builder/new` | supervisor, 🆕 owner | khi lưu | §4.1 | TV1-04 |
+| 5 | Form builder | `#/builder/<formId>`, `#/builder/new` | supervisor, owner | khi lưu | §4.1 | TV1-04 |
 | 6 | Thành viên (kèm cài đặt tổ chức cho owner) | `#/members` | supervisor, owner | có | §4.7 | TV1-08 |
-| 7 | ~~Dự án (quản trị)~~ | ~~`#/admin/projects`~~ | – | – | – | 🕘 Bỏ, thay bằng trang quản trị A1–A3 (TV1-16) |
+| 7 | ~~Dự án (quản trị)~~ | ~~`#/admin/projects`~~ | – | – | – | Bỏ, thay bằng trang quản trị A1–A3 (TV1-16) |
 | 8 | Cài đặt | `#/settings` | mọi | không | §4.2, §4.7 | TV1-07 |
 | 9 | Tổ chức (danh sách công khai, mở tổ chức mới) | `#/orgs` | mọi | có | §4.7 | TV1-15 |
 
-**🆕 Trang quản trị `/admin/`** (tách khỏi PWA, chỉ admin, luôn cần online; design §4.9)
+**Trang quản trị `/admin/`** (tách khỏi PWA, chỉ admin, luôn cần online; design §4.9)
 
 | # | Màn hình | Route | Spec | Ticket |
 |---|---|---|---|---|
 | A1 | Yêu cầu mở tổ chức (mặc định) | `/admin/#/` | §4.9 | TV1-16 |
 | A2 | Tổ chức | `/admin/#/projects` | §4.9 | TV1-16 |
-| A3 | Tài khoản (cắt được) | `/admin/#/users` | §4.9 | TV1-16, TV2-17 |
+| A3 | Tài khoản (cắt được, chưa có code: chờ API TV2-17) | `/admin/#/users` | §4.9 | TV1-16, TV2-17 |
 
 Các trạng thái dùng chung, mọi màn hình phải có: **đang tải**, **rỗng**, **lỗi**, và với màn hình cần online: **"Cần kết nối mạng để dùng chức năng này"**.
 
@@ -265,7 +265,7 @@ Code (`client/src/pages/MembersPage.tsx`, luật hiển thị ở `client/src/me
 
 ## 7. ~~Dự án (quản trị)~~
 
-🕘 Bỏ. Admin dùng trang quản trị riêng, xem A1–A3 dưới đây.
+Bỏ. Admin dùng trang quản trị riêng, xem A1–A3 dưới đây.
 
 ## 8. Cài đặt
 
@@ -344,7 +344,7 @@ Có code (TV1-15, `client/src/pages/OrgsPage.tsx`): là trang chủ thì có th�
 
 ---
 
-# Trang quản trị 🆕 (`/admin/`, TV1-16)
+# Trang quản trị (`/admin/`, TV1-16)
 
 Tách khỏi PWA (design §4.9): bố cục cho máy tính, luôn online, không lưu gì trên máy ngoài token phiên trong `sessionStorage`. Thanh trên: "Quản trị · Yêu cầu (n) · Tổ chức · Tài khoản · [tên admin] Đăng xuất" (mục Tài khoản ẩn tới khi có A3). Đường dẫn: A1 `/admin/#/`, A2 `/admin/#/projects`. Kết quả thao tác hiện một dòng trên bảng ("Đã duyệt: … (mã p-…)", lỗi bắt đầu bằng ⚠); phiên bị thu hồi thì về form đăng nhập với "Phiên đăng nhập hết hạn, đăng nhập lại".
 
