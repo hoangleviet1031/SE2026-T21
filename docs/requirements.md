@@ -139,7 +139,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
 | US-03 | Ảnh sau nén ≤ 600 KB | `photo.spec.ts`; unit `fitWithin` (`client/src/media/compress.test.ts`) | TV3-03 (#31) |
 | US-03 | Lấy GPS khi offline | Unit luật `gps` trong `recordValidation.test.ts`. **Chưa có E2E bấm lấy GPS** | TV1-05; E2E: TV3-14 |
-| US-03 | Không lấy được vị trí → câu hướng dẫn | `gps-errors.spec.ts`; unit `client/src/gps.test.ts` | TV1-12 (#N) |
+| US-03 | Không lấy được vị trí → câu hướng dẫn | `gps-errors.spec.ts`; unit `client/src/gps.test.ts` | TV1-12 (#69) |
 | US-04 | 500 hai lần → một bản ghi | R1 `offline.spec.ts` | TV2-09 (#16) |
 | US-04 | Cắt kết nối sau khi ghi → replay | R3 `server/test/idempotency.test.ts`, `retry.spec.ts`; R2 timeout `retry.spec.ts`; R6 `records.test.ts` | TV2-08 (#15) |
 | US-04 | Hai tab không gửi trùng | O6 `tabs.spec.ts` | TV2-06 (#13) |
