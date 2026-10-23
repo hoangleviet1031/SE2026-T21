@@ -97,7 +97,7 @@ export function ProjectsPage({ token, onError }: { token: string; onError: (err:
                           Mở
                         </button>
                       ) : (
-                        <button type="button" className="danger" disabled={busy} onClick={() => setConfirmLock(p)}>
+                        <button type="button" className="danger-outline" disabled={busy} onClick={() => setConfirmLock(p)}>
                           Khoá
                         </button>
                       )}

@@ -34,8 +34,9 @@ export function UpdatePrompt() {
     void updateServiceWorker(true);
   };
 
+  // Nền tối, nằm trên header: khác hẳn banner cảnh báo vàng, không tự ẩn (ui.md "Dải cập nhật app")
   return (
-    <div className="warning update-prompt" role="status" data-testid="update-prompt">
+    <div className="update-prompt" role="status" data-testid="update-prompt">
       <span>Có phiên bản mới</span>
       {/* Nội dung đang gõ ở trang nhập phiếu chỉ nằm trong state React, tải lại là mất: hỏi trước */}
       <button onClick={() => (location.hash.startsWith('#/fill/') ? setConfirming(true) : reload())}>Tải lại</button>

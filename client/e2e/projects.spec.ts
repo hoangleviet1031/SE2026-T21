@@ -53,7 +53,7 @@ function switcher(page: Page) {
 async function choose(page: Page, name: string) {
   await switcher(page).getByRole('button', { expanded: false }).click();
   await switcher(page).getByRole('listitem').getByRole('button').filter({ hasText: name }).click();
-  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveText(`${name} ▾`);
+  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveAccessibleName(name);
 }
 
 /** Trang chủ đang hiện đúng form và phiếu của `shown`, không có gì của `hidden`. */

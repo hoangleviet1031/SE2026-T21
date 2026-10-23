@@ -288,7 +288,7 @@ function MemberRow({
           </select>
         )}{' '}
         {actions.canRemove && (
-          <button aria-label={`Rút ${member.username}`} disabled={busy} onClick={onRemove}>
+          <button className="danger-outline" aria-label={`Rút ${member.username}`} disabled={busy} onClick={onRemove}>
             Rút
           </button>
         )}

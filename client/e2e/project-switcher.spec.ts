@@ -35,12 +35,14 @@ test('nhiều dự án: mở bộ chọn thấy mọi dự án kèm vai trò, ch
 }) => {
   await login(page, 'lan');
   // /me sắp theo id: demo-nongnghiep đứng trước demo-yte
-  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveText(`${NONGNGHIEP} ▾`);
+  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveAccessibleName(NONGNGHIEP);
 
   await switcher(page).getByRole('button', { expanded: false }).click();
   const items = switcher(page).getByRole('listitem');
   await expect(items).toHaveCount(2);
-  await expect(items.filter({ hasText: NONGNGHIEP })).toContainText('✓');
+  // Dự án đang chọn đánh dấu bằng aria-current, dấu tích chỉ là biểu tượng (TV1-12 b2)
+  await expect(items.filter({ hasText: NONGNGHIEP }).getByRole('button')).toHaveAttribute('aria-current', 'true');
+  await expect(items.filter({ hasText: YTE }).getByRole('button')).not.toHaveAttribute('aria-current', 'true');
   await expect(items.filter({ hasText: NONGNGHIEP })).toContainText('Điều tra viên');
   await expect(items.filter({ hasText: YTE })).toContainText('Giám sát viên');
 });
@@ -62,7 +64,7 @@ test('đổi dự án khi offline trong 1 s, mỗi dự án chỉ hiện phiếu
 
   // design §11.2: đổi dự án đã tải ≤ 1 s, kể cả offline
   await choose(page, YTE);
-  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveText(`${YTE} ▾`, { timeout: 1000 });
+  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveAccessibleName(YTE, { timeout: 1000 });
   await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible({ timeout: 1000 });
   await expect(record).toHaveCount(0);
 
@@ -72,13 +74,15 @@ test('đổi dự án khi offline trong 1 s, mỗi dự án chỉ hiện phiếu
   await choose(page, YTE);
   await expect(record).toHaveCount(0);
   await page.reload();
-  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveText(`${YTE} ▾`);
+  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveAccessibleName(YTE);
 });
 
 // Thêm link "Tổ chức khác…" cạnh tên (TV1-15, ui.md màn hình 9)
 test('chỉ một dự án: chỉ hiện tên và link Tổ chức khác…, không có danh sách', async ({ page }) => {
   await login(page, 'minh');
-  await expect(switcher(page)).toHaveText(`${YTE} Tổ chức khác…`);
+  // Ô chữ cái trước tên chỉ để nhìn (aria-hidden) nên kiểm tên và link riêng (TV1-12 b2)
+  await expect(switcher(page).getByText(YTE, { exact: true })).toBeVisible();
+  await expect(switcher(page).getByRole('link')).toHaveAccessibleName('Tổ chức khác…');
   await expect(switcher(page).getByRole('button')).toHaveCount(0);
   await switcher(page).getByRole('link', { name: 'Tổ chức khác…' }).click();
   await expect(page.getByTestId('orgs')).toBeVisible();

@@ -109,6 +109,7 @@ export function SettingsPage() {
 
       <div className="actions">
         <button
+          className="danger-outline"
           data-testid="logout-button"
           onClick={() => setConfirmingLogout(true)}
           disabled={busy || blocked === undefined || blocked.length > 0}

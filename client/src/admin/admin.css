@@ -14,7 +14,6 @@ table.admin-table td.note { max-width: 320px; white-space: pre-wrap; overflow-wr
 .row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .row-form { display: grid; gap: 8px; margin-top: 8px; min-width: 260px; }
 .row-form textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; min-height: 60px; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 480px) {
   .admin header { flex-wrap: wrap; }
   .admin-nav { gap: 12px; }
