@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { DEMO_PASSWORD, databaseNames, fillLogin, login, readStore } from './helpers';
 
 // Lỗi ở các màn hình gọi API thẳng (TV1-12 a2; design §8, ui.md "Các trạng thái dùng chung"): 5xx báo
@@ -112,4 +112,101 @@ test('401: phiên bị huỷ trên server → về Đăng nhập, báo hết phi
   // Đăng nhập lại thì xoá dấu hết phiên, lần sau về màn hình Đăng nhập không báo sai lý do
   const after = (await readStore(page, 'field-survey-account', 'account')) as { key: string }[];
   expect(after.map((r) => r.key)).not.toContain('sessionExpired');
+});
+
+// Nút đang gửi (TV1-12 b1, ui.md "Các trạng thái dùng chung"): giữ request lại để thấy trạng thái giữa
+// chừng. Chữ trên nút không đổi (E2E và trình đọc màn hình tìm nút theo tên), chỉ thêm chữ phụ cạnh nút.
+
+/**
+ * Giữ request khớp `url` (và `method` nếu có) tới khi gọi hàm trả về. `reply`: trả 500 thay vì cho đi
+ * tiếp, để ca thử không tạo dữ liệu thật trên server dùng chung.
+ */
+async function hold(page: Page, url: string, opts: { method?: string; reply?: boolean } = {}) {
+  let release: () => void = () => undefined;
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route(url, async (route) => {
+    if (opts.method && route.request().method() !== opts.method) return route.continue();
+    await held;
+    await (opts.reply ? route.fulfill(fail500) : route.continue());
+  });
+  return release;
+}
+
+async function expectBusy(button: Locator, note: Locator, text: string) {
+  await expect(note).toHaveText(text);
+  await expect(button).toBeDisabled();
+  await expect(button).toHaveAttribute('aria-busy', 'true');
+}
+
+test('đang gửi: Tiếp tục (đăng nhập) hiện "Đang đăng nhập…", tên nút giữ nguyên', async ({ page }) => {
+  await page.goto('/');
+  const release = await hold(page, '**/api/auth/login');
+  await fillLogin(page, 'minh');
+  await expectBusy(page.getByRole('button', { name: 'Tiếp tục' }), page.getByTestId('busy-note'), 'Đang đăng nhập…');
+  release();
+  await expect(page.getByTestId('login-username')).toHaveCount(0);
+});
+
+test('đang gửi: Tạo tài khoản hiện "Đang tạo tài khoản…"', async ({ page }) => {
+  await page.goto('/');
+  const release = await hold(page, '**/api/auth/register', { reply: true });
+  await page.getByRole('tab', { name: 'Tạo tài khoản' }).click();
+  await page.getByTestId('login-username').fill('dang.gui');
+  await page.getByTestId('register-name').fill('Đang gửi');
+  await page.getByTestId('login-password').fill(DEMO_PASSWORD);
+  await page.getByTestId('register-password2').fill(DEMO_PASSWORD);
+  const register = page.getByRole('button', { name: 'Tạo tài khoản' });
+  await register.click();
+  await expectBusy(register, page.getByTestId('busy-note'), 'Đang tạo tài khoản…');
+  release();
+  await expect(page.getByTestId('busy-note')).toHaveCount(0);
+});
+
+test('đang gửi: Thêm thành viên, Lưu bản mới, Xuất hiện chữ phụ rồi hết khi xong', async ({ page }) => {
+  await openYteAsOwner(page);
+
+  const row = page.getByRole('listitem').filter({ hasText: 'Khảo sát hộ gia đình' });
+  const releaseExport = await hold(page, '**/api/projects/*/export/**', { reply: true });
+  await row.getByRole('button', { name: 'Xuất CSV' }).click();
+  await expectBusy(row.getByRole('button', { name: 'Xuất CSV' }), row.getByTestId('busy-note'), 'Đang xuất…');
+  // Mỗi lần một file: nút còn lại khoá nhưng không báo là đang chạy
+  await expect(row.getByRole('button', { name: 'Xuất JSON' })).toBeDisabled();
+  await expect(row.getByRole('button', { name: 'Xuất JSON' })).toHaveAttribute('aria-busy', 'false');
+  releaseExport();
+  await expect(row.getByTestId('busy-note')).toHaveCount(0);
+
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  await page.getByLabel('Tiêu đề').fill('Form đang lưu');
+  await page.getByLabel('Loại trường').selectOption({ label: 'Chữ' });
+  await page.getByRole('button', { name: '+ Thêm trường' }).click();
+  await page.getByTestId('field-editor').getByLabel('Nhãn').fill('Tên');
+  const releaseSave = await hold(page, '**/api/projects/*/forms', { method: 'POST', reply: true });
+  const save = page.getByRole('button', { name: 'Lưu bản mới' });
+  await save.click();
+  await expectBusy(save, page.getByTestId('busy-note'), 'Đang lưu…');
+  releaseSave();
+  await expect(page.getByTestId('busy-note')).toHaveCount(0);
+
+  await page.goto('/#/members');
+  await expect(page.getByTestId('member-chu')).toBeVisible();
+  const releaseAdd = await hold(page, '**/api/projects/*/members', { method: 'POST', reply: true });
+  await page.getByTestId('member-username').fill('khong.ai.ca');
+  const add = page.getByRole('button', { name: 'Thêm' });
+  await add.click();
+  await expectBusy(add, page.getByTestId('busy-note'), 'Đang thêm…');
+  releaseAdd();
+  await expect(page.getByTestId('busy-note')).toHaveCount(0);
+});
+
+test('đang gửi: Gửi yêu cầu mở tổ chức hiện chữ phụ', async ({ page }) => {
+  await login(page, 'minh');
+  await page.goto('/#/orgs');
+  await expect(page.getByTestId('directory').or(page.getByTestId('directory-empty'))).toBeVisible();
+  const release = await hold(page, '**/api/project-requests', { method: 'POST', reply: true });
+  await page.getByTestId('org-request-name').fill('Tổ chức đang gửi');
+  const send = page.getByRole('button', { name: 'Gửi yêu cầu' });
+  await send.click();
+  await expectBusy(send, page.getByTestId('busy-note'), 'Đang gửi yêu cầu…');
+  release();
+  await expect(page.getByTestId('busy-note')).toHaveCount(0);
 });

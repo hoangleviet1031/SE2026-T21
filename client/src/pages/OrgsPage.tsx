@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { DirectoryEntry, MeResponse, ProjectRequest } from '@field-survey/shared';
 import { accountUsername } from '../accountDisplay';
+import { BusyNote } from '../components/BusyNote';
 import { getAccountValue } from '../db/accountDb';
 import { ORG_ERROR_TEXT, ORG_OFFLINE_MSG, orgRequestBody, requestStatusText, sortRequests } from '../orgs';
 import { apiFailureText } from '../apiErrors';
@@ -33,6 +34,8 @@ export function OrgsPage({ home = false }: { home?: boolean }) {
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // `busy` chung cho Gửi yêu cầu và Huỷ; chữ "Đang gửi yêu cầu…" chỉ hiện khi đang gửi
+  const [sending, setSending] = useState(false);
 
   const loadRequests = useCallback(async () => {
     setRequests(sortRequests(await listMyProjectRequests()));
@@ -58,6 +61,7 @@ export function OrgsPage({ home = false }: { home?: boolean }) {
     const checked = orgRequestBody(name, note);
     if ('error' in checked) return setError(checked.error);
     setBusy(true);
+    setSending(true);
     setError(null);
     try {
       const r = await requestProject(checked.body);
@@ -69,6 +73,7 @@ export function OrgsPage({ home = false }: { home?: boolean }) {
       setError(failureText(err));
     } finally {
       setBusy(false);
+      setSending(false);
     }
   }
 
@@ -103,7 +108,9 @@ export function OrgsPage({ home = false }: { home?: boolean }) {
       {online && loadError && <p role="alert">⚠ {loadError}</p>}
 
       <h3>Tổ chức công khai</h3>
-      {directory === null ? null : directory.length === 0 ? (
+      {directory === null ? (
+        online && !loadError && <p data-testid="directory-loading">Đang tải…</p>
+      ) : directory.length === 0 ? (
         <p data-testid="directory-empty">Chưa có tổ chức công khai nào</p>
       ) : (
         <ul className="list" data-testid="directory">
@@ -123,9 +130,10 @@ export function OrgsPage({ home = false }: { home?: boolean }) {
           <span>Ghi chú cho quản trị</span>
           <textarea data-testid="org-request-note" value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
         </label>
-        <button type="submit" disabled={busy || !online}>
+        <button type="submit" disabled={busy || !online} aria-busy={sending}>
           Gửi yêu cầu
         </button>
+        <BusyNote busy={sending} text="Đang gửi yêu cầu…" />
         {error && (
           <p role="alert" data-testid="org-request-error">
             ⚠ {error}

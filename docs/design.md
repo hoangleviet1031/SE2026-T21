@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.44 (2026-10-22)
+- **Phiên bản:** 0.5.45 (2026-10-23)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -78,6 +78,7 @@
 | 0.5.42 | 2026-10-22 | TV1-12 a2: `401` hiện "Phiên đăng nhập hết hạn, đăng nhập lại" ở màn hình Đăng nhập (khoá `sessionExpired` trong `account`, §4.2; trả nợ N5); màn hình cần online (Thành viên, Tổ chức, builder lưu form, Xuất) gặp `5xx` hoặc mã lạ báo "Máy chủ đang lỗi, thử lại sau", không tự thử lại (§8); thêm thành viên bằng tài khoản bị khoá trả `404 not_found` như tên không có (§7) |
 | 0.5.43 | 2026-10-22 | TV1-19 phần 2: diễn tập quay lại bản trước trên staging lần đầu, QS5 có số đo (quay lại 19 s, quay về `main` 21 s), mục tiêu ≤ 5 phút cho nhánh 2a (Dương chốt) (§11.4); `deploy.md` sửa theo lúc chạy thật; trả nợ N3 |
 | 0.5.44 | 2026-10-22 | TV3-13: sao lưu hằng ngày bằng `scripts/backup-daily.mjs` (systemd timer), mỗi bản là một thư mục gồm `survey.db` và ảnh, kiểm đủ ảnh trước khi tính là một bản; trên staging `UPLOAD_DIR` để ngoài repo (§12). Thêm nợ N9 (bản sao lưu cùng ổ đĩa) |
+| 0.5.45 | 2026-10-23 | TV1-12 b1: danh sách phiếu rỗng hiện "Chưa có phiếu nào." (§4.8); bảng §8 thêm dòng không lấy được vị trí GPS (từ chối quyền, không lấy được, quá 30 s, trình duyệt không có geolocation) và "Đang lấy vị trí…" lúc chờ |
 
 ## Mục lục
 
@@ -527,6 +528,7 @@ Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), kh
 - **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định, **trừ khi đang `conflict`** (vd. xoá ở máy này, sửa ở máy kia): người dùng phải thấy để xử lý.
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).
+- **Chưa có phiếu nào** (kể cả phiếu đã xoá đang ẩn): "Chưa có phiếu nào." Có phiếu mà bộ lọc ra rỗng: "Không có phiếu nào ở trạng thái này."
 
 ### 4.9 Trang quản trị (ADR 0003 §8; A1, A2 có code, A3 🆕 chờ TV2-17)
 
@@ -971,6 +973,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | File nhập form không hợp lệ | Không đổi nội dung builder, không gửi | "File không phải JSON" / "File không đúng định dạng biểu mẫu" / lỗi luật lưu form (§4.1) |
 | Phiếu dùng form version chưa có trên máy | Trang điền phiếu gọi `syncNow()`, bước 5 tải form version đó (§5.3) | Đang tải: "Đang tải biểu mẫu…"; offline hoặc tải không được: "Cần kết nối để mở phiếu này", có mạng lại thì tự thử lại |
 | Phiếu chưa đồng bộ quá 24 giờ | Không đổi hành vi | Cảnh báo đầu trang (§5.2) |
+| Bấm "Lấy vị trí" mà không lấy được (từ chối quyền, không lấy được, quá 30 s, trình duyệt không có geolocation) | Không đổi giá trị trường; chờ tối đa 30 s; bấm lại thì thử lại (`client/src/gps.ts`) | Lúc chờ: "Đang lấy vị trí…". Từ chối quyền: "Chưa được phép lấy vị trí. Bật quyền vị trí cho trang này trong cài đặt trình duyệt rồi bấm lại." Không lấy được hoặc quá giờ: "Không lấy được vị trí. Ra chỗ thoáng rồi bấm lại." Không có geolocation: "Trình duyệt này không lấy được vị trí." |
 
 ## 9. Bảo mật và quyền riêng tư
 

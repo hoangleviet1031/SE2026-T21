@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.2 (2026-10-22)
+- **Phiên bản:** 0.3 (2026-10-23)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -42,6 +42,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** phiếu có 2 ảnh lưu khi offline, **when** có mạng, **then** cả 2 ảnh lên server với SHA-256 khớp, và nhãn hiện "Đang tải ảnh (2)" trước khi thành "Đã đồng bộ".
 - **Given** đang tải một ảnh thì mất mạng, **when** có mạng lại, **then** chỉ gửi phần còn thiếu, mỗi phần chỉ ghi một lần.
 - **Given** ảnh chụp 4–6 MB, **when** lưu vào phiếu, **then** ảnh sau nén ≤ 600 KB (trừ ảnh quá nhiều chi tiết, vẫn được lưu).
+- **Given** chưa cho phép quyền vị trí (hoặc máy không lấy được vị trí trong 30 s), **when** bấm "Lấy vị trí", **then** thấy câu hướng dẫn (design §8) và giá trị trường không đổi.
 
 ### US-04 · Đồng bộ không trùng khi mạng hoặc server lỗi · Must
 
@@ -138,6 +139,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
 | US-03 | Ảnh sau nén ≤ 600 KB | `photo.spec.ts`; unit `fitWithin` (`client/src/media/compress.test.ts`) | TV3-03 (#31) |
 | US-03 | Lấy GPS khi offline | Unit luật `gps` trong `recordValidation.test.ts`. **Chưa có E2E bấm lấy GPS** | TV1-05; E2E: TV3-14 |
+| US-03 | Không lấy được vị trí → câu hướng dẫn | `gps-errors.spec.ts`; unit `client/src/gps.test.ts` | TV1-12 (#69) |
 | US-04 | 500 hai lần → một bản ghi | R1 `offline.spec.ts` | TV2-09 (#16) |
 | US-04 | Cắt kết nối sau khi ghi → replay | R3 `server/test/idempotency.test.ts`, `retry.spec.ts`; R2 timeout `retry.spec.ts`; R6 `records.test.ts` | TV2-08 (#15) |
 | US-04 | Hai tab không gửi trùng | O6 `tabs.spec.ts` | TV2-06 (#13) |
@@ -183,3 +185,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 |---|---|---|
 | 0.1 | 2026-10-22 | Bản đầu: 12 story viết lại từ spec và code đã có, kèm bảng truy vết (Lecture 03) |
 | 0.2 | 2026-10-22 | TV1-12 a2: US-10 thêm tiêu chí hết phiên (`401`); US-11 thêm tài khoản bị khoá vào tiêu chí `404` và tiêu chí máy chủ lỗi |
+| 0.3 | 2026-10-23 | TV1-12 b1: US-03 thêm tiêu chí không lấy được vị trí |
