@@ -38,7 +38,9 @@ function RemovedProjectBanner({ project }: { project: AccountProject }) {
       </span>
       <div>
         <button onClick={() => void exportProject(project.id)}>Xuất JSON</button>
-        <button onClick={() => setConfirming(true)}>Xoá khỏi máy</button>
+        <button className="danger-outline" onClick={() => setConfirming(true)}>
+          Xoá khỏi máy
+        </button>
       </div>
       {confirming && (
         // Câu nêu rõ số phiếu sẽ mất (bất biến 1: chỉ xoá dữ liệu chưa gửi khi người dùng xác nhận)

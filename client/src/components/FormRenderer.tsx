@@ -157,7 +157,7 @@ function GpsField({ value, onChange }: { value: GpsValue | null; onChange: (v: G
       <button type="button" disabled={busy} aria-busy={busy} onClick={locate}>
         Lấy vị trí
       </button>
-      <BusyNote busy={busy} text="Đang lấy vị trí…" />
+      <BusyNote busy={busy} text="Đang lấy vị trí…" visible />
       {value && (
         <small>
           {' '}

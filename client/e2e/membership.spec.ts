@@ -65,7 +65,7 @@ test('T7: bị rút khi còn phiếu chưa gửi: phiếu còn trên máy, khôn
   const switcher = page.getByTestId('project-switcher');
   await switcher.getByRole('button', { expanded: false }).click();
   await switcher.getByRole('listitem').getByRole('button', { name: /Nông nghiệp \(demo\)/ }).click();
-  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Nông nghiệp (demo) ▾');
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveAccessibleName('Nông nghiệp (demo)');
 
   const name = `Hộ T7 ${crypto.randomUUID().slice(0, 8)}`;
   await context.setOffline(true);
@@ -92,7 +92,7 @@ test('T7: bị rút khi còn phiếu chưa gửi: phiếu còn trên máy, khôn
   // TV1-06: banner kèm Xuất JSON; dự án mờ "Đã rời" trong bộ chọn, app chuyển sang dự án còn lại
   const banner = page.getByTestId('removed-project-banner');
   await expect(banner).toContainText('Bạn không còn thuộc dự án Nông nghiệp (demo). 1 phiếu chưa gửi được');
-  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Y tế xã (demo) ▾');
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveAccessibleName('Y tế xã (demo)');
   await switcher.getByRole('button', { expanded: false }).click();
   await expect(switcher.getByRole('listitem').filter({ hasText: 'Nông nghiệp (demo)' })).toContainText('Đã rời');
   await expect(switcher.getByRole('listitem').getByRole('button', { name: /Nông nghiệp/ })).toHaveCount(0);

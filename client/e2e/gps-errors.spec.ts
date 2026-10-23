@@ -60,6 +60,8 @@ test('đang lấy: nút khoá, có "Đang lấy vị trí…", chờ tối đa 3
 
   await button.click();
   await expect(gps.getByTestId('busy-note')).toHaveText('Đang lấy vị trí…');
+  // Khác các nút khác: chờ được tới 30 s nên chữ vẫn hiện trên màn hình (ui.md "Đang gửi")
+  expect(await gps.getByTestId('busy-note').evaluate((el) => el.getBoundingClientRect().width)).toBeGreaterThan(1);
   await expect(button).toBeDisabled();
   await expect(button).toHaveAttribute('aria-busy', 'true');
   expect(await page.evaluate(() => window.gpsCalls?.[0]?.opts?.timeout)).toBe(30_000);

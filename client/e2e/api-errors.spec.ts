@@ -17,7 +17,7 @@ async function openYteAsOwner(page: Page) {
   const switcher = page.getByTestId('project-switcher');
   await switcher.getByRole('button', { expanded: false }).click();
   await switcher.getByRole('listitem').getByRole('button', { name: /Y tế xã \(demo\)/ }).click();
-  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Y tế xã (demo) ▾');
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveAccessibleName('Y tế xã (demo)');
 }
 
 test('Thành viên: 5xx khi tải báo lỗi kèm Thử lại; 5xx khi thêm báo dưới form', async ({ page }) => {
@@ -136,6 +136,8 @@ async function expectBusy(button: Locator, note: Locator, text: string) {
   await expect(note).toHaveText(text);
   await expect(button).toBeDisabled();
   await expect(button).toHaveAttribute('aria-busy', 'true');
+  // Trên màn hình nút đã có vòng xoay, chữ phụ chỉ để trình đọc màn hình đọc (ui.md "Đang gửi", TV1-12 b2)
+  expect(await note.evaluate((el) => el.getBoundingClientRect().width)).toBeLessThanOrEqual(1);
 }
 
 test('đang gửi: Tiếp tục (đăng nhập) hiện "Đang đăng nhập…", tên nút giữ nguyên', async ({ page }) => {

@@ -7,3 +7,11 @@
 export function accountUsername(user: { id: string; username?: string }): string {
   return user.username || user.id;
 }
+
+/**
+ * Chữ cái trong ô vuông trước tên tổ chức, tên người (ui.md "Hệ thống thiết kế"). `Array.from` để không
+ * cắt đôi ký tự ngoài BMP; tên rỗng thì không hiện gì.
+ */
+export function initialOf(name: string): string {
+  return (Array.from(name.trim())[0] ?? '').toLocaleUpperCase('vi');
+}

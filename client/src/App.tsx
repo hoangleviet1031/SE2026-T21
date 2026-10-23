@@ -12,6 +12,7 @@ import { MembersPage } from './pages/MembersPage';
 import { OrgsPage } from './pages/OrgsPage';
 import { ProjectSwitcher } from './components/ProjectSwitcher';
 import { UpdatePrompt } from './components/UpdatePrompt';
+import { Icon } from './components/Icon';
 import { syncNow } from './sync/engine';
 
 export function App() {
@@ -27,8 +28,11 @@ export function App() {
     return (
       <div className="app">
         <UpdatePrompt />
-        <header>
-          <span className="brand">Khảo sát thực địa</span>
+        <header className="hdr-simple">
+          <span className="logo">
+            <Icon name="logo" />
+          </span>
+          Khảo sát thực địa
         </header>
         <main>
           <LoginPage />
@@ -40,17 +44,25 @@ export function App() {
   return (
     <div className="app">
       <UpdatePrompt />
-      <header>
-        <a href="#/" className="brand">
-          Khảo sát thực địa
-        </a>
-        <span className={online ? 'badge ok' : 'badge off'} data-testid="network-status">
-          {online ? 'Trực tuyến' : 'Ngoại tuyến'}
+      {/* Đồng bộ, Cài đặt là biểu tượng + chữ nhỏ bên dưới để tên app không bị cắt ở 360px */}
+      <header className="hdr">
+        <span className="logo">
+          <Icon name="logo" />
         </span>
-        <button onClick={() => void syncNow()} disabled={!online}>
+        <div className="brand">
+          <a href="#/">Khảo sát thực địa</a>
+          <span className={online ? 'net on' : 'net off'} data-testid="network-status">
+            {online ? 'Trực tuyến' : 'Ngoại tuyến'}
+          </span>
+        </div>
+        <button className="hbtn" onClick={() => void syncNow()} disabled={!online}>
+          <Icon name="sync" />
           Đồng bộ
         </button>
-        <a href="#/settings">Cài đặt</a>
+        <a className="hbtn" href="#/settings">
+          <Icon name="gear" />
+          Cài đặt
+        </a>
       </header>
       {/* Hàng riêng dưới header: header đã kín chỗ ở bề ngang 360px */}
       <ProjectSwitcher />

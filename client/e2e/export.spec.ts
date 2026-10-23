@@ -17,7 +17,7 @@ async function loginSupervisorYte(page: Page) {
   const switcher = page.getByTestId('project-switcher');
   await switcher.getByRole('button', { expanded: false }).click();
   await switcher.getByRole('listitem').getByRole('button', { name: /Y tế xã \(demo\)/ }).click();
-  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Y tế xã (demo) ▾');
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveAccessibleName('Y tế xã (demo)');
 }
 
 test('supervisor bấm "Xuất CSV": tải file .csv có BOM, có phiếu của dự án', async ({ page, request }) => {

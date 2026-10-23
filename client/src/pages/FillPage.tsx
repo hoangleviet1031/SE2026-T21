@@ -141,7 +141,11 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
           <button className="primary" onClick={save}>
             Lưu
           </button>
-          {canDelete && <button onClick={() => setConfirmingDelete(true)}>Xoá phiếu</button>}
+          {canDelete && (
+            <button className="danger-outline" onClick={() => setConfirmingDelete(true)}>
+              Xoá phiếu
+            </button>
+          )}
         </div>
       )}
       {confirmingDelete && (
