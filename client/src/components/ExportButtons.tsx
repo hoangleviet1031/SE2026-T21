@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { downloadBlob } from '../download';
+import { BusyNote } from './BusyNote';
 import { SERVER_ERROR_MSG, apiFailureText } from '../apiErrors';
 import { ExportError, apiFailure, downloadExport, type ExportFormat } from '../sync/api';
 import { useOnline } from '../useOnline';
@@ -14,11 +15,12 @@ const FORMATS: { format: ExportFormat; label: string }[] = [
 
 export function ExportButtons({ projectId, formId }: { projectId: string; formId: string }) {
   const online = useOnline();
-  const [busy, setBusy] = useState(false);
+  // Định dạng đang xuất; nút còn lại cũng khoá (mỗi lần một file)
+  const [busy, setBusy] = useState<ExportFormat | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const run = async (format: ExportFormat) => {
-    setBusy(true);
+    setBusy(format);
     setError(null);
     try {
       downloadBlob(`${formId}.${format}`, await downloadExport(projectId, formId, format));
@@ -30,17 +32,18 @@ export function ExportButtons({ projectId, formId }: { projectId: string; formId
         setError(e.code === 'forbidden' ? 'Chỉ giám sát viên và Owner được xuất dữ liệu' : SERVER_ERROR_MSG);
       } else throw e;
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
   return (
     <span className="export-buttons">
       {FORMATS.map(({ format, label }) => (
-        <button key={format} type="button" disabled={!online || busy} onClick={() => void run(format)}>
+        <button key={format} type="button" disabled={!online || busy !== null} aria-busy={busy === format} onClick={() => void run(format)}>
           {label}
         </button>
       ))}
+      <BusyNote busy={busy !== null} text="Đang xuất…" />
       {!online && <small data-testid="export-offline">Cần kết nối mạng để xuất</small>}
       {error && (
         <small className="field-error" role="alert">

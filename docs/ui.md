@@ -1,6 +1,6 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.16 (2026-10-22): màn hình 1 bỏ câu cũ "màn hình 9 chưa có", ghi cách code đang làm khi chưa thuộc tổ chức nào (TV1-12 a3). 0.2.15 (2026-10-22): bỏ nhãn 🆕/🕘 của phần đã có code (màn hình 5, 7, trang quản trị A1–A2; tech-debt N4); màn hình 1 báo hết phiên khi bị `401`, màn hình 6 câu lỗi máy chủ và nút Thử lại (TV1-12 a2). 0.2.14 (2026-10-19): mọi hộp hỏi xác nhận là hộp trong app, Xuất JSON khi bị từ chối đổi tài khoản báo kết quả (TV1-12 a1). 0.2.13 (2026-10-19): màn hình 9 Tổ chức có code, mục "Tổ chức khác…" ở màn hình 2 (TV1-15). 0.2.12 (2026-10-19): màn hình 1 Đăng nhập / Tạo tài khoản có code, bỏ bản nhập mã (TV1-14). 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.17 (2026-10-23): trạng thái "đang gửi" dùng chung; màn hình 2 câu rỗng, màn hình 4 câu lỗi GPS, màn hình 5 và 8 có "← Quay lại", màn hình 9 "Đang tải…" (TV1-12 b1). 0.2.16 (2026-10-22): màn hình 1 bỏ câu cũ "màn hình 9 chưa có", ghi cách code đang làm khi chưa thuộc tổ chức nào (TV1-12 a3). 0.2.15 (2026-10-22): bỏ nhãn 🆕/🕘 của phần đã có code (màn hình 5, 7, trang quản trị A1–A2; tech-debt N4); màn hình 1 báo hết phiên khi bị `401`, màn hình 6 câu lỗi máy chủ và nút Thử lại (TV1-12 a2). 0.2.14 (2026-10-19): mọi hộp hỏi xác nhận là hộp trong app, Xuất JSON khi bị từ chối đổi tài khoản báo kết quả (TV1-12 a1). 0.2.13 (2026-10-19): màn hình 9 Tổ chức có code, mục "Tổ chức khác…" ở màn hình 2 (TV1-15). 0.2.12 (2026-10-19): màn hình 1 Đăng nhập / Tạo tài khoản có code, bỏ bản nhập mã (TV1-14). 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md; header giữ mỗi phần tử một dòng, tên app tự rút gọn bằng "…"); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
@@ -27,6 +27,8 @@
 | A3 | Tài khoản (cắt được, chưa có code: chờ API TV2-17) | `/admin/#/users` | §4.9 | TV1-16, TV2-17 |
 
 Các trạng thái dùng chung, mọi màn hình phải có: **đang tải**, **rỗng**, **lỗi**, và với màn hình cần online: **"Cần kết nối mạng để dùng chức năng này"**.
+
+**Đang gửi** (TV1-12 b1, `components/BusyNote.tsx`): nút khoá, có `aria-busy`, cạnh nút hiện chữ phụ (`data-testid="busy-note"`); chữ trên nút không đổi. Tiếp tục: "Đang đăng nhập…"; Tạo tài khoản: "Đang tạo tài khoản…"; Thêm (thành viên): "Đang thêm…"; Gửi yêu cầu: "Đang gửi yêu cầu…"; Lưu bản mới: "Đang lưu…"; Xuất CSV/JSON: "Đang xuất…"; Lấy vị trí: "Đang lấy vị trí…".
 
 **Dải cập nhật app** (design §4.3, mọi màn hình kể cả màn hình 1): khi đã tải xong bản mới, hiện trên cùng, trên header:
 
@@ -129,6 +131,8 @@ Banner khi bị rút còn dữ liệu: "Bạn không còn thuộc dự án X. N 
 
 Code (TV1-06): bộ chọn nằm ở một hàng riêng ngay dưới header (header đã có tên app, trạng thái mạng, Đồng bộ, Cài đặt; không đủ chỗ ở 360px); danh sách mở ra đẩy nội dung xuống. Dòng "Đã rời" không bấm được. Chưa có dự án active: "Đang tải danh sách dự án…" (chưa nhận `/me`) (`data-testid="no-project"`); chưa thuộc tổ chức nào thì trang chủ là màn hình 9 Tổ chức (TV1-15).
 
+Code (TV1-12 b1): dự án chưa có phiếu nào thì dưới bộ lọc hiện "Chưa có phiếu nào." (`records-empty`); có phiếu mà bộ lọc ra rỗng thì "Không có phiếu nào ở trạng thái này." (`no-records`). Chưa làm (tech-debt N10, N11): nhóm phiếu theo form, tiêu đề "Phiếu chưa có tên" và giờ sửa cuối như hình.
+
 ## 3. Xung đột
 
 Trên điện thoại dùng **thẻ mỗi trường**, không dùng bảng 4 cột.
@@ -201,6 +205,8 @@ Code: trang điền phiếu có link "← Quay lại" ở đầu trang (về dan
 
 Code (TV1-10): trường ẩn không hiện ở phiếu mới; phiếu đã có giá trị ở trường ẩn thì trường hiện với ô bị khoá, nhãn kèm "(đã ẩn)"; giá trị sai định dạng (phiếu nháp báo lỗi ở trường đó) thì ô mở cho sửa. Máy chưa có bản form của phiếu: "Đang tải biểu mẫu…" rồi mở phiếu; offline hoặc tải không được: "Cần kết nối để mở phiếu này" kèm "← Quay lại".
 
+Code (TV1-12 b1): trường Vị trí là nhóm (`role="group"`, như trường Ảnh), bấm vào tên trường không tự lấy vị trí. Bấm [Lấy vị trí]: nút khoá, "Đang lấy vị trí…", chờ tối đa 30 s; không lấy được thì câu lỗi dưới nút (`gps-error`), câu theo design §8. Chưa làm (tech-debt N12): nhãn trạng thái đầu trang và nút Thử lại / Xuất JSON phiếu này.
+
 Code (TV1-13): bấm [Xoá phiếu] mở hộp xác nhận trong app (không dùng hộp của trình duyệt) "Xoá phiếu này? Không hoàn tác được trên máy." với hai nút [Huỷ] (nhận focus đầu tiên) và [Xoá] màu đỏ; Esc hoặc Huỷ thì đóng hộp, không đổi gì. Phiếu đang xung đột: ẩn cả Lưu và Xoá (§4.5). Code (TV1-17): surveyor không thấy [Xoá phiếu] ở phiếu người khác tạo; phiếu chưa biết người tạo (mới tạo trên máy, hoặc tải về trước bản này) vẫn hiện nút.
 
 ## 5. Form builder
@@ -228,6 +234,8 @@ Code (TV1-13): bấm [Xoá phiếu] mở hộp xác nhận trong app (không dù
 │ [Xuất form] [Nhập form]        │
 └────────────────────────────────┘
 ```
+
+Code (TV1-12 b1): link "← Quay lại" đầu trang về trang chủ; phần chưa bấm Lưu bản mới không được giữ (giống màn hình 4).
 
 Code (gọn UI 13/10): bấm cả dòng để chọn trường, dòng đang chọn tô nền; nút ▲ ▼ (không dùng ↑ ↓ vì Windows vẽ thành emoji có màu); chưa chọn trường thì có dòng gợi ý "Bấm vào một trường để sửa…".
 
@@ -272,7 +280,7 @@ Bỏ. Admin dùng trang quản trị riêng, xem A1–A3 dưới đây.
 
 Theo ADR 0003 (TV1-07): hiện **tên đăng nhập** thay mã người dùng; Đăng xuất gọi thêm `POST /api/auth/logout` khi online (TV2-16). Máy lưu thông tin tài khoản từ bản cũ (chưa có tên đăng nhập) thì hiện mã người dùng tới lần đồng bộ kế tiếp; tài khoản cũ có tên đăng nhập trùng mã.
 
-Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng được khi offline.
+Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng được khi offline. Có code (TV1-12 b1): link "← Quay lại" đầu trang về `#/` (chưa thuộc tổ chức nào thì về màn hình 9).
 
 ```
 ┌────────────────────────────────┐
@@ -341,7 +349,7 @@ Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng 
 
 Vào được từ bộ chọn dự án ("Tổ chức khác…") và là màn hình mặc định khi chưa thuộc tổ chức nào. Cần mạng.
 
-Có code (TV1-15, `client/src/pages/OrgsPage.tsx`): là trang chủ thì có thêm dòng "Bạn chưa thuộc tổ chức nào." và không có link "← Về danh sách phiếu"; mở từ bộ chọn thì có link đó ở cuối trang. `data-testid`: `orgs`, `orgs-username`, `directory`, `directory-empty`, `org-request-name`, `org-request-note`, `org-request-error`, `org-requests`, `org-request-status`. Câu chữ: design §4.7.
+Có code (TV1-15, `client/src/pages/OrgsPage.tsx`): là trang chủ thì có thêm dòng "Bạn chưa thuộc tổ chức nào." và không có link "← Về danh sách phiếu"; mở từ bộ chọn thì có link đó ở cuối trang. Đang chờ danh sách (online, chưa lỗi): "Đang tải…" (`directory-loading`, TV1-12 b1). `data-testid`: `orgs`, `orgs-username`, `directory`, `directory-empty`, `org-request-name`, `org-request-note`, `org-request-error`, `org-requests`, `org-request-status`. Câu chữ: design §4.7.
 
 ---
 

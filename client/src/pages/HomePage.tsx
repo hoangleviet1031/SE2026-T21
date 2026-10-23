@@ -121,6 +121,7 @@ function ProjectHome({ db }: { db: ProjectDb }) {
             </label>
           ))}
         </div>
+        {rows.length === 0 && <p data-testid="records-empty">Chưa có phiếu nào.</p>}
         {rows.length > 0 && shown.length === 0 && <p data-testid="no-records">Không có phiếu nào ở trạng thái này.</p>}
         <ul className="list" data-testid="records">
           {shown.map(({ r, photos, state }) => {

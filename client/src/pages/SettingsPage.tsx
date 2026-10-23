@@ -58,6 +58,10 @@ export function SettingsPage() {
 
   return (
     <section>
+      {/* Về #/ chứ không ghi "Về danh sách phiếu": người chưa thuộc tổ chức nào về màn hình Tổ chức */}
+      <a href="#/" className="back">
+        ← Quay lại
+      </a>
       <h2>Cài đặt</h2>
 
       <h3>Tài khoản</h3>

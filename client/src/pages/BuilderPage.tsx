@@ -17,6 +17,7 @@ import {
   updateField,
   type BuilderState,
 } from '../builder';
+import { BusyNote } from '../components/BusyNote';
 import { FieldEditor } from '../components/FieldEditor';
 import { FormRenderer } from '../components/FormRenderer';
 import { formFileName, formFileText, parseFormFile } from '../formFile';
@@ -131,6 +132,10 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
 
   return (
     <section className="form builder">
+      {/* Thoát không lưu, giống trang điền phiếu: phần chưa bấm Lưu bản mới không được giữ */}
+      <a href="#/" className="back">
+        ← Quay lại
+      </a>
       <h2>{prev ? `Sửa form: ${prev.title}` : 'Biểu mẫu mới'}</h2>
       <label className="field">
         <span>Tiêu đề</span>
@@ -204,9 +209,10 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
         <button onClick={() => setPreview(!preview)} aria-expanded={preview}>
           Xem trước
         </button>
-        <button className="primary" disabled={saving} onClick={() => void save()}>
+        <button className="primary" disabled={saving} aria-busy={saving} onClick={() => void save()}>
           Lưu bản mới
         </button>
+        <BusyNote busy={saving} text="Đang lưu…" />
       </div>
 
       <div className="actions">

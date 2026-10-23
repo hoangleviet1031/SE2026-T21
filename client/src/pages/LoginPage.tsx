@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import Dexie from 'dexie';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { BusyNote } from '../components/BusyNote';
 import { SESSION_EXPIRED_MSG } from '../apiErrors';
 import { isSessionExpired } from '../auth';
 import { useOnline } from '../useOnline';
@@ -140,9 +141,10 @@ export function LoginPage() {
           />
         </label>
       )}
-      <button type="submit" disabled={busy || !ready}>
+      <button type="submit" disabled={busy || !ready} aria-busy={busy}>
         {tab === 'login' ? 'Tiếp tục' : 'Tạo tài khoản'}
       </button>
+      <BusyNote busy={busy} text={tab === 'login' ? 'Đang đăng nhập…' : 'Đang tạo tài khoản…'} />
       {expired && !problem && <p data-testid="session-expired">⚠ {SESSION_EXPIRED_MSG}</p>}
       {shown?.kind === 'text' && <p role="alert">⚠ {shown.text}</p>}
       {shown?.kind === 'admin' && (

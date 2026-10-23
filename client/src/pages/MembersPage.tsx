@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse, Member, ProjectSettings, Role } from '@field-survey/shared';
+import { BusyNote } from '../components/BusyNote';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { getAccountValue, type AccountProject } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
@@ -199,11 +200,18 @@ function AddMemberForm({
 }) {
   const [username, setUsername] = useState('');
   const [role, setRole] = useState<Role>('surveyor');
+  // `busy` chung cho mọi thao tác trên trang; chữ "Đang thêm…" chỉ hiện khi chính nút Thêm đang chạy
+  const [adding, setAdding] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!username.trim()) return;
-    if (await onAdd(username, role)) setUsername('');
+    setAdding(true);
+    try {
+      if (await onAdd(username, role)) setUsername('');
+    } finally {
+      setAdding(false);
+    }
   };
 
   return (
@@ -233,9 +241,10 @@ function AddMemberForm({
           ))}
         </select>
       </label>
-      <button type="submit" disabled={busy || !username.trim()}>
+      <button type="submit" disabled={busy || !username.trim()} aria-busy={adding}>
         Thêm
       </button>
+      <BusyNote busy={adding} text="Đang thêm…" />
     </form>
   );
 }
