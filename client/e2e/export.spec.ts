@@ -29,6 +29,8 @@ test('supervisor bấm "Xuất CSV": tải file .csv có BOM, có phiếu của 
   expect(put.status()).toBe(201);
 
   await loginSupervisorYte(page);
+  // Hai lựa chọn nằm trong nút [Xuất ▾] (TV1-12 b2, design §4.6)
+  await formRow(page).getByRole('button', { name: 'Xuất', exact: true }).click();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     formRow(page).getByRole('button', { name: 'Xuất CSV' }).click(),
@@ -43,6 +45,7 @@ test('supervisor bấm "Xuất CSV": tải file .csv có BOM, có phiếu của 
 
 test('supervisor bấm "Xuất JSON": file có forms và records', async ({ page }) => {
   await loginSupervisorYte(page);
+  await formRow(page).getByRole('button', { name: 'Xuất', exact: true }).click();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     formRow(page).getByRole('button', { name: 'Xuất JSON' }).click(),
@@ -58,12 +61,13 @@ test('surveyor không thấy nút Xuất', async ({ page }) => {
   await expect(formRow(page).getByRole('button', { name: 'Tạo phiếu mới' })).toBeVisible();
   await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toHaveCount(0);
   await expect(formRow(page).getByRole('button', { name: 'Xuất JSON' })).toHaveCount(0);
+  await expect(formRow(page).getByRole('button', { name: 'Xuất', exact: true })).toHaveCount(0);
 });
 
 test('offline: nút Xuất bị khoá, báo cần mạng', async ({ page, context }) => {
   await loginSupervisorYte(page);
-  await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toBeEnabled();
+  await expect(formRow(page).getByRole('button', { name: 'Xuất', exact: true })).toBeEnabled();
   await context.setOffline(true);
-  await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toBeDisabled();
+  await expect(formRow(page).getByRole('button', { name: 'Xuất', exact: true })).toBeDisabled();
   await expect(formRow(page).getByTestId('export-offline')).toHaveText('Cần kết nối mạng để xuất');
 });
