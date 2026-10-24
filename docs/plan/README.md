@@ -109,7 +109,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | TV2-18 | Danh sách phiếu: tìm kiếm, lọc theo người tạo, 2.000 phiếu · **Cắt được** | Could | N6 | — |
 | TV2-19 | Thân JSON hỏng trả `invalid_body`; log request | Should; log: Could | N1 | — |
 | TV3-13 | Sao lưu hằng ngày, `UPLOAD_DIR` ngoài repo | Must | N2 | ✅ PR #66 |
-| TV3-14 | E2E lấy GPS (US-03), điều tra viên thấy form sau đồng bộ (US-07) | Must | – | — |
+| TV3-14 | E2E lấy GPS (US-03), điều tra viên thấy form sau đồng bộ (US-07) | Must | – | ⏳ chờ PR |
 | TV3-15 | Rà khả năng tiếp cận · **Cắt được** | Could | N8 | — |
 | TV3-16 | Tài liệu người dùng (chuyển từ TV1-12) | Must | – | — |
 

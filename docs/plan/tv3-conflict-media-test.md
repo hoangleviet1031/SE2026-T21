@@ -222,7 +222,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-m
 
 ## TV3-14 · E2E lấy GPS, điều tra viên thấy form sau đồng bộ
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ chờ PR
 - **Mức:** Must
 - **Tuần:** 4–5 · **Phụ thuộc:** không
 - **Spec:** [requirements.md](../requirements.md) US-03, US-07; design §4.1, §5.3
