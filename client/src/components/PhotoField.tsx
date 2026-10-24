@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import type { LocalAttachment, ProjectDb } from '../db/projectDb';
 import { addPhoto, StorageFullError } from '../db/attachments';
 import { compressImage, ImageDecodeError } from '../media/compress';
+import { Icon } from './Icon';
 
 // Trường ảnh (ui.md màn hình 4: [▢][▢] [+ Chụp ảnh]). Nén trước khi lưu (design §4.4).
 // Bỏ ảnh chỉ bỏ id khỏi trường; blob giữ trên máy tới khi người dùng dọn bộ nhớ (§5.6).
@@ -96,7 +97,9 @@ export function PhotoField({ db, fieldId, recordId, ids, onChange }: Props) {
           </button>
         </span>
       ))}
+      {/* Phiếu chỉ đọc thì CSS ẩn ô này và nút × (fieldset bị khoá), để khỏi lọt vào phím Tab và trình đọc màn hình */}
       <label className="photo-add">
+        <Icon name="camera" />
         {busy ? 'Đang xử lý ảnh…' : '+ Chụp ảnh'}
         <input
           type="file"

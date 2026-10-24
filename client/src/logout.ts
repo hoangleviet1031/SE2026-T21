@@ -74,7 +74,7 @@ export async function logout(): Promise<BlockedProject[]> {
         if (!(err instanceof NetworkError)) throw err;
       }
     }
-    // Xoá token sau cùng: App thấy token mất thì về màn hình nhập mã
+    // Xoá token sau cùng: App thấy token mất thì về màn hình đăng nhập
     await clearToken();
     return [];
   };

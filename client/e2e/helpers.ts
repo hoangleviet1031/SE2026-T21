@@ -1,36 +1,59 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
 
-// Hàm dùng chung cho E2E. Tài khoản, mật khẩu, token và dự án khớp server/src/seedDemo.ts
+// Hàm dùng chung cho E2E. Tài khoản, mật khẩu và dự án khớp server/src/seedDemo.ts
 // (server E2E chạy với SEED_DEMO=1).
 
 export const DEMO_PASSWORD = 'demo-password';
-/** Phiên demo cố định do seed tạo, để test gọi API thẳng (đóng vai người khác) không phải đăng nhập. */
-export const TOKENS = {
-  admin: 'demo-token-admin',
-  lan: 'demo-token-lan',
-  minh: 'demo-token-minh',
-  chu: 'demo-token-chu',
-} as const;
+export const DEMO_USERS = ['admin', 'lan', 'minh', 'chu'] as const;
+type DemoUser = (typeof DEMO_USERS)[number];
+/** Biến môi trường global-setup.ts dùng để chuyển token cho các worker. */
+export const TOKENS_ENV = 'E2E_DEMO_TOKENS';
+
+function demoToken(user: DemoUser): string {
+  const raw = process.env[TOKENS_ENV];
+  if (!raw) throw new Error('Chưa có token demo: global-setup.ts chưa chạy (xem globalSetup trong playwright.config.ts)');
+  const token = (JSON.parse(raw) as Partial<Record<DemoUser, string>>)[user];
+  if (!token) throw new Error(`Thiếu token demo của ${user}`);
+  return token;
+}
+
+/**
+ * Token phiên của tài khoản demo, để test gọi API thẳng (đóng vai người khác). Lấy bằng đăng nhập thật
+ * trong global-setup.ts, không phải token cố định (docs/tech-debt.md N7). Đọc lúc dùng (getter) vì file
+ * spec được nạp trước khi global setup chạy.
+ */
+export const TOKENS: Readonly<Record<DemoUser, string>> = {
+  get admin() {
+    return demoToken('admin');
+  },
+  get lan() {
+    return demoToken('lan');
+  },
+  get minh() {
+    return demoToken('minh');
+  },
+  get chu() {
+    return demoToken('chu');
+  },
+};
 export const PROJECT = 'demo-yte';
 export const API = `http://localhost:3001/api/projects/${PROJECT}`;
-const LOGIN_API = 'http://localhost:3001/api/auth/login';
 
 /** Header xác thực cho request gọi thẳng API (đóng vai người dùng khác). */
 export const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
 
-/**
- * Mở app và đăng nhập bằng tên + mật khẩu (ADR 0003 §1). Mỗi test có context mới nên luôn phải đăng nhập.
- * Màn hình tên + mật khẩu (TV1-14) chưa có: lấy token phiên qua /api/auth/login rồi nhập vào màn hình
- * nhập mã hiện tại. TV1-14 xong thì chỉ sửa thân hàm này, các spec giữ nguyên.
- */
+/** Mở app và đăng nhập bằng tên + mật khẩu (ADR 0003 §1). Mỗi test có context mới nên luôn phải đăng nhập. */
 export async function login(page: Page, username = 'minh', password = DEMO_PASSWORD) {
-  const res = await page.request.post(LOGIN_API, { data: { username, password } });
-  expect(res.status(), `đăng nhập ${username}`).toBe(200);
-  const { token } = (await res.json()) as { token: string };
   await page.goto('/');
-  await page.getByTestId('login-token').fill(token);
+  await fillLogin(page, username, password);
+  await expect(page.getByTestId('login-username')).toHaveCount(0);
+}
+
+/** Điền tab Đăng nhập rồi bấm Tiếp tục, không chờ kết quả. */
+export async function fillLogin(page: Page, username: string, password = DEMO_PASSWORD) {
+  await page.getByTestId('login-username').fill(username);
+  await page.getByTestId('login-password').fill(password);
   await page.getByRole('button', { name: 'Tiếp tục' }).click();
-  await expect(page.getByTestId('login-token')).toHaveCount(0);
 }
 
 /** Tên mọi CSDL IndexedDB của origin, đọc bằng API gốc của trình duyệt. */
@@ -153,4 +176,16 @@ export async function makeImage(
     return btoa(binary);
   }, opts);
   return Buffer.from(base64, 'base64');
+}
+
+/**
+ * Trả lời hộp xác nhận trong app (`ConfirmDialog`, thay `window.confirm`): kiểm đúng câu hỏi rồi bấm
+ * nút có nhãn `answer`, hoặc nhấn Esc (tương đương Huỷ). Hộp đóng sau khi trả lời.
+ */
+export async function answerConfirm(page: Page, message: string, answer: string | 'Esc') {
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText(message, { exact: true })).toBeVisible();
+  if (answer === 'Esc') await page.keyboard.press('Escape');
+  else await dialog.getByRole('button', { name: answer, exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 }

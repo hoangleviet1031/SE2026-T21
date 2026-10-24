@@ -30,7 +30,7 @@ Node ≥ 22.13 (cần `node:sqlite`).
 shared/   kiểu dùng chung, threeWayMerge, backoff, validate – hàm thuần, không I/O
 server/   Express 5 + node:sqlite; src/routes/*, src/db.ts; test/ (Vitest, gọi HTTP thật)
 client/   React 19 + Vite + Dexie + vite-plugin-pwa; src/db, src/sync, src/pages, src/components; e2e/
-docs/     design.md (spec), ui.md (phác thảo màn hình), adr/ (quyết định), plan/ (ticket), worklog/ (nhật ký từng người), vibe-coding.md (quy trình)
+docs/     design.md (spec), requirements.md (user story, truy vết), ui.md (phác thảo màn hình), adr/ (quyết định), plan/ (ticket), worklog/ (nhật ký từng người), vibe-coding.md (quy trình), tech-debt.md (nợ kỹ thuật), deploy.md (staging)
 ```
 
 ## Bất biến không được phá (vi phạm = PR bị từ chối)

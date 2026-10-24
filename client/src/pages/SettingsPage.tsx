@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
+import { accountUsername } from '../accountDisplay';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Icon } from '../components/Icon';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
-import { formatBytes } from '../formatBytes';
+import { formatBytes, usagePercent } from '../formatBytes';
 import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
 
 // Xem docs/ui.md màn hình 8 và design §4.2, §4.7. Chỉ đọc IndexedDB, dùng được khi offline.
@@ -21,13 +24,14 @@ function blockedMessage(blocked: BlockedProject[]): string {
 
 export function SettingsPage() {
   const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
-  // Đã thuộc dự án thì câu hướng dẫn đổi theo: mã chỉ còn cần khi được thêm vào dự án khác
+  // Đã thuộc tổ chức thì câu hướng dẫn đổi theo: tên đăng nhập chỉ còn cần khi được thêm vào tổ chức khác
   const project = useCurrentProject();
   // Tính lại mỗi khi outbox/phiếu của dự án nào đó đổi, nên nút tự bật khi đồng bộ xong
   const blocked = useLiveQuery(projectsBlockingLogout, []);
   const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
 
   useEffect(() => {
     if (!navigator.storage?.estimate) return;
@@ -41,7 +45,7 @@ export function SettingsPage() {
   }, []);
 
   async function onLogout() {
-    if (!window.confirm('Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.')) return;
+    setConfirmingLogout(false);
     setBusy(true);
     setError(null);
     try {
@@ -53,72 +57,103 @@ export function SettingsPage() {
     }
   }
 
+  const percent = storage ? usagePercent(storage.usage, storage.quota) : null;
+
   return (
-    <section>
+    <section className="settings">
+      {/* Về #/ chứ không ghi "Về danh sách phiếu": người chưa thuộc tổ chức nào về màn hình Tổ chức */}
+      <a href="#/" className="back">
+        ← Quay lại
+      </a>
       <h2>Cài đặt</h2>
 
-      <h3>Tài khoản</h3>
-      {user === undefined ? null : user ? (
-        <>
-          <p>{user.name}</p>
-          {/* TODO(TV2-14): hiện tên đăng nhập thay mã người dùng khi /me trả `username` (design §4.7 🆕) */}
-          <p>
-            Mã người dùng: <code data-testid="settings-user-id">{user.id}</code>
-          </p>
-          <p>
-            {project === null
-              ? 'Gửi mã này cho giám sát viên để được thêm vào dự án.'
-              : 'Giám sát viên cần mã này nếu muốn thêm bạn vào dự án khác.'}
-          </p>
-        </>
-      ) : (
-        <p data-testid="settings-user-id">Chưa có, cần kết nối mạng một lần.</p>
-      )}
+      <div className="card">
+        <h3>Tài khoản</h3>
+        {user === undefined ? null : user ? (
+          <>
+            <p className="acct-name">{user.name}</p>
+            <p>
+              Tên đăng nhập:{' '}
+              <code className="ucode" data-testid="settings-username">
+                {accountUsername(user)}
+              </code>
+            </p>
+            <p className="hint">
+              {project === null
+                ? 'Gửi tên này cho giám sát viên của tổ chức để được thêm vào.'
+                : 'Giám sát viên hoặc Owner cần tên này nếu muốn thêm bạn vào tổ chức khác.'}
+            </p>
+          </>
+        ) : (
+          <p data-testid="settings-username">Chưa có, cần kết nối mạng một lần.</p>
+        )}
+      </div>
 
       {storage && (
-        <>
+        <div className="card">
           <h3>Dung lượng</h3>
           <p data-testid="settings-storage">
             Đã dùng {formatBytes(storage.usage)} / {formatBytes(storage.quota)}
           </p>
-        </>
+          {/* Chữ ở trên đã nói đủ con số, thanh chỉ để nhìn nên trình đọc màn hình bỏ qua */}
+          {percent !== null && (
+            <div className="bar" aria-hidden="true" data-testid="storage-bar">
+              <i style={{ width: `${percent}%` }} />
+            </div>
+          )}
+        </div>
       )}
 
-      <h3>Cài lên màn hình chính</h3>
-      <div data-testid="settings-install">
-        {isInstalled() ? (
-          <p>Đã cài lên màn hình chính.</p>
-        ) : (
-          <>
-            <p>
-              <b>Android:</b> mở bằng Chrome, bấm menu ⋮ rồi chọn "Cài đặt ứng dụng" hoặc "Thêm vào màn hình chính".
+      <div className="card">
+        <h3>Cài lên màn hình chính</h3>
+        <div className="install" data-testid="settings-install">
+          {isInstalled() ? (
+            <p className="ok-line">
+              <Icon name="synced" />
+              Đã cài lên màn hình chính.
             </p>
-            <p>
-              <b>iPhone:</b> mở bằng Safari, bấm nút Chia sẻ rồi chọn "Thêm vào màn hình chính". Trên iPhone phải
-              cài thì dữ liệu chưa gửi mới không bị xoá sau 7 ngày không mở.
-            </p>
-          </>
-        )}
+          ) : (
+            <>
+              <p>
+                <b>Android:</b> mở bằng Chrome, bấm menu ⋮ rồi chọn "Cài đặt ứng dụng" hoặc "Thêm vào màn hình chính".
+              </p>
+              <p>
+                <b>iPhone:</b> mở bằng Safari, bấm nút Chia sẻ rồi chọn "Thêm vào màn hình chính". Trên iPhone phải
+                cài thì dữ liệu chưa gửi mới không bị xoá sau 7 ngày không mở.
+              </p>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="actions">
+      <div className="card">
         <button
+          className="danger-outline wide"
           data-testid="logout-button"
-          onClick={() => void onLogout()}
+          onClick={() => setConfirmingLogout(true)}
           disabled={busy || blocked === undefined || blocked.length > 0}
         >
           Đăng xuất
         </button>
+        {/* Ngay dưới nút để thấy vì sao nút khoá (ui.md màn hình 8) */}
+        {blocked && blocked.length > 0 && (
+          <p className="warning" data-testid="logout-blocked">
+            {blockedMessage(blocked)}
+          </p>
+        )}
+        {error && (
+          <p className="warning" role="alert">
+            {error}
+          </p>
+        )}
       </div>
-      {blocked && blocked.length > 0 && (
-        <p className="warning" data-testid="logout-blocked">
-          {blockedMessage(blocked)}
-        </p>
-      )}
-      {error && (
-        <p className="warning" role="alert">
-          {error}
-        </p>
+      {confirmingLogout && (
+        <ConfirmDialog
+          message="Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng."
+          confirmLabel="Đăng xuất"
+          onConfirm={() => void onLogout()}
+          onCancel={() => setConfirmingLogout(false)}
+        />
       )}
     </section>
   );

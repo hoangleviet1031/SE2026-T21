@@ -2,15 +2,16 @@ import type { LoginRequest, MeResponse, RegisterRequest } from '@field-survey/sh
 import { setToken } from './auth';
 import { getAccountValue, setAccountValue } from './db/accountDb';
 import { openProjectDb } from './db/current';
+import { downloadJson } from './download';
 import { clearLocalAccountData, projectsOnDevice } from './logout';
-import { AdminAccountError, NetworkError, fetchMeWithToken, login, logoutSession, register } from './sync/api';
+import { AdminAccountError, NetworkError, login, logoutSession, register } from './sync/api';
 import { decideSignIn } from './sync/accountSync';
 import { SYNC_LOCK } from './sync/engine';
-import { UNSENT_STATES } from './sync/exportJson';
+import { UNSENT_STATES, exportUnsentJson } from './sync/exportJson';
 import { hasUnsentData } from './sync/membership';
 
 // Đăng nhập trên máy có thể đang giữ dữ liệu của người khác (design §4.7, ADR 0003 §1, §8).
-// Mọi đường vào (tên + mật khẩu, tạo tài khoản, nhập mã) đều qua completeSignIn: biết người dùng là
+// Cả hai đường vào (tên + mật khẩu, tạo tài khoản) đều qua completeSignIn: biết người dùng là
 // ai rồi mới quyết định giữ, xoá hay từ chối, và token chỉ được lưu sau cùng. Lưu token trước thì
 // vòng đồng bộ có thể gửi phiếu của người cũ bằng token người mới (bất biến 6).
 
@@ -28,22 +29,31 @@ export class SignInBlockedError extends Error {
   }
 }
 
-/** Đăng nhập bằng tên + mật khẩu (màn hình của TV1-14). */
+/** Đăng nhập bằng tên + mật khẩu. */
 export async function signIn(body: LoginRequest): Promise<void> {
   const { token, user } = await login(body);
   await completeSignIn(token, user);
 }
 
-/** Tạo tài khoản rồi đăng nhập luôn (màn hình của TV1-14). */
+/** Tạo tài khoản rồi đăng nhập luôn. */
 export async function registerAndSignIn(body: RegisterRequest): Promise<void> {
   const { token, user } = await register(body);
   await completeSignIn(token, user);
 }
 
-/** Màn hình nhập mã đang dùng: kiểm mã bằng /me trước khi lưu. Mã sai: AccountError('invalid_token'). */
-export async function signInWithToken(token: string): Promise<void> {
-  const me = await fetchMeWithToken(token);
-  await completeSignIn(token, me.user);
+/**
+ * Nút "Xuất JSON" khi bị từ chối (design §4.7): mỗi dự án còn phiếu chưa gửi một file, cùng định dạng
+ * với Xuất JSON của dự án đã rời. Trả số file đã tải.
+ */
+export async function downloadUnsentOnDevice(): Promise<number> {
+  let files = 0;
+  for (const p of await projectsOnDevice()) {
+    const db = openProjectDb(p.id);
+    if ((await db.records.where('syncState').anyOf(UNSENT_STATES).count()) === 0) continue;
+    downloadJson(`chua-gui-${p.id}.json`, await exportUnsentJson(p.id));
+    files += 1;
+  }
+  return files;
 }
 
 async function unsentOnDevice(): Promise<{ any: boolean; records: number }> {

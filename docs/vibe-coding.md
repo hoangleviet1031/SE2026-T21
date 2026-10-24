@@ -1,6 +1,6 @@
 # Quy trình vibe coding có giám sát
 
-Dự án này dùng AI (Claude Code hoặc công cụ tương tự) để viết phần lớn code. Nguyên tắc duy nhất: **AI viết, người chịu trách nhiệm.** Ai mở PR phải giải thích được từng dòng trong diff; ai duyệt PR phải đọc code, không chỉ nhìn CI xanh.
+Dự án này dùng AI (Claude Code hoặc công cụ tương tự) để viết phần lớn code. Nguyên tắc duy nhất: **AI viết, người chịu trách nhiệm.** Ai mở PR phải giải thích được từng dòng trong diff; ai góp ý review phải đọc code, không chỉ nhìn CI xanh.
 
 Tài liệu liên quan: [CLAUDE.md](../CLAUDE.md) (luật cho AI), [plan/](plan/) (ticket), [design.md](design.md), [adr/](adr/).
 
@@ -27,7 +27,7 @@ Tài liệu liên quan: [CLAUDE.md](../CLAUDE.md) (luật cho AI), [plan/](plan/
 6. **Tự kiểm tra** bằng `/self-check` rồi tự đọc toàn bộ diff (`git diff main...`) theo checklist ở mục 4.
 7. **Thử thật**: tính năng có UI thì thử trên điện thoại qua staging ít nhất một lần trước khi đóng ticket (định nghĩa "xong" trong team-plan).
 8. **Mở PR** theo mẫu (`.github/pull_request_template.md`), điền phần "AI đã làm gì / tôi đã kiểm tra gì".
-9. **Review**: người duyệt dùng checklist mục 4; PR chạm vùng lõi cần hai người duyệt.
+9. **Review và merge**: người mở tự kiểm theo checklist mục 4 rồi tự merge khi CI xanh (team-plan "Quy trình làm việc"). Góp ý review để thành comment trên PR và được trả lời trước khi merge.
 10. **Đánh dấu ticket xong** trong `docs/plan/` và **ghi worklog** (một dòng trong `docs/worklog/<tên>.md`, theo [quy ước](worklog/README.md)), cùng PR.
 
 ## 3. Mẫu prompt
@@ -81,10 +81,15 @@ Không sửa code.
 - [ ] Logic trùng lặp với hàm đã có trong `shared/` (merge, backoff, validate).
 - [ ] Comment mô tả lại code, hoặc comment khẳng định điều code không làm.
 
+**Lỗi và phụ thuộc** (Lecture 05, checklist cho code agent viết)
+- [ ] Chuyện gì xảy ra khi timeout, khi hai request chạy đồng thời, khi chỉ thành công một phần (ghi được phiếu mà mất response, upload được nửa ảnh)? Có test cho ca đó chưa?
+- [ ] Gói mới (nếu nhóm đã đồng ý thêm): ai bảo trì, còn được cập nhật không, vì sao API có sẵn của trình duyệt/Node không đủ?
+
 ## 5. Thói quen của nhóm
 
-- **Hiểu trước khi merge.** Buổi demo cuối tuần, mỗi người chọn một đoạn code AI viết trong tuần của mình và giải thích cho hai bạn còn lại mà không nhìn AI. Ai không giải thích được thì đoạn đó cần review lại. Mục đích: không ai bị "mù" phần của mình khi bảo vệ đồ án.
-- **Commit message** dạng `feat(TV2-03): chuyển route records sang /api/projects/:projectId`. Commit có phần lớn do AI viết thì thêm dòng `Assisted-by: <tên công cụ>`.
+- **Hiểu trước khi merge.** Mỗi người phải giải thích được code AI viết trong mảng của mình mà không nhìn AI; vấn đáp cuối kỳ hỏi theo bảng truy vết [requirements.md](requirements.md) (yêu cầu này vì sao có, test nào chứng minh). Đoạn nào chưa giải thích được thì hỏi AI theo prompt "hiểu code" ở mục 3 trước khi merge. Mục đích: không ai bị "mù" phần của mình khi bảo vệ đồ án.
+- **Commit message** dạng `feat(TV2-03): chuyển route records sang /api/projects/:projectId`.
+- **Bằng chứng dùng AI** (nhóm chốt 2026-10-22, thay cho dòng `Assisted-by:` trong commit mà chưa ai dùng): ghi ở mục "AI đã làm gì / tôi đã kiểm tra gì" trong mô tả PR (công cụ, phần AI viết, phần người sửa tay, AI đề xuất sai chỗ nào và đã sửa ra sao) và dòng worklog của người giám sát. Prompt đáng dùng lại thì thêm vào mục 6.
 - **Ghi lại prompt hay** vào mục "Prompt hữu ích" cuối file này (prompt, tình huống, kết quả) để cả nhóm dùng lại.
 - **Khi AI đề xuất đổi thiết kế:** không làm trong PR đang dở. Mở thảo luận nhóm; nếu chốt thì sửa design/ADR trước, code sau.
 - **Bí mật:** không dán token thật, file `data/*.db`, dữ liệu khảo sát thật vào prompt.
@@ -93,4 +98,7 @@ Không sửa code.
 
 | Tình huống | Prompt | Ghi chú |
 |---|---|---|
+| Bắt đầu một ticket | `/ticket TV1-12` (file `.claude/commands/ticket.md`) | Đọc ticket, spec, CLAUDE.md rồi chỉ đưa kế hoạch, chưa viết code. Người duyệt kế hoạch trước |
+| Tự kiểm trước khi mở PR | `/self-check` (file `.claude/commands/self-check.md`) | Chạy checklist mục 4 trên diff so với `main` |
+| Đối chiếu tài liệu với yêu cầu môn học | "Dựa vào các file pptx của thầy và các file thiết kế của nhóm, nêu những chỗ cần điều chỉnh" | 2026-10-22. AI tin theo một dòng cũ trong design ("T5 chưa làm") nên báo sai; khi sửa mới kiểm lại code và thấy test đã có. Bài học: bắt AI kiểm khẳng định với code, không chỉ với tài liệu |
 | (thêm dần) | | |

@@ -17,7 +17,7 @@ async function loginSupervisorYte(page: Page) {
   const switcher = page.getByTestId('project-switcher');
   await switcher.getByRole('button', { expanded: false }).click();
   await switcher.getByRole('listitem').getByRole('button', { name: /Y tế xã \(demo\)/ }).click();
-  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Y tế xã (demo) ▾');
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveAccessibleName('Y tế xã (demo)');
 }
 
 test('supervisor bấm "Xuất CSV": tải file .csv có BOM, có phiếu của dự án', async ({ page, request }) => {
@@ -29,6 +29,8 @@ test('supervisor bấm "Xuất CSV": tải file .csv có BOM, có phiếu của 
   expect(put.status()).toBe(201);
 
   await loginSupervisorYte(page);
+  // Hai lựa chọn nằm trong nút [Xuất ▾] (TV1-12 b2, design §4.6)
+  await formRow(page).getByRole('button', { name: 'Xuất', exact: true }).click();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     formRow(page).getByRole('button', { name: 'Xuất CSV' }).click(),
@@ -43,6 +45,7 @@ test('supervisor bấm "Xuất CSV": tải file .csv có BOM, có phiếu của 
 
 test('supervisor bấm "Xuất JSON": file có forms và records', async ({ page }) => {
   await loginSupervisorYte(page);
+  await formRow(page).getByRole('button', { name: 'Xuất', exact: true }).click();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     formRow(page).getByRole('button', { name: 'Xuất JSON' }).click(),
@@ -58,12 +61,27 @@ test('surveyor không thấy nút Xuất', async ({ page }) => {
   await expect(formRow(page).getByRole('button', { name: 'Tạo phiếu mới' })).toBeVisible();
   await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toHaveCount(0);
   await expect(formRow(page).getByRole('button', { name: 'Xuất JSON' })).toHaveCount(0);
+  await expect(formRow(page).getByRole('button', { name: 'Xuất', exact: true })).toHaveCount(0);
 });
 
 test('offline: nút Xuất bị khoá, báo cần mạng', async ({ page, context }) => {
   await loginSupervisorYte(page);
-  await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toBeEnabled();
+  await expect(formRow(page).getByRole('button', { name: 'Xuất', exact: true })).toBeEnabled();
   await context.setOffline(true);
-  await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toBeDisabled();
+  await expect(formRow(page).getByRole('button', { name: 'Xuất', exact: true })).toBeDisabled();
   await expect(formRow(page).getByTestId('export-offline')).toHaveText('Cần kết nối mạng để xuất');
+});
+
+test('đang mở [Xuất ▾] mà mất mạng: có mạng lại thì hai lựa chọn không tự hiện', async ({ page, context }) => {
+  await loginSupervisorYte(page);
+  const toggle = formRow(page).getByRole('button', { name: 'Xuất', exact: true });
+  await toggle.click();
+  await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toBeVisible();
+  await context.setOffline(true);
+  await expect(toggle).toBeDisabled();
+  await context.setOffline(false);
+  await expect(toggle).toBeEnabled();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toHaveCount(0);
+  await expect(formRow(page).getByRole('button', { name: 'Xuất JSON' })).toHaveCount(0);
 });

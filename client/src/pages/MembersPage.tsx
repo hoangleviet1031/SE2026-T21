@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse, Member, ProjectSettings, Role } from '@field-survey/shared';
+import { initialOf } from '../accountDisplay';
+import { BusyNote } from '../components/BusyNote';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { getAccountValue, type AccountProject } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
 import { MEMBER_ERROR_TEXT, assignableRoles, confirmText, memberActions } from '../members';
 import { ROLE_LABEL, canManageProject } from '../projects';
+import { apiFailureText } from '../apiErrors';
 import {
-  NetworkError,
-  NotMemberError,
   addMember,
+  apiFailure,
   changeMemberRole,
   fetchMembers,
   fetchSettings,
@@ -23,13 +26,15 @@ import { navigate } from '../useHashRoute';
 // (CLAUDE.md bất biến 7 cho phép). Luật ai đụng được vai trò nào giống server (canAssignRole).
 
 const OFFLINE_MSG = 'Cần kết nối mạng để quản lý thành viên';
-const NOT_MEMBER_MSG = 'Bạn không còn thuộc tổ chức này';
 
-/** Lỗi gọi API thành câu hiển thị; lỗi khác (lỗi lập trình, 5xx) ném tiếp. */
+// Nhãn vai trò mỗi vai một màu (ui.md màn hình 6); chữ vẫn nói rõ vai trò, màu chỉ giúp nhìn nhanh
+const ROLE_CLASS: Record<Role, string> = { owner: 'role owner', supervisor: 'role sup', surveyor: 'role' };
+
+/** Lỗi gọi API thành câu hiển thị (mất mạng, 5xx, 401, không còn thành viên); lỗi lập trình ném tiếp. */
 function failureText(err: unknown): string {
-  if (err instanceof NetworkError) return OFFLINE_MSG;
-  if (err instanceof NotMemberError) return NOT_MEMBER_MSG;
-  throw err;
+  const failure = apiFailure(err);
+  if (!failure) throw err;
+  return apiFailureText(failure, OFFLINE_MSG);
 }
 
 export function MembersPage() {
@@ -51,6 +56,10 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
   const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Thao tác đang chờ người dùng xác nhận trong hộp thoại (đổi vai trò, rút)
+  const [pending, setPending] = useState<{ text: string; label: string; danger: boolean; act: () => void } | null>(
+    null,
+  );
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -101,40 +110,60 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
   }
 
   const onChangeRole = (m: Member, role: Role) => {
+    const act = () => void run(() => changeMemberRole(project.id, m.userId, role), { self: m.userId === myUserId });
     const text = confirmText(myUserId, m, role);
-    if (text && !window.confirm(text)) return;
-    void run(() => changeMemberRole(project.id, m.userId, role), { self: m.userId === myUserId });
+    if (text) setPending({ text, label: 'Đổi vai trò', danger: false, act });
+    else act();
   };
 
   const onRemove = (m: Member) => {
+    const act = () => void run(() => removeMember(project.id, m.userId), { self: m.userId === myUserId });
     const text = confirmText(myUserId, m, null);
-    if (text && !window.confirm(text)) return;
-    void run(() => removeMember(project.id, m.userId), { self: m.userId === myUserId });
+    if (text) setPending({ text, label: 'Rút', danger: true, act });
+    else act();
   };
 
   return (
-    <section>
+    <section className="members">
       <h2>Thành viên · {project.name}</h2>
+      {pending && (
+        <ConfirmDialog
+          message={pending.text}
+          confirmLabel={pending.label}
+          danger={pending.danger}
+          onConfirm={() => {
+            setPending(null);
+            pending.act();
+          }}
+          onCancel={() => setPending(null)}
+        />
+      )}
       {loadError ? (
-        <p className="field-error" role="alert">
-          {loadError}{' '}
+        // Vùng alert chỉ có câu lỗi, [Thử lại] nằm ngoài để trình đọc màn hình không đọc lẫn vào câu
+        <div className="load-err">
+          <p className="field-error" role="alert">
+            {loadError}
+          </p>
           <button onClick={() => void load()}>Thử lại</button>
-        </p>
+        </div>
       ) : members === null ? (
         <p>Đang tải…</p>
       ) : (
         <>
-          <AddMemberForm
-            roles={assignableRoles(project.role)}
-            busy={busy}
-            onAdd={(username, role) => run(() => addMember(project.id, { username, role }))}
-          />
-          {error && (
-            <p className="field-error" role="alert" data-testid="member-error">
-              {error}
-            </p>
-          )}
-          <ul className="list" data-testid="members">
+          {/* Lỗi nằm ngay dưới nút [Thêm], trong cùng khối */}
+          <div className="card">
+            <AddMemberForm
+              roles={assignableRoles(project.role)}
+              busy={busy}
+              onAdd={(username, role) => run(() => addMember(project.id, { username, role }))}
+            />
+            {error && (
+              <p className="field-error" role="alert" data-testid="member-error">
+                {error}
+              </p>
+            )}
+          </div>
+          <ul className="card mlist" data-testid="members">
             {members.map((m) => (
               <MemberRow
                 key={m.userId}
@@ -181,11 +210,18 @@ function AddMemberForm({
 }) {
   const [username, setUsername] = useState('');
   const [role, setRole] = useState<Role>('surveyor');
+  // `busy` chung cho mọi thao tác trên trang; chữ "Đang thêm…" chỉ hiện khi chính nút Thêm đang chạy
+  const [adding, setAdding] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!username.trim()) return;
-    if (await onAdd(username, role)) setUsername('');
+    setAdding(true);
+    try {
+      if (await onAdd(username, role)) setUsername('');
+    } finally {
+      setAdding(false);
+    }
   };
 
   return (
@@ -215,9 +251,10 @@ function AddMemberForm({
           ))}
         </select>
       </label>
-      <button type="submit" disabled={busy || !username.trim()}>
+      <button type="submit" className="primary wide" disabled={busy || !username.trim()} aria-busy={adding}>
         Thêm
       </button>
+      <BusyNote busy={adding} text="Đang thêm…" />
     </form>
   );
 }
@@ -237,35 +274,44 @@ function MemberRow({
 }) {
   const actions = memberActions(myRole, member);
   return (
-    <li data-testid={`member-${member.username}`}>
-      <span>
-        {member.name} ({member.username}) · {ROLE_LABEL[member.role]}
+    <li className="mrow" data-testid={`member-${member.username}`}>
+      <span className="av" aria-hidden="true">
+        {initialOf(member.name || member.username)}
       </span>
-      <span>
-        {actions.changeTo.length > 0 && (
-          <select
-            aria-label={`Đổi vai trò ${member.username}`}
-            value=""
-            disabled={busy}
-            onChange={(e) => {
-              const role = actions.changeTo.find((r) => r === e.target.value);
-              if (role) onChangeRole(role);
-            }}
-          >
-            <option value="">Đổi vai trò…</option>
-            {actions.changeTo.map((r) => (
-              <option key={r} value={r}>
-                {ROLE_LABEL[r]}
-              </option>
-            ))}
-          </select>
-        )}{' '}
-        {actions.canRemove && (
-          <button aria-label={`Rút ${member.username}`} disabled={busy} onClick={onRemove}>
-            Rút
-          </button>
-        )}
+      {/* Tên và vai trò hai dòng nên bỏ " · " giữa hai phần (TV1-12 b2) */}
+      <span className="who">
+        <span>
+          <b>{member.name}</b> <span className="un">({member.username})</span>
+        </span>
+        <span className={ROLE_CLASS[member.role]}>{ROLE_LABEL[member.role]}</span>
       </span>
+      {(actions.changeTo.length > 0 || actions.canRemove) && (
+        <span className="acts">
+          {actions.changeTo.length > 0 && (
+            <select
+              aria-label={`Đổi vai trò ${member.username}`}
+              value=""
+              disabled={busy}
+              onChange={(e) => {
+                const role = actions.changeTo.find((r) => r === e.target.value);
+                if (role) onChangeRole(role);
+              }}
+            >
+              <option value="">Đổi vai trò…</option>
+              {actions.changeTo.map((r) => (
+                <option key={r} value={r}>
+                  {ROLE_LABEL[r]}
+                </option>
+              ))}
+            </select>
+          )}
+          {actions.canRemove && (
+            <button className="danger-outline" aria-label={`Rút ${member.username}`} disabled={busy} onClick={onRemove}>
+              Rút
+            </button>
+          )}
+        </span>
+      )}
     </li>
   );
 }
@@ -284,7 +330,7 @@ function OrgSettings({
   const trimmed = name.trim();
 
   return (
-    <section>
+    <section className="card">
       <h3>Tổ chức</h3>
       <form
         className="form"
@@ -301,14 +347,14 @@ function OrgSettings({
           Lưu tên
         </button>
       </form>
-      <label>
+      <label className="ck">
         <input
           type="checkbox"
           data-testid="org-public"
           checked={settings.public}
           disabled={busy}
           onChange={(e) => void onSave({ public: e.target.checked })}
-        />{' '}
+        />
         Công khai tên tổ chức
       </label>
       <p className="hint">Người đã đăng nhập thấy tên tổ chức trong danh sách và gửi tên đăng nhập cho bạn để được thêm.</p>

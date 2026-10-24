@@ -35,20 +35,18 @@ Mở http://localhost:5173. Để thử offline: DevTools > Network > Offline, r
 
 ### Tài khoản demo
 
-> Theo [ADR 0003](docs/adr/0003-accounts-and-owner-role.md), tài khoản đăng nhập bằng tên + mật khẩu (server đã có từ TV2-14). Màn hình đăng nhập tên + mật khẩu (TV1-14) **chưa có**: app vẫn hỏi **mã (token)**, nên tài khoản demo có sẵn cả token cố định.
-
-Đặt `SEED_DEMO=1` khi chạy server để nạp dữ liệu demo (chỉ dùng dev/test, mật khẩu và token cố định): `SEED_DEMO=1 npm run dev` (PowerShell: `$env:SEED_DEMO='1'; npm run dev`).
+Đặt `SEED_DEMO=1` khi chạy server để nạp dữ liệu demo (chỉ dùng dev/test, mật khẩu cố định): `SEED_DEMO=1 npm run dev` (PowerShell: `$env:SEED_DEMO='1'; npm run dev`).
 
 Mật khẩu chung: `demo-password`.
 
-| Tên đăng nhập | Token (nhập ở màn hình hiện tại) | Dự án |
-|---|---|---|
-| `lan` | `demo-token-lan` | `demo-yte`: supervisor; `demo-nongnghiep`: surveyor |
-| `minh` | `demo-token-minh` | `demo-yte`: surveyor |
-| `chu` | `demo-token-chu` | Owner của `demo-yte` và `demo-nongnghiep` |
-| `admin` | `demo-token-admin` | quản trị hệ thống, không là thành viên dự án nào |
+| Tên đăng nhập | Dự án |
+|---|---|
+| `lan` | `demo-yte`: supervisor; `demo-nongnghiep`: surveyor |
+| `minh` | `demo-yte`: surveyor |
+| `chu` | Owner của `demo-yte` và `demo-nongnghiep` |
+| `admin` | quản trị hệ thống, không là thành viên dự án nào (dùng trang `/admin/`) |
 
-E2E tự bật `SEED_DEMO=1` và đăng nhập bằng tên + mật khẩu qua `/api/auth/login` (`client/e2e/helpers.ts`). Muốn nạp vào file DB mà không chạy server: `npm run seed:demo -w server` (từ chối khi `NODE_ENV=production`).
+Đăng nhập ở màn hình Đăng nhập bằng tên + mật khẩu. Seed không tạo token cố định nào (tech-debt N7): cần token để gọi API thì đăng nhập qua `POST /api/auth/login`. E2E tự bật `SEED_DEMO=1` và lấy token theo cách đó (`client/e2e/global-setup.ts`). Muốn nạp vào file DB mà không chạy server: `npm run seed:demo -w server` (từ chối khi `NODE_ENV=production`).
 
 ### Quản trị tài khoản
 

@@ -9,25 +9,30 @@ import { LoginPage } from './pages/LoginPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { BuilderPage } from './pages/BuilderPage';
 import { MembersPage } from './pages/MembersPage';
+import { OrgsPage } from './pages/OrgsPage';
 import { ProjectSwitcher } from './components/ProjectSwitcher';
 import { UpdatePrompt } from './components/UpdatePrompt';
+import { Icon } from './components/Icon';
 import { syncNow } from './sync/engine';
 
 export function App() {
   const [page, ...args] = useHashRoute();
   const online = useOnline();
-  // Đọc qua liveQuery để khi mã bị xoá (401, đăng xuất) app tự quay về màn hình nhập mã
+  // Đọc qua liveQuery để khi token bị xoá (401, đăng xuất) app tự quay về màn hình đăng nhập
   const token = useLiveQuery(getToken, []);
 
-  // Đang đọc IndexedDB: chưa vẽ gì, tránh nháy màn hình nhập mã với người đã đăng nhập
+  // Đang đọc IndexedDB: chưa vẽ gì, tránh nháy màn hình đăng nhập với người đã đăng nhập
   if (token === undefined) return null;
 
   if (token === null) {
     return (
       <div className="app">
         <UpdatePrompt />
-        <header>
-          <span className="brand">Khảo sát thực địa</span>
+        <header className="hdr-simple">
+          <span className="logo">
+            <Icon name="logo" />
+          </span>
+          Khảo sát thực địa
         </header>
         <main>
           <LoginPage />
@@ -39,17 +44,25 @@ export function App() {
   return (
     <div className="app">
       <UpdatePrompt />
-      <header>
-        <a href="#/" className="brand">
-          Khảo sát thực địa
-        </a>
-        <span className={online ? 'badge ok' : 'badge off'} data-testid="network-status">
-          {online ? 'Trực tuyến' : 'Ngoại tuyến'}
+      {/* Đồng bộ, Cài đặt là biểu tượng + chữ nhỏ bên dưới để tên app không bị cắt ở 360px */}
+      <header className="hdr">
+        <span className="logo">
+          <Icon name="logo" />
         </span>
-        <button onClick={() => void syncNow()} disabled={!online}>
+        <div className="brand">
+          <a href="#/">Khảo sát thực địa</a>
+          <span className={online ? 'net on' : 'net off'} data-testid="network-status">
+            {online ? 'Trực tuyến' : 'Ngoại tuyến'}
+          </span>
+        </div>
+        <button className="hbtn" onClick={() => void syncNow()} disabled={!online}>
+          <Icon name="sync" />
           Đồng bộ
         </button>
-        <a href="#/settings">Cài đặt</a>
+        <a className="hbtn" href="#/settings">
+          <Icon name="gear" />
+          Cài đặt
+        </a>
       </header>
       {/* Hàng riêng dưới header: header đã kín chỗ ở bề ngang 360px */}
       <ProjectSwitcher />
@@ -63,6 +76,8 @@ export function App() {
           <BuilderPage formId={args[0] === 'new' ? undefined : args[0]} />
         ) : page === 'members' ? (
           <MembersPage />
+        ) : page === 'orgs' ? (
+          <OrgsPage />
         ) : page === 'settings' ? (
           <SettingsPage />
         ) : (

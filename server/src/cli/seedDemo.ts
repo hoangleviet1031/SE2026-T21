@@ -1,8 +1,8 @@
 import { pathToFileURL } from 'node:url';
-import { DEMO_PASSWORD, DEMO_PROJECTS, DEMO_TOKENS, DEMO_USERNAMES, seedDemo } from '../seedDemo';
+import { DEMO_PASSWORD, DEMO_PROJECTS, DEMO_USERNAMES, seedDemo } from '../seedDemo';
 import { openDbFromEnv } from './openDbFromEnv';
 
-// npm run seed:demo -w server (design §12). Mật khẩu và token demo cố định, có trong README,
+// npm run seed:demo -w server (design §12). Mật khẩu demo cố định, có trong README,
 // nên không bao giờ chạy trên server thật.
 
 export function seedDemoAllowed(env: NodeJS.ProcessEnv): boolean {
@@ -19,8 +19,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     db.close();
     console.log(`Đã tạo dự án ${Object.values(DEMO_PROJECTS).join(', ')} và người dùng demo.`);
     console.log(`Mật khẩu chung: ${DEMO_PASSWORD}`);
-    for (const [key, username] of Object.entries(DEMO_USERNAMES)) {
-      console.log(`  ${username} (token ${DEMO_TOKENS[key as keyof typeof DEMO_TOKENS]})`);
-    }
+    console.log(`Tài khoản: ${Object.values(DEMO_USERNAMES).join(', ')}`);
   }
 }

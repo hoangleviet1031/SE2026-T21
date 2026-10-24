@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
-import { login } from './helpers';
+import { answerConfirm, login } from './helpers';
 
 // Cập nhật phiên bản app và icon cài đặt (TV1-07 phần 2a; design §4.3).
 // Giả lập "vừa deploy bản mới": thêm một dòng vào dist/sw.js mà vite preview đang phục vụ, để trình
@@ -60,18 +60,16 @@ test('đang nhập phiếu thì hỏi trước khi tải lại; Huỷ thì giữ
   await deployNewVersion(page);
   await expect(page.getByTestId('update-prompt')).toBeVisible({ timeout: 15_000 });
 
-  let message = '';
-  page.once('dialog', (d) => {
-    message = d.message();
-    void d.dismiss();
-  });
-  await page.getByRole('button', { name: 'Tải lại' }).click();
-  expect(message).toBe('Phiếu đang nhập chưa lưu sẽ mất. Tải lại?');
+  // Huỷ (hoặc Esc) thì giữ nguyên phần đang gõ
+  await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
+  await answerConfirm(page, 'Phiếu đang nhập chưa lưu sẽ mất. Tải lại?', 'Huỷ');
+  await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
+  await answerConfirm(page, 'Phiếu đang nhập chưa lưu sẽ mất. Tải lại?', 'Esc');
   await expect(page.locator('input[name=householdName]')).toHaveValue('Đang gõ dở');
   await expect(page.getByTestId('update-prompt')).toBeVisible();
 
-  page.once('dialog', (d) => void d.accept());
-  await page.getByRole('button', { name: 'Tải lại' }).click();
+  await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
+  await answerConfirm(page, 'Phiếu đang nhập chưa lưu sẽ mất. Tải lại?', 'Tải lại');
   await expect(page.getByTestId('update-prompt')).toHaveCount(0);
   await expect(page.locator('input[name=householdName]')).toHaveValue('');
 });

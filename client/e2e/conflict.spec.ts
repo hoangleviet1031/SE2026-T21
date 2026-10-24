@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type BrowserContext, type Page } from '@playwright/test';
-import { API, TOKENS, authHeaders, login, readStore } from './helpers';
+import { API, TOKENS, authHeaders, login, makeImage, readStore } from './helpers';
 
 test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, người dùng chọn rồi đồng bộ', async ({
   page,
@@ -353,4 +353,54 @@ test('xoá vs sửa: phiếu hiện ở "Cần xử lý", hỏi giữ hay xoá, 
   expect(local?.syncState).toBe('conflict');
   expect(await opsOf(page, id)).toHaveLength(0);
   expect((await serverRecord(request, id)).data).toMatchObject({ members: 8 });
+});
+
+test('lựa chọn xung đột: bấm chỗ trống bên phải ô cũng chọn', async ({ page, context, request }) => {
+  await login(page);
+  await openConflict(page, context, request, 'Hộ ô chọn');
+  const mine = page.getByTestId('conflict-field').getByRole('radio', { name: /Của bạn/ });
+  // Ô bấm là label bọc ngay ngoài radio
+  const tile = mine.locator('..');
+  const box = await tile.boundingBox();
+  if (!box) throw new Error('không thấy ô Của bạn');
+  await tile.click({ position: { x: box.width - 6, y: box.height / 2 } });
+  await expect(mine).toBeChecked();
+  await expect(page.getByRole('button', { name: 'Áp dụng và đồng bộ' })).toBeEnabled();
+});
+
+test('phiếu đang xung đột: không có hàng nút, không có ô chụp ảnh để Tab tới', async ({ page, context, request }) => {
+  await login(page);
+  const id = await openConflict(page, context, request, 'Hộ chỉ đọc');
+  await page.goto(`/#/fill/household-survey/${id}`);
+  await expect(page.getByTestId('record-in-conflict')).toBeVisible();
+  await expect(page.getByTestId('record-actions')).toHaveCount(0);
+  await expect(page.getByText('+ Chụp ảnh')).toBeHidden();
+  await expect(page.getByTestId('photo-input-housePhoto')).toBeHidden();
+});
+
+test('phiếu có ảnh đang xung đột: ảnh vẫn hiện, không có nút bỏ ảnh', async ({ page, context, request }) => {
+  await login(page);
+  const name = 'Hộ ảnh khoá';
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await page.locator('input[name=householdName]').fill(name);
+  const image = await makeImage(page, { width: 320, height: 240, type: 'image/jpeg' });
+  await page.getByTestId('photo-input-housePhoto').setInputFiles({ name: 'a.jpg', mimeType: 'image/jpeg', buffer: image });
+  await expect(page.getByTestId('photo-thumb')).toHaveCount(1, { timeout: 10_000 });
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  const row = recordRow(page, name);
+  await expect(row.getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 20_000 });
+  const id = (await row.getByRole('link').first().getAttribute('href'))?.split('/').pop() ?? '';
+
+  await context.setOffline(true);
+  await row.getByRole('link').first().click();
+  await page.locator('input[name=members]').fill('5');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await serverPut(request, id, 1, { householdName: name, members: 3 });
+  await context.setOffline(false);
+  await expect(row.getByRole('link', { name: 'Cần xử lý xung đột' })).toBeVisible({ timeout: 15_000 });
+
+  await page.goto(`/#/fill/household-survey/${id}`);
+  await expect(page.getByTestId('record-in-conflict')).toBeVisible();
+  await expect(page.getByTestId('photo-thumb')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Bỏ ảnh 1' })).toHaveCount(0);
 });

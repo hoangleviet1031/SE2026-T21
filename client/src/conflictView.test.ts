@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FormSchema, MergeResult } from '@field-survey/shared';
-import { buildConflictView, formatValue, recordLevelPrompt, resolveChoices, resolveRecordLevel } from './conflictView';
+import { autoMergedNote, buildConflictView, formatValue, recordLevelPrompt, resolveChoices, resolveRecordLevel } from './conflictView';
 
 // Màn hình xung đột (design §4.5, ui.md màn hình 3): nhãn trường theo form, "Gộp cả hai" cho
 // multiselect/ảnh, mục "Đã gộp tự động".
@@ -142,5 +142,20 @@ describe('resolveRecordLevel', () => {
   });
   it('C5 bỏ: chấp nhận xoá', () => {
     expect(resolveRecordLevel('local-edited-remote-deleted', 'delete', local, server)).toEqual({ data: server, deleted: true });
+  });
+});
+
+describe('autoMergedNote', () => {
+  it('không có trường nào gộp tự động thì không có câu', () => {
+    expect(autoMergedNote(0, 'none')).toBeNull();
+  });
+
+  it('có trường gộp tự động thì báo số trường', () => {
+    expect(autoMergedNote(2, 'none')).toBe('2 trường đã được gộp tự động.');
+  });
+
+  it('xoá vs sửa thì không có câu dù có trường gộp tự động', () => {
+    expect(autoMergedNote(2, 'local-deleted-remote-edited')).toBeNull();
+    expect(autoMergedNote(1, 'local-edited-remote-deleted')).toBeNull();
   });
 });

@@ -1,6 +1,10 @@
+import { useRef, useState } from 'react';
 import type { FieldDef, FieldValue, FormSchema, GpsValue, RecordData } from '@field-survey/shared';
 import type { ProjectDb } from '../db/projectDb';
 import { fieldMode } from '../formDisplay';
+import { GPS_TIMEOUT_MS, gpsErrorText } from '../gps';
+import { BusyNote } from './BusyNote';
+import { Icon } from './Icon';
 import { PhotoField } from './PhotoField';
 
 interface Props {
@@ -15,7 +19,11 @@ interface Props {
 }
 
 export function FormRenderer({ db, form, recordId, value, onChange, errors = {} }: Props) {
-  const set = (field: string, v: FieldValue) => onChange({ ...value, [field]: v });
+  // Đọc bản mới nhất lúc ghi: vị trí GPS về sau tới 30 s, trong lúc đó người dùng có thể đã sửa ô khác;
+  // ghép vào `value` lúc bấm nút thì mất phần vừa sửa.
+  const latest = useRef(value);
+  latest.current = value;
+  const set = (field: string, v: FieldValue) => onChange({ ...latest.current, [field]: v });
   return (
     <div className="form">
       {form.fields.map((f) => {
@@ -24,14 +32,16 @@ export function FormRenderer({ db, form, recordId, value, onChange, errors = {} 
         const input = (
           <FieldInput db={db} field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
         );
-        // Trường ảnh có nhiều nút bên trong: bọc bằng <label> thì bấm vào tên trường sẽ bấm nhầm nút đầu tiên.
-        const Wrapper = f.type === 'photo' ? 'div' : 'label';
-        const groupProps = f.type === 'photo' ? { role: 'group', 'aria-label': f.label } : {};
+        // Trường có nhiều điều khiển bên trong (ảnh, GPS, chọn nhiều): bọc bằng <label> thì bấm vào tên trường
+        // sẽ bấm nhầm điều khiển đầu tiên, và ô đánh dấu đầu bị đọc kèm tên trường cùng mọi lựa chọn.
+        const grouped = f.type === 'photo' || f.type === 'gps' || f.type === 'multiselect';
+        const Wrapper = grouped ? 'div' : 'label';
+        const groupProps = grouped ? { role: 'group', 'aria-label': f.label } : {};
         return (
-          <Wrapper key={f.id} className="field" {...groupProps}>
+          <Wrapper key={f.id} className={errors[f.id] ? 'field bad' : 'field'} {...groupProps}>
             <span>
               {f.label}
-              {f.required && !f.hidden && ' *'}
+              {f.required && !f.hidden && <span className="req-mark"> *</span>}
               {f.hidden && ' (đã ẩn)'}
             </span>
             {/* fieldset khoá được cả các nút bên trong (trường ảnh, GPS), không chỉ ô nhập */}
@@ -95,7 +105,8 @@ function FieldInput({
       return (
         <div className="checks">
           {field.options?.map((o) => (
-            <label key={o}>
+            // Ô đánh dấu thật nằm trong label: bấm chỗ nào trong ô cũng chọn được
+            <label key={o} className="ck">
               <input
                 type="checkbox"
                 checked={selected.includes(o)}
@@ -117,28 +128,50 @@ function FieldInput({
           onChange={onChange}
         />
       );
-    case 'gps': {
-      const gps = value as GpsValue | null;
-      return (
-        <div>
-          <button
-            type="button"
-            onClick={() =>
-              navigator.geolocation.getCurrentPosition((p) =>
-                onChange({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
-              )
-            }
-          >
-            Lấy vị trí
-          </button>
-          {gps && (
-            <small>
-              {' '}
-              {gps.lat.toFixed(5)}, {gps.lng.toFixed(5)} (±{Math.round(gps.accuracy ?? 0)} m)
-            </small>
-          )}
-        </div>
-      );
-    }
+    case 'gps':
+      return <GpsField value={value as GpsValue | null} onChange={onChange} />;
   }
+}
+
+// GPS chỉ lấy khi người dùng bấm, không chạy nền (design §9). Lỗi và giờ chờ theo design §8.
+function GpsField({ value, onChange }: { value: GpsValue | null; onChange: (v: GpsValue) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const locate = () => {
+    if (!('geolocation' in navigator)) return setError(gpsErrorText('unsupported'));
+    setBusy(true);
+    setError(null);
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        setBusy(false);
+        onChange({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy });
+      },
+      (e) => {
+        setBusy(false);
+        setError(gpsErrorText(e.code));
+      },
+      { timeout: GPS_TIMEOUT_MS },
+    );
+  };
+
+  return (
+    <div className="gps">
+      {value && (
+        <span className="gps-val">
+          {value.lat.toFixed(5)}, {value.lng.toFixed(5)} (±{Math.round(value.accuracy ?? 0)} m)
+        </span>
+      )}
+      <button type="button" disabled={busy} aria-busy={busy} onClick={locate}>
+        <Icon name="pin" />
+        Lấy vị trí
+      </button>
+      <BusyNote busy={busy} text="Đang lấy vị trí…" visible />
+      {error && (
+        <span className="field-error" role="alert" data-testid="gps-error">
+          ⚠ {error}
+        </span>
+      )}
+    </div>
+  );
 }
