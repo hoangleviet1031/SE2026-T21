@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { AdminProject, MeResponse } from '@field-survey/shared';
+import type { AdminProject, AdminUser, MeResponse } from '@field-survey/shared';
 import { DEMO_USER_IDS } from '../src/seedDemo';
+import { hashPassword } from '../src/password';
+import { insertSession, insertUser, newSessionToken } from '../src/repo/users';
 import { createTestServer, type TestServer } from './fixtures';
 
 let t: TestServer;
@@ -260,5 +262,180 @@ describe('PUT /api/admin/projects/:projectId/owners/:username', () => {
     expect(res.status).toBe(200);
     // Vẫn không vào được khi dự án còn lưu trữ
     expect((await call('GET', '/projects/tam-dong/records?since=0', t.tokens.minh)).status).toBe(403);
+  });
+});
+
+// A3 (TV2-17, ADR 0003 §8): quản lý tài khoản, cùng hành vi với CLI user:* (dùng chung repo/users.ts).
+describe('/api/admin/users', () => {
+  const PASSWORD = 'mat-khau-cu-123';
+  // Băm một lần cho mọi tài khoản thử: scrypt mỗi lần vài chục ms, ca 55 tài khoản sẽ quá chậm.
+  const passwordHash = hashPassword(PASSWORD);
+  let seq = 0;
+
+  /** Tài khoản thật đăng nhập được, có hai phiên (hai máy). Ghi thẳng vào CSDL vì đăng ký qua API bị giới hạn. */
+  async function newAccount(prefix = 'a3') {
+    seq += 1;
+    const username = `${prefix}.${seq}`;
+    const now = new Date().toISOString();
+    const id = insertUser(t.db, { username, name: `Người ${seq}`, passwordHash: await passwordHash, now });
+    const tokens: [string, string] = [newSessionToken(), newSessionToken()];
+    for (const token of tokens) insertSession(t.db, id, token, now);
+    return { id, username, tokens };
+  }
+
+  async function loginStatus(username: string, password: string): Promise<number> {
+    const res = await fetch(`${t.base}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    return res.status;
+  }
+
+  async function search(q?: string): Promise<AdminUser[]> {
+    const path = q === undefined ? '/admin/users' : `/admin/users?q=${encodeURIComponent(q)}`;
+    const res = await call('GET', path, t.tokens.admin);
+    expect(res.status).toBe(200);
+    return (await res.json()) as AdminUser[];
+  }
+
+  it('người thường (kể cả Owner) gọi mọi route → 403 forbidden, không có gì đổi; không token → 401', async () => {
+    const hoa = await newAccount();
+    for (const token of [t.tokens.lan, t.tokens.chu]) {
+      const calls = [
+        call('GET', '/admin/users', token),
+        call('POST', `/admin/users/${hoa.id}/disable`, token),
+        call('POST', `/admin/users/${hoa.id}/reset-password`, token),
+        call('POST', `/admin/users/${hoa.id}/revoke-sessions`, token),
+      ];
+      for (const res of await Promise.all(calls)) {
+        expect(res.status).toBe(403);
+        expect((await res.json()).error).toBe('forbidden');
+      }
+    }
+    expect((await call('GET', '/admin/users')).status).toBe(401);
+    expect((await me(hoa.tokens[0])).user.id).toBe(hoa.id);
+    expect(t.db.prepare(`SELECT disabled FROM users WHERE id = ?`).get(hoa.id)).toEqual({ disabled: 0 });
+    expect(await loginStatus(hoa.username, PASSWORD)).toBe(200);
+  });
+
+  it('GET tìm theo chuỗi con trong tên đăng nhập, không phân biệt hoa thường, đúng các trường', async () => {
+    const a = await newAccount('tim.kiem');
+    await newAccount('khac');
+    expect(await search('TIM.KIEM')).toEqual([
+      {
+        id: a.id,
+        username: a.username,
+        name: expect.any(String),
+        disabled: false,
+        createdAt: expect.any(String),
+        projectCount: 0,
+      },
+    ]);
+    expect((await search('kiem')).map((u) => u.username)).toContain(a.username);
+    // Không lộ hash mật khẩu hay token
+    for (const u of await search()) {
+      expect(Object.keys(u).sort()).toEqual(['createdAt', 'disabled', 'id', 'name', 'projectCount', 'username']);
+    }
+  });
+
+  it('GET: "_" và "%" trong q là ký tự thường, không phải ký tự đại diện', async () => {
+    const a = await newAccount('gach_duoi');
+    await newAccount('gachxduoi');
+    expect((await search('gach_')).map((u) => u.username)).toEqual([a.username]);
+    expect(await search('%')).toEqual([]);
+  });
+
+  it('GET không có q thì trả mọi tài khoản sắp theo tên đăng nhập, tối đa 50', async () => {
+    const list = await search();
+    expect(list.length).toBeLessThanOrEqual(50);
+    expect(list.map((u) => u.username)).toEqual(list.map((u) => u.username).sort());
+    expect(list.map((u) => u.username)).toEqual(expect.arrayContaining(['admin', 'chu', 'lan', 'minh']));
+    for (let i = 0; i < 55; i++) await newAccount('nhieu');
+    expect(await search('nhieu')).toHaveLength(50);
+  });
+
+  it('GET: projectCount đếm tổ chức chưa lưu trữ đang là thành viên', async () => {
+    // Tài khoản và tổ chức riêng: các ca khác trong file thêm lan, minh vào tổ chức thử
+    const hoa = await newAccount('dem.to.chuc');
+    insertProject('a3-mot', 'Một');
+    insertProject('a3-hai', 'Hai');
+    insertProject('a3-luu-tru', 'Đã lưu trữ', { archived: true });
+    const add = t.db.prepare(`INSERT INTO memberships (project_id, user_id, role, added_at) VALUES (?, ?, ?, 'now')`);
+    add.run('a3-mot', hoa.id, 'surveyor');
+    add.run('a3-hai', hoa.id, 'owner');
+    add.run('a3-luu-tru', hoa.id, 'surveyor');
+    expect((await search(hoa.username))[0]?.projectCount).toBe(2);
+  });
+
+  it('disable: khoá, thu hồi mọi phiên; token cũ và đăng nhập đều 401; gọi lại vẫn 200', async () => {
+    const hoa = await newAccount();
+    const res = await call('POST', `/admin/users/${hoa.id}/disable`, t.tokens.admin);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ revokedSessions: 2 });
+    expect(t.db.prepare(`SELECT disabled FROM users WHERE id = ?`).get(hoa.id)).toEqual({ disabled: 1 });
+    expect(t.db.prepare(`SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?`).get(hoa.id)).toEqual({ n: 0 });
+    for (const token of hoa.tokens) expect((await call('GET', '/me', token)).status).toBe(401);
+    expect(await loginStatus(hoa.username, PASSWORD)).toBe(401);
+    expect((await search(hoa.username))[0]?.disabled).toBe(true);
+
+    const again = await call('POST', `/admin/users/${hoa.id}/disable`, t.tokens.admin);
+    expect(again.status).toBe(200);
+    expect(await again.json()).toEqual({ revokedSessions: 0 });
+  });
+
+  it('revoke-sessions: mọi phiên hết hiệu lực, tài khoản vẫn đăng nhập lại được', async () => {
+    const hoa = await newAccount();
+    const res = await call('POST', `/admin/users/${hoa.id}/revoke-sessions`, t.tokens.admin);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ revokedSessions: 2 });
+    for (const token of hoa.tokens) expect((await call('GET', '/me', token)).status).toBe(401);
+    expect(t.db.prepare(`SELECT disabled FROM users WHERE id = ?`).get(hoa.id)).toEqual({ disabled: 0 });
+    expect(await loginStatus(hoa.username, PASSWORD)).toBe(200);
+  });
+
+  it('reset-password: mật khẩu tạm trả một lần, DB chỉ có hash; mật khẩu cũ hết hiệu lực, phiên đang có giữ nguyên', async () => {
+    const hoa = await newAccount();
+    const res = await call('POST', `/admin/users/${hoa.id}/reset-password`, t.tokens.admin);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    const { password } = (await res.json()) as { password: string };
+    expect(password).toMatch(/^[A-Za-z2-9]{12}$/);
+
+    const row = t.db.prepare(`SELECT password_hash FROM users WHERE id = ?`).get(hoa.id) as { password_hash: string };
+    expect(row.password_hash).toMatch(/^scrypt\$/);
+    expect(row.password_hash).not.toContain(password);
+    expect(JSON.stringify(await search(hoa.username))).not.toContain(password);
+
+    expect(await loginStatus(hoa.username, password)).toBe(200);
+    expect(await loginStatus(hoa.username, PASSWORD)).toBe(401);
+    // Không thu hồi phiên: máy đang giữ phiếu chưa gửi vẫn gửi được (ADR 0003 §1)
+    for (const token of hoa.tokens) expect((await call('GET', '/me', token)).status).toBe(200);
+
+    // Cấp lại lần nữa: mật khẩu tạm mới, mật khẩu tạm trước không dùng được nữa
+    const second = (await (await call('POST', `/admin/users/${hoa.id}/reset-password`, t.tokens.admin)).json()) as {
+      password: string;
+    };
+    expect(second.password).not.toBe(password);
+    expect(await loginStatus(hoa.username, password)).toBe(401);
+    expect(await loginStatus(hoa.username, second.password)).toBe(200);
+  });
+
+  it('id không có → 404 not_found ở cả ba thao tác', async () => {
+    for (const action of ['disable', 'reset-password', 'revoke-sessions']) {
+      const res = await call('POST', `/admin/users/u_khongco/${action}`, t.tokens.admin);
+      expect(res.status, action).toBe(404);
+      expect((await res.json()).error).toBe('not_found');
+    }
+  });
+
+  it('admin không tự khoá hay tự thu hồi phiên của chính mình → 409 self_action', async () => {
+    for (const action of ['disable', 'revoke-sessions']) {
+      const res = await call('POST', `/admin/users/${DEMO_USER_IDS.admin}/${action}`, t.tokens.admin);
+      expect(res.status, action).toBe(409);
+      expect((await res.json()).error).toBe('self_action');
+    }
+    expect((await me(t.tokens.admin)).user.isAdmin).toBe(true);
+    expect(t.db.prepare(`SELECT disabled FROM users WHERE id = ?`).get(DEMO_USER_IDS.admin)).toEqual({ disabled: 0 });
   });
 });

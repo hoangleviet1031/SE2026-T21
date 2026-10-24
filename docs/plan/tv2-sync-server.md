@@ -306,7 +306,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV2-17 · API quản lý tài khoản cho màn hình A3 · **Cắt được**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `feat/tv2-17-admin-users`. `repo/users.ts` đã có từ TV2-14 nên chỉ thêm hàm; `cli/user.ts` (TV3-12) đổi sang gọi các hàm đó, lệnh và hành vi giữ nguyên. Thêm (được duyệt khi làm): `q` tìm chuỗi con, tối đa 50; `projectCount` chỉ đếm tổ chức chưa lưu trữ; admin tự khoá/tự thu hồi phiên → `409 self_action`
 - **Tuần:** 6 · **Phụ thuộc:** TV2-15
 - **Spec:** ADR 0003 §8 (A3); design §7
 - **File:** `server/src/routes/admin.ts`, `server/src/repo/users.ts` (mới, dùng chung với CLI của TV3-12), `server/test/admin.test.ts`

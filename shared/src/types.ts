@@ -144,6 +144,19 @@ export interface AdminProject {
   memberCount: number;
 }
 
+/**
+ * Một tài khoản trong `GET /api/admin/users?q=` (màn hình A3, ADR 0003 §8). Không có hash mật khẩu
+ * hay phiên. `projectCount`: số tổ chức chưa lưu trữ người này đang là thành viên.
+ */
+export interface AdminUser {
+  id: string;
+  username: string;
+  name: string;
+  disabled: boolean;
+  createdAt: string;
+  projectCount: number;
+}
+
 /** Thân request `PATCH /api/admin/projects/:projectId`. Tên và công khai là quyền của Owner (ADR 0003 §6) */
 export interface UpdateProjectRequest {
   archived: boolean;
