@@ -33,6 +33,7 @@ import { useFieldDrag } from '../useFieldDrag';
 import { navigate } from '../useHashRoute';
 
 const OFFLINE_MSG = 'Cần kết nối để lưu form';
+const PREVIEW_MSG = 'Đang xem trước, chưa sửa được. Bấm lại Xem trước để sửa tiếp.';
 
 // Người dùng chọn giảm chuyển động thì nhảy thẳng tới chỗ cần xem, không cuộn mượt
 function scrollToView(el: HTMLElement | null, block: ScrollLogicalPosition) {
@@ -278,14 +279,19 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
         )}
       </div>
 
+      {/* Trình đọc màn hình chỉ chắc chắn đọc khi chữ đổi trong một vùng status đã có sẵn trên trang; vùng
+          mới chèn vào cùng lúc với chữ thì có máy bỏ qua (góp ý #73). Nên vùng này luôn có, chỉ đổi chữ */}
+      <p className="visually-hidden" role="status" data-testid="builder-preview-status">
+        {preview ? PREVIEW_MSG : ''}
+      </p>
       {preview && (
         // Chỉ xem: khoá mọi ô để trường ảnh không ghi ảnh rác vào máy (nhóm chốt khi làm TV1-04)
         <fieldset disabled className="preview" id={previewId} ref={previewRef} data-testid="builder-preview">
           <legend>Xem trước</legend>
-          {/* role=status: trình đọc màn hình biết đã sang chế độ xem; tự cuộn chỉ là thứ nhìn thấy */}
-          <p className="pv-banner" role="status">
+          {/* Chỉ để nhìn, không role: vùng status ẩn phía trên đã báo cho trình đọc màn hình */}
+          <p className="pv-banner" data-testid="builder-preview-banner">
             <Icon name="eye" />
-            Đang xem trước, chưa sửa được. Bấm lại Xem trước để sửa tiếp.
+            {PREVIEW_MSG}
           </p>
           <FormRenderer db={db} form={previewForm} recordId="preview" value={{}} onChange={() => undefined} />
         </fieldset>

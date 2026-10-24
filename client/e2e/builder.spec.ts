@@ -215,13 +215,20 @@ test('Xem trước: bật thì có dải báo đang xem trước và khung trong
 
   const toggle = page.getByRole('button', { name: 'Xem trước' });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  // Vùng báo cho trình đọc màn hình có sẵn trước khi bật, chỉ đổi chữ (vùng mới chèn cùng chữ có máy không đọc)
+  const status = page.getByTestId('builder-preview-status');
+  await expect(status).toHaveRole('status');
+  await expect(status).toHaveText('');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   const preview = page.getByTestId('builder-preview');
   await expect(toggle).toHaveAttribute('aria-controls', (await preview.getAttribute('id')) ?? '');
-  const banner = preview.getByRole('status');
+  await expect(status).toHaveText('Đang xem trước, chưa sửa được. Bấm lại Xem trước để sửa tiếp.');
+  // Dải vàng chỉ để nhìn: không role status để trình đọc màn hình không đọc hai lần
+  const banner = preview.getByTestId('builder-preview-banner');
   await expect(banner).toHaveText('Đang xem trước, chưa sửa được. Bấm lại Xem trước để sửa tiếp.');
   await expect(banner).toBeInViewport();
+  await expect(preview.getByRole('status')).toHaveCount(0);
   // Ô chụp ảnh vẫn hiện để thấy biểu mẫu trông thế nào, nhưng bị khoá
   await expect(preview.getByText('+ Chụp ảnh')).toBeVisible();
   await expect(preview.getByTestId(/^photo-input-/)).toBeDisabled();
@@ -229,6 +236,8 @@ test('Xem trước: bật thì có dải báo đang xem trước và khung trong
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(preview).toHaveCount(0);
+  await expect(status).toHaveCount(1);
+  await expect(status).toHaveText('');
 });
 
 // Kéo thả bằng tay nắm ⠿ (TV1-12 b2 p8, ui.md màn hình 5 khung 5f). Chuột trong Playwright sinh Pointer Events
