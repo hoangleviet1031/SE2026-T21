@@ -119,6 +119,38 @@ test('401: phiên bị huỷ trên server → về Đăng nhập, báo hết phi
   expect(after.map((r) => r.key)).not.toContain('sessionExpired');
 });
 
+test('Hết phiên rồi mất mạng: chỉ một dải "Cần kết nối mạng", có mạng lại thì báo hết phiên lại', async ({
+  page,
+  context,
+  request,
+}) => {
+  await login(page, 'minh');
+  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  const rows = (await readStore(page, 'field-survey-account', 'account')) as { key: string; value: unknown }[];
+  const token = rows.find((r) => r.key === 'token')?.value;
+  expect(typeof token).toBe('string');
+  const res = await request.post('http://localhost:3001/api/auth/logout', {
+    headers: { Authorization: `Bearer ${String(token)}` },
+  });
+  expect(res.status()).toBe(204);
+  await page.getByRole('button', { name: 'Đồng bộ' }).click();
+
+  // Có mạng, chưa có lỗi nào: dải hết phiên hiện, không có dải mất mạng
+  const expired = page.getByTestId('session-expired');
+  const offline = page.getByRole('alert').filter({ hasText: 'Cần kết nối mạng' });
+  await expect(expired).toBeVisible({ timeout: 10_000 });
+  await expect(offline).toHaveCount(0);
+
+  // Mất mạng (góp ý #75): không hiện cùng lúc hai dải vàng
+  await context.setOffline(true);
+  await expect(offline).toHaveText('⚠ Cần kết nối mạng');
+  await expect(expired).toHaveCount(0);
+
+  await context.setOffline(false);
+  await expect(expired).toHaveText('⚠ Phiên đăng nhập hết hạn, đăng nhập lại');
+  await expect(offline).toHaveCount(0);
+});
+
 // Nút đang gửi (TV1-12 b1, ui.md "Các trạng thái dùng chung"): giữ request lại để thấy trạng thái giữa
 // chừng. Chữ trên nút không đổi (E2E và trình đọc màn hình tìm nút theo tên), chỉ thêm chữ phụ cạnh nút.
 

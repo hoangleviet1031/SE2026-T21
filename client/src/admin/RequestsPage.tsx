@@ -3,7 +3,7 @@ import { REJECT_REASON_MAX_LENGTH, type AdminProjectRequest } from '@field-surve
 import { decideRequest, fetchPendingRequests } from './adminApi';
 import { adminErrorMessage, formatShortTime } from './adminMessages';
 import { Icon } from '../components/Icon';
-import { Notice, type NoticeValue } from './Notice';
+import { Notice, useNoticeFocus, type NoticeValue } from './Notice';
 
 const COLUMNS = 5;
 
@@ -25,6 +25,8 @@ export function RequestsPage({
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
+  const [finished, setFinished] = useState(0);
+  const noticeRef = useNoticeFocus(finished);
   // Bàn phím: mở ô lý do thì vào thẳng ô, Huỷ thì về lại nút [Từ chối…] của dòng đó (ô đã mất khỏi trang)
   const reasonRef = useRef<HTMLTextAreaElement>(null);
   const rejectButtons = useRef(new Map<string, HTMLButtonElement>());
@@ -89,6 +91,7 @@ export function RequestsPage({
       fail(err);
     } finally {
       setBusy(false);
+      setFinished((n) => n + 1);
     }
   }
 
@@ -98,7 +101,7 @@ export function RequestsPage({
   return (
     <section>
       <h1>Yêu cầu mở tổ chức</h1>
-      <Notice value={notice} />
+      <Notice value={notice} ref={noticeRef} />
       {requests === null ? (
         <p className="hint">Đang tải…</p>
       ) : requests.length === 0 ? (
