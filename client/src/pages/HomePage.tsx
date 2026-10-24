@@ -18,6 +18,7 @@ import { staleWarnings } from '../sync/staleWarnings';
 import { navigate } from '../useHashRoute';
 import { RECORD_FILTERS, matchesFilter, needsAttention, type RecordFilter } from '../recordFilter';
 import { statusIcon } from '../statusIcon';
+import { formTone, latestForms } from '../formDisplay';
 import { Icon } from '../components/Icon';
 
 export function HomePage() {
@@ -67,9 +68,7 @@ function ProjectHome({ db }: { db: ProjectDb }) {
   const shown = rows.filter((x) => matchesFilter(x.state.kind, filter));
   // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
   const warnings = useLiveQuery(async () => staleWarnings(await db.outbox.toArray(), Date.now()), [db]);
-  const latestForms = Object.values(
-    Object.fromEntries(forms.sort((a, b) => a.version - b.version).map((f) => [f.id, f])),
-  );
+  const shownForms = latestForms(forms);
 
   return (
     <>
@@ -87,11 +86,11 @@ function ProjectHome({ db }: { db: ProjectDb }) {
         <div className="sec">
           <h2>Biểu mẫu</h2>
         </div>
-        {latestForms.length === 0 && <p>Chưa có biểu mẫu. Kết nối mạng một lần để tải về.</p>}
-        {/* Thẻ màu xoay vòng theo thứ tự form (CSS nth-child), nút trong thẻ đậm cùng tông */}
+        {shownForms.length === 0 && <p>Chưa có biểu mẫu. Kết nối mạng một lần để tải về.</p>}
+        {/* Thẻ màu xoay vòng theo thứ tự form, nút trong thẻ đậm cùng tông; trang điền phiếu dùng cùng màu */}
         <ul className="forms">
-          {latestForms.map((f, i) => (
-            <li key={f.key} className="fcard">
+          {shownForms.map((f, i) => (
+            <li key={f.key} className={`fcard tone-${formTone(i)}`}>
               <div className="t" id={`form-title-${i}`}>
                 <span className="ft">
                   <Icon name="form" />

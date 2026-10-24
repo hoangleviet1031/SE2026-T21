@@ -36,6 +36,11 @@ export function ExportButtons({
   // Mất mạng khi đang mở thì nút khoá, hai lựa chọn cũng phải biến mất
   const shown = open && online && busy === null;
 
+  // Mất mạng thì đóng hẳn: có mạng lại, hai lựa chọn không tự hiện khi người dùng chưa bấm
+  useEffect(() => {
+    if (!online) setOpen(false);
+  }, [online]);
+
   // Bấm ra ngoài thì đóng
   useEffect(() => {
     if (!shown) return;

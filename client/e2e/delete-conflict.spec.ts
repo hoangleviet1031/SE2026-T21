@@ -82,6 +82,8 @@ async function openDialog(page: Page, name: string, question: RegExp) {
   await expect(page.getByRole('button', { name: APPLY })).toBeDisabled();
   // Câu hỏi đã nói rõ giữ bản nào: không có thẻ chọn từng trường
   await expect(page.getByTestId('conflict-field')).toHaveCount(0);
+  // Không dùng bản gộp nên không báo "N trường đã được gộp tự động" (TV1-12 b2)
+  await expect(page.getByTestId('conflict-explain')).not.toContainText('gộp');
   return dialog;
 }
 

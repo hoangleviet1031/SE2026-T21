@@ -165,3 +165,12 @@ test('file không đọc được: báo lỗi, không lưu gì', async ({ page }
   await expect(thumbs(page)).toHaveCount(0);
   expect(await storedPhotos(page)).toEqual([]);
 });
+
+test('nút × bỏ ảnh đủ to để bấm (36 px)', async ({ page }) => {
+  await openNewRecord(page, 'Nút bỏ ảnh');
+  await choosePhoto(page, await makeImage(page, { width: 320, height: 240, type: 'image/jpeg' }));
+  await expect(thumbs(page)).toHaveCount(1, { timeout: 10_000 });
+  const box = await page.getByRole('button', { name: 'Bỏ ảnh 1' }).boundingBox();
+  expect(box?.width).toBeGreaterThanOrEqual(36);
+  expect(box?.height).toBeGreaterThanOrEqual(36);
+});

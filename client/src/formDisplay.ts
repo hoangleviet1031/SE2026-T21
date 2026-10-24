@@ -13,3 +13,18 @@ export function fieldMode(field: FieldDef, value: FieldValue | undefined, hasErr
   if (!hasValue(value ?? null)) return 'hidden';
   return hasError ? 'edit' : 'readonly';
 }
+
+/**
+ * Bản mới nhất của mỗi form, theo thứ tự trang chủ hiện thẻ: mã form xuất hiện lần đầu ở đâu khi xếp theo
+ * version thì đứng ở đó. Trang điền phiếu dùng lại để đầu trang cùng màu với thẻ của form đó.
+ */
+export function latestForms<T extends { id: string; version: number }>(forms: readonly T[]): T[] {
+  const byId = new Map<string, T>();
+  for (const f of [...forms].sort((a, b) => a.version - b.version)) byId.set(f.id, f);
+  return [...byId.values()];
+}
+
+/** Số màu "Dịu ấm" (1–5) của form ở vị trí `index` trên trang chủ, xoay vòng. Không có trong danh sách thì màu 1. */
+export function formTone(index: number): number {
+  return index < 0 ? 1 : (index % 5) + 1;
+}
