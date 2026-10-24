@@ -49,3 +49,18 @@ test('chọn nhiều: bấm chỗ trống bên phải ô cũng đánh dấu', as
   await tile.click({ position: { x: box.width - 6, y: box.height / 2 } });
   await expect(tivi).toBeChecked();
 });
+
+// Trường chọn nhiều là nhóm, không bọc trong <label> (lỗi nhãn lồng, sửa ở TV1-12 b2 p3)
+test('chọn nhiều: là nhóm mang tên trường, mỗi ô tên đúng lựa chọn, bấm tên trường không đánh dấu ô nào', async ({ page }) => {
+  await login(page);
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  const group = page.getByRole('group', { name: 'Tài sản' });
+  await expect(group).toBeVisible();
+  const boxes = group.getByRole('checkbox');
+  await expect(boxes).toHaveCount(4);
+  for (const option of ['Xe máy', 'Tivi', 'Tủ lạnh', 'Máy giặt']) {
+    await expect(group.getByRole('checkbox', { name: option, exact: true })).toHaveAccessibleName(option);
+  }
+  await group.getByText('Tài sản', { exact: true }).click();
+  await expect(group.getByRole('checkbox', { checked: true })).toHaveCount(0);
+});

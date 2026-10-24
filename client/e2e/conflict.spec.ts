@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type BrowserContext, type Page } from '@playwright/test';
-import { API, TOKENS, authHeaders, login, readStore } from './helpers';
+import { API, TOKENS, authHeaders, login, makeImage, readStore } from './helpers';
 
 test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, người dùng chọn rồi đồng bộ', async ({
   page,
@@ -376,4 +376,31 @@ test('phiếu đang xung đột: không có hàng nút, không có ô chụp ả
   await expect(page.getByTestId('record-actions')).toHaveCount(0);
   await expect(page.getByText('+ Chụp ảnh')).toBeHidden();
   await expect(page.getByTestId('photo-input-housePhoto')).toBeHidden();
+});
+
+test('phiếu có ảnh đang xung đột: ảnh vẫn hiện, không có nút bỏ ảnh', async ({ page, context, request }) => {
+  await login(page);
+  const name = 'Hộ ảnh khoá';
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await page.locator('input[name=householdName]').fill(name);
+  const image = await makeImage(page, { width: 320, height: 240, type: 'image/jpeg' });
+  await page.getByTestId('photo-input-housePhoto').setInputFiles({ name: 'a.jpg', mimeType: 'image/jpeg', buffer: image });
+  await expect(page.getByTestId('photo-thumb')).toHaveCount(1, { timeout: 10_000 });
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  const row = recordRow(page, name);
+  await expect(row.getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 20_000 });
+  const id = (await row.getByRole('link').first().getAttribute('href'))?.split('/').pop() ?? '';
+
+  await context.setOffline(true);
+  await row.getByRole('link').first().click();
+  await page.locator('input[name=members]').fill('5');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await serverPut(request, id, 1, { householdName: name, members: 3 });
+  await context.setOffline(false);
+  await expect(row.getByRole('link', { name: 'Cần xử lý xung đột' })).toBeVisible({ timeout: 15_000 });
+
+  await page.goto(`/#/fill/household-survey/${id}`);
+  await expect(page.getByTestId('record-in-conflict')).toBeVisible();
+  await expect(page.getByTestId('photo-thumb')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Bỏ ảnh 1' })).toHaveCount(0);
 });
