@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-24 | TV1-12 | fix | Màn 6 Thành viên sau audit/critique UI (impeccable): ô "Đổi vai trò…" chỉ để chọn, nút [Đổi] mới gửi (trước đó bấm mũi tên trên ô đang đóng là đổi vai trò luôn); "← Quay lại" đầu trang, có cả khi không đủ quyền; ⚠ ở câu lỗi; E2E members.spec (2 ca mới), api-errors.spec; ui 0.2.20 | `feat/ui-thanh-vien` | chờ review |
 | 2026-10-24 | TV1-16 | test | Sửa E2E chập chờn `admin.spec.ts` (CI đỏ ở #72, #78 ca "Phiên admin bị thu hồi giữa chừng"): `openAdmin` trả về khi 2 GET yêu cầu đang chờ còn dở, thu hồi phiên → 401 → về form đăng nhập → link Tổ chức mất. Nay chờ link "Yêu cầu (n)", hết "Đang tải…" và hết request `/api/admin/` đang dở (Set). Tái hiện trễ 1,5 s: cũ đỏ 2/2, mới xanh 2/2; ca thu hồi ×50 xanh; admin.spec ×4 × 3 lượt 108/108 | PR #82 | chờ review |
 | 2026-10-24 | TV1-12 | fix | Sau thử máy #80: dải "Đang xem trước…" ở builder báo cho trình đọc màn hình qua vùng `role="status"` ẩn luôn có sẵn (trước đó chèn cùng chữ, có máy không đọc, góp ý #73), dải vàng bỏ role; E2E builder.spec; tech-debt N13 chưa thử iPhone thật (kèm kết quả giả lập Pixel 5); ui 0.2.19 | PR #81 | xong |
 | 2026-10-24 | TV1-12 | feat | b2 giao diện theo thiết kế (p1–p8, sửa ▲▼, kiểm cuối) vào main: đặt số design 0.5.46, ui 0.2.18 thay nhãn "b2"; chưa thử máy thật, thử trên staging sau merge (Dương chốt C) | PR #80 (`feat/tv1-12-b2-giao-dien` → main) | xong |

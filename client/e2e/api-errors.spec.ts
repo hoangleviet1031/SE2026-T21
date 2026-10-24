@@ -26,7 +26,8 @@ test('Thành viên: 5xx khi tải báo lỗi kèm Thử lại; 5xx khi thêm bá
   await page.getByRole('link', { name: 'Thành viên' }).click();
   const alert = page.getByRole('alert');
   // Vùng alert chỉ có câu lỗi; [Thử lại] nằm riêng bên ngoài (TV1-12 b2)
-  await expect(alert).toHaveText('Máy chủ đang lỗi, thử lại sau');
+  // "⚠ " đứng trước như câu lỗi ở Đăng nhập, Tổ chức (TV1-12 màn hình 6, Dương chốt 2026-10-24)
+  await expect(alert).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
   await expect(page.getByText('Đang tải…')).toHaveCount(0);
 
   await page.unroute('**/api/projects/*/members');
@@ -38,7 +39,7 @@ test('Thành viên: 5xx khi tải báo lỗi kèm Thử lại; 5xx khi thêm bá
   );
   await page.getByTestId('member-username').fill('khong.ai.ca');
   await page.getByRole('button', { name: 'Thêm' }).click();
-  await expect(page.getByTestId('member-error')).toHaveText('Máy chủ đang lỗi, thử lại sau');
+  await expect(page.getByTestId('member-error')).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
 });
 
 test('Tổ chức: 5xx khi tải báo lỗi, không để trang trống không lời', async ({ page }) => {
