@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Icon } from '../components/Icon';
 import { useHashRoute } from '../useHashRoute';
 import { NetworkError, ServerError, SessionLostError, fetchPendingRequests, logoutSession } from './adminApi';
-import { AdminLogin } from './AdminLogin';
+import { AdminLogin, type LoginProblem } from './AdminLogin';
 import { OFFLINE_MSG, SERVER_ERROR_MSG, SESSION_LOST_MSG, adminErrorMessage } from './adminMessages';
 import { ProjectsPage } from './ProjectsPage';
 import { RequestsPage } from './RequestsPage';
@@ -12,9 +13,9 @@ import { clearSession, readSession, saveSession, type AdminSession } from './ses
 export function AdminApp() {
   const [session, setSession] = useState<AdminSession | null>(readSession);
   // Câu hiện ở form đăng nhập khi bị đẩy ra do phiên mất
-  const [loginNotice, setLoginNotice] = useState<string | null>(null);
+  const [loginNotice, setLoginNotice] = useState<LoginProblem | null>(null);
 
-  const signOutLocally = useCallback((notice: string | null) => {
+  const signOutLocally = useCallback((notice: LoginProblem | null) => {
     clearSession();
     setLoginNotice(notice);
     setSession(null);
@@ -22,7 +23,7 @@ export function AdminApp() {
 
   if (!session) {
     return (
-      <main className="admin">
+      <main className="admin alogin">
         <AdminLogin
           notice={loginNotice}
           onSignedIn={(s) => {
@@ -37,7 +38,13 @@ export function AdminApp() {
   return <AdminShell session={session} onSignedOut={signOutLocally} />;
 }
 
-function AdminShell({ session, onSignedOut }: { session: AdminSession; onSignedOut: (notice: string | null) => void }) {
+function AdminShell({
+  session,
+  onSignedOut,
+}: {
+  session: AdminSession;
+  onSignedOut: (notice: LoginProblem | null) => void;
+}) {
   const [page] = useHashRoute();
   const [problem, setProblem] = useState<string | null>(null);
   const [pending, setPending] = useState<number | null>(null);
@@ -50,7 +57,8 @@ function AdminShell({ session, onSignedOut }: { session: AdminSession; onSignedO
   const handleError = useCallback(
     (err: unknown): string | null => {
       if (err instanceof SessionLostError) {
-        onSignedOut(SESSION_LOST_MSG);
+        // Không phải lỗi của admin: nền vàng ở form đăng nhập
+        onSignedOut({ kind: 'warn', text: SESSION_LOST_MSG });
         return null;
       }
       if (err instanceof NetworkError) return OFFLINE_MSG;
@@ -91,8 +99,11 @@ function AdminShell({ session, onSignedOut }: { session: AdminSession; onSignedO
 
   return (
     <div className="admin">
-      <header>
-        <span className="brand">Quản trị</span>
+      <header className="abar">
+        <span className="logo">
+          <Icon name="logo" />
+        </span>
+        <span className="brand-a">Quản trị</span>
         <nav className="admin-nav">
           <a href="#/" aria-current={onProjects ? undefined : 'page'}>
             Yêu cầu{pending === null ? '' : ` (${pending})`}
@@ -101,13 +112,21 @@ function AdminShell({ session, onSignedOut }: { session: AdminSession; onSignedO
             Tổ chức
           </a>
         </nav>
-        <span data-testid="admin-user">{session.user.name}</span>
-        <button type="button" onClick={() => void signOut()} disabled={busy}>
+        <span className="who" data-testid="admin-user">
+          {session.user.name}
+        </span>
+        <button type="button" className="small" onClick={() => void signOut()} disabled={busy}>
           Đăng xuất
         </button>
       </header>
-      {problem && <p role="alert">⚠ {problem}</p>}
-      <main>
+      <main className="abody">
+        {/* Lỗi chung (đếm yêu cầu, đăng xuất) cùng kiểu dòng kết quả. Không dùng Notice: trang con có Notice
+            riêng, hai dòng cùng testid thì không phân biệt được */}
+        {problem && (
+          <p className="result bad" role="alert">
+            ⚠ {problem}
+          </p>
+        )}
         {onProjects ? (
           <ProjectsPage token={token} onError={handleError} />
         ) : (
