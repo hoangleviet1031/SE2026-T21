@@ -79,7 +79,7 @@
 | 0.5.43 | 2026-10-22 | TV1-19 phần 2: diễn tập quay lại bản trước trên staging lần đầu, QS5 có số đo (quay lại 19 s, quay về `main` 21 s), mục tiêu ≤ 5 phút cho nhánh 2a (Dương chốt) (§11.4); `deploy.md` sửa theo lúc chạy thật; trả nợ N3 |
 | 0.5.44 | 2026-10-22 | TV3-13: sao lưu hằng ngày bằng `scripts/backup-daily.mjs` (systemd timer), mỗi bản là một thư mục gồm `survey.db` và ảnh, kiểm đủ ảnh trước khi tính là một bản; trên staging `UPLOAD_DIR` để ngoài repo (§12). Thêm nợ N9 (bản sao lưu cùng ổ đĩa) |
 | 0.5.45 | 2026-10-23 | TV1-12 b1: danh sách phiếu rỗng hiện "Chưa có phiếu nào." (§4.8); bảng §8 thêm dòng không lấy được vị trí GPS (từ chối quyền, không lấy được, quá 30 s, trình duyệt không có geolocation) và "Đang lấy vị trí…" lúc chờ |
-| b2 | (chưa đánh số) | TV1-12 b2 p1, chỉ đổi giao diện: token và kiểu nền theo bản thiết kế (ui.md "Hệ thống thiết kế"); nút đang gửi chỉ có vòng xoay, chữ phụ chỉ cho trình đọc màn hình trừ Lấy vị trí; nút trong trang mở hộp xác nhận có viền đỏ, đỏ đặc chỉ ở nút xác nhận (§4.7). Số phiên bản đặt ở PR nhánh gom → main |
+| b2 | 2026-10-23 | TV1-12 b2 p1, chỉ đổi giao diện: token và kiểu nền theo bản thiết kế (ui.md "Hệ thống thiết kế"); nút đang gửi chỉ có vòng xoay, chữ phụ chỉ cho trình đọc màn hình trừ Lấy vị trí; nút trong trang mở hộp xác nhận có viền đỏ, đỏ đặc chỉ ở nút xác nhận (§4.7). p2: trang chủ có nút [Xuất ▾] mở hai lựa chọn Xuất CSV, Xuất JSON (§4.6); chưa có phiếu nào thì ẩn bộ lọc (§4.8). Số phiên bản đặt ở PR nhánh gom → main |
 
 ## Mục lục
 
@@ -478,7 +478,7 @@ Khi sync engine nhận `409` và merge còn xung đột trường hoặc xung đ
 - **CSV:** cột cố định `id, version, updatedAt, updatedBy, updatedByName, formVersion, deleted` (`updatedBy` là `userId`, `updatedByName` là tên để người đọc Excel dễ hiểu; rỗng nếu server không có tên) rồi một cột mỗi trường của phiên bản form mới nhất, theo thứ tự trong form (kể cả trường `hidden`; trường chỉ có ở phiên bản cũ thêm vào cuối). Multiselect nối bằng `"; "`, gps tách `<field>_lat`, `<field>_lng`, `<field>_accuracy`, photo là các URL tuyệt đối nối bằng `"; "` (gốc lấy từ `PUBLIC_BASE_URL`). Mở đầu bằng BOM UTF-8 để Excel đọc đúng tiếng Việt. Escape theo RFC 4180. Ô **chữ** bắt đầu bằng `= + - @` (thêm tab, CR theo OWASP) được thêm tiền tố `'` để tránh CSV injection; giá trị của trường số giữ nguyên (kể cả số âm) để Excel còn tính được. Dòng kết thúc CRLF.
 - **JSON:** `{ forms: FormSchema[], records: ServerRecord[] }`, gồm mọi phiên bản form đã dùng.
 - **Kèm ảnh:** ngoài phạm vi MVP (ADR 0002 cắt); nếu làm sau thì `format=zip` trả `data.csv` và thư mục `photos/<recordId>/<attachmentId>.jpg`, stream bằng `archiver`.
-- Client có nút "Xuất CSV" và "Xuất JSON" cạnh mỗi form ở trang chủ, chỉ supervisor và owner thấy; cần mạng (offline thì nút khoá kèm "Cần kết nối mạng để xuất").
+- Client có nút [Xuất ▾] trong thẻ mỗi form ở trang chủ, bấm vào hiện hai lựa chọn "Xuất CSV" và "Xuất JSON" (TV1-12 b2; trước đó là hai nút riêng); chỉ supervisor và owner thấy; cần mạng (offline thì nút khoá kèm "Cần kết nối mạng để xuất").
 - **Có code (TV3-09):** `server/src/lib/csv.ts`, `server/src/lib/exportTable.ts` (hàm thuần), `server/src/routes/export.ts`. Không truyền `format` thì `csv`; giá trị khác `csv`/`json` → `400 invalid_body`; form không có trong dự án → `404 not_found`. URL ảnh trong CSV là API ảnh nên **cần đăng nhập** mới mở được (không có token thì `401`); bấm từ Excel không xem được ảnh.
 
 **Tiêu chí chấp nhận**
@@ -529,7 +529,7 @@ Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), kh
 - **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định, **trừ khi đang `conflict`** (vd. xoá ở máy này, sửa ở máy kia): người dùng phải thấy để xử lý.
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).
-- **Chưa có phiếu nào** (kể cả phiếu đã xoá đang ẩn): "Chưa có phiếu nào." Có phiếu mà bộ lọc ra rỗng: "Không có phiếu nào ở trạng thái này."
+- **Chưa có phiếu nào** (kể cả phiếu đã xoá đang ẩn): "Chưa có phiếu nào." và ẩn bộ lọc (TV1-12 b2). Có phiếu mà bộ lọc ra rỗng: giữ bộ lọc, báo "Không có phiếu nào ở trạng thái này."
 
 ### 4.9 Trang quản trị (ADR 0003 §8; A1, A2 có code, A3 🆕 chờ TV2-17)
 

@@ -66,6 +66,7 @@ test('Xuất: 5xx báo "Máy chủ đang lỗi", không hiện mã HTTP', async 
   await openYteAsOwner(page);
   await page.route('**/api/projects/*/export/**', (route) => route.fulfill(fail500));
   const row = page.getByRole('listitem').filter({ hasText: 'Khảo sát hộ gia đình' });
+  await row.getByRole('button', { name: 'Xuất', exact: true }).click();
   await row.getByRole('button', { name: 'Xuất CSV' }).click();
   await expect(row.getByRole('alert')).toHaveText(SERVER_ERROR);
 });
@@ -78,6 +79,7 @@ test('Xuất: mã lỗi màn hình không xử lý (404 form vừa bị xoá) b�
     route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'not_found' }) }),
   );
   const row = page.getByRole('listitem').filter({ hasText: 'Khảo sát hộ gia đình' });
+  await row.getByRole('button', { name: 'Xuất', exact: true }).click();
   await row.getByRole('button', { name: 'Xuất JSON' }).click();
   await expect(row.getByRole('alert')).toHaveText(SERVER_ERROR);
 });
@@ -169,11 +171,12 @@ test('đang gửi: Thêm thành viên, Lưu bản mới, Xuất hiện chữ ph�
 
   const row = page.getByRole('listitem').filter({ hasText: 'Khảo sát hộ gia đình' });
   const releaseExport = await hold(page, '**/api/projects/*/export/**', { reply: true });
+  await row.getByRole('button', { name: 'Xuất', exact: true }).click();
   await row.getByRole('button', { name: 'Xuất CSV' }).click();
-  await expectBusy(row.getByRole('button', { name: 'Xuất CSV' }), row.getByTestId('busy-note'), 'Đang xuất…');
-  // Mỗi lần một file: nút còn lại khoá nhưng không báo là đang chạy
-  await expect(row.getByRole('button', { name: 'Xuất JSON' })).toBeDisabled();
-  await expect(row.getByRole('button', { name: 'Xuất JSON' })).toHaveAttribute('aria-busy', 'false');
+  // Chọn xong thì hai lựa chọn đóng lại, vòng xoay nằm ở nút [Xuất ▾] (TV1-12 b2)
+  await expectBusy(row.getByRole('button', { name: 'Xuất', exact: true }), row.getByTestId('busy-note'), 'Đang xuất…');
+  // Mỗi lần một file: đang xuất thì không mở lại được hai lựa chọn
+  await expect(row.getByRole('button', { name: 'Xuất JSON' })).toHaveCount(0);
   releaseExport();
   await expect(row.getByTestId('busy-note')).toHaveCount(0);
 

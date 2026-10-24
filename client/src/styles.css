@@ -117,13 +117,6 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .back { display: inline-flex; align-items: center; min-height: 40px; margin-top: 12px; padding: 0 14px; border-radius: var(--r-pill); background: var(--chip);
         font-size: 15px; font-weight: 600; text-decoration: none; }
 
-/* Nhãn trạng thái cũ ở danh sách phiếu: phần trang chủ thay bằng biểu tượng + chữ */
-.badge { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: var(--r-pill); background: var(--chip); }
-.badge.ok, .badge.synced { color: var(--ok); }
-.badge.off, .badge.pending { color: var(--muted); }
-.badge.conflict, .badge.error, .badge.photo-error { background: var(--red-soft); color: var(--red); }
-.badge.uploading { color: #1a5ea8; }
-
 /* Ô nhập: nhãn đậm phía trên, ô trắng viền rõ; đang nhập = viền đen + quầng vàng */
 .form { display: grid; gap: 14px; }
 .field { display: grid; gap: 6px; font-weight: 600; }
@@ -141,14 +134,80 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 /* Danh sách, tab */
 .list { list-style: none; padding: 0; }
 .list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.record-error { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; font-size: 14px; color: var(--red); }
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
 .tabs button { border: none; border-radius: 0; box-shadow: none; background: none; padding: 8px 12px; border-bottom: 2px solid transparent; }
 .tabs button[aria-selected=true] { border-bottom-color: var(--ink); font-weight: 700; }
-.record-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
-.record-filters label { display: inline-flex; gap: 6px; align-items: center; min-height: 44px; padding: 0 15px; border: 1px solid var(--edge); border-radius: var(--r-pill);
-                        background: var(--surface); font-weight: 600; font-size: 15px; }
+
+/* Trang chủ (ui.md màn hình 2, TV1-12 b2) */
+.sec { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 22px 0 10px; }
+.sec h2 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.015em; }
+/* Thẻ biểu mẫu "Dịu ấm": 5 màu xoay vòng, nút trong thẻ đậm cùng tông thay cho nút đen */
+.forms { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.fcard { border-radius: var(--r-card); padding: 16px; display: grid; gap: 12px; border: 1px solid var(--bd); background: var(--bg); }
+.fcard:nth-child(5n+1) { --bg: var(--f1); --bd: var(--b1); --tl: var(--t1); --dk: var(--d1); }
+.fcard:nth-child(5n+2) { --bg: var(--f2); --bd: var(--b2); --tl: var(--t2); --dk: var(--d2); }
+.fcard:nth-child(5n+3) { --bg: var(--f3); --bd: var(--b3); --tl: var(--t3); --dk: var(--d3); }
+.fcard:nth-child(5n+4) { --bg: var(--f4); --bd: var(--b4); --tl: var(--t4); --dk: var(--d4); }
+.fcard:nth-child(5n+5) { --bg: var(--f5); --bd: var(--b5); --tl: var(--t5); --dk: var(--d5); }
+.fcard .t { font-weight: 700; font-size: 18px; line-height: 1.3; display: flex; align-items: center; gap: 12px; overflow-wrap: anywhere; }
+.fcard .ft { width: 36px; height: 36px; border-radius: 10px; background: var(--tl); display: grid; place-items: center; flex: none; }
+.fcard > button.primary { width: 100%; min-height: 48px; background: var(--dk); }
+.fcard .more { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+/* Link trông như nút thường: nhận ra nhờ dạng nút, không gạch chân */
+.button-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--edge);
+               border-radius: var(--r-btn); background: var(--surface); box-shadow: 0 1px 2px rgba(31, 30, 27, .06); font-weight: 600; text-decoration: none; }
+.add-row { display: flex; align-items: center; min-height: 48px; margin-top: 2px; color: var(--muted); font-weight: 600; text-decoration: none; }
+/* [Xuất ▾]: hai lựa chọn mở ngay dưới nút, nằm trên nội dung bên dưới */
+.export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.export-anchor { position: relative; }
+.export-anchor svg.up { transform: rotate(180deg); }
+.export-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 2; min-width: 170px; display: grid; padding: 6px; background: var(--surface);
+               border: 1px solid var(--edge); border-radius: 12px; box-shadow: 0 10px 24px rgba(31, 30, 27, .14); }
+.export-menu button { justify-content: flex-start; border: 0; box-shadow: none; background: none; border-radius: 8px; padding: 0 12px; }
+.export-menu button:hover { background: var(--paper); }
+.export-note { font-size: 14px; color: var(--muted); }
+.export .field-error { flex-basis: 100%; }
+.attn { min-height: 44px; padding: 0 14px 0 10px; border: 0; border-radius: var(--r-pill); box-shadow: none; background: var(--red-soft); color: var(--red);
+        font-weight: 700; font-size: 15px; gap: 6px; }
+.attn svg.icon { width: 18px; height: 18px; }
+/* Bộ lọc: viên thuốc trắng, cái đang chọn tô vàng + dấu tích; radio thật vẫn ở đó cho bàn phím và trình đọc màn hình */
+.record-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.record-filters label { position: relative; display: inline-flex; gap: 6px; align-items: center; min-height: 44px; padding: 0 15px; border: 1px solid var(--edge);
+                        border-radius: var(--r-pill); background: var(--surface); font-weight: 600; font-size: 15px; cursor: pointer; }
+.record-filters input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.record-filters svg.icon { display: none; width: 16px; height: 16px; }
 .record-filters label:has(input:checked) { background: var(--hl); border-color: var(--hl); }
+.record-filters label:has(input:checked) svg.icon { display: block; }
+.record-filters label:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+/* Trống: khối trắng có biểu tượng mờ */
+.empty { display: grid; justify-items: center; gap: 10px; margin: 0; padding: 28px 16px; text-align: center; color: var(--muted); font-weight: 500;
+         background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
+.empty svg.icon { width: 40px; height: 40px; color: #b9b6ae; }
+/* Dòng phiếu: biểu tượng + chữ cùng màu trạng thái (≥ 5,6:1 trên trắng) */
+.st-draft { --c: #985300; }
+.st-pending { --c: var(--muted); }
+.st-uploading { --c: #1a5ea8; }
+.st-synced { --c: var(--ok); }
+.st-conflict, .st-error, .st-photo-error { --c: var(--red); }
+.records { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; }
+.records > li { padding: 12px 14px; }
+.records > li + li { border-top: 1px solid var(--line); }
+.rec-top { position: relative; display: grid; grid-template-columns: 22px 1fr 20px; column-gap: 12px; row-gap: 4px; align-items: center; }
+.rec-top .st-icon { width: 22px; height: 22px; color: var(--c); grid-row: span 2; align-self: start; margin-top: 1px; }
+.rec-top .name { grid-column: 2; font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+/* Link tên phủ cả phần trên của dòng */
+.rec-top .name::after { content: ""; position: absolute; inset: -12px -14px; }
+.rec-top .go { grid-column: 3; grid-row: 1 / span 2; color: var(--muted); }
+.rec-top .st { grid-column: 2; justify-self: start; display: inline-flex; align-items: center; gap: 6px; color: var(--c); font-size: 14px; font-weight: 600; }
+/* "Cần xử lý xung đột" là link riêng: viên thuốc đỏ nhạt có mũi tên, nằm trên lớp link tên */
+.rec-top .st-link { position: relative; z-index: 1; min-height: 32px; padding: 4px 8px 4px 10px; border-radius: var(--r-pill); background: var(--red-soft); text-decoration: none; }
+.rec-top .st-link svg.icon { width: 16px; height: 16px; }
+.record-error { position: relative; z-index: 1; display: grid; gap: 8px; margin-top: 10px; font-size: 15px; font-weight: 500; color: var(--red); }
+.record-error .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.members-link { display: flex; align-items: center; gap: 10px; min-height: 52px; margin-top: 16px; padding: 0 14px; background: var(--surface);
+                border: 1px solid var(--line); border-radius: var(--r-card); font-weight: 600; text-decoration: none; }
+.members-link span { flex: 1; }
+.members-link .go { color: var(--muted); }
 
 /* Hộp xác nhận: [Huỷ] đứng trước và nhận focus đầu tiên; mất dữ liệu/quyền thì nút đỏ, không mất gì thì nút chính */
 .confirm-dialog { max-width: min(400px, calc(100vw - 32px)); border: none; border-radius: var(--r-card); padding: 20px; background: var(--surface); color: var(--ink);
