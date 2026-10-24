@@ -39,7 +39,9 @@ export function ConfirmDialog({
       <p id={messageId}>{message}</p>
       {/* Huỷ đứng trước để nhận focus đầu tiên: lỡ bấm Enter thì không mất gì */}
       <div className="actions">
-        <button onClick={onCancel}>Huỷ</button>
+        <button className="soft" onClick={onCancel}>
+          Huỷ
+        </button>
         <button className={danger ? 'danger' : 'primary'} onClick={onConfirm}>
           {confirmLabel}
         </button>

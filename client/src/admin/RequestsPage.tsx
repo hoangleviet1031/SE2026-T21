@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { REJECT_REASON_MAX_LENGTH, type AdminProjectRequest } from '@field-survey/shared';
 import { decideRequest, fetchPendingRequests } from './adminApi';
 import { adminErrorMessage, formatShortTime } from './adminMessages';
-import { Notice, type NoticeValue } from './Notice';
+import { Icon } from '../components/Icon';
+import { Notice, useNoticeFocus, type NoticeValue } from './Notice';
+
+const COLUMNS = 5;
 
 // A1. Yêu cầu mở tổ chức (design §4.9, ui.md A1). Duyệt tạo tổ chức và người gửi thành Owner; từ chối
 // bắt buộc có lý do, người gửi thấy lý do ở màn hình Tổ chức.
@@ -22,6 +25,27 @@ export function RequestsPage({
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
+  const [finished, setFinished] = useState(0);
+  const noticeRef = useNoticeFocus(finished);
+  // Bàn phím: mở ô lý do thì vào thẳng ô, Huỷ thì về lại nút [Từ chối…] của dòng đó (ô đã mất khỏi trang)
+  const reasonRef = useRef<HTMLTextAreaElement>(null);
+  const rejectButtons = useRef(new Map<string, HTMLButtonElement>());
+  const [focusBack, setFocusBack] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (rejecting) reasonRef.current?.focus();
+  }, [rejecting]);
+
+  useEffect(() => {
+    if (!focusBack) return;
+    rejectButtons.current.get(focusBack)?.focus();
+    setFocusBack(null);
+  }, [focusBack]);
+
+  function cancelReject() {
+    setFocusBack(rejecting);
+    setRejecting(null);
+  }
 
   const load = useCallback(async () => {
     const res = await fetchPendingRequests(token);
@@ -67,6 +91,7 @@ export function RequestsPage({
       fail(err);
     } finally {
       setBusy(false);
+      setFinished((n) => n + 1);
     }
   }
 
@@ -76,13 +101,18 @@ export function RequestsPage({
   return (
     <section>
       <h1>Yêu cầu mở tổ chức</h1>
-      <Notice value={notice} />
+      <Notice value={notice} ref={noticeRef} />
       {requests === null ? (
         <p className="hint">Đang tải…</p>
       ) : requests.length === 0 ? (
-        <p className="hint">Không có yêu cầu nào đang chờ</p>
+        <div className="tcard">
+          <p className="aempty">
+            <Icon name="inbox" />
+            Không có yêu cầu nào đang chờ
+          </p>
+        </div>
       ) : (
-        <div className="table-wrap">
+        <div className="tcard table-wrap">
           <table className="admin-table" data-testid="admin-requests">
             <thead>
               <tr>
@@ -97,26 +127,55 @@ export function RequestsPage({
             </thead>
             <tbody>
               {requests.map((req) => (
-                <tr key={req.id}>
-                  <td>{req.name}</td>
-                  <td>
-                    {req.user.name} ({req.user.username})
-                  </td>
-                  <td>{formatShortTime(req.createdAt)}</td>
-                  <td className="note">{req.note ?? ''}</td>
-                  <td>
-                    {rejecting === req.id ? (
-                      <div className="row-form">
-                        <label className="field">
-                          <span>Lý do từ chối</span>
-                          <textarea
-                            data-testid="reject-reason"
-                            value={reason}
-                            maxLength={REJECT_REASON_MAX_LENGTH}
-                            onChange={(e) => setReason(e.target.value)}
-                          />
-                        </label>
+                <Fragment key={req.id}>
+                  <tr className={rejecting === req.id ? 'open' : undefined}>
+                    <td>
+                      <b>{req.name}</b>
+                    </td>
+                    <td>
+                      {req.user.name} ({req.user.username})
+                    </td>
+                    <td className="when">{formatShortTime(req.createdAt)}</td>
+                    <td className="note">{req.note || '—'}</td>
+                    <td className="act">
+                      {rejecting !== req.id && (
                         <div className="row-actions">
+                          <button type="button" className="primary" disabled={busy} onClick={() => void decide(req, true)}>
+                            Duyệt
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            ref={(el) => {
+                              if (el) rejectButtons.current.set(req.id, el);
+                              else rejectButtons.current.delete(req.id);
+                            }}
+                            onClick={() => {
+                              setRejecting(req.id);
+                              setReason('');
+                            }}
+                          >
+                            Từ chối…
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                  {/* Mở ngay dưới dòng, rộng hết bảng cho ô lý do đủ chỗ (ui.md A1) */}
+                  {rejecting === req.id && (
+                    <tr className="exp" data-testid={`request-expand-${req.id}`}>
+                      <td colSpan={COLUMNS}>
+                        <div className="inline-form">
+                          <label className="field">
+                            <span>Lý do từ chối</span>
+                            <textarea
+                              ref={reasonRef}
+                              data-testid="reject-reason"
+                              value={reason}
+                              maxLength={REJECT_REASON_MAX_LENGTH}
+                              onChange={(e) => setReason(e.target.value)}
+                            />
+                          </label>
                           <button
                             type="button"
                             className="danger"
@@ -125,30 +184,14 @@ export function RequestsPage({
                           >
                             Xác nhận từ chối
                           </button>
-                          <button type="button" onClick={() => setRejecting(null)}>
+                          <button type="button" className="soft" onClick={cancelReject}>
                             Huỷ
                           </button>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="row-actions">
-                        <button type="button" className="primary" disabled={busy} onClick={() => void decide(req, true)}>
-                          Duyệt
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => {
-                            setRejecting(req.id);
-                            setReason('');
-                          }}
-                        >
-                          Từ chối…
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>

@@ -20,7 +20,12 @@ import {
 
 type Tab = 'login' | 'register';
 
-type Problem = { kind: 'text'; text: string } | { kind: 'admin' } | { kind: 'blocked'; text: string };
+// 'offline' tách khỏi 'text' vì không phải lỗi của người dùng: nền vàng thay vì chữ đỏ (ui.md màn hình 1)
+type Problem =
+  | { kind: 'text'; text: string }
+  | { kind: 'offline' }
+  | { kind: 'admin' }
+  | { kind: 'blocked'; text: string };
 
 // Xem docs/design.md §4.7 (Tài khoản, Sau khi đăng nhập) và docs/ui.md màn hình 1. Lần đầu luôn cần
 // mạng: server cấp phiên, và signIn.ts phải biết người dùng là ai trước khi lưu token.
@@ -35,23 +40,23 @@ export function LoginPage() {
   const [password2, setPassword2] = useState('');
   const [problem, setProblem] = useState<Problem | null>(null);
   const [busy, setBusy] = useState(false);
-  // Kết quả nút Xuất JSON khi bị từ chối đổi tài khoản
-  const [exportNote, setExportNote] = useState<string | null>(null);
+  // Kết quả nút Xuất JSON khi bị từ chối đổi tài khoản. Lỗi xuất chữ đỏ nên giữ cờ riêng, không so chữ
+  const [exportNote, setExportNote] = useState<{ text: string; failed: boolean } | null>(null);
 
   async function exportUnsent() {
     setExportNote(null);
     try {
-      setExportNote(exportResultText(await downloadUnsentOnDevice()));
+      setExportNote({ text: exportResultText(await downloadUnsentOnDevice()), failed: false });
     } catch (err) {
       // Lỗi đọc IndexedDB: chỉ đọc để tải file, không xoá gì, nên báo cho người dùng bấm lại và ghi lỗi
       // để tra. Lỗi khác là lỗi lập trình, ném tiếp
       if (!(err instanceof Dexie.DexieError)) throw err;
       console.error('xuất JSON lỗi', err);
-      setExportNote(EXPORT_FAILED_MSG);
+      setExportNote({ text: EXPORT_FAILED_MSG, failed: true });
     }
   }
 
-  const shown: Problem | null = online ? problem : { kind: 'text', text: OFFLINE_MSG };
+  const shown: Problem | null = online ? problem : { kind: 'offline' };
 
   function switchTab(next: Tab) {
     setTab(next);
@@ -82,7 +87,7 @@ export function LoginPage() {
       else if (err instanceof AdminAccountError) setProblem({ kind: 'admin' });
       else if (err instanceof SignInBlockedError) {
         setProblem({ kind: 'blocked', text: blockedMessage(err.previousName, err.unsentRecords) });
-      } else if (err instanceof NetworkError) setProblem({ kind: 'text', text: OFFLINE_MSG });
+      } else if (err instanceof NetworkError) setProblem({ kind: 'offline' });
       else throw err;
     } finally {
       setBusy(false);
@@ -92,8 +97,8 @@ export function LoginPage() {
   const ready = tab === 'login' ? loginReady({ username, password }) : username.trim() !== '' && password !== '';
 
   return (
-    <form className="form" onSubmit={(e) => void submit(e)}>
-      <div className="tabs" role="tablist">
+    <form className="form login" onSubmit={(e) => void submit(e)}>
+      <div className="seg" role="tablist">
         <button type="button" role="tab" aria-selected={tab === 'login'} onClick={() => switchTab('login')}>
           Đăng nhập
         </button>
@@ -141,24 +146,43 @@ export function LoginPage() {
           />
         </label>
       )}
-      <button type="submit" disabled={busy || !ready} aria-busy={busy}>
+      <button type="submit" className="primary wide" disabled={busy || !ready} aria-busy={busy}>
         {tab === 'login' ? 'Tiếp tục' : 'Tạo tài khoản'}
       </button>
       <BusyNote busy={busy} text={tab === 'login' ? 'Đang đăng nhập…' : 'Đang tạo tài khoản…'} />
-      {expired && !problem && <p data-testid="session-expired">⚠ {SESSION_EXPIRED_MSG}</p>}
-      {shown?.kind === 'text' && <p role="alert">⚠ {shown.text}</p>}
+      {/* Theo câu đang hiện chứ không theo problem: mất mạng không ghi vào problem mà vẫn phải ẩn dải này,
+          để không hiện cùng lúc hai dải vàng. Có mạng lại thì hiện lại (ui.md màn hình 1) */}
+      {expired && !shown && (
+        <p className="warning" data-testid="session-expired">
+          ⚠ {SESSION_EXPIRED_MSG}
+        </p>
+      )}
+      {shown?.kind === 'text' && (
+        <p className="field-error" role="alert">
+          ⚠ {shown.text}
+        </p>
+      )}
+      {shown?.kind === 'offline' && (
+        <p className="warning" role="alert">
+          ⚠ {OFFLINE_MSG}
+        </p>
+      )}
       {shown?.kind === 'admin' && (
-        <p role="alert">
+        <p className="field-error" role="alert">
           ⚠ Tài khoản quản trị dùng trang <a href="/admin/">/admin</a>
         </p>
       )}
       {shown?.kind === 'blocked' && (
-        <div>
+        <div className="blocked">
           <p role="alert">⚠ {shown.text}</p>
           <button type="button" onClick={() => void exportUnsent()}>
             Xuất JSON
           </button>
-          {exportNote && <p data-testid="export-note">{exportNote}</p>}
+          {exportNote && (
+            <p className={exportNote.failed ? 'result failed' : 'result'} data-testid="export-note">
+              {exportNote.text}
+            </p>
+          )}
         </div>
       )}
     </form>

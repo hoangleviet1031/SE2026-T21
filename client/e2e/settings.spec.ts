@@ -21,6 +21,8 @@ test('Cài đặt hiện tên đăng nhập; Đăng xuất xoá CSDL dự án v�
     page.getByText('Giám sát viên hoặc Owner cần tên này nếu muốn thêm bạn vào tổ chức khác.'),
   ).toBeVisible();
   await expect(page.getByTestId('settings-storage')).toContainText('Đã dùng');
+  // Thanh dung lượng chỉ để nhìn, chữ ở trên đã nói con số (TV1-12 b2)
+  await expect(page.getByTestId('storage-bar')).toHaveAttribute('aria-hidden', 'true');
 
   // Huỷ (hoặc Esc) ở hộp xác nhận thì không đổi gì
   await page.getByTestId('logout-button').click();
@@ -54,6 +56,14 @@ test('còn phiếu chưa gửi: nút Đăng xuất bị khoá; đồng bộ xong
   await expect(page.getByTestId('logout-blocked')).toContainText('Còn dữ liệu chưa gửi ở dự án');
   await expect(page.getByTestId('logout-button')).toBeDisabled();
   expect(await databaseNames(page)).toContain(PROJECT_DB);
+  // TV1-12 b2 (ui.md màn hình 8): nút khoá nhìn ra là khoá, không viền đỏ như lúc bật; dòng giải thích
+  // nằm ngay dưới nút
+  await expect(page.getByTestId('logout-button')).not.toHaveCSS('border-color', 'rgb(192, 38, 26)');
+  const button = await page.getByTestId('logout-button').boundingBox();
+  const note = await page.getByTestId('logout-blocked').boundingBox();
+  const gap = button && note ? note.y - (button.y + button.height) : -1;
+  expect(gap).toBeGreaterThanOrEqual(0);
+  expect(gap).toBeLessThan(20);
 
   await context.setOffline(false);
   await page.getByRole('button', { name: 'Đồng bộ' }).click();

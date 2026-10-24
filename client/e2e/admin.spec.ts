@@ -13,10 +13,16 @@ const BASE = 'http://localhost:3001/api';
 
 const suffix = () => Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
 
-async function sendRequest(request: APIRequestContext, token: string, name: string, note?: string) {
+/** Gửi yêu cầu mở tổ chức, trả id để tìm hàng mở rộng của dòng đó ở A1. */
+async function sendRequest(request: APIRequestContext, token: string, name: string, note?: string): Promise<string> {
   const res = await request.post(`${BASE}/project-requests`, { headers: authHeaders(token), data: { name, note } });
   expect(res.status()).toBe(201);
+  return ((await res.json()) as ProjectRequest).id;
 }
+
+// Lỗi của người dùng chữ đỏ không nền; mất mạng, phiên hết nền vàng (TV1-12 b2, ui.md A0)
+const WARN_BG = 'rgb(255, 241, 194)';
+const RED = 'rgb(192, 38, 26)';
 
 async function me(request: APIRequestContext, token: string): Promise<MeResponse> {
   const res = await request.get(`${BASE}/me`, { headers: authHeaders(token) });
@@ -60,6 +66,8 @@ test('Q10: tài khoản thường bị từ chối, không lưu token, phiên v�
   const token = await adminSignIn(page, 'minh');
 
   await expect(page.getByRole('alert')).toHaveText('⚠ Tài khoản này không phải quản trị');
+  await expect(page.getByRole('alert')).toHaveCSS('color', RED);
+  await expect(page.getByRole('alert')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(page.getByTestId('admin-username')).toBeVisible();
   expect(await storedSession(page)).toBeNull();
   await expect.poll(() => meStatus(request, token)).toBe(401);
@@ -132,22 +140,33 @@ test('Máy đã dùng app khảo sát (SW đang chạy): /admin/ vẫn ra trang 
 
 test('Q10: A1 từ chối bắt buộc lý do; người gửi thấy lý do', async ({ page, request }) => {
   const name = `Từ chối Q10 ${suffix()}`;
-  await sendRequest(request, TOKENS.lan, name, 'Khảo sát 200 hộ');
+  const requestId = await sendRequest(request, TOKENS.lan, name, 'Khảo sát 200 hộ');
   await openAdmin(page);
 
   const row = requestRow(page, name);
   await expect(row).toContainText('lan (lan)');
   await expect(row).toContainText('Khảo sát 200 hộ');
+  // Ô lý do mở ở hàng riêng ngay dưới dòng (TV1-12 b2): vào thẳng ô; Huỷ thì về lại nút [Từ chối…]
+  const expand = page.getByTestId(`request-expand-${requestId}`);
   await row.getByRole('button', { name: 'Từ chối…' }).click();
-  const confirm = row.getByRole('button', { name: 'Xác nhận từ chối' });
+  await expect(expand.getByTestId('reject-reason')).toBeFocused();
+  await expand.getByRole('button', { name: 'Huỷ' }).click();
+  await expect(expand).toHaveCount(0);
+  await expect(row.getByRole('button', { name: 'Từ chối…' })).toBeFocused();
+
+  await row.getByRole('button', { name: 'Từ chối…' }).click();
+  const confirm = expand.getByRole('button', { name: 'Xác nhận từ chối' });
   await expect(confirm).toBeDisabled();
-  await row.getByTestId('reject-reason').fill('   ');
+  await expand.getByTestId('reject-reason').fill('   ');
   await expect(confirm).toBeDisabled();
-  await row.getByTestId('reject-reason').fill('Trùng tên tổ chức đã có');
+  await expand.getByTestId('reject-reason').fill('Trùng tên tổ chức đã có');
   await confirm.click();
 
   await expect(page.getByTestId('admin-notice')).toHaveText(`Đã từ chối: ${name}`);
+  await expect(page.getByTestId('admin-notice')).toHaveRole('status');
   await expect(requestRow(page, name)).toHaveCount(0);
+  // Dòng biến mất cùng nút vừa bấm: focus về dòng kết quả, không rơi về đầu trang (góp ý #76)
+  await expect(page.getByTestId('admin-notice')).toBeFocused();
   const res = await request.get(`${BASE}/project-requests`, { headers: authHeaders(TOKENS.lan) });
   const mine = (await res.json()) as ProjectRequest[];
   expect(mine.find((r) => r.name === name)).toMatchObject({ status: 'rejected', reason: 'Trùng tên tổ chức đã có' });
@@ -170,6 +189,8 @@ test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) �
   await openAdmin(page);
   await expect(page.getByRole('link', { name: /^Yêu cầu \(\d+\)$/ })).toBeVisible();
   await requestRow(page, name).getByRole('button', { name: 'Duyệt' }).click();
+  await expect(requestRow(page, name)).toHaveCount(0);
+  await expect(page.getByTestId('admin-notice')).toBeFocused();
   await expect(page.getByTestId('admin-notice')).toHaveText(new RegExp(`^Đã duyệt: ${name} \\(mã p-[a-z0-9]{8}\\)$`));
   await expect(requestRow(page, name)).toHaveCount(0);
   const project = (await me(request, userToken)).projects.find((p) => p.name === name);
@@ -195,6 +216,9 @@ test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) �
 
   await row.getByRole('button', { name: 'Mở' }).click();
   await expect(row.getByTestId('project-status')).toHaveText('Đang dùng');
+  // Nút Mở thành nút Khoá (phần tử khác): focus về dòng kết quả
+  await expect(page.getByTestId('admin-notice')).toHaveText(`Đã mở: ${name}`);
+  await expect(page.getByTestId('admin-notice')).toBeFocused();
   expect((await me(request, userToken)).projects.map((p) => p.id)).toContain(projectId);
 
   // Đổi Owner ở tổ chức chưa có Owner (như tổ chức có từ trước migration 4)
@@ -203,14 +227,24 @@ test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) �
   await page.reload();
   const orphanRow = page.getByTestId(`project-row-${orphan}`);
   await expect(orphanRow.getByTestId('project-owners')).toHaveText('Chưa có Owner');
-  await orphanRow.getByRole('button', { name: 'Đổi Owner…' }).click();
-  await expect(orphanRow).toContainText('Owner cũ vẫn giữ quyền; muốn bỏ thì Owner rút ở màn hình Thành viên.');
-  await orphanRow.getByTestId('owner-username').fill('khongcoai_q10');
-  await orphanRow.getByRole('button', { name: 'Thêm làm Owner' }).click();
+  const ownerButton = orphanRow.getByRole('button', { name: 'Đổi Owner…' });
+  await expect(ownerButton).toHaveAttribute('aria-expanded', 'false');
+  await ownerButton.click();
+  await expect(ownerButton).toHaveAttribute('aria-expanded', 'true');
+  // Ô nhập ở hàng riêng ngay dưới dòng (TV1-12 b2), nút trỏ tới hàng đó
+  const ownerExpand = page.getByTestId(`project-expand-${orphan}`);
+  await expect(ownerButton).toHaveAttribute('aria-controls', `project-expand-${orphan}`);
+  await expect(ownerExpand).toHaveAttribute('id', `project-expand-${orphan}`);
+  await expect(ownerExpand).toContainText('Owner cũ vẫn giữ quyền; muốn bỏ thì Owner rút ở màn hình Thành viên.');
+  await ownerExpand.getByTestId('owner-username').fill('khongcoai_q10');
+  await ownerExpand.getByRole('button', { name: 'Thêm làm Owner' }).click();
   await expect(page.getByTestId('admin-notice')).toHaveText('⚠ Không có tài khoản hoặc tổ chức này');
-  await orphanRow.getByTestId('owner-username').fill(` ${username.toUpperCase()} `);
-  await orphanRow.getByRole('button', { name: 'Thêm làm Owner' }).click();
+  await ownerExpand.getByTestId('owner-username').fill(` ${username.toUpperCase()} `);
+  await ownerExpand.getByRole('button', { name: 'Thêm làm Owner' }).click();
   await expect(orphanRow.getByTestId('project-owners')).toHaveText(username);
+  // Hàng mở rộng đóng cùng nút vừa bấm: focus về dòng kết quả
+  await expect(ownerExpand).toHaveCount(0);
+  await expect(page.getByTestId('admin-notice')).toBeFocused();
   expect((await me(request, userToken)).projects.find((p) => p.id === orphan)?.role).toBe('owner');
 });
 
@@ -223,6 +257,7 @@ test('Phiên admin bị thu hồi giữa chừng: về form đăng nhập, báo 
   await page.getByRole('link', { name: 'Tổ chức' }).click();
   await expect(page.getByTestId('admin-username')).toBeVisible();
   await expect(page.getByRole('alert')).toHaveText('⚠ Phiên đăng nhập hết hạn, đăng nhập lại');
+  await expect(page.getByRole('alert')).toHaveCSS('background-color', WARN_BG);
   expect(await storedSession(page)).toBeNull();
 });
 
@@ -241,4 +276,14 @@ test('Máy chủ lỗi (5xx): trang quản trị báo "Máy chủ đang lỗi, t
   await page.getByRole('link', { name: 'Tổ chức' }).click();
   await expect(page.getByTestId('admin-notice')).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
   await expect(page.getByTestId('admin-user')).toBeVisible();
+});
+
+test('b2: mạng rớt lúc đăng nhập trang quản trị: "Cần kết nối mạng" nền vàng', async ({ page }) => {
+  await page.route('**/api/auth/login', (route) => route.abort('internetdisconnected'));
+  await page.goto('/admin/');
+  await page.getByTestId('admin-username').fill('admin');
+  await page.getByTestId('admin-password').fill(DEMO_PASSWORD);
+  await page.getByRole('button', { name: 'Đăng nhập' }).click();
+  await expect(page.getByRole('alert')).toHaveText('⚠ Cần kết nối mạng');
+  await expect(page.getByRole('alert')).toHaveCSS('background-color', WARN_BG);
 });

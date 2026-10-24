@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { FieldType, FormSchema } from '@field-survey/shared';
 import {
@@ -10,7 +10,9 @@ import {
   fromForm,
   fromImport,
   moveField,
+  moveFieldTo,
   removeField,
+  selectionAfterMove,
   setFormId,
   setTitle,
   toSaveRequest,
@@ -20,15 +22,23 @@ import {
 import { BusyNote } from '../components/BusyNote';
 import { FieldEditor } from '../components/FieldEditor';
 import { FormRenderer } from '../components/FormRenderer';
+import { Icon } from '../components/Icon';
 import { formFileName, formFileText, parseFormFile } from '../formFile';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { formKey, type ProjectDb } from '../db/projectDb';
 import { canManageProject } from '../projects';
 import { apiFailureText } from '../apiErrors';
 import { apiFailure, saveForm } from '../sync/api';
+import { useFieldDrag } from '../useFieldDrag';
 import { navigate } from '../useHashRoute';
 
 const OFFLINE_MSG = 'Cần kết nối để lưu form';
+
+// Người dùng chọn giảm chuyển động thì nhảy thẳng tới chỗ cần xem, không cuộn mượt
+function scrollToView(el: HTMLElement | null, block: ScrollLogicalPosition) {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block });
+}
 
 // Form builder (design §4.1, ui.md màn hình 5). Đọc form từ IndexedDB; chỉ khi lưu mới gọi API
 // (màn hình được phép gọi API trực tiếp, CLAUDE.md bất biến 7).
@@ -65,6 +75,28 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const [preview, setPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const previewRef = useRef<HTMLFieldSetElement>(null);
+  const errorsRef = useRef<HTMLUListElement>(null);
+  const fieldsRef = useRef<HTMLUListElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const previewId = useId();
+  // Thả xong thì dòng vừa kéo thành dòng đang chọn (ui.md màn hình 5, khung 5f)
+  const onDrop = useCallback((from: number, to: number) => {
+    setState((s) => moveFieldTo(s, from, to));
+    setSelected(to);
+  }, []);
+  const bottomEdge = useCallback(() => actionsRef.current?.getBoundingClientRect().top ?? window.innerHeight, []);
+  const { drag, gripProps, rowStyle, slot } = useFieldDrag({ listRef: fieldsRef, bottomEdge, onDrop });
+  const slotStyle = slot();
+
+  // Bật xem trước thì đưa khung vào tầm nhìn: khung nằm cuối trang, trên điện thoại dễ tưởng bấm không ăn
+  useEffect(() => {
+    if (preview) scrollToView(previewRef.current, 'start');
+  }, [preview]);
+  // Lưu lỗi thì khung lỗi (ngay trên hàng nút) phải nằm trong tầm nhìn
+  useEffect(() => {
+    if (errors.length > 0) scrollToView(errorsRef.current, 'nearest');
+  }, [errors]);
 
   // Trường đang chọn bị xoá thì bỏ chọn
   useEffect(() => {
@@ -81,7 +113,8 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const move = (index: number, delta: -1 | 1) => {
     const next = moveField(state, index, delta);
     setState(next);
-    if (next !== state && selected === index) setSelected(index + delta);
+    // ▲ dòng đầu, ▼ dòng cuối: không có gì đổi thì dòng chọn cũng giữ nguyên
+    if (next !== state) setSelected(selectionAfterMove(selected, index, index + delta));
   };
 
   const save = async () => {
@@ -137,57 +170,77 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
         ← Quay lại
       </a>
       <h2>{prev ? `Sửa form: ${prev.title}` : 'Biểu mẫu mới'}</h2>
-      <label className="field">
-        <span>Tiêu đề</span>
-        <input value={state.title} onChange={(e) => setState(setTitle(state, e.target.value))} />
-      </label>
-      <label className="field">
-        <span>Mã biểu mẫu</span>
-        {state.idLocked ? (
-          <code>{state.id} (khoá)</code>
-        ) : (
-          <input
-            value={state.id}
-            onChange={(e) => setState(setFormId(state, e.target.value))}
-            autoCapitalize="off"
-            spellCheck={false}
-          />
-        )}
-      </label>
+      {/* Ba khối tách rõ: thông tin biểu mẫu, danh sách trường, thuộc tính trường đang chọn (ui.md màn hình 5) */}
+      <div className="card">
+        <label className="field">
+          <span>Tiêu đề</span>
+          <input value={state.title} onChange={(e) => setState(setTitle(state, e.target.value))} />
+        </label>
+        <label className="field">
+          <span>Mã biểu mẫu</span>
+          {state.idLocked ? (
+            <span className="locked">
+              <code>{state.id}</code> <span>(khoá)</span>
+            </span>
+          ) : (
+            <input
+              value={state.id}
+              onChange={(e) => setState(setFormId(state, e.target.value))}
+              autoCapitalize="off"
+              spellCheck={false}
+            />
+          )}
+        </label>
+      </div>
 
-      <h3>Trường</h3>
-      <ul className="list" data-testid="builder-fields">
-        {state.fields.map((f, i) => (
-          <li key={f.uid} className={i === selected ? 'field-row selected' : 'field-row'}>
-            <button className="field-name" aria-pressed={i === selected} onClick={() => setSelected(i)}>
-              {f.label || 'Trường mới'} ({FIELD_TYPE_LABEL[f.type]}
-              {f.hidden ? ', ẩn' : ''}){f.required ? ' *' : ''}
-            </button>
-            {/* ▲▼ thay ↑↓: Windows vẽ ↑↓ bằng phông emoji có màu */}
-            <span className="move">
-              <button aria-label="Lên" disabled={i === 0} onClick={() => move(i, -1)}>
+      <div className="card">
+        <h3>Trường</h3>
+        <ul className={drag ? 'frows dragging' : 'frows'} data-testid="builder-fields" ref={fieldsRef}>
+          {state.fields.map((f, i) => (
+            <li
+              key={f.uid}
+              data-row
+              className={['frow', i === selected && 'sel', f.hidden && 'hid', drag?.from === i && 'drag']
+                .filter(Boolean)
+                .join(' ')}
+              style={rowStyle(i)}
+            >
+              {/* Tay nắm chỉ cho chạm và chuột; bàn phím, trình đọc màn hình dùng ▲ ▼ nên ẩn đi */}
+              <span className="grip" aria-hidden="true" data-testid="field-grip" {...gripProps(i)}>
+                <Icon name="grip" />
+              </span>
+              <button className="field-name" aria-pressed={i === selected} onClick={() => setSelected(i)}>
+                {f.label || 'Trường mới'} ({FIELD_TYPE_LABEL[f.type]}
+                {f.hidden ? ', ẩn' : ''}){f.required ? ' *' : ''}
+              </button>
+              {/* ▲▼ thay ↑↓: Windows vẽ ↑↓ bằng phông emoji có màu */}
+              <button className="mv" aria-label="Lên" disabled={i === 0} onClick={() => move(i, -1)}>
                 ▲
               </button>
-              <button aria-label="Xuống" disabled={i === state.fields.length - 1} onClick={() => move(i, 1)}>
+              <button className="mv" aria-label="Xuống" disabled={i === state.fields.length - 1} onClick={() => move(i, 1)}>
                 ▼
               </button>
-            </span>
-          </li>
-        ))}
-      </ul>
-      <div className="actions">
-        <select aria-label="Loại trường" value={newType} onChange={(e) => setNewType(FIELD_TYPES.find((t) => t === e.target.value) ?? 'text')}>
-          {FIELD_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {FIELD_TYPE_LABEL[t]}
-            </option>
+            </li>
           ))}
-        </select>
-        <button onClick={add}>+ Thêm trường</button>
+          {slotStyle && <li className="slot" aria-hidden="true" data-testid="builder-drop-slot" style={slotStyle} />}
+        </ul>
+        <div className="addrow">
+          <label className="field">
+            <span>Loại trường</span>
+            <select value={newType} onChange={(e) => setNewType(FIELD_TYPES.find((t) => t === e.target.value) ?? 'text')}>
+              {FIELD_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {FIELD_TYPE_LABEL[t]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button onClick={add}>+ Thêm trường</button>
+        </div>
       </div>
 
       {!field && state.fields.length > 0 && (
-        <p className="hint">Bấm vào một trường để sửa nhãn, bắt buộc, ẩn, lựa chọn.</p>
+        <p className="hint-box">Bấm vào một trường để sửa nhãn, bắt buộc, ẩn, lựa chọn.</p>
       )}
       {field && selected !== null && (
         <FieldEditor
@@ -198,29 +251,16 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
         />
       )}
 
-      {errors.length > 0 && (
-        <ul className="warning" role="alert" data-testid="builder-errors">
-          {errors.map((e) => (
-            <li key={e}>⚠ {e}</li>
-          ))}
-        </ul>
-      )}
-      <div className="actions">
-        <button onClick={() => setPreview(!preview)} aria-expanded={preview}>
-          Xem trước
-        </button>
-        <button className="primary" disabled={saving} aria-busy={saving} onClick={() => void save()}>
-          Lưu bản mới
-        </button>
-        <BusyNote busy={saving} text="Đang lưu…" />
-      </div>
-
       <div className="actions">
         {prev ? (
-          <button onClick={() => exportForm(prev)}>Xuất form</button>
+          <button className="soft" onClick={() => exportForm(prev)}>
+            Xuất form
+          </button>
         ) : (
           <>
-            <button onClick={() => fileInput.current?.click()}>Nhập form</button>
+            <button className="soft" onClick={() => fileInput.current?.click()}>
+              Nhập form
+            </button>
             <input
               ref={fileInput}
               type="file"
@@ -240,11 +280,36 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
 
       {preview && (
         // Chỉ xem: khoá mọi ô để trường ảnh không ghi ảnh rác vào máy (nhóm chốt khi làm TV1-04)
-        <fieldset disabled className="preview" data-testid="builder-preview">
+        <fieldset disabled className="preview" id={previewId} ref={previewRef} data-testid="builder-preview">
           <legend>Xem trước</legend>
+          {/* role=status: trình đọc màn hình biết đã sang chế độ xem; tự cuộn chỉ là thứ nhìn thấy */}
+          <p className="pv-banner" role="status">
+            <Icon name="eye" />
+            Đang xem trước, chưa sửa được. Bấm lại Xem trước để sửa tiếp.
+          </p>
           <FormRenderer db={db} form={previewForm} recordId="preview" value={{}} onChange={() => undefined} />
         </fieldset>
       )}
+
+      {/* Lỗi ngay trên hàng nút để luôn ở gần [Lưu bản mới] */}
+      {errors.length > 0 && (
+        <ul className="err-banner" role="alert" data-testid="builder-errors" ref={errorsRef}>
+          {errors.map((e) => (
+            <li key={e}>⚠ {e}</li>
+          ))}
+        </ul>
+      )}
+      {/* Hàng nút dính đáy màn hình như trang điền phiếu (ui.md màn hình 5, TV1-12 b2) */}
+      <div className="actionbar" data-testid="builder-actions" ref={actionsRef}>
+        <button className="toggle" onClick={() => setPreview(!preview)} aria-expanded={preview} aria-controls={previewId}>
+          <Icon name="eye" />
+          Xem trước
+        </button>
+        <button className="primary" disabled={saving} aria-busy={saving} onClick={() => void save()}>
+          Lưu bản mới
+        </button>
+        <BusyNote busy={saving} text="Đang lưu…" />
+      </div>
     </section>
   );
 }

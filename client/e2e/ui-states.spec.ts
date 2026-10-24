@@ -21,6 +21,8 @@ test('dự án chưa có phiếu nào: trang chủ báo "Chưa có phiếu nào.
   await login(page);
   await expect(page.getByTestId('records-empty')).toHaveText('Chưa có phiếu nào.');
   await expect(page.getByTestId('no-records')).toHaveCount(0);
+  // Chưa có phiếu nào thì không có gì để lọc: ẩn bộ lọc (TV1-12 b2, design §4.8)
+  await expect(page.getByRole('radiogroup', { name: 'Lọc theo trạng thái' })).toHaveCount(0);
 });
 
 test('Builder và Cài đặt có "← Quay lại" về trang chủ', async ({ page }) => {
@@ -50,4 +52,14 @@ test('Tổ chức: đang chờ danh sách thì hiện "Đang tải…", tải xo
   release?.();
   await expect(page.getByTestId('directory-loading')).toHaveCount(0);
   await expect(page.getByTestId('directory').or(page.getByTestId('directory-empty'))).toBeVisible();
+});
+
+test('360px: trang chủ không cuộn ngang, Đồng bộ và Cài đặt vẫn thấy được', async ({ page }) => {
+  // Bề ngang điện thoại nhỏ nhất app phải chạy tốt (ui.md "Ràng buộc chung"); header mới có biểu tượng (TV1-12 b2)
+  await page.setViewportSize({ width: 360, height: 740 });
+  await login(page);
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+  await expect(page.getByRole('button', { name: 'Đồng bộ' })).toBeInViewport({ ratio: 1 });
+  await expect(page.getByRole('link', { name: 'Cài đặt' })).toBeInViewport({ ratio: 1 });
 });

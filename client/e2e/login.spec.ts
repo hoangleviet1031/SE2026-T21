@@ -108,3 +108,30 @@ test('tạo tài khoản: báo lỗi từng ô trước khi gửi; tên đã có
   await page.getByRole('tab', { name: 'Đăng nhập' }).click();
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
+
+// TV1-12 b2 (ui.md màn hình 1): mất mạng không phải lỗi của người dùng nên nền vàng; lỗi nhập chữ đỏ, không nền
+const WARN_BG = 'rgb(255, 241, 194)';
+const RED = 'rgb(192, 38, 26)';
+
+test('b2: mạng rớt lúc bấm Tiếp tục cũng nền vàng như lúc ngoại tuyến; lỗi nhập chữ đỏ', async ({ page, context }) => {
+  await page.goto('/');
+  await page.route('**/api/auth/login', (route) => route.abort('internetdisconnected'));
+  await fillLogin(page, 'minh', DEMO_PASSWORD);
+  await expect(page.getByRole('alert')).toHaveText('⚠ Cần kết nối mạng');
+  await expect(page.getByRole('alert')).toHaveCSS('background-color', WARN_BG);
+  await page.unroute('**/api/auth/login');
+
+  await context.setOffline(true);
+  await expect(page.getByRole('alert')).toHaveText('⚠ Cần kết nối mạng');
+  await expect(page.getByRole('alert')).toHaveCSS('background-color', WARN_BG);
+  await context.setOffline(false);
+
+  // Tab dạng công tắc vẫn báo đúng tab đang chọn
+  await page.getByRole('tab', { name: 'Tạo tài khoản' }).click();
+  await expect(page.getByRole('tab', { name: 'Tạo tài khoản' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tab', { name: 'Đăng nhập' })).toHaveAttribute('aria-selected', 'false');
+  await fillRegister(page, { username: 'chua.ai.dung', name: 'Ai đó', password: '12345678', password2: '12345679' });
+  await expect(page.getByRole('alert')).toHaveText('⚠ Mật khẩu nhập lại không khớp');
+  await expect(page.getByRole('alert')).toHaveCSS('color', RED);
+  await expect(page.getByRole('alert')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+});

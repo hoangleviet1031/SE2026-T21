@@ -1,3 +1,4 @@
+import type { IconName } from './components/Icon';
 import {
   PROJECT_NAME_MAX_LENGTH,
   PROJECT_REQUEST_NOTE_MAX_LENGTH,
@@ -47,6 +48,23 @@ export function requestStatusText(r: ProjectRequest): string {
       return r.reason ? `Bị từ chối: ${r.reason}` : 'Bị từ chối';
     case 'cancelled':
       return 'Đã huỷ';
+  }
+}
+
+/**
+ * Kiểu nhãn trạng thái yêu cầu (ui.md màn hình 9, TV1-12 b2): dùng chung màu và biểu tượng với nhãn trạng
+ * thái phiếu để nhìn ra ngay chờ / ổn / lỗi. Chữ luôn đi kèm, màu chỉ là thêm.
+ */
+export function requestStatusKind(status: ProjectRequest['status']): { className: string; icon: IconName } {
+  switch (status) {
+    case 'pending':
+      return { className: 'st-pending', icon: 'pending' };
+    case 'approved':
+      return { className: 'st-synced', icon: 'synced' };
+    case 'rejected':
+      return { className: 'st-error', icon: 'alert' };
+    case 'cancelled':
+      return { className: 'st-cancel', icon: 'cancel' };
   }
 }
 

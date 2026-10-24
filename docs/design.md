@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.45 (2026-10-23)
+- **Phiên bản:** 0.5.46 (2026-10-24)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -79,6 +79,7 @@
 | 0.5.43 | 2026-10-22 | TV1-19 phần 2: diễn tập quay lại bản trước trên staging lần đầu, QS5 có số đo (quay lại 19 s, quay về `main` 21 s), mục tiêu ≤ 5 phút cho nhánh 2a (Dương chốt) (§11.4); `deploy.md` sửa theo lúc chạy thật; trả nợ N3 |
 | 0.5.44 | 2026-10-22 | TV3-13: sao lưu hằng ngày bằng `scripts/backup-daily.mjs` (systemd timer), mỗi bản là một thư mục gồm `survey.db` và ảnh, kiểm đủ ảnh trước khi tính là một bản; trên staging `UPLOAD_DIR` để ngoài repo (§12). Thêm nợ N9 (bản sao lưu cùng ổ đĩa) |
 | 0.5.45 | 2026-10-23 | TV1-12 b1: danh sách phiếu rỗng hiện "Chưa có phiếu nào." (§4.8); bảng §8 thêm dòng không lấy được vị trí GPS (từ chối quyền, không lấy được, quá 30 s, trình duyệt không có geolocation) và "Đang lấy vị trí…" lúc chờ |
+| 0.5.46 | 2026-10-24 | TV1-12 b2 p1, chỉ đổi giao diện: token và kiểu nền theo bản thiết kế (ui.md "Hệ thống thiết kế"); nút đang gửi chỉ có vòng xoay, chữ phụ chỉ cho trình đọc màn hình trừ Lấy vị trí; nút trong trang mở hộp xác nhận có viền đỏ, đỏ đặc chỉ ở nút xác nhận (§4.7). p2: trang chủ có nút [Xuất ▾] mở hai lựa chọn Xuất CSV, Xuất JSON (§4.6); chưa có phiếu nào thì ẩn bộ lọc (§4.8). p3: câu giải thích ở màn hình xung đột bỏ "N trường đã được gộp tự động." khi không có trường nào gộp hoặc là xoá vs sửa (§4.5); mất mạng lúc đang mở [Xuất ▾] thì đóng hẳn (§4.6). p4: builder tự cuộn tới khung xem trước (kèm dải báo đang xem trước) và tới khung lỗi khi lưu lỗi (§4.1). p5: màn hình Thành viên, Tổ chức theo thiết kế; dòng thành viên và dòng yêu cầu bỏ " · "; Tổ chức chưa tải được danh sách công khai thì ẩn khối đó (ui.md màn hình 6, 9). p6: màn hình Đăng nhập, Cài đặt theo thiết kế; "Cần kết nối mạng" ở Đăng nhập nền vàng như hết phiên, lỗi người dùng chữ đỏ (ui.md màn hình 1, 8). p7: trang quản trị theo thiết kế; ô từ chối và ô Đổi Owner mở ở hàng ngay dưới dòng; ghi chú rỗng hiện "—" (§4.9, ui.md trang quản trị). p8: builder có kéo thả bằng tay nắm ⠿ để sắp xếp trường, bỏ "builder kéo thả" khỏi Won't (§2), sửa §4.1 và bảng rủi ro §13. Lý do: Dương thử builder thấy form nhiều trường bấm ▲▼ mỏi tay (góp ý màn 5, 2026-10-23); làm được bằng Pointer Events có sẵn, không thêm thư viện, ▲▼ vẫn giữ cho bàn phím và trình đọc màn hình. Số phiên bản đặt ở PR nhánh gom → main |
 
 ## Mục lục
 
@@ -141,7 +142,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Log và theo dõi (§12) | Một dòng log mỗi request, không ghi token. | Could (TV2-19) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
-**Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, builder kéo thả (dùng nút lên/xuống), so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
+**Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
 
 **Tiêu chí thành công (dùng để demo tuần 8)**
 - Hai dự án mẫu (`demo-yte`, `demo-nongnghiep`) với form khác nhau; một người là điều tra viên ở dự án này và giám sát viên ở dự án kia, đổi qua lại khi offline, không thấy lẫn dữ liệu.
@@ -367,11 +368,11 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
   - `id` trường duy nhất và khớp `^[a-zA-Z][a-zA-Z0-9_]*$` (là tên cột khi export); `id` form khớp `^[a-zA-Z][a-zA-Z0-9_-]*$` (thêm `-`, vd. `household-survey`), `title` không để trống.
   - select/multiselect phải có ít nhất 1 option, option không trùng, không để trống. `options` ở trường loại khác thì bỏ qua.
   - So với phiên bản trước: mọi trường cũ vẫn còn (có thể `hidden`), không đổi `type`, không bỏ option (option bỏ đi thì giữ lại, dữ liệu cũ vẫn hiển thị được).
-- **Builder UI:** danh sách trường có nút lên/xuống để đổi thứ tự (không làm kéo thả), panel thuộc tính cho trường đang chọn, nút xem trước dùng chính `FormRenderer`. Có code (`client/src/pages/BuilderPage.tsx`, hàm thuần ở `client/src/builder.ts`), chỉ hiện với `supervisor` và `owner`:
+- **Builder UI:** danh sách trường có nút lên/xuống để đổi thứ tự (cho bàn phím, trình đọc màn hình) và kéo thả bằng tay nắm ⠿ đầu dòng (Pointer Events, không thư viện; TV1-12 b2), panel thuộc tính cho trường đang chọn, nút xem trước dùng chính `FormRenderer`. Có code (`client/src/pages/BuilderPage.tsx`, hàm thuần ở `client/src/builder.ts`), chỉ hiện với `supervisor` và `owner`:
   - **Mã** form và trường gợi ý từ tiêu đề/nhãn (bỏ dấu, camelCase, "Tên chủ hộ" → `tenChuHo`), sửa được tới khi lưu lần đầu, sau đó khoá.
   - Trường **chưa lưu** lần nào có nút "Xoá trường"; trường đã lưu chỉ có "Ẩn".
   - **Lựa chọn** của select/multiselect nhập trong ô văn bản, mỗi dòng một lựa chọn.
-  - **Xem trước** chỉ để nhìn, mọi ô nhập bị khoá (để trường ảnh không ghi ảnh rác vào máy).
+  - **Xem trước** chỉ để nhìn, mọi ô nhập bị khoá (để trường ảnh không ghi ảnh rác vào máy). Bật xem trước thì trang tự cuộn tới khung xem trước (người dùng chọn giảm chuyển động thì nhảy thẳng, không cuộn mượt); đầu khung có dải "Đang xem trước, chưa sửa được. Bấm lại Xem trước để sửa tiếp." (`role="status"`). Lưu lỗi thì trang cuộn tới khung lỗi, khung nằm ngay trên hàng nút [Xem trước] [Lưu bản mới] dính đáy màn hình (TV1-12 b2).
   - **Lưu bản mới:** kiểm trước ở máy bằng `validateFormSchema` (so với bản mới nhất trên máy) cộng luật riêng của builder "trường phải có nhãn"; lỗi thì không gửi. Offline: "Cần kết nối để lưu form". Lưu được thì ghi form server trả về vào IndexedDB và về trang chủ (thấy form ngay; máy khác thấy sau vòng đồng bộ).
 - **Validate phiếu:** chạy ở client khi bấm Lưu (required, kiểu số, định dạng ngày). Phiếu không hợp lệ vẫn lưu được, ở trạng thái **nháp** (`draft`, xem §5.1): không tạo op trong outbox, không đồng bộ, hiện nhãn "Nháp" và danh sách lỗi khi mở lại. Lần lưu hợp lệ tiếp theo chuyển sang `pending` và tạo op.
 - **Luật validate theo loại trường** (`validateRecord` trong `shared/`, chạy được cả ở server nếu cần). Trường `hidden` bỏ qua khi kiểm tra `required`.
@@ -461,6 +462,7 @@ Khi sync engine nhận `409` và merge còn xung đột trường hoặc xung đ
 - Câu giải thích bằng ngôn ngữ thường: *"Trong lúc bạn ngoại tuyến, **Lan** đã sửa phiếu này (lần cuối 14:32 07/10). 2 trường đã được gộp tự động. Các trường dưới đây cả hai bên cùng sửa, hãy chọn giá trị giữ lại."*
 - **Mỗi trường một thẻ** (ui.md màn hình 3, không dùng bảng 4 cột vì không vừa điện thoại): tên trường (nhãn trong form đúng `formVersion` của phiếu; form chưa có trên máy thì dùng `id`), giá trị trước đó, của bạn, trên máy chủ; mỗi thẻ chọn một bên, không chọn sẵn. Nút "Áp dụng và đồng bộ" khoá tới khi chọn hết. Logic thuần ở `client/src/conflictView.ts`.
 - Mục "Đã gộp tự động" thu gọn, mở ra thấy trường nào lấy từ đâu.
+- Câu "N trường đã được gộp tự động." chỉ có khi N > 0 và không phải xoá vs sửa (TV1-12 b2): xoá vs sửa không hiện danh sách gộp và kết quả áp dụng không dùng bản gộp, nên câu đó báo sai. Hàm thuần `autoMergedNote` ở `client/src/conflictView.ts`.
 - **Xoá vs sửa:** hộp thoại riêng: "Bạn đã xoá phiếu này nhưng Lan vừa sửa nó. Giữ phiếu (với bản của Lan) hay vẫn xoá?" (và chiều ngược lại: "Lan đã xoá phiếu này nhưng bạn vừa sửa. Khôi phục với bản của bạn hay bỏ?"). Nút "Áp dụng" bị khoá cho tới khi người dùng trả lời câu này; không bao giờ mặc định chọn hộ.
 - Multiselect và photo có thêm lựa chọn "Gộp cả hai" (hợp hai tập). Ảnh chỉ hiện số lượng mỗi bên ("3 ảnh" / "2 ảnh"); xem thumbnail so sánh để sau MVP.
 - Sau khi áp dụng: dữ liệu đã chọn thành op mới với `baseVersion` = version server đã thấy, đẩy ngay. Nếu lại nhận `409` (server đổi tiếp trong lúc người dùng đang chọn), đi lại đúng quy trình ADR quy tắc 5 với base = bản server đã thấy: khác trường thì tự gộp, cùng trường thì hiện màn hình conflict mới.
@@ -477,7 +479,7 @@ Khi sync engine nhận `409` và merge còn xung đột trường hoặc xung đ
 - **CSV:** cột cố định `id, version, updatedAt, updatedBy, updatedByName, formVersion, deleted` (`updatedBy` là `userId`, `updatedByName` là tên để người đọc Excel dễ hiểu; rỗng nếu server không có tên) rồi một cột mỗi trường của phiên bản form mới nhất, theo thứ tự trong form (kể cả trường `hidden`; trường chỉ có ở phiên bản cũ thêm vào cuối). Multiselect nối bằng `"; "`, gps tách `<field>_lat`, `<field>_lng`, `<field>_accuracy`, photo là các URL tuyệt đối nối bằng `"; "` (gốc lấy từ `PUBLIC_BASE_URL`). Mở đầu bằng BOM UTF-8 để Excel đọc đúng tiếng Việt. Escape theo RFC 4180. Ô **chữ** bắt đầu bằng `= + - @` (thêm tab, CR theo OWASP) được thêm tiền tố `'` để tránh CSV injection; giá trị của trường số giữ nguyên (kể cả số âm) để Excel còn tính được. Dòng kết thúc CRLF.
 - **JSON:** `{ forms: FormSchema[], records: ServerRecord[] }`, gồm mọi phiên bản form đã dùng.
 - **Kèm ảnh:** ngoài phạm vi MVP (ADR 0002 cắt); nếu làm sau thì `format=zip` trả `data.csv` và thư mục `photos/<recordId>/<attachmentId>.jpg`, stream bằng `archiver`.
-- Client có nút "Xuất CSV" và "Xuất JSON" cạnh mỗi form ở trang chủ, chỉ supervisor và owner thấy; cần mạng (offline thì nút khoá kèm "Cần kết nối mạng để xuất").
+- Client có nút [Xuất ▾] trong thẻ mỗi form ở trang chủ, bấm vào hiện hai lựa chọn "Xuất CSV" và "Xuất JSON" (TV1-12 b2; trước đó là hai nút riêng; mất mạng lúc đang mở thì đóng hẳn, có mạng lại không tự mở); chỉ supervisor và owner thấy; cần mạng (offline thì nút khoá kèm "Cần kết nối mạng để xuất").
 - **Có code (TV3-09):** `server/src/lib/csv.ts`, `server/src/lib/exportTable.ts` (hàm thuần), `server/src/routes/export.ts`. Không truyền `format` thì `csv`; giá trị khác `csv`/`json` → `400 invalid_body`; form không có trong dự án → `404 not_found`. URL ảnh trong CSV là API ảnh nên **cần đăng nhập** mới mở được (không có token thì `401`); bấm từ Excel không xem được ảnh.
 
 **Tiêu chí chấp nhận**
@@ -511,7 +513,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003. Mọi mục dư�
   - Khác người và máy **còn** dữ liệu chưa gửi: từ chối kèm nút "Xuất JSON" (câu chữ dưới đây; xong báo "Đã tải N file.", không còn phiếu nào thì "Máy không còn phiếu chưa gửi. Bấm Tiếp tục để đăng nhập lại.", lỗi thì "Không xuất được file, thử lại."; TV1-12). Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
   - Có code (TV2-16, `client/src/signIn.ts`, quyết định ở hàm thuần `decideSignIn`): chạy trong Web Lock `field-survey-sync`; khác người mà máy trống thì xoá như Đăng xuất (cache runtime, mọi CSDL dự án, `projects`, `user`, `currentProjectId`); bị từ chối thì không lưu token và huỷ phiên vừa cấp. Câu từ chối (TV1-14): "Máy này còn N phiếu chưa gửi của <tên người cũ>. Đăng nhập lại bằng tài khoản của người đó để gửi, hoặc xuất JSON trước."; N đếm phiếu nháp, chờ đồng bộ, lỗi, xung đột, N = 0 (chỉ còn ảnh hoặc op) thì câu là "còn dữ liệu chưa gửi". Nút "Xuất JSON" kèm câu này tải mỗi dự án còn phiếu chưa gửi một file `chua-gui-<projectId>.json`, cùng định dạng với Xuất JSON của dự án đã rời (`downloadUnsentOnDevice` trong `signIn.ts`).
 - **Trang Cài đặt** (ui.md màn hình 8): tên hiển thị và **tên đăng nhập** (`settings-username`) để gửi cho giám sát viên hoặc Owner. Chưa thuộc tổ chức nào: "Gửi tên này cho giám sát viên của tổ chức để được thêm vào."; đã thuộc: "Giám sát viên hoặc Owner cần tên này nếu muốn thêm bạn vào tổ chức khác." `account.user` lưu từ trước TV2-14 chưa có `username` tới vòng `/me` kế tiếp: hiện `userId` (tài khoản cũ có username = id, migration 4), không bao giờ rỗng; luật này dùng chung với màn hình Tổ chức (`client/src/accountDisplay.ts`). Có code (TV1-07).
-- **Hộp hỏi xác nhận** trong PWA đều là hộp xác nhận trong app (`ConfirmDialog`, không dùng hộp của trình duyệt; Esc = Huỷ); nút xác nhận màu đỏ cho việc mất dữ liệu hoặc mất quyền (Đăng xuất, Rút, Xoá khỏi máy, Xoá phiếu), màu thường cho Tải lại, Đổi vai trò (TV1-12).
+- **Hộp hỏi xác nhận** trong PWA đều là hộp xác nhận trong app (`ConfirmDialog`, không dùng hộp của trình duyệt; Esc = Huỷ); nút xác nhận màu đỏ cho việc mất dữ liệu hoặc mất quyền (Đăng xuất, Rút, Xoá khỏi máy, Xoá phiếu), màu thường cho Tải lại, Đổi vai trò (TV1-12). Nút trong trang chỉ mở hộp (Xoá phiếu, Rút, Đăng xuất, Xoá khỏi máy, Khoá ở trang quản trị) có viền đỏ, không đỏ đặc (TV1-12 b2, ui.md "Hệ thống thiết kế").
 - **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Đăng xuất xoá cả cache runtime `me` và `forms` của SW (§4.3; tên ở `client/src/swCaches.ts`) để dữ liệu của người cũ không nằm lại trên máy dùng chung, nhưng giữ precache để app vẫn mở được offline. Đang online thì gọi thêm `POST /api/auth/logout` để huỷ phiên của máy này: gọi sau khi đã xoá dữ liệu trên máy, trước khi xoá token; lỗi mạng thì vẫn đăng xuất trên máy (phiên còn trên server, admin thu hồi được bằng `user:revoke-sessions`). Có code (TV2-16).
 - **Tạo tài khoản admin và hỗ trợ** (cấp lại mật khẩu, thu hồi phiên) không có UI trong PWA: chạy CLI ở server (§12), hoặc trang quản trị (§4.9).
 
@@ -528,7 +530,7 @@ Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), kh
 - **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định, **trừ khi đang `conflict`** (vd. xoá ở máy này, sửa ở máy kia): người dùng phải thấy để xử lý.
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).
-- **Chưa có phiếu nào** (kể cả phiếu đã xoá đang ẩn): "Chưa có phiếu nào." Có phiếu mà bộ lọc ra rỗng: "Không có phiếu nào ở trạng thái này."
+- **Chưa có phiếu nào** (kể cả phiếu đã xoá đang ẩn): "Chưa có phiếu nào." và ẩn bộ lọc (TV1-12 b2). Có phiếu mà bộ lọc ra rỗng: giữ bộ lọc, báo "Không có phiếu nào ở trạng thái này."
 
 ### 4.9 Trang quản trị (ADR 0003 §8; A1, A2 có code, A3 🆕 chờ TV2-17)
 
@@ -1224,7 +1226,7 @@ Rủi ro của sản phẩm và cách giảm. Chỗ spec đã chốt mà code ho
 | Lộ token (mất máy) | Người khác đọc dữ liệu các dự án của người đó | `user:revoke-sessions` / `user:disable`; token chỉ lưu hash ở server |
 | Đăng ký hàng loạt, đoán mật khẩu | Tài khoản rác, chiếm tài khoản | Giới hạn tần suất (§7.1 `429`), `scrypt`; mở tổ chức phải qua admin duyệt |
 | Người vận hành tò mò dữ liệu khách hàng | Lộ dữ liệu khảo sát | Admin không là thành viên tổ chức nào (`409 admin_account`), mọi `P/...` trả `403` (T4, Q7); trang quản trị không có đường tới dữ liệu |
-| Phạm vi quá rộng với 3 người (thêm multi-tenancy) | Trễ tiến độ | Ưu tiên: sync và conflict > cách ly dự án > ảnh > export > builder; đã cắt kéo thả, so sánh ảnh, ZIP |
+| Phạm vi quá rộng với 3 người (thêm multi-tenancy) | Trễ tiến độ | Ưu tiên: sync và conflict > cách ly dự án > ảnh > export > builder; đã cắt so sánh ảnh, ZIP. Kéo thả trong builder làm muộn ở TV1-12 b2 (nút lên/xuống vẫn giữ) |
 
 ## 14. Câu hỏi mở
 

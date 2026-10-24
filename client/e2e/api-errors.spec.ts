@@ -17,7 +17,7 @@ async function openYteAsOwner(page: Page) {
   const switcher = page.getByTestId('project-switcher');
   await switcher.getByRole('button', { expanded: false }).click();
   await switcher.getByRole('listitem').getByRole('button', { name: /Y tế xã \(demo\)/ }).click();
-  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Y tế xã (demo) ▾');
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveAccessibleName('Y tế xã (demo)');
 }
 
 test('Thành viên: 5xx khi tải báo lỗi kèm Thử lại; 5xx khi thêm báo dưới form', async ({ page }) => {
@@ -25,11 +25,12 @@ test('Thành viên: 5xx khi tải báo lỗi kèm Thử lại; 5xx khi thêm bá
   await page.route('**/api/projects/*/members', (route) => route.fulfill(fail500));
   await page.getByRole('link', { name: 'Thành viên' }).click();
   const alert = page.getByRole('alert');
-  await expect(alert).toContainText('Máy chủ đang lỗi, thử lại sau');
+  // Vùng alert chỉ có câu lỗi; [Thử lại] nằm riêng bên ngoài (TV1-12 b2)
+  await expect(alert).toHaveText('Máy chủ đang lỗi, thử lại sau');
   await expect(page.getByText('Đang tải…')).toHaveCount(0);
 
   await page.unroute('**/api/projects/*/members');
-  await alert.getByRole('button', { name: 'Thử lại' }).click();
+  await page.getByRole('button', { name: 'Thử lại' }).click();
   await expect(page.getByTestId('member-chu')).toBeVisible();
 
   await page.route('**/api/projects/*/members', (route) =>
@@ -45,6 +46,8 @@ test('Tổ chức: 5xx khi tải báo lỗi, không để trang trống không l
   await page.route('**/api/directory', (route) => route.fulfill(fail500));
   await page.goto('/#/orgs');
   await expect(page.getByTestId('orgs').getByRole('alert')).toHaveText(SERVER_ERROR);
+  // Chưa tải được danh sách thì ẩn cả khối, câu lỗi đã nói lý do (TV1-12 b2)
+  await expect(page.getByRole('heading', { name: 'Tổ chức công khai' })).toHaveCount(0);
 });
 
 test('Builder: 5xx khi lưu báo lỗi, giữ nguyên phần đang sửa', async ({ page }) => {
@@ -66,6 +69,7 @@ test('Xuất: 5xx báo "Máy chủ đang lỗi", không hiện mã HTTP', async 
   await openYteAsOwner(page);
   await page.route('**/api/projects/*/export/**', (route) => route.fulfill(fail500));
   const row = page.getByRole('listitem').filter({ hasText: 'Khảo sát hộ gia đình' });
+  await row.getByRole('button', { name: 'Xuất', exact: true }).click();
   await row.getByRole('button', { name: 'Xuất CSV' }).click();
   await expect(row.getByRole('alert')).toHaveText(SERVER_ERROR);
 });
@@ -78,6 +82,7 @@ test('Xuất: mã lỗi màn hình không xử lý (404 form vừa bị xoá) b�
     route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'not_found' }) }),
   );
   const row = page.getByRole('listitem').filter({ hasText: 'Khảo sát hộ gia đình' });
+  await row.getByRole('button', { name: 'Xuất', exact: true }).click();
   await row.getByRole('button', { name: 'Xuất JSON' }).click();
   await expect(row.getByRole('alert')).toHaveText(SERVER_ERROR);
 });
@@ -114,6 +119,38 @@ test('401: phiên bị huỷ trên server → về Đăng nhập, báo hết phi
   expect(after.map((r) => r.key)).not.toContain('sessionExpired');
 });
 
+test('Hết phiên rồi mất mạng: chỉ một dải "Cần kết nối mạng", có mạng lại thì báo hết phiên lại', async ({
+  page,
+  context,
+  request,
+}) => {
+  await login(page, 'minh');
+  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  const rows = (await readStore(page, 'field-survey-account', 'account')) as { key: string; value: unknown }[];
+  const token = rows.find((r) => r.key === 'token')?.value;
+  expect(typeof token).toBe('string');
+  const res = await request.post('http://localhost:3001/api/auth/logout', {
+    headers: { Authorization: `Bearer ${String(token)}` },
+  });
+  expect(res.status()).toBe(204);
+  await page.getByRole('button', { name: 'Đồng bộ' }).click();
+
+  // Có mạng, chưa có lỗi nào: dải hết phiên hiện, không có dải mất mạng
+  const expired = page.getByTestId('session-expired');
+  const offline = page.getByRole('alert').filter({ hasText: 'Cần kết nối mạng' });
+  await expect(expired).toBeVisible({ timeout: 10_000 });
+  await expect(offline).toHaveCount(0);
+
+  // Mất mạng (góp ý #75): không hiện cùng lúc hai dải vàng
+  await context.setOffline(true);
+  await expect(offline).toHaveText('⚠ Cần kết nối mạng');
+  await expect(expired).toHaveCount(0);
+
+  await context.setOffline(false);
+  await expect(expired).toHaveText('⚠ Phiên đăng nhập hết hạn, đăng nhập lại');
+  await expect(offline).toHaveCount(0);
+});
+
 // Nút đang gửi (TV1-12 b1, ui.md "Các trạng thái dùng chung"): giữ request lại để thấy trạng thái giữa
 // chừng. Chữ trên nút không đổi (E2E và trình đọc màn hình tìm nút theo tên), chỉ thêm chữ phụ cạnh nút.
 
@@ -136,6 +173,8 @@ async function expectBusy(button: Locator, note: Locator, text: string) {
   await expect(note).toHaveText(text);
   await expect(button).toBeDisabled();
   await expect(button).toHaveAttribute('aria-busy', 'true');
+  // Trên màn hình nút đã có vòng xoay, chữ phụ chỉ để trình đọc màn hình đọc (ui.md "Đang gửi", TV1-12 b2)
+  expect(await note.evaluate((el) => el.getBoundingClientRect().width)).toBeLessThanOrEqual(1);
 }
 
 test('đang gửi: Tiếp tục (đăng nhập) hiện "Đang đăng nhập…", tên nút giữ nguyên', async ({ page }) => {
@@ -167,11 +206,12 @@ test('đang gửi: Thêm thành viên, Lưu bản mới, Xuất hiện chữ ph�
 
   const row = page.getByRole('listitem').filter({ hasText: 'Khảo sát hộ gia đình' });
   const releaseExport = await hold(page, '**/api/projects/*/export/**', { reply: true });
+  await row.getByRole('button', { name: 'Xuất', exact: true }).click();
   await row.getByRole('button', { name: 'Xuất CSV' }).click();
-  await expectBusy(row.getByRole('button', { name: 'Xuất CSV' }), row.getByTestId('busy-note'), 'Đang xuất…');
-  // Mỗi lần một file: nút còn lại khoá nhưng không báo là đang chạy
-  await expect(row.getByRole('button', { name: 'Xuất JSON' })).toBeDisabled();
-  await expect(row.getByRole('button', { name: 'Xuất JSON' })).toHaveAttribute('aria-busy', 'false');
+  // Chọn xong thì hai lựa chọn đóng lại, vòng xoay nằm ở nút [Xuất ▾] (TV1-12 b2)
+  await expectBusy(row.getByRole('button', { name: 'Xuất', exact: true }), row.getByTestId('busy-note'), 'Đang xuất…');
+  // Mỗi lần một file: đang xuất thì không mở lại được hai lựa chọn
+  await expect(row.getByRole('button', { name: 'Xuất JSON' })).toHaveCount(0);
   releaseExport();
   await expect(row.getByTestId('busy-note')).toHaveCount(0);
 
