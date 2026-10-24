@@ -218,3 +218,27 @@ test('danh bạ chỉ có tên tổ chức công khai mình chưa thuộc; kiể
   await page.getByRole('link', { name: '← Về danh sách phiếu' }).click();
   await expect(page.getByTestId('orgs')).toHaveCount(0);
 });
+
+// TV1-12 b2: chưa tải được danh sách công khai thì ẩn cả khối; yêu cầu hai dòng, bỏ " · "
+test('mở Tổ chức lúc ngoại tuyến: báo cần mạng, không có khối "Tổ chức công khai"', async ({ page, context }) => {
+  await login(page, 'lan');
+  await context.setOffline(true);
+  const switcher = page.getByTestId('project-switcher');
+  await switcher.getByRole('button', { expanded: false }).click();
+  await switcher.getByRole('button', { name: 'Tổ chức khác…' }).click();
+  await expect(page.getByTestId('orgs').getByRole('alert')).toHaveText('⚠ Cần kết nối mạng để dùng chức năng này');
+  await expect(page.getByRole('heading', { name: 'Tổ chức công khai' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Gửi yêu cầu' })).toBeDisabled();
+});
+
+test('dòng yêu cầu: tên và trạng thái hai dòng, không còn dấu " · "', async ({ page }) => {
+  await openOrgs(page, 'lan');
+  const name = `HTX hai dòng ${suffix()}`;
+  await sendRequest(page, name);
+  const r = requestRow(page, name);
+  await expect(r.getByTestId('org-request-status')).toHaveText('Đang chờ duyệt');
+  await expect(r).not.toContainText('·');
+  // Dọn: huỷ để tài khoản demo không giữ yêu cầu chờ
+  await r.getByRole('button', { name: 'Huỷ' }).click();
+  await expect(r.getByTestId('org-request-status')).toHaveText('Đã huỷ');
+});

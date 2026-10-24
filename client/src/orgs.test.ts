@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ProjectRequest } from '@field-survey/shared';
-import { orgRequestBody, requestStatusText, sortRequests } from './orgs';
+import { orgRequestBody, requestStatusKind, requestStatusText, sortRequests } from './orgs';
 
 const req = (over: Partial<ProjectRequest>): ProjectRequest => ({
   id: 'r1',
@@ -43,5 +43,14 @@ describe('sortRequests', () => {
     const list = [req({ id: 'a', createdAt: '2026-10-18T00:00:00.000Z' }), req({ id: 'b' })];
     expect(sortRequests(list).map((r) => r.id)).toEqual(['b', 'a']);
     expect(list.map((r) => r.id)).toEqual(['a', 'b']);
+  });
+});
+
+describe('requestStatusKind', () => {
+  it('chờ duyệt, đã duyệt, bị từ chối, đã huỷ dùng kiểu nhãn trạng thái phiếu tương ứng', () => {
+    expect(requestStatusKind('pending')).toEqual({ className: 'st-pending', icon: 'pending' });
+    expect(requestStatusKind('approved')).toEqual({ className: 'st-synced', icon: 'synced' });
+    expect(requestStatusKind('rejected')).toEqual({ className: 'st-error', icon: 'alert' });
+    expect(requestStatusKind('cancelled')).toEqual({ className: 'st-cancel', icon: 'cancel' });
   });
 });

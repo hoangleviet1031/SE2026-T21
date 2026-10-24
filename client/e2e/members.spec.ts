@@ -156,3 +156,16 @@ test('offline: báo cần kết nối, có mạng lại thì Thử lại đượ
   await page.getByRole('button', { name: 'Thử lại' }).click();
   await expect(row(page, 'chu')).toBeVisible({ timeout: 10_000 });
 });
+
+// Đổi 5 (TV1-12 b2): tên và vai trò hai dòng, bỏ " · "; tên đọc ra của thao tác giữ nguyên
+test('dòng thành viên: tên và vai trò hai dòng, không còn dấu " · "; Rút đủ cao để bấm', async ({ page, request }) => {
+  await setMembership(request, project, 'u_minh', 'surveyor');
+  await openMembers(page, 'chu');
+  const minh = row(page, 'minh');
+  await expect(minh).toContainText('(minh)');
+  await expect(minh).toContainText('Điều tra viên');
+  await expect(minh).not.toContainText('·');
+  await expect(minh.getByRole('combobox', { name: 'Đổi vai trò minh' })).toBeVisible();
+  const box = await minh.getByRole('button', { name: 'Rút minh' }).boundingBox();
+  expect(box?.height).toBeGreaterThanOrEqual(44);
+});
