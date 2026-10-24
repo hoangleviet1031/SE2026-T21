@@ -8,6 +8,7 @@ import {
   fromForm,
   fromImport,
   moveField,
+  moveFieldTo,
   parseOptions,
   removeField,
   setFormId,
@@ -157,5 +158,23 @@ describe('fromImport', () => {
     expect(updateField(s, 0, { id: 'hoTen' }).fields[0]?.id).toBe('hoTen');
     expect(removeField(s, 0).fields).toHaveLength(1);
     expect(toSaveRequest(s)).toEqual({ id: saved.id, title: saved.title, fields: saved.fields });
+  });
+});
+
+describe('moveFieldTo', () => {
+  const ids = (s: ReturnType<typeof fromForm>) => s.fields.map((f) => f.id);
+  const three = fromForm({ ...saved, fields: [...saved.fields, { id: 'note', type: 'text', label: 'Ghi chú' }] });
+
+  it('from = to hoặc chỉ số ngoài mảng thì giữ nguyên state', () => {
+    expect(moveFieldTo(three, 1, 1)).toBe(three);
+    expect(moveFieldTo(three, -1, 0)).toBe(three);
+    expect(moveFieldTo(three, 0, 3)).toBe(three);
+    expect(moveFieldTo(three, 3, 0)).toBe(three);
+  });
+
+  it('đầu xuống cuối và cuối lên đầu, các trường giữa dồn lại', () => {
+    expect(ids(three)).toEqual(['name', 'water', 'note']);
+    expect(ids(moveFieldTo(three, 0, 2))).toEqual(['water', 'note', 'name']);
+    expect(ids(moveFieldTo(three, 2, 0))).toEqual(['note', 'name', 'water']);
   });
 });

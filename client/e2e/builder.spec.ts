@@ -230,3 +230,115 @@ test('Xem trước: bật thì có dải báo đang xem trước và khung trong
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(preview).toHaveCount(0);
 });
+
+// Kéo thả bằng tay nắm ⠿ (TV1-12 b2 p8, ui.md màn hình 5 khung 5f). Chuột trong Playwright sinh Pointer Events
+// giống ngón tay; vuốt cuộn trang bằng ngón tay không giả được ở đây nên chỉ kiểm touch-action của tay nắm.
+
+const fieldRows = (page: Page) => page.getByTestId('builder-fields').getByRole('listitem');
+
+async function center(page: Page, locator: ReturnType<Page['getByTestId']>) {
+  const box = await locator.boundingBox();
+  expect(box).not.toBeNull();
+  return { x: (box?.x ?? 0) + (box?.width ?? 0) / 2, y: (box?.y ?? 0) + (box?.height ?? 0) / 2 };
+}
+
+/** Bấm giữ tay nắm của dòng `index` rồi kéo tới toạ độ y, chưa thả */
+async function startDrag(page: Page, index: number, toY: number) {
+  const from = await center(page, fieldRows(page).nth(index).getByTestId('field-grip'));
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(from.x, toY, { steps: 8 });
+}
+
+async function newFormWith(page: Page, labels: string[]) {
+  await login(page, 'lan');
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  for (const label of labels) await addField(page, 'Chữ', label);
+}
+
+test('kéo thả: dòng 3 lên đầu và thành dòng đang chọn; kéo ở chữ hoặc bấm tay nắm không đổi gì', async ({ page }) => {
+  await newFormWith(page, ['Một', 'Hai', 'Ba']);
+  const rows = fieldRows(page);
+  const grip = rows.first().getByTestId('field-grip');
+  await expect(grip).toHaveAttribute('aria-hidden', 'true');
+  await expect(grip).toHaveCSS('touch-action', 'none');
+  // Chỉ tay nắm chặn cử chỉ cuộn, cả dòng thì không
+  await expect(rows.first()).toHaveCSS('touch-action', 'auto');
+  const gripBox = await grip.boundingBox();
+  expect(gripBox?.width).toBeGreaterThanOrEqual(44);
+  expect(gripBox?.height).toBeGreaterThanOrEqual(44);
+
+  const top = await center(page, rows.first().getByTestId('field-grip'));
+  await startDrag(page, 2, top.y - 10);
+  await expect(page.getByTestId('builder-drop-slot')).toBeVisible();
+  await page.mouse.up();
+  await expect(page.getByTestId('builder-drop-slot')).toHaveCount(0);
+  await expect(rows.nth(0)).toContainText('Ba');
+  await expect(rows.nth(1)).toContainText('Một');
+  await expect(rows.nth(2)).toContainText('Hai');
+  await expect(rows.nth(0).getByRole('button', { name: /^Ba/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('field-editor').getByLabel('Nhãn')).toHaveValue('Ba');
+
+  // Kéo từ phần chữ của dòng: không phải tay nắm nên không đổi thứ tự
+  const name = await center(page, rows.nth(0).getByRole('button', { name: /^Ba/ }));
+  const last = await center(page, rows.nth(2).getByRole('button', { name: /^Hai/ }));
+  await page.mouse.move(name.x, name.y);
+  await page.mouse.down();
+  await page.mouse.move(name.x, last.y + 20, { steps: 8 });
+  await expect(page.getByTestId('builder-drop-slot')).toHaveCount(0);
+  await page.mouse.up();
+  await expect(rows.nth(0)).toContainText('Ba');
+
+  // Bấm tay nắm rồi thả tại chỗ: không đổi thứ tự, không đổi dòng đang chọn (Dương chốt p8 Q1)
+  await rows.nth(1).getByTestId('field-grip').click();
+  await expect(rows.nth(1)).toContainText('Một');
+  await expect(page.getByTestId('field-editor').getByLabel('Nhãn')).toHaveValue('Ba');
+});
+
+test('kéo thả bị huỷ (pointercancel, Esc): không đổi thứ tự, các dòng về chỗ cũ, hết ô kẻ sọc', async ({ page }) => {
+  await newFormWith(page, ['Một', 'Hai', 'Ba']);
+  const rows = fieldRows(page);
+  const top = await center(page, rows.first().getByTestId('field-grip'));
+
+  // Hệ điều hành giành cử chỉ giữa chừng. Chromium đặt pointerId của chuột là 1
+  await startDrag(page, 2, top.y - 10);
+  await expect(page.getByTestId('builder-drop-slot')).toBeVisible();
+  await rows.nth(2).getByTestId('field-grip').dispatchEvent('pointercancel', { pointerId: 1, bubbles: true });
+  await expect(page.getByTestId('builder-drop-slot')).toHaveCount(0);
+  await page.mouse.up();
+  await expect(rows.nth(0)).toContainText('Một');
+  await expect(rows.nth(2)).toContainText('Ba');
+  for (const i of [0, 1, 2]) await expect(rows.nth(i)).not.toHaveAttribute('style', /translate/);
+
+  await startDrag(page, 2, top.y - 10);
+  await expect(page.getByTestId('builder-drop-slot')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('builder-drop-slot')).toHaveCount(0);
+  await page.mouse.up();
+  await expect(rows.nth(0)).toContainText('Một');
+  await expect(rows.nth(2)).toContainText('Ba');
+  for (const i of [0, 1, 2]) await expect(rows.nth(i)).not.toHaveAttribute('style', /translate/);
+});
+
+test('màn 360 px, form dài: giữ dòng gần hàng nút dính đáy thì trang tự cuộn, thả thì dừng', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  const labels = Array.from({ length: 12 }, (_, i) => `Trường ${i + 1}`);
+  await newFormWith(page, labels);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const rows = fieldRows(page);
+  await rows.first().scrollIntoViewIfNeeded();
+  const startScroll = await page.evaluate(() => window.scrollY);
+  const bar = await page.getByTestId('builder-actions').boundingBox();
+  expect(bar).not.toBeNull();
+
+  await startDrag(page, 0, (bar?.y ?? 0) - 20);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(startScroll + 50);
+  await page.mouse.up();
+  const stopped = await page.evaluate(() => window.scrollY);
+  await expect(rows.nth(0)).not.toContainText('Trường 1 ');
+  await expect(rows.nth(0)).toContainText('Trường 2');
+  // Thả tay rồi thì trang không tự cuộn tiếp
+  await page.mouse.move(10, (bar?.y ?? 0) - 20);
+  await expect(page.getByRole('button', { name: /^Trường 1 / })).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.evaluate(() => window.scrollY)).toBe(stopped);
+});
