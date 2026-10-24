@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.3 (2026-10-23)
+- **Phiên bản:** 0.4 (2026-10-24)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -42,6 +42,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** phiếu có 2 ảnh lưu khi offline, **when** có mạng, **then** cả 2 ảnh lên server với SHA-256 khớp, và nhãn hiện "Đang tải ảnh (2)" trước khi thành "Đã đồng bộ".
 - **Given** đang tải một ảnh thì mất mạng, **when** có mạng lại, **then** chỉ gửi phần còn thiếu, mỗi phần chỉ ghi một lần.
 - **Given** ảnh chụp 4–6 MB, **when** lưu vào phiếu, **then** ảnh sau nén ≤ 600 KB (trừ ảnh quá nhiều chi tiết, vẫn được lưu).
+- **Given** đang offline, **when** bấm "Lấy vị trí" rồi Lưu, **then** phiếu có toạ độ; có mạng thì server nhận đúng toạ độ đó.
 - **Given** chưa cho phép quyền vị trí (hoặc máy không lấy được vị trí trong 30 s), **when** bấm "Lấy vị trí", **then** thấy câu hướng dẫn (design §8) và giá trị trường không đổi.
 
 ### US-04 · Đồng bộ không trùng khi mạng hoặc server lỗi · Must
@@ -138,7 +139,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
 | US-03 | Ảnh sau nén ≤ 600 KB | `photo.spec.ts`; unit `fitWithin` (`client/src/media/compress.test.ts`) | TV3-03 (#31) |
-| US-03 | Lấy GPS khi offline | Unit luật `gps` trong `recordValidation.test.ts`. **Chưa có E2E bấm lấy GPS** | TV1-05; E2E: TV3-14 |
+| US-03 | Lấy GPS khi offline | `gps-offline.spec.ts`; unit luật `gps` trong `recordValidation.test.ts` | TV1-05; TV3-14 |
 | US-03 | Không lấy được vị trí → câu hướng dẫn | `gps-errors.spec.ts`; unit `client/src/gps.test.ts` | TV1-12 (#69, b2 p1 #70) |
 | US-04 | 500 hai lần → một bản ghi | R1 `offline.spec.ts` | TV2-09 (#16) |
 | US-04 | Cắt kết nối sau khi ghi → replay | R3 `server/test/idempotency.test.ts`, `retry.spec.ts`; R2 timeout `retry.spec.ts`; R6 `records.test.ts` | TV2-08 (#15) |
@@ -152,7 +153,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-06 | Xoá phiếu đã đồng bộ → tombstone | O8 `delete.spec.ts` | TV2-13 (#35) |
 | US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts`; unit `autoMergedNote` (`client/src/conflictView.test.ts`) | TV3-08 (#47); bỏ câu "đã được gộp" TV1-12 (b2 p3) |
 | US-06 | Điều tra viên không xoá phiếu người khác | `record-owner.spec.ts` | TV1-17 (#44, #45) |
-| US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8); unit `moveFieldTo`, `selectionAfterMove` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`. **Chưa có E2E "điều tra viên thấy form sau vòng đồng bộ"** (builder.spec kiểm ở chính máy giám sát viên) | TV1-03 (#19), TV1-04 (#24); E2E: TV3-14 |
+| US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8); unit `moveFieldTo`, `selectionAfterMove` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`; điều tra viên thấy form sau vòng đồng bộ ở máy khác: `form-sync.spec.ts` | TV1-03 (#19), TV1-04 (#24); TV3-14 |
 | US-07 | Sửa form lên version mới, phiếu cũ mở bằng version cũ | `builder.spec.ts`, `form-version.spec.ts` | TV1-04 (#24), TV1-10 (#32) |
 | US-07 | Đổi `type`/bỏ trường → `400 invalid_form` | `server/test/forms.test.ts`; unit `formValidation.test.ts` | TV1-03 (#19) |
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |
@@ -186,3 +187,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.1 | 2026-10-22 | Bản đầu: 12 story viết lại từ spec và code đã có, kèm bảng truy vết (Lecture 03) |
 | 0.2 | 2026-10-22 | TV1-12 a2: US-10 thêm tiêu chí hết phiên (`401`); US-11 thêm tài khoản bị khoá vào tiêu chí `404` và tiêu chí máy chủ lỗi |
 | 0.3 | 2026-10-23 | TV1-12 b1: US-03 thêm tiêu chí không lấy được vị trí |
+| 0.4 | 2026-10-24 | TV3-14: US-03 thêm tiêu chí lấy vị trí khi offline (câu story có ý này, bảng truy vết có dòng nhưng chưa có tiêu chí); E2E `gps-offline.spec.ts` (US-03) và `form-sync.spec.ts` (US-07) thay hai chỗ "Chưa có E2E…" |
