@@ -205,7 +205,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-m
 
 ## TV3-13 · Sao lưu hằng ngày, `UPLOAD_DIR` ngoài repo
 
-- **Trạng thái:** ⏳ chờ PR (script, test, `deploy.md`); N2 trả khi Dương bật trên staging (TV1-19)
+- **Trạng thái:** ✅ PR #66 (N2 trả khi Dương bật trên staging, TV1-19 phần 3, PR #67)
 - **Mức:** Must
 - **Tuần:** 4 · **Phụ thuộc:** không · **Làm cùng:** TV1-19 (Dương bật trên staging)
 - **Spec:** [deploy.md](../deploy.md) "Việc chưa làm"; design §12; [tech-debt](../tech-debt.md) N2
@@ -222,7 +222,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-m
 
 ## TV3-14 · E2E lấy GPS, điều tra viên thấy form sau đồng bộ
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ chờ PR
 - **Mức:** Must
 - **Tuần:** 4–5 · **Phụ thuộc:** không
 - **Spec:** [requirements.md](../requirements.md) US-03, US-07; design §4.1, §5.3

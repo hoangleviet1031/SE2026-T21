@@ -1,6 +1,6 @@
 # Báo cáo kiểm thử
 
-- **Phiên bản:** 0.2 (2026-10-22)
+- **Phiên bản:** 0.3 (2026-10-24)
 - **Người viết:** Đại (TV3, Quality owner), ticket [TV3-11](plan/tv3-conflict-media-test.md)
 - **Bản được kiểm:** `main` ở commit `5db0c36` (sau PR #64)
 - **Liên quan:** ma trận ca ở [design.md §10.1](design.md#101-ma-trận-e2e-bắt-buộc), ca cách ly ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng), chỉ tiêu ở [§11.2](design.md#112-chỉ-tiêu), story ở [requirements.md](requirements.md), nợ ở [tech-debt.md](tech-debt.md)
@@ -17,7 +17,7 @@ File này trả lời: hệ thống đã được kiểm chứng tới đâu, b�
 | Kịch bản chất lượng §11.4 | QS1, QS2, QS3, QS5 đạt; QS4 ⏳ TV2-11 |
 | Chỉ tiêu hiệu năng §11.2 | 2/10 có số đo (ảnh ≤ 600 KB, đổi dự án ≤ 1 s); còn lại ⏳ TV2-11 |
 | Điện thoại thật | ⏳ chưa thử (§7) |
-| User story | 12/12 story có test; 2 tiêu chí còn thiếu E2E, đã giao TV3-14 (§4) |
+| User story | 12/12 story có test; mọi tiêu chí có test (§4) |
 
 ## 2. Phương pháp
 
@@ -155,7 +155,7 @@ Mọi ca dưới đây **đạt** trên `main` ở commit `5db0c36` (`npm test`,
 
 ### 3.7 Ngoài ma trận
 
-E2E còn kiểm các luồng không có mã ca: trình duyệt thiếu API và xin giữ bộ nhớ (`browser-support.spec.ts`), builder và phiên bản form (`builder.spec.ts`, `form-version.spec.ts`, `form-import-export.spec.ts`), trang điền phiếu (`fill.spec.ts`), ảnh và nén (`photo.spec.ts`), tách CSDL theo dự án trên máy (`storage.spec.ts`), cập nhật bản mới của app (`update.spec.ts`), trang Cài đặt và Đăng xuất (`settings.spec.ts`), điều tra viên không xoá được phiếu người khác (`record-owner.spec.ts`), xuất CSV/JSON (`export.spec.ts`), báo lỗi máy chủ ở trang cần online và báo hết phiên khi `401` (`api-errors.spec.ts`).
+E2E còn kiểm các luồng không có mã ca: trình duyệt thiếu API và xin giữ bộ nhớ (`browser-support.spec.ts`), builder và phiên bản form (`builder.spec.ts`, `form-version.spec.ts`, `form-import-export.spec.ts`), trang điền phiếu (`fill.spec.ts`), ảnh và nén (`photo.spec.ts`), tách CSDL theo dự án trên máy (`storage.spec.ts`), cập nhật bản mới của app (`update.spec.ts`), trang Cài đặt và Đăng xuất (`settings.spec.ts`), điều tra viên không xoá được phiếu người khác (`record-owner.spec.ts`), xuất CSV/JSON (`export.spec.ts`), báo lỗi máy chủ ở trang cần online và báo hết phiên khi `401` (`api-errors.spec.ts`), lấy vị trí khi offline rồi đồng bộ (`gps-offline.spec.ts`), điều tra viên thấy form giám sát viên vừa tạo sau khi bấm Đồng bộ ở máy khác (`form-sync.spec.ts`).
 
 ## 4. Truy vết user story
 
@@ -165,11 +165,11 @@ Bảng đầy đủ tiêu chí → test → PR ở [requirements.md "Truy vết"
 |---|---|---|---|---|
 | US-01 Nhập phiếu offline | K1 | O1, O2, O4 | 3/3 | |
 | US-02 Lưu nháp | K1 | O5 | 2/2 | |
-| US-03 Ảnh lên đủ | K1 | O3, R4, ảnh ≤ 600 KB | 3/4 | **Chưa có E2E bấm lấy GPS** (chỉ unit luật `gps`); giao TV3-14, trong lúc chờ bù bằng thử trên điện thoại thật (§7, P4) |
+| US-03 Ảnh lên đủ | K1 | O3, R4, ảnh ≤ 600 KB, `gps-offline.spec.ts`, `gps-errors.spec.ts` | 5/5 | GPS thật trên điện thoại chỉ kiểm bằng tay (§7, P4); E2E giả vị trí bằng `setGeolocation` |
 | US-04 Không trùng khi lỗi | K1 | R1–R6, O6 | 4/4 | |
 | US-05 Hai nơi cùng sửa | K2 | C1–C3, C6–C8 | 4/4 | |
 | US-06 Xoá an toàn | K1, K2 | O7, O8, C4, C5 | 4/4 | |
-| US-07 Tạo, sửa form | K3 | A3, A5 | 3/4 | **Chưa có E2E "điều tra viên thấy form sau vòng đồng bộ"** (`builder.spec.ts` chỉ kiểm trên máy giám sát viên); giao TV3-14 |
+| US-07 Tạo, sửa form | K3 | A3, A5, `form-sync.spec.ts` | 4/4 | |
 | US-08 Xuất dữ liệu | K3 | A3, export | 3/3 | |
 | US-09 Nhiều tổ chức | K4 | T1–T10 | 3/3 | |
 | US-10 Tài khoản, mở tổ chức | K4 | U1–U7, Q1, Q2, Q8, `api-errors.spec.ts` (hết phiên) | 5/5 | |
@@ -283,8 +283,6 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 | Safari iOS, Firefox | E2E chỉ chạy Chromium (design §11.1: Firefox, Safari macOS best-effort) | Thử tay P1–P13 trên iPhone (§7) |
 | Camera, GPS thật | Trình duyệt headless không có; E2E dùng file ảnh tạo sẵn | P4, P5 |
 | Nhiều người dùng cùng lúc, tải cao | Ngoài phạm vi đồ án; server SQLite một tiến trình | Pull 5.000 phiếu ở TV2-11 |
-| Điều tra viên thấy form mới sau vòng đồng bộ | Chưa viết E2E hai vai (§4, US-07); giao TV3-14 | A5 integration và đồng bộ form trong các E2E khác |
-| Lấy GPS trong E2E | Chưa viết (§4, US-03); giao TV3-14 | Unit luật `gps`, P4 |
 | Khả năng tiếp cận (tương phản, cỡ nút) | Chưa có công cụ kiểm trong E2E (N8, TV3-15) | E2E chọn ô theo nhãn nên các ô có E2E đều có nhãn; P13 |
 | Quay lại bản trước trên staging | Làm tay theo `deploy.md`, không tự động được trong CI | Diễn tập nhánh 2a ngày 2026-10-22 (QS5); nhánh 2b (khôi phục CSDL) chưa diễn tập |
 
@@ -292,7 +290,7 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 
 - [ ] Điền §6 từ `docs/perf.md` khi TV2-11 xong (Hoàng đo, Đại điền).
 - [ ] Thử P1–P13 trên điện thoại thật, điền §7 (Đại, cần staging bản cuối).
-- [ ] Đưa ca của TV3-14 (GPS, điều tra viên thấy form) vào §3, §4 khi ticket đó xong.
+- [x] Đưa ca của TV3-14 (GPS, điều tra viên thấy form) vào §3, §4 khi ticket đó xong (bản 0.3).
 - [ ] Sau đóng băng tính năng: chạy lại toàn bộ test trên commit cuối, cập nhật số ở §1, §3, §5.
 - [ ] Cập nhật §8 theo tech-debt và lỗi tìm được khi thử tay.
 
@@ -302,3 +300,4 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 |---|---|---|
 | 0.1 | 2026-10-22 | Bản nháp: phương pháp, ma trận 64 ca với bằng chứng, truy vết story, số liệu CI, khung hiệu năng và kịch bản thử trên điện thoại thật |
 | 0.2 | 2026-10-22 | Chạy lại trên `5db0c36` (sau PR #64): số test, số CI; thêm `api-errors.spec.ts` (US-10, US-11 thêm tiêu chí); QS5 đạt theo diễn tập TV1-19; N3, N5, N7 đã trả; nợ và phần chưa kiểm trỏ tới ticket mới (TV2-18, TV2-19, TV3-13..15). §6, §7 vẫn chờ |
+| 0.3 | 2026-10-24 | TV3-14: thêm `gps-offline.spec.ts` (US-03) và `form-sync.spec.ts` (US-07) vào §3.7, §4, bỏ hai dòng ở §8.2; US-03 thêm tiêu chí lấy vị trí khi offline (requirements 0.4) và tính cả tiêu chí lỗi GPS của TV1-12 b1. Số test ở §1, §5 vẫn là của `5db0c36`, chạy lại trước đóng băng |
