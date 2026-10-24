@@ -42,11 +42,20 @@ export function MembersPage() {
   const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
 
   if (project === undefined || user === undefined) return null;
-  if (!project || !user || !canManageProject(project.role)) {
-    return <p>Chỉ giám sát viên và Owner xem được trang này.</p>;
-  }
-  // key theo dự án: đổi dự án thì nạp lại từ đầu, không lẫn danh sách của dự án trước
-  return <Members key={project.id} project={project} myUserId={user.id} />;
+  return (
+    <section className="members">
+      {/* Đầu trang như Builder, Cài đặt; có cả khi không đủ quyền để không thành ngõ cụt (ui.md màn hình 6) */}
+      <a href="#/" className="back">
+        ← Quay lại
+      </a>
+      {!project || !user || !canManageProject(project.role) ? (
+        <p>Chỉ giám sát viên và Owner xem được trang này.</p>
+      ) : (
+        // key theo dự án: đổi dự án thì nạp lại từ đầu, không lẫn danh sách của dự án trước
+        <Members key={project.id} project={project} myUserId={user.id} />
+      )}
+    </section>
+  );
 }
 
 function Members({ project, myUserId }: { project: AccountProject; myUserId: string }) {
@@ -124,7 +133,7 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
   };
 
   return (
-    <section className="members">
+    <>
       <h2>Thành viên · {project.name}</h2>
       {pending && (
         <ConfirmDialog
@@ -142,7 +151,7 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
         // Vùng alert chỉ có câu lỗi, [Thử lại] nằm ngoài để trình đọc màn hình không đọc lẫn vào câu
         <div className="load-err">
           <p className="field-error" role="alert">
-            {loadError}
+            ⚠ {loadError}
           </p>
           <button onClick={() => void load()}>Thử lại</button>
         </div>
@@ -159,7 +168,7 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
             />
             {error && (
               <p className="field-error" role="alert" data-testid="member-error">
-                {error}
+                ⚠ {error}
               </p>
             )}
           </div>
@@ -192,10 +201,7 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
           )}
         </>
       )}
-      <a className="back" href="#/">
-        ← Về danh sách phiếu
-      </a>
-    </section>
+    </>
   );
 }
 
@@ -273,6 +279,9 @@ function MemberRow({
   onRemove: () => void;
 }) {
   const actions = memberActions(myRole, member);
+  // Ô chọn chỉ ghi lại vai trò muốn đổi, bấm [Đổi] mới gửi: đổi ngay khi ô đổi giá trị thì người dùng bàn
+  // phím bấm mũi tên trên ô đang đóng là vai trò bị đổi luôn (audit C1, ui.md màn hình 6)
+  const [pick, setPick] = useState<Role | ''>('');
   return (
     <li className="mrow" data-testid={`member-${member.username}`}>
       <span className="av" aria-hidden="true">
@@ -288,22 +297,32 @@ function MemberRow({
       {(actions.changeTo.length > 0 || actions.canRemove) && (
         <span className="acts">
           {actions.changeTo.length > 0 && (
-            <select
-              aria-label={`Đổi vai trò ${member.username}`}
-              value=""
-              disabled={busy}
-              onChange={(e) => {
-                const role = actions.changeTo.find((r) => r === e.target.value);
-                if (role) onChangeRole(role);
-              }}
-            >
-              <option value="">Đổi vai trò…</option>
-              {actions.changeTo.map((r) => (
-                <option key={r} value={r}>
-                  {ROLE_LABEL[r]}
-                </option>
-              ))}
-            </select>
+            <>
+              <select
+                aria-label={`Vai trò mới của ${member.username}`}
+                value={pick}
+                disabled={busy}
+                onChange={(e) => setPick(actions.changeTo.find((r) => r === e.target.value) ?? '')}
+              >
+                <option value="">Đổi vai trò…</option>
+                {actions.changeTo.map((r) => (
+                  <option key={r} value={r}>
+                    {ROLE_LABEL[r]}
+                  </option>
+                ))}
+              </select>
+              <button
+                aria-label={`Đổi vai trò ${member.username}`}
+                disabled={busy || pick === ''}
+                onClick={() => {
+                  if (pick === '') return;
+                  setPick('');
+                  onChangeRole(pick);
+                }}
+              >
+                Đổi
+              </button>
+            </>
           )}
           {actions.canRemove && (
             <button className="danger-outline" aria-label={`Rút ${member.username}`} disabled={busy} onClick={onRemove}>
