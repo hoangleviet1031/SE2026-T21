@@ -71,3 +71,17 @@ test('offline: nút Xuất bị khoá, báo cần mạng', async ({ page, contex
   await expect(formRow(page).getByRole('button', { name: 'Xuất', exact: true })).toBeDisabled();
   await expect(formRow(page).getByTestId('export-offline')).toHaveText('Cần kết nối mạng để xuất');
 });
+
+test('đang mở [Xuất ▾] mà mất mạng: có mạng lại thì hai lựa chọn không tự hiện', async ({ page, context }) => {
+  await loginSupervisorYte(page);
+  const toggle = formRow(page).getByRole('button', { name: 'Xuất', exact: true });
+  await toggle.click();
+  await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toBeVisible();
+  await context.setOffline(true);
+  await expect(toggle).toBeDisabled();
+  await context.setOffline(false);
+  await expect(toggle).toBeEnabled();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(formRow(page).getByRole('button', { name: 'Xuất CSV' })).toHaveCount(0);
+  await expect(formRow(page).getByRole('button', { name: 'Xuất JSON' })).toHaveCount(0);
+});
