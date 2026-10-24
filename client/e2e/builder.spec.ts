@@ -334,11 +334,27 @@ test('màn 360 px, form dài: giữ dòng gần hàng nút dính đáy thì tran
   await startDrag(page, 0, (bar?.y ?? 0) - 20);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(startScroll + 50);
   await page.mouse.up();
-  const stopped = await page.evaluate(() => window.scrollY);
   await expect(rows.nth(0)).not.toContainText('Trường 1 ');
   await expect(rows.nth(0)).toContainText('Trường 2');
-  // Thả tay rồi thì trang không tự cuộn tiếp
-  await page.mouse.move(10, (bar?.y ?? 0) - 20);
   await expect(page.getByRole('button', { name: /^Trường 1 / })).toHaveAttribute('aria-pressed', 'true');
-  expect(await page.evaluate(() => window.scrollY)).toBe(stopped);
+  // Thả tay rồi thì trang không tự cuộn tiếp: vòng tự cuộn chạy theo khung hình, nên qua hai khung hình mà
+  // scrollY không đổi là vòng đã dừng
+  const twoFrames = () =>
+    page.evaluate(() => new Promise<number>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(window.scrollY)))));
+  const stopped = await twoFrames();
+  await page.mouse.move(10, (bar?.y ?? 0) - 20);
+  expect(await twoFrames()).toBe(stopped);
+});
+
+test('▲ ở dòng kề dòng đang chọn: ô Thuộc tính vẫn là trường đang chọn', async ({ page }) => {
+  await newFormWith(page, ['Một', 'Hai', 'Ba']);
+  const rows = fieldRows(page);
+  await rows.nth(1).getByRole('button', { name: /^Hai/ }).click();
+  await rows.nth(2).getByRole('button', { name: 'Lên' }).click();
+  await expect(rows.nth(1)).toContainText('Ba');
+  await expect(rows.nth(2)).toContainText('Hai');
+  await expect(page.getByTestId('field-editor').getByLabel('Nhãn')).toHaveValue('Hai');
+  await expect(rows.nth(2).getByRole('button', { name: /^Hai/ })).toHaveAttribute('aria-pressed', 'true');
+  // ▲ ở dòng đầu bị khoá, không có gì đổi
+  await expect(rows.nth(0).getByRole('button', { name: 'Lên' })).toBeDisabled();
 });

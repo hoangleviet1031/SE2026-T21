@@ -11,6 +11,7 @@ import {
   moveFieldTo,
   parseOptions,
   removeField,
+  selectionAfterMove,
   setFormId,
   setTitle,
   suggestId,
@@ -176,5 +177,30 @@ describe('moveFieldTo', () => {
     expect(ids(three)).toEqual(['name', 'water', 'note']);
     expect(ids(moveFieldTo(three, 0, 2))).toEqual(['water', 'note', 'name']);
     expect(ids(moveFieldTo(three, 2, 0))).toEqual(['note', 'name', 'water']);
+  });
+});
+
+describe('selectionAfterMove', () => {
+  it('chọn chính dòng di chuyển thì đi theo nó', () => {
+    expect(selectionAfterMove(2, 2, 1)).toBe(1);
+    expect(selectionAfterMove(0, 0, 4)).toBe(4);
+  });
+
+  it('dòng nằm giữa from và to dịch một bậc ngược chiều, kể cả khi chuyển xa', () => {
+    // ▲ ở dòng 2 khi đang chọn dòng 1: dòng 1 bị đẩy xuống 2
+    expect(selectionAfterMove(1, 2, 1)).toBe(2);
+    // Kéo dòng 0 xuống 4: dòng 1–4 dồn lên
+    expect([1, 2, 3, 4].map((s) => selectionAfterMove(s, 0, 4))).toEqual([0, 1, 2, 3]);
+    // Kéo dòng 4 lên 0: dòng 0–3 dồn xuống
+    expect([0, 1, 2, 3].map((s) => selectionAfterMove(s, 4, 0))).toEqual([1, 2, 3, 4]);
+  });
+
+  it('dòng ngoài khoảng giữ nguyên', () => {
+    expect(selectionAfterMove(0, 2, 3)).toBe(0);
+    expect(selectionAfterMove(4, 1, 2)).toBe(4);
+  });
+
+  it('không chọn gì thì vẫn không chọn gì', () => {
+    expect(selectionAfterMove(null, 0, 1)).toBeNull();
   });
 });

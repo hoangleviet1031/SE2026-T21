@@ -143,6 +143,18 @@ export function moveFieldTo(state: BuilderState, from: number, to: number): Buil
   return { ...state, fields };
 }
 
+/**
+ * Dòng đang chọn sau khi chuyển trường `from` → `to`: chọn chính dòng đó thì đi theo nó, dòng nằm giữa thì dịch
+ * một bậc ngược chiều, dòng ngoài khoảng giữ nguyên. Để ô Thuộc tính vẫn là trường người dùng đang sửa.
+ */
+export function selectionAfterMove(selected: number | null, from: number, to: number): number | null {
+  if (selected === null) return null;
+  if (selected === from) return to;
+  if (from < to && selected > from && selected <= to) return selected - 1;
+  if (to < from && selected >= to && selected < from) return selected + 1;
+  return selected;
+}
+
 /** Chỉ xoá được trường chưa lưu lần nào; trường đã lưu phải dùng "Ẩn". */
 export function removeField(state: BuilderState, index: number): BuilderState {
   if (state.fields[index]?.saved !== false) return state;
