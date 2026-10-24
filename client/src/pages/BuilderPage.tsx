@@ -183,7 +183,7 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
         <label className="field">
           <span>Mã biểu mẫu</span>
           {state.idLocked ? (
-            <span className="locked">
+            <span className="locked" data-testid="builder-form-id-locked">
               <code>{state.id}</code> <span>(khoá)</span>
             </span>
           ) : (

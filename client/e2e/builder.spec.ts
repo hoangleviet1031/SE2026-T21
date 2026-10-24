@@ -388,27 +388,27 @@ test('đổi thẳng địa chỉ giữa hai builder: hiện đúng form theo đ
   await expect(page.getByText('Form B')).toBeVisible();
   const go = (hash: string) => page.evaluate((h) => (location.hash = h), hash);
   const rows = page.getByTestId('builder-fields').getByRole('listitem');
-  const idBox = page.locator('label.field').filter({ hasText: 'Mã biểu mẫu' });
+  const lockedId = page.getByTestId('builder-form-id-locked');
 
   await go('#/builder/form-a');
   await expect(page.getByRole('heading', { name: 'Sửa form: Form A' })).toBeVisible();
   await go('#/builder/form-b');
   await expect(page.getByRole('heading', { name: 'Sửa form: Form B' })).toBeVisible();
   await expect(page.getByLabel('Tiêu đề')).toHaveValue('Form B');
-  await expect(idBox).toContainText('form-b');
+  await expect(lockedId).toContainText('form-b');
   await expect(rows).toHaveCount(1);
   await expect(rows.first()).toContainText('Trường của B');
 
   await go('#/builder/new');
   await expect(page.getByRole('heading', { name: 'Biểu mẫu mới' })).toBeVisible();
   await expect(page.getByLabel('Tiêu đề')).toHaveValue('');
-  await expect(idBox.locator('input')).toHaveValue('');
+  await expect(page.getByLabel('Mã biểu mẫu')).toHaveValue('');
   await expect(rows).toHaveCount(0);
 
   await go('#/builder/form-a');
   await expect(page.getByRole('heading', { name: 'Sửa form: Form A' })).toBeVisible();
   await expect(page.getByLabel('Tiêu đề')).toHaveValue('Form A');
-  await expect(idBox).toContainText('form-a');
+  await expect(lockedId).toContainText('form-a');
   await expect(rows.first()).toContainText('Trường của A');
 
   // A → new rồi tạo form mới: server có form mới, form A không thêm version
