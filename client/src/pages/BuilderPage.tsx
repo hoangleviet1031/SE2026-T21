@@ -12,6 +12,7 @@ import {
   moveField,
   moveFieldTo,
   removeField,
+  selectionAfterMove,
   setFormId,
   setTitle,
   toSaveRequest,
@@ -112,7 +113,8 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const move = (index: number, delta: -1 | 1) => {
     const next = moveField(state, index, delta);
     setState(next);
-    if (next !== state && selected === index) setSelected(index + delta);
+    // ▲ dòng đầu, ▼ dòng cuối: không có gì đổi thì dòng chọn cũng giữ nguyên
+    if (next !== state) setSelected(selectionAfterMove(selected, index, index + delta));
   };
 
   const save = async () => {
