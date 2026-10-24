@@ -262,7 +262,9 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
 .ck input:checked { border-color: var(--btn); background: var(--btn) no-repeat center / 15px
   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E"); }
 .ck:has(input:checked) { border-color: var(--btn); }
-.ck input:focus-visible, .opt input:focus-visible { outline: 3px solid var(--hl); outline-offset: 2px; }
+/* Ô đánh dấu đã bỏ kiểu mặc định nên mất vòng focus: vẽ vòng đậm quanh cả ô như bộ lọc ở trang chủ */
+.ck input:focus-visible, .opt input:focus-visible { outline: none; }
+.ck:has(input:focus-visible), .opt:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
 /* GPS: toạ độ phông đều phía trên nút, câu lỗi dưới nút */
 .gps { display: grid; gap: 8px; justify-items: start; }
 .gps-val { font-family: ui-monospace, Consolas, monospace; font-size: 15px; font-weight: 600; background: var(--paper); border: 1px solid var(--line);
