@@ -13,6 +13,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-24 | TV3-13 | docs | PR #66 đã merge; ghi ✅ trong plan | PR #66 | xong |
 | 2026-10-22 | TV3-13 | feat | `scripts/backup-daily.mjs`: sao lưu CSDL (`VACUUM INTO`) rồi ảnh đã ghép, kiểm đủ ảnh đúng SHA-256, thư mục tạm rồi đổi tên, giữ 7 bản; `backup-db.mjs` xuất `backupDb()`; test `backup.test.ts` (server đang chạy, WAL); `deploy.md` chuyển `UPLOAD_DIR`, systemd timer, kéo bản về hằng tuần, khôi phục kèm nâng `seq`; design 0.5.44 §12; nợ N9 | nhánh `feat/tv3-13-daily-backup` | chờ review |
 | 2026-10-22 | TV3-11 | docs | `docs/test-report.md` bản 0.2: phương pháp, ma trận 64 ca kèm file chứng minh, truy vết 12 story, số liệu CI (198 lần chạy, 0 đỏ), lỗi đã biết; chạy lại trên `5db0c36` (682 unit/integration, 118 E2E). §6 hiệu năng và §7 điện thoại thật còn chờ | PR #65 | xong |
 | 2026-10-22 | — | fix | Trả nợ N7: seed bỏ token demo cố định và xoá phiên token cũ trong DB dev; E2E lấy token bằng đăng nhập (`global-setup.ts`), `TOKENS` giữ nguyên cách dùng nên 19 spec không đổi | PR #60 | xong |
