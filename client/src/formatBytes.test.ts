@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatBytes } from './formatBytes';
+import { formatBytes, usagePercent } from './formatBytes';
 
 describe('formatBytes', () => {
   it.each([
@@ -15,5 +15,20 @@ describe('formatBytes', () => {
 
   it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])('giá trị lạ %d → ?', (bytes) => {
     expect(formatBytes(bytes)).toBe('?');
+  });
+});
+
+describe('usagePercent', () => {
+  it.each([
+    [0, 1000, 0],
+    [250, 1000, 25],
+    [1500, 1000, 100],
+    [-5, 1000, 0],
+  ])('usage %d / quota %d → %d', (usage, quota, percent) => {
+    expect(usagePercent(usage, quota)).toBe(percent);
+  });
+
+  it.each([0, undefined, -1, Number.NaN])('quota %s → không vẽ thanh', (quota) => {
+    expect(usagePercent(100, quota)).toBeNull();
   });
 });
