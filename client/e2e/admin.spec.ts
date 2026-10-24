@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Page, type Request } from '@playwright/test';
 import type { MeResponse, ProjectRequest } from '@field-survey/shared';
 import { DEMO_PASSWORD, TOKENS, authHeaders, createProject, databaseNames, login } from './helpers';
 
@@ -30,11 +30,31 @@ async function me(request: APIRequestContext, token: string): Promise<MeResponse
   return res.json();
 }
 
-/** Mở trang quản trị và đăng nhập admin demo, trả token phiên của trang. */
+/**
+ * Mở trang quản trị và đăng nhập admin demo, trả token phiên của trang. Chỉ trả về khi A1 đã tải xong:
+ * request còn dở mà test thu hồi phiên thì nó về 401, trang tự về form đăng nhập giữa lúc test đang bấm
+ * (CI chập chờn ở #72, #78). Tín hiệu giao diện chưa đủ: bảng A1 tự báo số "(n)" lên thanh trên nên link
+ * "Yêu cầu (n)" có thể hiện khi request đếm của thanh trên còn chưa về, nên chờ thêm hết request admin.
+ */
 async function openAdmin(page: Page): Promise<string> {
+  // Set chứ không đếm: request nào cũng chỉ thêm và bỏ đúng một lần, không âm khi sự kiện về lệch thứ tự
+  const inFlight = new Set<Request>();
+  const start = (r: Request) => {
+    if (r.url().includes('/api/admin/')) inFlight.add(r);
+  };
+  const done = (r: Request) => inFlight.delete(r);
+  page.on('request', start);
+  page.on('requestfinished', done);
+  page.on('requestfailed', done);
   await page.goto('/admin/');
   const token = await adminSignIn(page, 'admin');
   await expect(page.getByTestId('admin-user')).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Yêu cầu \(\d+\)$/ })).toBeVisible();
+  await expect(page.getByText('Đang tải…')).toHaveCount(0);
+  await expect.poll(() => inFlight.size).toBe(0);
+  page.off('request', start);
+  page.off('requestfinished', done);
+  page.off('requestfailed', done);
   return token;
 }
 
