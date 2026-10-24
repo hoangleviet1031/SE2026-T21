@@ -162,7 +162,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-09 | Đổi tổ chức offline ≤ 1 s, không lẫn | T6, T10 `projects.spec.ts`; `project-switcher.spec.ts` | TV1-06 (#23), TV1-11 (#43) |
 | US-09 | Người ngoài không gọi được route nào | T1–T5 `server/test/isolation.test.ts` | TV3-04 (#29) |
 | US-09 | Bị rút còn phiếu chưa gửi | T7, T8, T9 `membership.spec.ts` | TV2-07 (#14), TV1-06 (#23) |
-| US-10 | Tạo tài khoản, tải lại vẫn đăng nhập | U1 `accounts.test.ts`; U7 `login.spec.ts` | TV2-14 (#36), TV1-14 (#53) |
+| US-10 | Tạo tài khoản, tải lại vẫn đăng nhập | U1 `accounts.test.ts`; U7 `login.spec.ts` (cả mất mạng nền vàng, lỗi nhập chữ đỏ, tab công tắc); `settings.spec.ts` (thanh dung lượng, Đăng xuất bị khoá); unit `usagePercent` (`formatBytes.test.ts`) | TV2-14 (#36), TV1-14 (#53); giao diện TV1-12 (b2 p6) |
 | US-10 | Trùng tên → `409 username_taken` | U2 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Sai 11 lần → `429` | U4 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Phiên bị thu hồi → về Đăng nhập, báo hết phiên, giữ dữ liệu | `api-errors.spec.ts` | TV1-12 (#62) |

@@ -131,12 +131,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 .checks { display: flex; flex-wrap: wrap; gap: 12px; font-weight: 500; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
 
-/* Danh sách, tab */
+/* Danh sách */
 .list { list-style: none; padding: 0; }
 .list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
-.tabs button { border: none; border-radius: 0; box-shadow: none; background: none; padding: 8px 12px; border-bottom: 2px solid transparent; }
-.tabs button[aria-selected=true] { border-bottom-color: var(--ink); font-weight: 700; }
 
 /* Trang chủ (ui.md màn hình 2, TV1-12 b2) */
 .sec { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 22px 0 10px; }
@@ -402,3 +399,30 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 .reqs button { padding: 0 12px; font-size: 15px; }
 .inline-loading { display: flex; align-items: center; gap: 10px; margin: 0; color: var(--muted); font-weight: 500; }
 .inline-loading .spin { width: 20px; height: 20px; border-width: 2.5px; }
+
+/* Đăng nhập (ui.md màn hình 1, TV1-12 b2): hai tab dạng công tắc, tab đang chọn nổi nền trắng */
+.login { padding-top: 24px; gap: 16px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--chip); border-radius: 14px; }
+.seg button { min-height: 44px; border: 0; border-radius: var(--r-btn); background: none; box-shadow: none; font-weight: 600; color: var(--muted); }
+.seg button[aria-selected=true] { background: var(--surface); color: var(--ink); font-weight: 700; box-shadow: 0 1px 3px rgba(31, 30, 27, .12); }
+.login > .field-error, .login > .warning { margin: 0; font-weight: 600; }
+/* Link giữa câu thì gạch chân để thấy bấm được */
+.login .field-error a { color: inherit; text-decoration: underline; }
+/* Khối bị chặn nổi hơn lỗi thường: nhạt hơn banner một bậc vì nhiều chữ (chữ 8,1:1) */
+.blocked { display: grid; gap: 12px; padding: 14px; background: #fff8e0; color: var(--warn-ink); border: 1.5px solid #f1dc95; border-radius: 14px; }
+.blocked p { margin: 0; font-weight: 600; line-height: 1.45; }
+.blocked button { justify-self: start; }
+.blocked .result { font-weight: 500; color: var(--ink); }
+.blocked .result.failed { color: var(--red); font-weight: 600; }
+
+/* Cài đặt (ui.md màn hình 8, TV1-12 b2) */
+.settings > .card { margin-top: 14px; }
+.settings .card p { margin: 0; line-height: 1.5; }
+.settings .install { display: grid; gap: 12px; }
+.settings .card .hint { font-size: 16px; }
+.settings .acct-name { font-size: 18px; font-weight: 700; }
+.bar { height: 8px; border-radius: var(--r-pill); background: var(--chip); overflow: hidden; }
+/* Dùng ít vẫn thấy một chấm để biết thanh có tồn tại */
+.bar i { display: block; height: 100%; min-width: 8px; background: var(--btn); border-radius: var(--r-pill); }
+.ok-line { display: flex; align-items: center; gap: 8px; color: #17773f; font-weight: 600; }
+.ok-line svg.icon { width: 20px; height: 20px; flex: none; }
