@@ -126,12 +126,20 @@ export function updateField(
 
 /** Đổi chỗ với trường kề trên (`-1`) hoặc kề dưới (`+1`); ra ngoài mảng thì giữ nguyên. */
 export function moveField(state: BuilderState, index: number, delta: -1 | 1): BuilderState {
-  const target = index + delta;
-  if (index < 0 || index >= state.fields.length || target < 0 || target >= state.fields.length) return state;
+  return moveFieldTo(state, index, index + delta);
+}
+
+/**
+ * Đưa trường ở `from` tới vị trí `to`, các trường ở giữa dồn lại (kéo thả, TV1-12 b2). `from = to` hoặc chỉ
+ * số ngoài mảng thì trả lại đúng `state` cũ để màn hình biết không có gì đổi.
+ */
+export function moveFieldTo(state: BuilderState, from: number, to: number): BuilderState {
+  const n = state.fields.length;
+  if (from === to || from < 0 || from >= n || to < 0 || to >= n) return state;
   const fields = [...state.fields];
-  const [moved] = fields.splice(index, 1);
+  const [moved] = fields.splice(from, 1);
   if (!moved) return state;
-  fields.splice(target, 0, moved);
+  fields.splice(to, 0, moved);
   return { ...state, fields };
 }
 

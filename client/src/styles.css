@@ -336,6 +336,21 @@ button.wide { width: 100%; min-height: 48px; }
 /* ▲▼ hẹp để chừa chỗ cho tên trường, vẫn cao 44 px cho dễ bấm */
 .frow .mv { width: 34px; min-width: 34px; height: 44px; padding: 0; font-size: 13px; flex: none; }
 .frow .mv:disabled { background: var(--surface); color: #b9b6ae; border-color: var(--line); }
+/* Tay nắm kéo thả (TV1-12 b2 p8, khung 5f): vùng bấm 44×44, chỉ ở đây chặn cử chỉ cuộn của trình duyệt */
+.frow .grip { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -8px; margin-right: -8px; flex: none; color: #9a978f;
+              cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.frow .grip svg.icon { width: 20px; height: 20px; }
+.frows { position: relative; }
+/* Lúc kéo: dòng kéo nổi lên có bóng, không cắt bóng ở mép danh sách; dòng khác trượt nhường chỗ */
+.frows.dragging { overflow: visible; user-select: none; -webkit-user-select: none; }
+.frows.dragging .frow { transition: transform .15s ease; }
+.frows.dragging .frow.drag { position: relative; z-index: 2; transition: none; border-radius: 10px;
+                             box-shadow: 0 10px 24px rgba(31, 30, 27, .22), inset 4px 0 0 var(--btn); }
+.frows.dragging .frow.drag .grip { color: var(--ink); cursor: grabbing; }
+.frows .slot { position: absolute; left: 4px; right: 4px; z-index: 0; list-style: none; border: 2px dashed #e9c75b; border-radius: 10px;
+               background: repeating-linear-gradient(45deg, var(--hl-soft) 0 10px, #faefca 10px 20px); }
+/* Giảm chuyển động: dòng nhảy thẳng tới chỗ mới, không trượt */
+@media (prefers-reduced-motion: reduce) { .frows.dragging .frow { transition: none; } }
 .addrow { display: flex; gap: 8px; align-items: end; }
 .addrow .field { flex: 1; min-width: 0; }
 .addrow > button { min-height: 48px; }

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { FieldType, FormSchema } from '@field-survey/shared';
 import {
@@ -10,6 +10,7 @@ import {
   fromForm,
   fromImport,
   moveField,
+  moveFieldTo,
   removeField,
   setFormId,
   setTitle,
@@ -27,6 +28,7 @@ import { formKey, type ProjectDb } from '../db/projectDb';
 import { canManageProject } from '../projects';
 import { apiFailureText } from '../apiErrors';
 import { apiFailure, saveForm } from '../sync/api';
+import { useFieldDrag } from '../useFieldDrag';
 import { navigate } from '../useHashRoute';
 
 const OFFLINE_MSG = 'Cần kết nối để lưu form';
@@ -74,7 +76,17 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const fileInput = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLFieldSetElement>(null);
   const errorsRef = useRef<HTMLUListElement>(null);
+  const fieldsRef = useRef<HTMLUListElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const previewId = useId();
+  // Thả xong thì dòng vừa kéo thành dòng đang chọn (ui.md màn hình 5, khung 5f)
+  const onDrop = useCallback((from: number, to: number) => {
+    setState((s) => moveFieldTo(s, from, to));
+    setSelected(to);
+  }, []);
+  const bottomEdge = useCallback(() => actionsRef.current?.getBoundingClientRect().top ?? window.innerHeight, []);
+  const { drag, gripProps, rowStyle, slot } = useFieldDrag({ listRef: fieldsRef, bottomEdge, onDrop });
+  const slotStyle = slot();
 
   // Bật xem trước thì đưa khung vào tầm nhìn: khung nằm cuối trang, trên điện thoại dễ tưởng bấm không ăn
   useEffect(() => {
@@ -181,9 +193,20 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
 
       <div className="card">
         <h3>Trường</h3>
-        <ul className="frows" data-testid="builder-fields">
+        <ul className={drag ? 'frows dragging' : 'frows'} data-testid="builder-fields" ref={fieldsRef}>
           {state.fields.map((f, i) => (
-            <li key={f.uid} className={['frow', i === selected && 'sel', f.hidden && 'hid'].filter(Boolean).join(' ')}>
+            <li
+              key={f.uid}
+              data-row
+              className={['frow', i === selected && 'sel', f.hidden && 'hid', drag?.from === i && 'drag']
+                .filter(Boolean)
+                .join(' ')}
+              style={rowStyle(i)}
+            >
+              {/* Tay nắm chỉ cho chạm và chuột; bàn phím, trình đọc màn hình dùng ▲ ▼ nên ẩn đi */}
+              <span className="grip" aria-hidden="true" data-testid="field-grip" {...gripProps(i)}>
+                <Icon name="grip" />
+              </span>
               <button className="field-name" aria-pressed={i === selected} onClick={() => setSelected(i)}>
                 {f.label || 'Trường mới'} ({FIELD_TYPE_LABEL[f.type]}
                 {f.hidden ? ', ẩn' : ''}){f.required ? ' *' : ''}
@@ -197,6 +220,7 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
               </button>
             </li>
           ))}
+          {slotStyle && <li className="slot" aria-hidden="true" data-testid="builder-drop-slot" style={slotStyle} />}
         </ul>
         <div className="addrow">
           <label className="field">
@@ -274,7 +298,7 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
         </ul>
       )}
       {/* Hàng nút dính đáy màn hình như trang điền phiếu (ui.md màn hình 5, TV1-12 b2) */}
-      <div className="actionbar" data-testid="builder-actions">
+      <div className="actionbar" data-testid="builder-actions" ref={actionsRef}>
         <button className="toggle" onClick={() => setPreview(!preview)} aria-expanded={preview} aria-controls={previewId}>
           <Icon name="eye" />
           Xem trước
