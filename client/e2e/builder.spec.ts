@@ -165,3 +165,68 @@ test('điều tra viên không thấy nút sửa form và không mở được b
   await page.goto('/#/builder/new');
   await expect(page.getByText('Chỉ giám sát viên và Owner được sửa biểu mẫu.')).toBeVisible();
 });
+
+// TV1-12 b2 p4: hàng nút dính đáy (Đổi 8), ▲▼ hẹp mà vẫn dễ bấm, khung lỗi luôn gần [Lưu bản mới]
+test('màn 360 px: ▲▼ 34×44; [Lưu bản mới] trong khung nhìn; lưu offline thì khung lỗi nằm trong khung nhìn', async ({
+  page,
+  context,
+}) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  await login(page, 'lan');
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  await page.getByLabel('Tiêu đề').fill('Biểu mẫu dài');
+  for (const label of ['Họ tên', 'Địa chỉ', 'Nghề nghiệp', 'Ghi chú', 'Người đi cùng', 'Thôn']) {
+    await addField(page, 'Chữ', label);
+  }
+
+  const up = page.getByTestId('builder-fields').getByRole('button', { name: 'Lên' }).nth(1);
+  const box = await up.boundingBox();
+  expect(box?.width).toBeGreaterThanOrEqual(34);
+  expect(box?.height).toBeGreaterThanOrEqual(44);
+
+  const save = page.getByRole('button', { name: 'Lưu bản mới' });
+  await page.getByLabel('Tiêu đề').focus();
+  await expect(page.getByLabel('Tiêu đề')).toBeInViewport();
+  await expect(save).toBeInViewport();
+
+  await context.setOffline(true);
+  await save.click();
+  const errors = page.getByTestId('builder-errors');
+  await expect(errors).toHaveText('⚠ Cần kết nối để lưu form');
+  await expect(errors).toBeInViewport();
+  // Khung lỗi nằm ngay trên hàng nút, không bị hàng nút che; chờ cuộn mượt xong mới so vị trí
+  const bar = page.getByTestId('builder-actions');
+  await expect
+    .poll(async () => {
+      const e = await errors.boundingBox();
+      const b = await bar.boundingBox();
+      return e !== null && b !== null && e.y + e.height <= b.y;
+    })
+    .toBe(true);
+});
+
+test('Xem trước: bật thì có dải báo đang xem trước và khung trong khung nhìn; bấm lại thì tắt', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  await login(page, 'lan');
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  await page.getByLabel('Tiêu đề').fill('Xem thử');
+  for (const label of ['Họ tên', 'Địa chỉ', 'Nghề nghiệp']) await addField(page, 'Chữ', label);
+  await addField(page, 'Ảnh', 'Ảnh nhà');
+
+  const toggle = page.getByRole('button', { name: 'Xem trước' });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  const preview = page.getByTestId('builder-preview');
+  await expect(toggle).toHaveAttribute('aria-controls', (await preview.getAttribute('id')) ?? '');
+  const banner = preview.getByRole('status');
+  await expect(banner).toHaveText('Đang xem trước, chưa sửa được. Bấm lại Xem trước để sửa tiếp.');
+  await expect(banner).toBeInViewport();
+  // Ô chụp ảnh vẫn hiện để thấy biểu mẫu trông thế nào, nhưng bị khoá
+  await expect(preview.getByText('+ Chụp ảnh')).toBeVisible();
+  await expect(preview.getByTestId(/^photo-input-/)).toBeDisabled();
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(preview).toHaveCount(0);
+});

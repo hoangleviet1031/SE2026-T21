@@ -152,7 +152,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-06 | Xoá phiếu đã đồng bộ → tombstone | O8 `delete.spec.ts` | TV2-13 (#35) |
 | US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts`; unit `autoMergedNote` (`client/src/conflictView.test.ts`) | TV3-08 (#47); bỏ câu "đã được gộp" TV1-12 (b2 p3) |
 | US-06 | Điều tra viên không xoá phiếu người khác | `record-owner.spec.ts` | TV1-17 (#44, #45) |
-| US-07 | Tạo form 7 loại trường | `builder.spec.ts`; A5 `forms.test.ts`. **Chưa có E2E "điều tra viên thấy form sau vòng đồng bộ"** (builder.spec kiểm ở chính máy giám sát viên) | TV1-03 (#19), TV1-04 (#24); E2E: TV3-14 |
+| US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4); A5 `forms.test.ts`. **Chưa có E2E "điều tra viên thấy form sau vòng đồng bộ"** (builder.spec kiểm ở chính máy giám sát viên) | TV1-03 (#19), TV1-04 (#24); E2E: TV3-14 |
 | US-07 | Sửa form lên version mới, phiếu cũ mở bằng version cũ | `builder.spec.ts`, `form-version.spec.ts` | TV1-04 (#24), TV1-10 (#32) |
 | US-07 | Đổi `type`/bỏ trường → `400 invalid_form` | `server/test/forms.test.ts`; unit `formValidation.test.ts` | TV1-03 (#19) |
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |
