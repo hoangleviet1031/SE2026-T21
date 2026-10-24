@@ -25,11 +25,12 @@ test('Thành viên: 5xx khi tải báo lỗi kèm Thử lại; 5xx khi thêm bá
   await page.route('**/api/projects/*/members', (route) => route.fulfill(fail500));
   await page.getByRole('link', { name: 'Thành viên' }).click();
   const alert = page.getByRole('alert');
-  await expect(alert).toContainText('Máy chủ đang lỗi, thử lại sau');
+  // Vùng alert chỉ có câu lỗi; [Thử lại] nằm riêng bên ngoài (TV1-12 b2)
+  await expect(alert).toHaveText('Máy chủ đang lỗi, thử lại sau');
   await expect(page.getByText('Đang tải…')).toHaveCount(0);
 
   await page.unroute('**/api/projects/*/members');
-  await alert.getByRole('button', { name: 'Thử lại' }).click();
+  await page.getByRole('button', { name: 'Thử lại' }).click();
   await expect(page.getByTestId('member-chu')).toBeVisible();
 
   await page.route('**/api/projects/*/members', (route) =>
@@ -45,6 +46,8 @@ test('Tổ chức: 5xx khi tải báo lỗi, không để trang trống không l
   await page.route('**/api/directory', (route) => route.fulfill(fail500));
   await page.goto('/#/orgs');
   await expect(page.getByTestId('orgs').getByRole('alert')).toHaveText(SERVER_ERROR);
+  // Chưa tải được danh sách thì ẩn cả khối, câu lỗi đã nói lý do (TV1-12 b2)
+  await expect(page.getByRole('heading', { name: 'Tổ chức công khai' })).toHaveCount(0);
 });
 
 test('Builder: 5xx khi lưu báo lỗi, giữ nguyên phần đang sửa', async ({ page }) => {

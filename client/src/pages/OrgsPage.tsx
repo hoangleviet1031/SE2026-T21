@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { DirectoryEntry, MeResponse, ProjectRequest } from '@field-survey/shared';
-import { accountUsername } from '../accountDisplay';
+import { accountUsername, initialOf } from '../accountDisplay';
 import { BusyNote } from '../components/BusyNote';
+import { Icon } from '../components/Icon';
 import { getAccountValue } from '../db/accountDb';
-import { ORG_ERROR_TEXT, ORG_OFFLINE_MSG, orgRequestBody, requestStatusText, sortRequests } from '../orgs';
+import {
+  ORG_ERROR_TEXT,
+  ORG_OFFLINE_MSG,
+  orgRequestBody,
+  requestStatusKind,
+  requestStatusText,
+  sortRequests,
+} from '../orgs';
 import { apiFailureText } from '../apiErrors';
 import { apiFailure, cancelProjectRequest, fetchDirectory, listMyProjectRequests, requestProject } from '../sync/api';
 import { useOnline } from '../useOnline';
@@ -98,67 +106,108 @@ export function OrgsPage({ home = false }: { home?: boolean }) {
   return (
     <section className="orgs" data-testid="orgs">
       <h2>Tổ chức</h2>
-      {home && <p>Bạn chưa thuộc tổ chức nào.</p>}
-      <p>
-        Tên đăng nhập của bạn: <code data-testid="orgs-username">{username}</code>
-      </p>
-      <p>Gửi tên này cho giám sát viên của tổ chức để được thêm vào.</p>
+      {/* Trang chủ của người mới: khối chào vàng nói rõ bước tiếp theo, tên đăng nhập to để đọc qua điện thoại */}
+      <div className={home ? 'welcome' : 'card'}>
+        {home && <p className="big">Bạn chưa thuộc tổ chức nào.</p>}
+        <p>
+          Tên đăng nhập của bạn:{' '}
+          <code className="ucode big" data-testid="orgs-username">
+            {username}
+          </code>
+        </p>
+        <p className={home ? undefined : 'hint'}>Gửi tên này cho giám sát viên của tổ chức để được thêm vào.</p>
+      </div>
 
-      {!online && <p role="alert">⚠ {ORG_OFFLINE_MSG}</p>}
-      {online && loadError && <p role="alert">⚠ {loadError}</p>}
-
-      <h3>Tổ chức công khai</h3>
-      {directory === null ? (
-        online && !loadError && <p data-testid="directory-loading">Đang tải…</p>
-      ) : directory.length === 0 ? (
-        <p data-testid="directory-empty">Chưa có tổ chức công khai nào</p>
-      ) : (
-        <ul className="list" data-testid="directory">
-          {directory.map((d) => (
-            <li key={d.id}>{d.name}</li>
-          ))}
-        </ul>
+      {!online && (
+        <p className="field-error" role="alert">
+          ⚠ {ORG_OFFLINE_MSG}
+        </p>
+      )}
+      {online && loadError && (
+        <p className="field-error" role="alert">
+          ⚠ {loadError}
+        </p>
       )}
 
-      <h3>Mở tổ chức mới</h3>
-      <form className="form" onSubmit={(e) => void submit(e)}>
-        <label className="field">
-          <span>Tên</span>
-          <input data-testid="org-request-name" value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label className="field">
-          <span>Ghi chú cho quản trị</span>
-          <textarea data-testid="org-request-note" value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
-        </label>
-        <button type="submit" disabled={busy || !online} aria-busy={sending}>
-          Gửi yêu cầu
-        </button>
-        <BusyNote busy={sending} text="Đang gửi yêu cầu…" />
-        {error && (
-          <p role="alert" data-testid="org-request-error">
-            ⚠ {error}
-          </p>
-        )}
-      </form>
+      {/* Chưa tải được (ngoại tuyến, máy chủ lỗi) thì ẩn cả khối, câu lỗi phía trên đã nói lý do.
+          Đã tải xong rồi mới mất mạng thì vẫn giữ danh sách. */}
+      {(directory !== null || (online && !loadError)) && (
+        <div className="card">
+          <h3>Tổ chức công khai</h3>
+          {directory === null ? (
+            <p className="inline-loading" data-testid="directory-loading">
+              <span className="spin" />
+              Đang tải…
+            </p>
+          ) : directory.length === 0 ? (
+            <p className="hint" data-testid="directory-empty">
+              Chưa có tổ chức công khai nào
+            </p>
+          ) : (
+            // Chỉ để đọc, không bấm được nên không có mũi tên
+            <ul className="orows" data-testid="directory">
+              {directory.map((d) => (
+                <li key={d.id}>
+                  <span className="tile" aria-hidden="true">
+                    {initialOf(d.name)}
+                  </span>
+                  {d.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      <div className="card">
+        <h3>Mở tổ chức mới</h3>
+        <form className="form" onSubmit={(e) => void submit(e)}>
+          <label className="field">
+            <span>Tên</span>
+            <input data-testid="org-request-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </label>
+          <label className="field">
+            <span>Ghi chú cho quản trị</span>
+            <textarea data-testid="org-request-note" value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
+          </label>
+          <button type="submit" className="primary wide" disabled={busy || !online} aria-busy={sending}>
+            Gửi yêu cầu
+          </button>
+          <BusyNote busy={sending} text="Đang gửi yêu cầu…" />
+          {error && (
+            <p className="field-error" role="alert" data-testid="org-request-error">
+              ⚠ {error}
+            </p>
+          )}
+        </form>
+      </div>
 
       {requests && requests.length > 0 && (
-        <>
+        <div className="card">
           <h3>Yêu cầu của bạn</h3>
-          <ul className="list" data-testid="org-requests">
-            {requests.map((r) => (
-              <li key={r.id} data-testid={`org-request-${r.id}`}>
-                <span>
-                  {r.name} · <span data-testid="org-request-status">{requestStatusText(r)}</span>
-                </span>
-                {r.status === 'pending' && (
-                  <button type="button" disabled={busy || !online} onClick={() => void cancel(r.id)}>
-                    Huỷ
-                  </button>
-                )}
-              </li>
-            ))}
+          <ul className="reqs" data-testid="org-requests">
+            {requests.map((r) => {
+              const kind = requestStatusKind(r.status);
+              return (
+                // Tên và trạng thái hai dòng nên bỏ " · " giữa hai phần (TV1-12 b2)
+                <li key={r.id} data-testid={`org-request-${r.id}`}>
+                  <span className="txt">
+                    <b>{r.name}</b>
+                    <span className={`st ${kind.className}`} data-testid="org-request-status">
+                      <Icon name={kind.icon} />
+                      {requestStatusText(r)}
+                    </span>
+                  </span>
+                  {r.status === 'pending' && (
+                    <button type="button" className="soft" disabled={busy || !online} onClick={() => void cancel(r.id)}>
+                      Huỷ
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
-        </>
+        </div>
       )}
       {!home && (
         <a className="back" href="#/">
