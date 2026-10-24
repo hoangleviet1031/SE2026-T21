@@ -124,7 +124,7 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
   };
 
   return (
-    <section>
+    <section className="members">
       <h2>Thành viên · {project.name}</h2>
       {pending && (
         <ConfirmDialog

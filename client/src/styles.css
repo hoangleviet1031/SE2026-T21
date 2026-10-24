@@ -360,7 +360,7 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 /* Thành viên (ui.md màn hình 6, TV1-12 b2): vòng chữ cái, tên và vai trò hai dòng, thao tác dòng dưới */
 .load-err { display: grid; gap: 12px; justify-items: start; margin-top: 12px; }
 .load-err .field-error { margin: 0; }
-.mlist { list-style: none; padding: 4px 16px; gap: 0; margin-top: 14px; }
+.mlist { list-style: none; padding: 4px 16px; gap: 0; }
 .mrow { display: grid; grid-template-columns: 40px 1fr; column-gap: 12px; row-gap: 8px; align-items: center; padding: 12px 0; }
 .mrow + .mrow { border-top: 1px solid var(--line); }
 .av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; align-self: start; background: var(--chip); font-weight: 800; }
@@ -376,7 +376,8 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
                      color: var(--ink); font: inherit; font-size: 15px; }
 .mrow .acts button { padding: 0 12px; font-size: 15px; }
 .card .hint { margin: 0; }
-.card + .card, section > .card { margin-top: 14px; }
+/* Hai trang này không phải bố cục lưới nên tự cách các khối; Builder đã có gap của lưới */
+.members > .card, .orgs > .card, .orgs > .welcome { margin-top: 14px; }
 
 /* Tổ chức (ui.md màn hình 9, TV1-12 b2) */
 .welcome { display: grid; gap: 10px; padding: 18px 16px; background: var(--hl-soft); border: 1px solid #f0dfa2; border-radius: var(--r-card); }
