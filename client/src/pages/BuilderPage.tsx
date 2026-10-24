@@ -46,12 +46,15 @@ function scrollToView(el: HTMLElement | null, block: ScrollLogicalPosition) {
 export function BuilderPage({ formId }: { formId?: string }) {
   const db = useCurrentProjectDb();
   const project = useCurrentProject();
-  // Bản mới nhất trên máy làm gốc để sửa và để kiểm luật "đổi form an toàn"
-  const prev = useLiveQuery(async () => {
-    if (!db || !formId) return null;
+  // Bản mới nhất trên máy làm gốc để sửa và để kiểm luật "đổi form an toàn". Kết quả kèm mã form đã đọc:
+  // đổi thẳng địa chỉ giữa hai builder thì useLiveQuery còn trả kết quả của địa chỉ cũ thêm một nhịp, dựng
+  // Builder từ đó là sửa nhầm form (A → new từng lưu thành version mới của A)
+  const loaded = useLiveQuery(async () => {
+    if (!db || !formId) return { formId, form: null };
     const versions = await db.forms.where('id').equals(formId).toArray();
-    return versions.reduce<FormSchema | null>((a, b) => (a && a.version >= b.version ? a : b), null);
+    return { formId, form: versions.reduce<FormSchema | null>((a, b) => (a && a.version >= b.version ? a : b), null) };
   }, [db, formId]);
+  const prev = loaded && loaded.formId === formId ? loaded.form : undefined;
   // Mã các form đã có trên máy: form mới không được trùng (design §4.1, Xuất/Nhập form)
   const formIds = useLiveQuery(
     async () => (db ? new Set((await db.forms.orderBy('id').uniqueKeys()).map(String)) : undefined),
