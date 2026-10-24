@@ -165,6 +165,8 @@ test('Q10: A1 từ chối bắt buộc lý do; người gửi thấy lý do', as
   await expect(page.getByTestId('admin-notice')).toHaveText(`Đã từ chối: ${name}`);
   await expect(page.getByTestId('admin-notice')).toHaveRole('status');
   await expect(requestRow(page, name)).toHaveCount(0);
+  // Dòng biến mất cùng nút vừa bấm: focus về dòng kết quả, không rơi về đầu trang (góp ý #76)
+  await expect(page.getByTestId('admin-notice')).toBeFocused();
   const res = await request.get(`${BASE}/project-requests`, { headers: authHeaders(TOKENS.lan) });
   const mine = (await res.json()) as ProjectRequest[];
   expect(mine.find((r) => r.name === name)).toMatchObject({ status: 'rejected', reason: 'Trùng tên tổ chức đã có' });
@@ -187,6 +189,8 @@ test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) �
   await openAdmin(page);
   await expect(page.getByRole('link', { name: /^Yêu cầu \(\d+\)$/ })).toBeVisible();
   await requestRow(page, name).getByRole('button', { name: 'Duyệt' }).click();
+  await expect(requestRow(page, name)).toHaveCount(0);
+  await expect(page.getByTestId('admin-notice')).toBeFocused();
   await expect(page.getByTestId('admin-notice')).toHaveText(new RegExp(`^Đã duyệt: ${name} \\(mã p-[a-z0-9]{8}\\)$`));
   await expect(requestRow(page, name)).toHaveCount(0);
   const project = (await me(request, userToken)).projects.find((p) => p.name === name);
@@ -212,6 +216,9 @@ test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) �
 
   await row.getByRole('button', { name: 'Mở' }).click();
   await expect(row.getByTestId('project-status')).toHaveText('Đang dùng');
+  // Nút Mở thành nút Khoá (phần tử khác): focus về dòng kết quả
+  await expect(page.getByTestId('admin-notice')).toHaveText(`Đã mở: ${name}`);
+  await expect(page.getByTestId('admin-notice')).toBeFocused();
   expect((await me(request, userToken)).projects.map((p) => p.id)).toContain(projectId);
 
   // Đổi Owner ở tổ chức chưa có Owner (như tổ chức có từ trước migration 4)
@@ -235,6 +242,9 @@ test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) �
   await ownerExpand.getByTestId('owner-username').fill(` ${username.toUpperCase()} `);
   await ownerExpand.getByRole('button', { name: 'Thêm làm Owner' }).click();
   await expect(orphanRow.getByTestId('project-owners')).toHaveText(username);
+  // Hàng mở rộng đóng cùng nút vừa bấm: focus về dòng kết quả
+  await expect(ownerExpand).toHaveCount(0);
+  await expect(page.getByTestId('admin-notice')).toBeFocused();
   expect((await me(request, userToken)).projects.find((p) => p.id === orphan)?.role).toBe('owner');
 });
 

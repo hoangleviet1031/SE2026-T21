@@ -165,7 +165,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-10 | Tạo tài khoản, tải lại vẫn đăng nhập | U1 `accounts.test.ts`; U7 `login.spec.ts` (cả mất mạng nền vàng, lỗi nhập chữ đỏ, tab công tắc); `settings.spec.ts` (thanh dung lượng, Đăng xuất bị khoá); unit `usagePercent` (`formatBytes.test.ts`) | TV2-14 (#36), TV1-14 (#53); giao diện TV1-12 (b2 p6) |
 | US-10 | Trùng tên → `409 username_taken` | U2 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Sai 11 lần → `429` | U4 `accounts.test.ts` | TV2-14 (#36) |
-| US-10 | Phiên bị thu hồi → về Đăng nhập, báo hết phiên, giữ dữ liệu | `api-errors.spec.ts` | TV1-12 (#62) |
+| US-10 | Phiên bị thu hồi → về Đăng nhập, báo hết phiên, giữ dữ liệu | `api-errors.spec.ts` (cả hết phiên + mất mạng chỉ một dải) | TV1-12 (#62, b2) |
 | US-10 | Gửi yêu cầu, được duyệt, thành Owner | Q1, Q2 `projectRequests.test.ts`; Q8 `orgs.spec.ts` (cả dòng yêu cầu hai dòng, ngoại tuyến không có khối công khai); unit `requestStatusKind` (`orgs.test.ts`) | TV2-15 (#49), TV1-15 (#54); giao diện TV1-12 (b2 p5) |
 | US-11 | Supervisor thêm surveyor; không thêm supervisor | M1 `members.test.ts` | TV1-08 (#38) |
 | US-11 | Đã là thành viên / tên không có / tài khoản bị khoá | M2 và ca tài khoản bị khoá `members.test.ts` | TV1-08 (#38), TV1-12 (#62) |
@@ -174,7 +174,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-11 | Máy chủ lỗi ở Thành viên | `api-errors.spec.ts` (cả Tổ chức, builder lưu form, Xuất) | TV1-12 (#62, #68, b2 p5: Thử lại ngoài vùng alert, Tổ chức ẩn khối công khai) |
 | US-12 | Admin không đọc được dữ liệu | Q7 `projectRequests.test.ts`; T4 `isolation.test.ts`, `admin.test.ts` | TV2-15 (#49) |
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
-| US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Đổi Owner, focus, màu lỗi theo loại) | TV1-16 (#55, #56); giao diện TV1-12 (b2 p7) |
+| US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Đổi Owner, focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại) | TV1-16 (#55, #56); giao diện TV1-12 (b2 p7, b2) |
 | US-12 | Từ chối thiếu lý do | Q3 `projectRequests.test.ts` | TV2-15 (#49) |
 
 Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --json commits`).

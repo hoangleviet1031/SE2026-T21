@@ -150,7 +150,9 @@ export function LoginPage() {
         {tab === 'login' ? 'Tiếp tục' : 'Tạo tài khoản'}
       </button>
       <BusyNote busy={busy} text={tab === 'login' ? 'Đang đăng nhập…' : 'Đang tạo tài khoản…'} />
-      {expired && !problem && (
+      {/* Theo câu đang hiện chứ không theo problem: mất mạng không ghi vào problem mà vẫn phải ẩn dải này,
+          để không hiện cùng lúc hai dải vàng. Có mạng lại thì hiện lại (ui.md màn hình 1) */}
+      {expired && !shown && (
         <p className="warning" data-testid="session-expired">
           ⚠ {SESSION_EXPIRED_MSG}
         </p>

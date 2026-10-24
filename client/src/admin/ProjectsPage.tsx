@@ -4,7 +4,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
 import { assignOwner, fetchProjects, setProjectArchived, type AdminErrorCode } from './adminApi';
 import { adminErrorMessage, ownersLabel } from './adminMessages';
-import { Notice, type NoticeValue } from './Notice';
+import { Notice, useNoticeFocus, type NoticeValue } from './Notice';
 
 type Outcome = { ok: true } | { ok: false; error: AdminErrorCode };
 
@@ -19,6 +19,8 @@ export function ProjectsPage({ token, onError }: { token: string; onError: (err:
   const [ownerFor, setOwnerFor] = useState<string | null>(null);
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState(false);
+  const [finished, setFinished] = useState(0);
+  const noticeRef = useNoticeFocus(finished);
 
   const load = useCallback(async () => {
     const res = await fetchProjects(token);
@@ -55,13 +57,14 @@ export function ProjectsPage({ token, onError }: { token: string; onError: (err:
       fail(err);
     } finally {
       setBusy(false);
+      setFinished((n) => n + 1);
     }
   }
 
   return (
     <section>
       <h1>Tổ chức</h1>
-      <Notice value={notice} />
+      <Notice value={notice} ref={noticeRef} />
       {projects === null ? (
         <p className="hint">Đang tải…</p>
       ) : (
