@@ -4,6 +4,7 @@ import type { ProjectDb } from '../db/projectDb';
 import { fieldMode } from '../formDisplay';
 import { GPS_TIMEOUT_MS, gpsErrorText } from '../gps';
 import { BusyNote } from './BusyNote';
+import { Icon } from './Icon';
 import { PhotoField } from './PhotoField';
 
 interface Props {
@@ -36,10 +37,10 @@ export function FormRenderer({ db, form, recordId, value, onChange, errors = {} 
         const Wrapper = hasButtons ? 'div' : 'label';
         const groupProps = hasButtons ? { role: 'group', 'aria-label': f.label } : {};
         return (
-          <Wrapper key={f.id} className="field" {...groupProps}>
+          <Wrapper key={f.id} className={errors[f.id] ? 'field bad' : 'field'} {...groupProps}>
             <span>
               {f.label}
-              {f.required && !f.hidden && ' *'}
+              {f.required && !f.hidden && <span className="req-mark"> *</span>}
               {f.hidden && ' (đã ẩn)'}
             </span>
             {/* fieldset khoá được cả các nút bên trong (trường ảnh, GPS), không chỉ ô nhập */}
@@ -103,7 +104,8 @@ function FieldInput({
       return (
         <div className="checks">
           {field.options?.map((o) => (
-            <label key={o}>
+            // Ô đánh dấu thật nằm trong label: bấm chỗ nào trong ô cũng chọn được
+            <label key={o} className="ck">
               <input
                 type="checkbox"
                 checked={selected.includes(o)}
@@ -153,17 +155,17 @@ function GpsField({ value, onChange }: { value: GpsValue | null; onChange: (v: G
   };
 
   return (
-    <div>
+    <div className="gps">
+      {value && (
+        <span className="gps-val">
+          {value.lat.toFixed(5)}, {value.lng.toFixed(5)} (±{Math.round(value.accuracy ?? 0)} m)
+        </span>
+      )}
       <button type="button" disabled={busy} aria-busy={busy} onClick={locate}>
+        <Icon name="pin" />
         Lấy vị trí
       </button>
       <BusyNote busy={busy} text="Đang lấy vị trí…" visible />
-      {value && (
-        <small>
-          {' '}
-          {value.lat.toFixed(5)}, {value.lng.toFixed(5)} (±{Math.round(value.accuracy ?? 0)} m)
-        </small>
-      )}
       {error && (
         <span className="field-error" role="alert" data-testid="gps-error">
           ⚠ {error}

@@ -21,11 +21,12 @@ export function DeleteConflictDialog({
   return (
     <div className="delete-conflict" role="radiogroup" aria-labelledby={questionId} data-testid="delete-conflict">
       <p id={questionId}>{question}</p>
-      <label>
+      <label className="opt">
         <input type="radio" name="record-level" checked={choice === 'keep'} onChange={() => onChoose('keep')} />
         {keepLabel}
       </label>
-      <label>
+      {/* Lựa chọn làm mất dữ liệu chữ đỏ (ui.md màn hình 3) */}
+      <label className="opt danger">
         <input type="radio" name="record-level" checked={choice === 'delete'} onChange={() => onChoose('delete')} />
         {deleteLabel}
       </label>

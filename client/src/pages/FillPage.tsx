@@ -4,8 +4,10 @@ import type { MeResponse, RecordData } from '@field-survey/shared';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { canDeleteRecord } from '../projects';
+import { formTone, latestForms } from '../formDisplay';
 import { FormRenderer } from '../components/FormRenderer';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Icon } from '../components/Icon';
 import { RecordInConflictError, deleteRecordLocally, saveRecordLocally } from '../sync/outbox';
 import { syncNow } from '../sync/engine';
 import { requestPersistentStorage } from '../persistStorage';
@@ -17,6 +19,8 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const id = recordId ?? crypto.randomUUID();
   const record = useLiveQuery(() => db?.records.get(id), [db, id]);
   const forms = useLiveQuery(async () => db?.forms.where('id').equals(formId).toArray(), [db, formId]);
+  // Đầu trang cùng màu với thẻ form này ở trang chủ (ui.md màn hình 4, TV1-12 b2)
+  const allForms = useLiveQuery(async () => db?.forms.toArray(), [db]);
   // Vai trò và id của mình để biết có được xoá phiếu này không (design §5.7)
   const project = useCurrentProject();
   const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
@@ -52,13 +56,15 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   if (!form) {
     if (!missingVersion) return <p>Không tìm thấy biểu mẫu.</p>;
     // design §8: phiếu dùng form version chưa có trên máy
+    const loading = online && !fetchTried;
     return (
       <section>
         <a href="#/" className="back">
           ← Quay lại
         </a>
-        <p data-testid="form-version-missing">
-          {online && !fetchTried ? 'Đang tải biểu mẫu…' : 'Cần kết nối để mở phiếu này'}
+        <p className="center-msg" data-testid="form-version-missing">
+          {loading ? <span className="spin" /> : <Icon name="offline" />}
+          {loading ? 'Đang tải biểu mẫu…' : 'Cần kết nối để mở phiếu này'}
         </p>
       </section>
     );
@@ -73,6 +79,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // Phiếu thành chỉ đọc lúc hộp xoá đang mở: đóng hẳn hộp, để khi hết xung đột hộp không tự hiện lại.
   // Chỉnh state ngay lúc render (không dùng effect vì phía trên có return sớm)
   if (readOnly && confirmingDelete) setConfirmingDelete(false);
+  const tone = formTone(latestForms(allForms ?? []).findIndex((f) => f.id === form.id));
   const canDelete = !!record && !!project && !!user && canDeleteRecord(project.role, user.id, record.createdBy);
   // Bấm Lưu đúng lúc phiếu vừa thành conflict (trước khi liveQuery kịp cập nhật): tầng dữ liệu từ chối.
   const unlessInConflict = async <T,>(write: () => Promise<T>): Promise<T | undefined> => {
@@ -114,11 +121,16 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
       <a href="#/" className="back">
         ← Quay lại
       </a>
-      <h2>{form.title}</h2>
+      <div className={`fhero tone-${tone}`}>
+        <span className="ft">
+          <Icon name="form" />
+        </span>
+        <h2>{form.title}</h2>
+      </div>
       {readOnly && (
-        <p className="warning" data-testid="record-in-conflict">
-          Phiếu này cần xử lý xung đột trước. <a href={`#/conflict/${id}`}>Xử lý</a>
-        </p>
+        <div className="ro-banner" data-testid="record-in-conflict">
+          <span>Phiếu này cần xử lý xung đột trước.</span> <a href={`#/conflict/${id}`}>Xử lý</a>
+        </div>
       )}
       {isDraft && (
         <p className="draft-notice" data-testid="draft-notice">
@@ -136,16 +148,17 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
           errors={isDraft ? record.validationErrors : undefined}
         />
       </fieldset>
+      {/* Hàng nút dính đáy màn hình để phiếu dài vẫn bấm Lưu bằng ngón cái (ui.md màn hình 4, TV1-12 b2) */}
       {!readOnly && (
-        <div className="actions">
-          <button className="primary" onClick={save}>
-            Lưu
-          </button>
+        <div className="actionbar" data-testid="record-actions">
           {canDelete && (
             <button className="danger-outline" onClick={() => setConfirmingDelete(true)}>
               Xoá phiếu
             </button>
           )}
+          <button className="primary" onClick={save}>
+            Lưu
+          </button>
         </div>
       )}
       {confirmingDelete && (

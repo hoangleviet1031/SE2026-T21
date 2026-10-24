@@ -98,6 +98,15 @@ export function resolveChoices(merge: MergeResult, form: FormSchema | undefined,
 
 // ---- Xoá vs sửa (design §4.5, ADR 0001 quy tắc 6). Không có lựa chọn mặc định. ----
 
+/**
+ * Câu "N trường đã được gộp tự động." trong lời giải thích (design §4.5). Không có trường nào gộp thì bỏ câu;
+ * xoá vs sửa cũng bỏ, vì danh sách gộp không hiện và kết quả áp dụng không dùng bản gộp (TV1-12 b2).
+ */
+export function autoMergedNote(autoCount: number, recordLevel: RecordLevelConflict): string | null {
+  if (recordLevel !== 'none' || autoCount === 0) return null;
+  return `${autoCount} trường đã được gộp tự động.`;
+}
+
 export type DeleteConflict = Exclude<RecordLevelConflict, 'none'>;
 /** `keep`: phiếu còn (Giữ phiếu / Khôi phục); `delete`: phiếu bị xoá (Vẫn xoá / Bỏ). */
 export type RecordLevelChoice = 'keep' | 'delete';

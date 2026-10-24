@@ -145,18 +145,18 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-04 | Hai tab không gửi trùng | O6 `tabs.spec.ts` | TV2-06 (#13) |
 | US-04 | `400` → "Lỗi", không thử lại vô hạn | R5 `errors.spec.ts` | TV2-09 (#16) |
 | US-05 | Khác trường tự gộp | C1 unit `merge.test.ts`, `conflict.spec.ts`; C3 unit | TV2-10 (#34) |
-| US-05 | Cùng trường → màn hình xung đột, không chọn sẵn | C2 `conflict.spec.ts` | TV3-07 (#41) |
-| US-05 | Phiếu xung đột chỉ đọc | C7 `conflict.spec.ts` | TV2-10 (#34), TV3-07 (#41) |
+| US-05 | Cùng trường → màn hình xung đột, không chọn sẵn | C2 `conflict.spec.ts` (cả ca bấm chỗ trống trong ô lựa chọn) | TV3-07 (#41); ô lựa chọn TV1-12 (b2 p3) |
+| US-05 | Phiếu xung đột chỉ đọc | C7 `conflict.spec.ts` (cả ca không có hàng nút, ô chụp ảnh) | TV2-10 (#34), TV3-07 (#41), TV1-12 (b2 p3) |
 | US-05 | Server đổi tiếp lúc đang chọn | C8 `conflict.spec.ts`; C6 sửa 3 lần một op | TV2-10 (#34) |
 | US-06 | Xoá phiếu chưa gửi, Huỷ/Esc | O7 `delete.spec.ts` | TV2-13 (#35), TV1-13 (#42), TV1-12 (#58) |
 | US-06 | Xoá phiếu đã đồng bộ → tombstone | O8 `delete.spec.ts` | TV2-13 (#35) |
-| US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts` | TV3-08 (#47) |
+| US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts`; unit `autoMergedNote` (`client/src/conflictView.test.ts`) | TV3-08 (#47); bỏ câu "đã được gộp" TV1-12 (b2 p3) |
 | US-06 | Điều tra viên không xoá phiếu người khác | `record-owner.spec.ts` | TV1-17 (#44, #45) |
 | US-07 | Tạo form 7 loại trường | `builder.spec.ts`; A5 `forms.test.ts`. **Chưa có E2E "điều tra viên thấy form sau vòng đồng bộ"** (builder.spec kiểm ở chính máy giám sát viên) | TV1-03 (#19), TV1-04 (#24); E2E: TV3-14 |
 | US-07 | Sửa form lên version mới, phiếu cũ mở bằng version cũ | `builder.spec.ts`, `form-version.spec.ts` | TV1-04 (#24), TV1-10 (#32) |
 | US-07 | Đổi `type`/bỏ trường → `400 invalid_form` | `server/test/forms.test.ts`; unit `formValidation.test.ts` | TV1-03 (#19) |
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |
-| US-08 | v1 và v2 cùng file, cột đúng, BOM | `export.spec.ts`; `server/test/export.test.ts` | TV3-09 (#48); nút [Xuất ▾] TV1-12 (b2 p2 #71) |
+| US-08 | v1 và v2 cùng file, cột đúng, BOM | `export.spec.ts`; `server/test/export.test.ts` | TV3-09 (#48); nút [Xuất ▾] TV1-12 (b2 p2 #71, mất mạng thì đóng b2 p3) |
 | US-08 | Chống CSV injection | `server/test/csv.test.ts` | TV3-09 (#48) |
 | US-08 | Điều tra viên xuất → `403` | A3 `export.test.ts` | TV3-09 (#48) |
 | US-09 | Đổi tổ chức offline ≤ 1 s, không lẫn | T6, T10 `projects.spec.ts`; `project-switcher.spec.ts` | TV1-06 (#23), TV1-11 (#43) |

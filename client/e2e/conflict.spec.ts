@@ -354,3 +354,26 @@ test('xoá vs sửa: phiếu hiện ở "Cần xử lý", hỏi giữ hay xoá, 
   expect(await opsOf(page, id)).toHaveLength(0);
   expect((await serverRecord(request, id)).data).toMatchObject({ members: 8 });
 });
+
+test('lựa chọn xung đột: bấm chỗ trống bên phải ô cũng chọn', async ({ page, context, request }) => {
+  await login(page);
+  await openConflict(page, context, request, 'Hộ ô chọn');
+  const mine = page.getByTestId('conflict-field').getByRole('radio', { name: /Của bạn/ });
+  // Ô bấm là label bọc ngay ngoài radio
+  const tile = mine.locator('..');
+  const box = await tile.boundingBox();
+  if (!box) throw new Error('không thấy ô Của bạn');
+  await tile.click({ position: { x: box.width - 6, y: box.height / 2 } });
+  await expect(mine).toBeChecked();
+  await expect(page.getByRole('button', { name: 'Áp dụng và đồng bộ' })).toBeEnabled();
+});
+
+test('phiếu đang xung đột: không có hàng nút, không có ô chụp ảnh để Tab tới', async ({ page, context, request }) => {
+  await login(page);
+  const id = await openConflict(page, context, request, 'Hộ chỉ đọc');
+  await page.goto(`/#/fill/household-survey/${id}`);
+  await expect(page.getByTestId('record-in-conflict')).toBeVisible();
+  await expect(page.getByTestId('record-actions')).toHaveCount(0);
+  await expect(page.getByText('+ Chụp ảnh')).toBeHidden();
+  await expect(page.getByTestId('photo-input-housePhoto')).toBeHidden();
+});
