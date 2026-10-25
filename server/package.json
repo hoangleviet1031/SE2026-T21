@@ -12,6 +12,7 @@
     "user:revoke-sessions": "tsx src/cli/user.ts revoke-sessions",
     "user:disable": "tsx src/cli/user.ts disable",
     "seed:demo": "tsx src/cli/seedDemo.ts",
+    "seed:perf": "tsx src/cli/seedPerf.ts",
     "typecheck": "tsc -p ."
   },
   "dependencies": {

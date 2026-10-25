@@ -89,6 +89,15 @@ export function getRecordAccess(ctx: Ctx, db: Db, id: string): RecordAccess {
   return { kind: 'visible', record: toRecord(row) };
 }
 
+/**
+ * Câu pull theo phạm vi. Export để test kiểm `EXPLAIN QUERY PLAN` trên đúng câu server chạy: phải đi
+ * theo index `(project_id, seq)` / `(project_id, created_by, seq)`, không quét bảng (TV2-11, design §11.2).
+ */
+export const PULL_SQL = {
+  own: `${SELECT_RECORD} WHERE r.project_id = ? AND r.created_by = ? AND r.seq > ? ORDER BY r.seq LIMIT ?`,
+  all: `${SELECT_RECORD} WHERE r.project_id = ? AND r.seq > ? ORDER BY r.seq LIMIT ?`,
+} as const;
+
 export function pullRecords(
   ctx: Ctx,
   db: Db,
@@ -98,12 +107,8 @@ export function pullRecords(
   const scope = scopeOf(ctx);
   const rows =
     scope === 'own'
-      ? (db
-          .prepare(`${SELECT_RECORD} WHERE r.project_id = ? AND r.created_by = ? AND r.seq > ? ORDER BY r.seq LIMIT ?`)
-          .all(ctx.projectId, ctx.userId, since, limit) as unknown as RecordRow[])
-      : (db
-          .prepare(`${SELECT_RECORD} WHERE r.project_id = ? AND r.seq > ? ORDER BY r.seq LIMIT ?`)
-          .all(ctx.projectId, since, limit) as unknown as RecordRow[]);
+      ? (db.prepare(PULL_SQL.own).all(ctx.projectId, ctx.userId, since, limit) as unknown as RecordRow[])
+      : (db.prepare(PULL_SQL.all).all(ctx.projectId, since, limit) as unknown as RecordRow[]);
   const last = rows[rows.length - 1];
   return { records: rows.map(toRecord), cursor: last ? last.seq : since, scope };
 }
