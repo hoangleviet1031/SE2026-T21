@@ -125,6 +125,7 @@ export function ProjectsPage({ token, onError }: { token: string; onError: (err:
                             Khoá
                           </button>
                         )}
+                        {/* "Thêm" chứ không "Đổi": Owner cũ vẫn giữ quyền (critique K5, Dương duyệt chữ 2026-10-24) */}
                         <button
                           type="button"
                           disabled={busy}
@@ -135,7 +136,7 @@ export function ProjectsPage({ token, onError }: { token: string; onError: (err:
                             setUsername('');
                           }}
                         >
-                          Đổi Owner…
+                          Thêm Owner…
                         </button>
                       </div>
                     </td>
