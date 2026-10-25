@@ -34,7 +34,7 @@ Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](pla
 
 | # | Món nợ | Trả ở |
 |---|---|---|
-| N12 | Màn hình điền phiếu thiếu nhãn trạng thái đầu trang và nút cho phiếu Lỗi | ui 0.2.28: `FillPage.tsx` nhãn `displayState` dưới khối tên biểu mẫu; khối lỗi tách thành `components/RecordErrorBox.tsx` dùng chung với trang chủ; E2E `fill-status.spec.ts` (PR #95, làm trước TV2-18, Dương chốt 2026-10-25) |
+| N12 | Màn hình điền phiếu thiếu nhãn trạng thái đầu trang và nút cho phiếu Lỗi | ui 0.2.29: `FillPage.tsx` nhãn `displayState` dưới khối tên biểu mẫu; khối lỗi tách thành `components/RecordErrorBox.tsx` dùng chung với trang chủ; E2E `fill-status.spec.ts` (PR #95, làm trước TV2-18, Dương chốt 2026-10-25) |
 | N7 | `seed:demo` vẫn tạo phiên token cố định `demo-token-<tên>` | Seed bỏ token cố định, xoá phiên token cũ trong DB dev; E2E lấy token bằng đăng nhập (`client/e2e/global-setup.ts`), test server đăng nhập qua API (nhánh `fix/n7-demo-tokens`) |
 | N4 | `ui.md` còn nhãn 🆕/🕘 của phần đã có code | ui 0.2.15: bỏ nhãn ở màn hình 5, 7 và trang quản trị A1–A2; A3 ghi "chưa có code" (PR #62) |
 | N5 | `401` trong PWA không hiện "Phiên đăng nhập hết hạn, đăng nhập lại" | design 0.5.42: `api.ts` gặp `401` gọi `expireSession` (xoá token, ghi `sessionExpired`), màn hình Đăng nhập hiện câu; E2E `api-errors.spec.ts` (PR #62) |
