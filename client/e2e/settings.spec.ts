@@ -55,6 +55,8 @@ test('còn phiếu chưa gửi: nút Đăng xuất bị khoá; đồng bộ xong
   await openSettings(page);
   await expect(page.getByTestId('logout-blocked')).toContainText('Còn dữ liệu chưa gửi ở dự án');
   await expect(page.getByTestId('logout-button')).toBeDisabled();
+  // Audit C4: trình đọc màn hình tới nút khoá thì đọc luôn lý do
+  await expect(page.getByTestId('logout-button')).toHaveAccessibleDescription(/^Còn dữ liệu chưa gửi ở dự án/);
   expect(await databaseNames(page)).toContain(PROJECT_DB);
   // TV1-12 b2 (ui.md màn hình 8): nút khoá nhìn ra là khoá, không viền đỏ như lúc bật; dòng giải thích
   // nằm ngay dưới nút
@@ -69,6 +71,29 @@ test('còn phiếu chưa gửi: nút Đăng xuất bị khoá; đồng bộ xong
   await page.getByRole('button', { name: 'Đồng bộ' }).click();
   await expect(page.getByTestId('logout-button')).toBeEnabled({ timeout: 15_000 });
   await expect(page.getByTestId('logout-blocked')).toHaveCount(0);
+  await expect(page.getByTestId('logout-button')).not.toHaveAttribute('aria-describedby');
+});
+
+// Hộp xác nhận đang mở thì tab khác lưu phiếu: lúc bấm Đăng xuất mới thấy còn dữ liệu chưa gửi.
+// Câu lỗi có ⚠ như các màn khác (audit C13), không xoá gì
+test('đang hỏi Đăng xuất thì tab khác lưu phiếu: báo lỗi có ⚠, không xoá dữ liệu', async ({ page, context }) => {
+  await login(page);
+  await openSettings(page);
+  await page.getByTestId('logout-button').click();
+  await expect(page.getByText('Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.')).toBeVisible();
+
+  await context.setOffline(true);
+  const other = await context.newPage();
+  await other.goto('/');
+  await other.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await other.locator('input[name=householdName]').fill('Hộ tab khác');
+  await other.getByRole('button', { name: 'Lưu' }).click();
+  await expect(other.getByTestId('records').getByText('Hộ tab khác')).toBeVisible();
+
+  await answerConfirm(page, 'Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.', 'Đăng xuất');
+  await expect(page.getByRole('alert')).toHaveText(/^⚠ Còn dữ liệu chưa gửi ở dự án/);
+  await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
+  expect(await databaseNames(page)).toContain(PROJECT_DB);
 });
 
 test('máy lưu thông tin tài khoản từ bản cũ (chưa có username): Cài đặt hiện userId, không hiện rỗng', async ({

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { accountUsername } from '../accountDisplay';
@@ -32,6 +32,7 @@ export function SettingsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const blockedId = useId();
 
   useEffect(() => {
     if (!navigator.storage?.estimate) return;
@@ -127,23 +128,25 @@ export function SettingsPage() {
       </div>
 
       <div className="card">
+        {/* Nút khoá thì trình đọc màn hình đọc luôn lý do khi tới nút, không phải dò xuống dòng dưới (audit C4) */}
         <button
           className="danger-outline wide"
           data-testid="logout-button"
           onClick={() => setConfirmingLogout(true)}
           disabled={busy || blocked === undefined || blocked.length > 0}
+          aria-describedby={blocked && blocked.length > 0 ? blockedId : undefined}
         >
           Đăng xuất
         </button>
         {/* Ngay dưới nút để thấy vì sao nút khoá (ui.md màn hình 8) */}
         {blocked && blocked.length > 0 && (
-          <p className="warning" data-testid="logout-blocked">
+          <p className="warning" id={blockedId} data-testid="logout-blocked">
             {blockedMessage(blocked)}
           </p>
         )}
         {error && (
           <p className="warning" role="alert">
-            {error}
+            ⚠ {error}
           </p>
         )}
       </div>
