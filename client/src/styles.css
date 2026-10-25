@@ -3,8 +3,9 @@
 :root {
   --ink: #262522;       /* chữ chính */
   --btn: #34322e;       /* nút chính, nhạt hơn chữ một chút cho bớt nặng (12,6:1 với chữ trắng) */
-  --muted: #625f58;     /* chữ phụ (6,4:1 trên trắng, 5,8:1 trên nền giấy) */
-  --paper: #fbfaf7;     /* nền trang */
+  --muted: #625f58;     /* chữ phụ (6,4:1 trên trắng, 5,75:1 trên ô chìm) */
+  --paper: #ffffff;     /* nền trang (Dương chốt trắng 2026-10-25); khối trắng tách nền nhờ viền --line */
+  --sunken: #f5f3ef;    /* ô chìm trong khối trắng: gợi ý, mã khoá, toạ độ, bản gốc khi xung đột */
   --surface: #ffffff;   /* header, khối danh sách, ô nhập */
   --chip: #ebe9e4;      /* nút phụ, ô khoá */
   --line: #e6e3dd;      /* kẻ giữa các dòng */
@@ -161,7 +162,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 .export-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 2; min-width: 170px; display: grid; padding: 6px; background: var(--surface);
                border: 1px solid var(--edge); border-radius: 12px; box-shadow: 0 10px 24px rgba(31, 30, 27, .14); }
 .export-menu button { justify-content: flex-start; border: 0; box-shadow: none; background: none; border-radius: 8px; padding: 0 12px; }
-.export-menu button:hover { background: var(--paper); }
+.export-menu button:hover { background: var(--sunken); }
 .export-note { font-size: 14px; color: var(--muted); }
 .export .field-error { flex-basis: 100%; }
 .attn { min-height: 44px; padding: 0 14px 0 10px; border: 0; border-radius: var(--r-pill); box-shadow: none; background: var(--red-soft); color: var(--red);
@@ -254,7 +255,7 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
 .ck:has(input:focus-visible), .opt:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
 /* GPS: toạ độ phông đều phía trên nút, câu lỗi dưới nút */
 .gps { display: grid; gap: 8px; justify-items: start; }
-.gps-val { font-family: ui-monospace, Consolas, monospace; font-size: 15px; font-weight: 600; background: var(--paper); border: 1px solid var(--line);
+.gps-val { font-family: ui-monospace, Consolas, monospace; font-size: 15px; font-weight: 600; background: var(--sunken); border: 1px solid var(--line);
            border-radius: 8px; padding: 6px 10px; }
 /* Ảnh: lưới vuông 3 cột, nút × 36 px dễ bấm; input file ẩn trong ô chụp */
 .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -302,7 +303,7 @@ html:has(.actionbar) { scroll-padding-bottom: 88px; }
 .conflict-card { display: grid; gap: 8px; margin: 0; padding: 14px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
 /* legend nổi để nằm trong khung như tiêu đề thẻ, không cắt ngang đường viền */
 .conflict-card legend { float: left; width: 100%; padding: 0; margin-bottom: 2px; font-size: 17px; font-weight: 700; }
-.conflict-card .conflict-base { margin: 0; padding: 8px 12px; border-radius: 8px; background: var(--paper); color: var(--muted); font-size: 15px; }
+.conflict-card .conflict-base { margin: 0; padding: 8px 12px; border-radius: 8px; background: var(--sunken); color: var(--muted); font-size: 15px; }
 .opt { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 10px 14px; border: 1.5px solid var(--edge); border-radius: 12px; background: var(--surface);
        font-weight: 500; line-height: 1.35; cursor: pointer; overflow-wrap: anywhere; }
 .opt input { border-radius: 50%; }
@@ -322,7 +323,7 @@ button.wide { width: 100%; min-height: 48px; }
 .card { display: grid; gap: 12px; margin: 0; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
 .card > h3 { margin: 0; font-size: 17px; font-weight: 700; }
 .locked { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); font-weight: 400; }
-.locked code { font-family: ui-monospace, Consolas, monospace; font-size: 15px; font-weight: 600; color: var(--ink); background: var(--paper);
+.locked code { font-family: ui-monospace, Consolas, monospace; font-size: 15px; font-weight: 600; color: var(--ink); background: var(--sunken);
                border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; overflow-wrap: anywhere; }
 .frows { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .frow { display: flex; align-items: center; gap: 4px; min-height: 52px; padding: 4px; background: var(--surface); }
@@ -357,7 +358,7 @@ button.wide { width: 100%; min-height: 48px; }
 /* Chưa có trường thì chỉ có câu hướng dẫn, không vẽ khung danh sách rỗng; chưa chọn trường thì chỗ cuộn tới
    khối Thuộc tính (critique K2) không chiếm thêm một khoảng của lưới */
 .frows:empty, .editor-anchor:empty { display: none; }
-.hint-box { margin: 0; padding: 14px; color: var(--muted); background: var(--paper); border: 1px dashed var(--edge); border-radius: 12px; line-height: 1.45; }
+.hint-box { margin: 0; padding: 14px; color: var(--muted); background: var(--sunken); border: 1px dashed var(--edge); border-radius: 12px; line-height: 1.45; }
 .ck-col { display: grid; gap: 8px; }
 .err-banner { display: grid; gap: 4px; margin: 0; padding: 12px 14px; list-style: none; background: var(--warn-bg); color: var(--warn-ink); border-radius: 12px;
               font-weight: 600; line-height: 1.4; }

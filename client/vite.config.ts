@@ -21,7 +21,7 @@ export default defineConfig({
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
-        theme_color: '#0f766e',
+        theme_color: '#ffffff',
         // PNG cho Android cũ và để Chrome coi là cài được; icon nền vuông kín nên dùng được làm maskable
         icons: [
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
