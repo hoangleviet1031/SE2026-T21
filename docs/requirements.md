@@ -145,7 +145,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-04 | 500 hai lần → một bản ghi | R1 `offline.spec.ts` | TV2-09 (#16) |
 | US-04 | Cắt kết nối sau khi ghi → replay | R3 `server/test/idempotency.test.ts`, `retry.spec.ts`; R2 timeout `retry.spec.ts`; R6 `records.test.ts` | TV2-08 (#15) |
 | US-04 | Hai tab không gửi trùng | O6 `tabs.spec.ts` | TV2-06 (#13) |
-| US-04 | `400` → "Lỗi", không thử lại vô hạn | R5 `errors.spec.ts` | TV2-09 (#16) |
+| US-04 | `400` → "Lỗi", không thử lại vô hạn | R5 `errors.spec.ts`; nhãn và [Thử lại], [Xuất JSON phiếu này] ở trang điền phiếu `fill-status.spec.ts` | TV2-09 (#16); tech-debt N12 |
 | US-05 | Khác trường tự gộp | C1 unit `merge.test.ts`, `conflict.spec.ts`; C3 unit | TV2-10 (#34) |
 | US-05 | Cùng trường → màn hình xung đột, không chọn sẵn | C2 `conflict.spec.ts` (cả ca bấm chỗ trống trong ô lựa chọn) | TV3-07 (#41); ô lựa chọn TV1-12 (b2 p3) |
 | US-05 | Phiếu xung đột chỉ đọc | C7 `conflict.spec.ts` (cả ca không có hàng nút, ô chụp ảnh) | TV2-10 (#34), TV3-07 (#41), TV1-12 (b2 p3) |
