@@ -12,7 +12,7 @@ interface Props {
 export function FieldEditor({ field, onChange, onRemove }: Props) {
   const hasOptions = field.type === 'select' || field.type === 'multiselect';
   return (
-    <div className="form" data-testid="field-editor">
+    <div className="card" data-testid="field-editor">
       <h3>
         Thuộc tính: {field.label || 'Trường mới'} ({FIELD_TYPE_LABEL[field.type]})
       </h3>
@@ -24,7 +24,9 @@ export function FieldEditor({ field, onChange, onRemove }: Props) {
         <span>Mã</span>
         {field.saved ? (
           // Mã là khoá dữ liệu của phiếu cũ, đổi là mất liên kết (design §4.1)
-          <code>{field.id} (khoá)</code>
+          <span className="locked">
+            <code>{field.id}</code> <span>(khoá)</span>
+          </span>
         ) : (
           <input
             value={field.id}
@@ -34,13 +36,13 @@ export function FieldEditor({ field, onChange, onRemove }: Props) {
           />
         )}
       </label>
-      <div className="checks">
-        <label>
-          <input type="checkbox" checked={field.required ?? false} onChange={(e) => onChange({ required: e.target.checked })} />{' '}
+      <div className="ck-col">
+        <label className="ck">
+          <input type="checkbox" checked={field.required ?? false} onChange={(e) => onChange({ required: e.target.checked })} />
           Bắt buộc
         </label>
-        <label>
-          <input type="checkbox" checked={field.hidden ?? false} onChange={(e) => onChange({ hidden: e.target.checked })} />{' '}
+        <label className="ck">
+          <input type="checkbox" checked={field.hidden ?? false} onChange={(e) => onChange({ hidden: e.target.checked })} />
           Ẩn
         </label>
       </div>
@@ -58,7 +60,9 @@ export function FieldEditor({ field, onChange, onRemove }: Props) {
       )}
       {onRemove && (
         <div className="actions">
-          <button onClick={onRemove}>Xoá trường</button>
+          <button className="danger-outline" onClick={onRemove}>
+            Xoá trường
+          </button>
         </div>
       )}
     </div>

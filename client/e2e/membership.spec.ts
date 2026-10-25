@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { TOKENS, authHeaders, databaseNames, login, readStore, setMembership } from './helpers';
+import { TOKENS, answerConfirm, authHeaders, databaseNames, login, readStore, setMembership } from './helpers';
 
 // TV2-07: thay đổi thành viên khi thiết bị có thể đang offline (ADR 0002 §6, ca T7–T9) và
 // cursor theo phạm vi (ADR 0001 quy tắc 10, design §5.5). Dùng dự án demo-nongnghiep (có form
@@ -65,7 +65,7 @@ test('T7: bị rút khi còn phiếu chưa gửi: phiếu còn trên máy, khôn
   const switcher = page.getByTestId('project-switcher');
   await switcher.getByRole('button', { expanded: false }).click();
   await switcher.getByRole('listitem').getByRole('button', { name: /Nông nghiệp \(demo\)/ }).click();
-  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Nông nghiệp (demo) ▾');
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveAccessibleName('Nông nghiệp (demo)');
 
   const name = `Hộ T7 ${crypto.randomUUID().slice(0, 8)}`;
   await context.setOffline(true);
@@ -92,7 +92,7 @@ test('T7: bị rút khi còn phiếu chưa gửi: phiếu còn trên máy, khôn
   // TV1-06: banner kèm Xuất JSON; dự án mờ "Đã rời" trong bộ chọn, app chuyển sang dự án còn lại
   const banner = page.getByTestId('removed-project-banner');
   await expect(banner).toContainText('Bạn không còn thuộc dự án Nông nghiệp (demo). 1 phiếu chưa gửi được');
-  await expect(switcher.getByRole('button', { expanded: false })).toHaveText('Y tế xã (demo) ▾');
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveAccessibleName('Y tế xã (demo)');
   await switcher.getByRole('button', { expanded: false }).click();
   await expect(switcher.getByRole('listitem').filter({ hasText: 'Nông nghiệp (demo)' })).toContainText('Đã rời');
   await expect(switcher.getByRole('listitem').getByRole('button', { name: /Nông nghiệp/ })).toHaveCount(0);
@@ -107,17 +107,16 @@ test('T7: bị rút khi còn phiếu chưa gửi: phiếu còn trên máy, khôn
   expect(exported.projectId).toBe(OTHER);
   expect(exported.records.map((r) => r.data.householdName)).toEqual([name]);
 
-  // Huỷ ở hộp xác nhận thì không xoá gì
-  page.once('dialog', (d) => void d.dismiss());
+  // Huỷ (hoặc Esc) ở hộp xác nhận thì không xoá gì; câu hỏi nêu đúng số phiếu sẽ mất
   await banner.getByRole('button', { name: 'Xoá khỏi máy' }).click();
+  await answerConfirm(page, 'Xoá 1 phiếu chưa gửi của dự án Nông nghiệp (demo) khỏi máy? Không khôi phục được.', 'Huỷ');
+  await banner.getByRole('button', { name: 'Xoá khỏi máy' }).click();
+  await answerConfirm(page, 'Xoá 1 phiếu chưa gửi của dự án Nông nghiệp (demo) khỏi máy? Không khôi phục được.', 'Esc');
   await expect(banner).toBeVisible();
   expect(await localNames(page)).toContain(name);
 
-  page.once('dialog', (d) => {
-    expect(d.message()).toBe('Xoá 1 phiếu chưa gửi của dự án Nông nghiệp (demo) khỏi máy? Không khôi phục được.');
-    void d.accept();
-  });
   await banner.getByRole('button', { name: 'Xoá khỏi máy' }).click();
+  await answerConfirm(page, 'Xoá 1 phiếu chưa gửi của dự án Nông nghiệp (demo) khỏi máy? Không khôi phục được.', 'Xoá khỏi máy');
   await expect(banner).toHaveCount(0);
   await expect.poll(() => databaseNames(page)).not.toContain(OTHER_DB);
   expect((await accountProjects(page)).map((p) => p.id)).not.toContain(OTHER);

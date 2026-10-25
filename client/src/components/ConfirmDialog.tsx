@@ -9,11 +9,14 @@ export function ConfirmDialog({
   confirmLabel,
   onConfirm,
   onCancel,
+  danger = true,
 }: {
   message: string;
   confirmLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Nút xác nhận màu đỏ cho việc mất dữ liệu/quyền; `false` cho việc không mất gì (Tải lại, Đổi vai trò) */
+  danger?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const messageId = useId();
@@ -36,8 +39,10 @@ export function ConfirmDialog({
       <p id={messageId}>{message}</p>
       {/* Huỷ đứng trước để nhận focus đầu tiên: lỡ bấm Enter thì không mất gì */}
       <div className="actions">
-        <button onClick={onCancel}>Huỷ</button>
-        <button className="danger" onClick={onConfirm}>
+        <button className="soft" onClick={onCancel}>
+          Huỷ
+        </button>
+        <button className={danger ? 'danger' : 'primary'} onClick={onConfirm}>
           {confirmLabel}
         </button>
       </div>

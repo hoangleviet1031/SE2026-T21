@@ -6,7 +6,8 @@ import type { Role } from '@field-survey/shared';
 
 /** Khoá trong bảng `account`. Thêm khoá mới ở đây để mọi chỗ đọc/ghi dùng cùng một tên. */
 // `user`: bản sao `MeResponse.user` lần gọi /me gần nhất, để trang Cài đặt hiện `userId` cả khi offline.
-export type AccountKey = 'token' | 'currentProjectId' | 'user';
+// `sessionExpired`: token vừa bị server từ chối (401), màn hình Đăng nhập báo lý do (design §8).
+export type AccountKey = 'token' | 'currentProjectId' | 'user' | 'sessionExpired';
 
 export interface AccountEntry {
   key: AccountKey;

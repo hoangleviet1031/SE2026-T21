@@ -27,11 +27,13 @@ export interface TestServer {
  * Server thật cổng ngẫu nhiên với bộ dữ liệu demo (hai dự án; lan, minh, chu là Owner, admin).
  * `enableTestRoutes`: bật /api/__test/* (tiêm lỗi, nhật ký request) như server E2E.
  * `publicBaseUrl`: gốc URL ảnh trong file xuất (PUBLIC_BASE_URL, design §12).
+ * `dbPath`: CSDL trên đĩa thay cho `:memory:`, cho test cần file thật (vd. sao lưu khi server đang
+ * mở CSDL ở chế độ WAL). Người gọi tự đóng `db` và xoá file.
  */
 export async function createTestServer(
-  opts: { enableTestRoutes?: boolean; publicBaseUrl?: string } = {},
+  opts: { enableTestRoutes?: boolean; publicBaseUrl?: string; dbPath?: string } = {},
 ): Promise<TestServer> {
-  const db = openDb(':memory:');
+  const db = openDb(opts.dbPath ?? ':memory:');
   seedDemo(db);
   const uploadDir = mkdtempSync(join(tmpdir(), 'field-survey-uploads-'));
   const server: Server = createApp(db, { uploadDir, enableTestRoutes: opts.enableTestRoutes, publicBaseUrl: opts.publicBaseUrl }).listen(0);

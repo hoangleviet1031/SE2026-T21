@@ -53,7 +53,7 @@ function switcher(page: Page) {
 async function choose(page: Page, name: string) {
   await switcher(page).getByRole('button', { expanded: false }).click();
   await switcher(page).getByRole('listitem').getByRole('button').filter({ hasText: name }).click();
-  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveText(`${name} ▾`);
+  await expect(switcher(page).getByRole('button', { expanded: false })).toHaveAccessibleName(name);
 }
 
 /** Trang chủ đang hiện đúng form và phiếu của `shown`, không có gì của `hidden`. */
@@ -113,6 +113,12 @@ test('T10: offline, chuyển qua lại giữa hai dự án đã tải: mỗi d�
   await login(page, 'lan');
   for (const p of [a, b]) {
     await expect.poll(async () => (await localRecords(page, p.id)).length, { timeout: 15_000 }).toBe(2);
+    // Vòng đồng bộ tải phiếu trước rồi mới tải form (design §5.3), nên có phiếu chưa chắc đã có form
+    await expect
+      .poll(async () => (await readStore(page, `field-survey-p-${p.id}`, 'forms').catch(() => [])).length, {
+        timeout: 15_000,
+      })
+      .toBe(1);
   }
   await context.setOffline(true);
 

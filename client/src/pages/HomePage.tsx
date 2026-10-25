@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { RemovedProjectBanners } from '../components/RemovedProjectBanners';
+import { OrgsPage } from './OrgsPage';
 import { ExportButtons } from '../components/ExportButtons';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
@@ -16,6 +17,9 @@ import { retryFailed } from '../sync/outbox';
 import { staleWarnings } from '../sync/staleWarnings';
 import { navigate } from '../useHashRoute';
 import { RECORD_FILTERS, matchesFilter, needsAttention, type RecordFilter } from '../recordFilter';
+import { statusIcon } from '../statusIcon';
+import { formTone, latestForms } from '../formDisplay';
+import { Icon } from '../components/Icon';
 
 export function HomePage() {
   const db = useCurrentProjectDb();
@@ -28,19 +32,16 @@ export function HomePage() {
 }
 
 /**
- * Chưa có dự án active nào. Chưa từng nhận /me thì đang tải (vừa nhập mã, hoặc mất mạng ngay sau
- * đó); đã nhận mà không có dự án thì người dùng phải nhờ giám sát viên thêm vào (design §4.7 🕘).
+ * Chưa có dự án active nào. Chưa từng nhận /me thì đang tải (vừa đăng nhập, hoặc mất mạng ngay sau
+ * đó); đã nhận mà không có dự án thì trang chủ là màn hình Tổ chức (design §4.7 "Sau khi đăng nhập").
+ * Hiện tại chỗ thay vì chuyển sang #/orgs: yêu cầu được duyệt thì vòng đồng bộ kế tiếp tự đưa về trang
+ * chủ của tổ chức mới.
  */
-// TODO(TV1-15): bản mới vào màn hình Tổ chức (ui.md màn hình 9) thay cho câu này (ADR 0003)
 function NoProject() {
   const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
   if (user === undefined) return null;
   if (user === null) return <p data-testid="no-project">Đang tải danh sách dự án…</p>;
-  return (
-    <p data-testid="no-project">
-      Bạn chưa được thêm vào dự án nào. Gửi mã người dùng <code>{user.id}</code> cho giám sát viên.
-    </p>
-  );
+  return <OrgsPage home />;
 }
 
 function ProjectHome({ db }: { db: ProjectDb }) {
@@ -67,9 +68,7 @@ function ProjectHome({ db }: { db: ProjectDb }) {
   const shown = rows.filter((x) => matchesFilter(x.state.kind, filter));
   // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
   const warnings = useLiveQuery(async () => staleWarnings(await db.outbox.toArray(), Date.now()), [db]);
-  const latestForms = Object.values(
-    Object.fromEntries(forms.sort((a, b) => a.version - b.version).map((f) => [f.id, f])),
-  );
+  const shownForms = latestForms(forms);
 
   return (
     <>
@@ -84,87 +83,140 @@ function ProjectHome({ db }: { db: ProjectDb }) {
         </p>
       )}
       <section>
-        <h2>Biểu mẫu</h2>
-        {latestForms.length === 0 && <p>Chưa có biểu mẫu. Kết nối mạng một lần để tải về.</p>}
-        <ul className="list">
-          {latestForms.map((f) => (
-            <li key={f.key}>
-              <span>{f.title}</span>
-              <span>
-                {canManage && <a href={`#/builder/${encodeURIComponent(f.id)}`}>Sửa form</a>}{' '}
-                {canManage && project && <ExportButtons projectId={project.id} formId={f.id} />}{' '}
-                <button onClick={() => navigate('fill', f.id, crypto.randomUUID())}>Tạo phiếu mới</button>
-              </span>
+        <div className="sec">
+          <h2>Biểu mẫu</h2>
+        </div>
+        {shownForms.length === 0 && <p>Chưa có biểu mẫu. Kết nối mạng một lần để tải về.</p>}
+        {/* Thẻ màu xoay vòng theo thứ tự form, nút trong thẻ đậm cùng tông; trang điền phiếu dùng cùng màu */}
+        <ul className="forms">
+          {shownForms.map((f, i) => (
+            <li key={f.key} className={`fcard tone-${formTone(i)}`}>
+              <div className="t" id={`form-title-${i}`}>
+                <span className="ft">
+                  <Icon name="form" />
+                </span>
+                {f.title}
+              </div>
+              <button className="primary" onClick={() => navigate('fill', f.id, crypto.randomUUID())}>
+                <Icon name="plus" />
+                Tạo phiếu mới
+              </button>
+              {canManage && (
+                <div className="more">
+                  <a className="button-link" href={`#/builder/${encodeURIComponent(f.id)}`}>
+                    Sửa form
+                  </a>
+                  {project && <ExportButtons projectId={project.id} formId={f.id} describedBy={`form-title-${i}`} />}
+                </div>
+              )}
             </li>
           ))}
         </ul>
-        {canManage && <a href="#/builder/new">+ Biểu mẫu mới</a>}
+        {canManage && (
+          <a className="add-row" href="#/builder/new">
+            + Biểu mẫu mới
+          </a>
+        )}
       </section>
       <section>
-        <h2>Phiếu đã nhập</h2>
-        {attentionCount > 0 && (
-          <p className="warning" role="status">
-            <button type="button" data-testid="needs-attention" onClick={() => setFilter('attention')}>
+        <div className="sec">
+          <h2>Phiếu đã nhập</h2>
+          {attentionCount > 0 && (
+            <button type="button" className="attn" data-testid="needs-attention" onClick={() => setFilter('attention')}>
+              <Icon name="alert" />
               Cần xử lý ({attentionCount})
             </button>
+          )}
+        </div>
+        {/* Chưa có phiếu nào thì bộ lọc không lọc được gì, ẩn đi (TV1-12 b2, design §4.8).
+            Chọn đúng một trạng thái: nhóm radio (không dùng nút, để không trùng tên với nút "Đồng bộ") */}
+        {rows.length > 0 && (
+          <div className="record-filters" role="radiogroup" aria-label="Lọc theo trạng thái">
+            {RECORD_FILTERS.map((f) => (
+              <label key={f.id}>
+                <input
+                  type="radio"
+                  name="record-filter"
+                  checked={filter === f.id}
+                  onChange={() => setFilter(f.id)}
+                />
+                <Icon name="check" />
+                {f.label}
+              </label>
+            ))}
+          </div>
+        )}
+        {rows.length === 0 && (
+          <p className="empty" data-testid="records-empty">
+            <Icon name="form" />
+            Chưa có phiếu nào.
           </p>
         )}
-        {/* Chọn đúng một trạng thái: nhóm radio (không dùng nút, để không trùng tên với nút "Đồng bộ") */}
-        <div className="record-filters" role="radiogroup" aria-label="Lọc theo trạng thái">
-          {RECORD_FILTERS.map((f) => (
-            <label key={f.id}>
-              <input
-                type="radio"
-                name="record-filter"
-                checked={filter === f.id}
-                onChange={() => setFilter(f.id)}
-              />
-              {f.label}
-            </label>
-          ))}
-        </div>
-        {rows.length > 0 && shown.length === 0 && <p data-testid="no-records">Không có phiếu nào ở trạng thái này.</p>}
-        <ul className="list" data-testid="records">
-          {shown.map(({ r, photos, state }) => {
-            return (
-              <li key={r.id}>
-                <a href={`#/fill/${r.formId}/${r.id}`}>{String(Object.values(r.data)[0] ?? r.id)}</a>
-                {r.syncState === 'conflict' ? (
-                  <a className="badge conflict" href={`#/conflict/${r.id}`}>
-                    {state.label}
+        {rows.length > 0 && shown.length === 0 && (
+          <p className="empty" data-testid="no-records">
+            <Icon name="inbox" />
+            Không có phiếu nào ở trạng thái này.
+          </p>
+        )}
+        {shown.length > 0 && (
+          <ul className="records" data-testid="records">
+            {shown.map(({ r, photos, state }) => (
+              <li key={r.id} className={`st-${state.kind}`}>
+                {/* Link tên phủ cả phần trên của dòng (mũi tên › báo bấm được); link xung đột nằm trên lớp đó */}
+                <div className="rec-top">
+                  <Icon name={statusIcon(state.kind)} className="st-icon" />
+                  <a className="name" href={`#/fill/${r.formId}/${r.id}`}>
+                    {String(Object.values(r.data)[0] ?? r.id)}
                   </a>
-                ) : (
-                  <span className={`badge ${state.kind}`} data-testid="sync-state">
-                    {state.label}
-                  </span>
-                )}
+                  <Icon name="right" className="go" />
+                  {r.syncState === 'conflict' ? (
+                    <a className="st st-link" href={`#/conflict/${r.id}`}>
+                      {state.label}
+                      <Icon name="right" />
+                    </a>
+                  ) : (
+                    <span className="st" data-testid="sync-state">
+                      {state.label}
+                    </span>
+                  )}
+                </div>
                 {r.syncState === 'error' && (
                   <div className="record-error">
                     <span data-testid="sync-error">{r.lastError ?? 'Máy chủ từ chối phiếu này'}</span>
-                    <button onClick={() => void retry(db, r.id)}>Thử lại</button>
-                    <button onClick={() => void downloadRecord(db, r.id)}>Xuất JSON phiếu này</button>
+                    <div className="acts">
+                      <button className="primary" onClick={() => void retry(db, r.id)}>
+                        Thử lại
+                      </button>
+                      <button onClick={() => void downloadRecord(db, r.id)}>Xuất JSON phiếu này</button>
+                    </div>
                   </div>
                 )}
                 {state.failedPhotoIds.map((photoId) => (
                   <div className="record-error" key={photoId} data-testid="photo-error">
                     <span>Lỗi ảnh: {photos.find((p) => p.id === photoId)?.lastError ?? 'không gửi được ảnh'}</span>
-                    <button onClick={() => void retryPhoto(db, photoId)}>Thử lại</button>
-                    {/* Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7): bỏ ảnh là sửa phiếu */}
-                    {r.syncState !== 'conflict' && (
-                      <button onClick={() => void dropPhoto(db, r.id, photoId)}>Bỏ ảnh này</button>
-                    )}
+                    <div className="acts">
+                      <button className="primary" onClick={() => void retryPhoto(db, photoId)}>
+                        Thử lại
+                      </button>
+                      {/* Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7): bỏ ảnh là sửa phiếu */}
+                      {r.syncState !== 'conflict' && (
+                        <button onClick={() => void dropPhoto(db, r.id, photoId)}>Bỏ ảnh này</button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        )}
       </section>
       {/* Màn hình Thành viên cần mạng; tự báo khi offline (ui.md màn hình 6) */}
       {canManage && (
-        <p>
-          <a href="#/members">Thành viên</a>
-        </p>
+        <a className="members-link" href="#/members">
+          <Icon name="users" />
+          <span>Thành viên</span>
+          <Icon name="right" className="go" />
+        </a>
       )}
     </>
   );

@@ -1,11 +1,14 @@
 import type {
   AddMemberRequest,
   AuthResponse,
+  CreateProjectRequestBody,
+  DirectoryEntry,
   FormSchema,
   LoginRequest,
   MeResponse,
   RegisterRequest,
   Member,
+  ProjectRequest,
   ProjectSettings,
   PullResponse,
   PushRecordRequest,
@@ -14,8 +17,10 @@ import type {
   UpdateSettingsRequest,
 } from '@field-survey/shared';
 import { MEMBER_ERROR_CODES, type MemberErrorCode } from '../members';
+import { ORG_ERROR_CODES, type OrgErrorCode } from '../orgs';
+import type { ApiFailure } from '../apiErrors';
 
-import { clearToken, getToken } from '../auth';
+import { expireSession, getToken } from '../auth';
 
 const TIMEOUT_MS = 10_000;
 
@@ -24,7 +29,13 @@ const projectPath = (projectId: string) => `/api/projects/${encodeURIComponent(p
 
 export class NetworkError extends Error {}
 
-/** Mã đăng nhập thiếu hoặc bị server từ chối (401). Dữ liệu cục bộ giữ nguyên; người dùng nhập lại mã. */
+/**
+ * Server trả `5xx` hoặc mã lỗi màn hình không xử lý được, ở các màn hình cần online (Thành viên, Tổ chức,
+ * builder lưu form, Xuất). Trang báo "Máy chủ đang lỗi, thử lại sau", người dùng bấm lại.
+ */
+export class ServerError extends Error {}
+
+/** Mã đăng nhập thiếu hoặc bị server từ chối (401). Dữ liệu cục bộ giữ nguyên; người dùng đăng nhập lại. */
 export class AuthError extends Error {}
 
 /**
@@ -35,6 +46,15 @@ export class NotMemberError extends Error {
   constructor(readonly projectId: string) {
     super(`không còn là thành viên dự án ${projectId}`);
   }
+}
+
+/** Lỗi của màn hình cần online thành loại để chọn câu báo (apiErrors.ts); lỗi khác trả null để ném tiếp. */
+export function apiFailure(err: unknown): ApiFailure | null {
+  if (err instanceof NetworkError) return 'network';
+  if (err instanceof ServerError) return 'server';
+  if (err instanceof AuthError) return 'auth';
+  if (err instanceof NotMemberError) return 'not_member';
+  return null;
 }
 
 /** Đọc mã lỗi trong thân response mà không làm hỏng thân cho nơi gọi đọc tiếp. */
@@ -73,8 +93,8 @@ async function request(path: string, init: RequestInit = {}, projectId?: string)
       signal: ctrl.signal,
     });
     if (res.status === 401) {
-      // Màn hình tự quay về nhập mã khi token biến mất (design §7.1)
-      await clearToken();
+      // Màn hình tự quay về đăng nhập khi token biến mất, kèm câu báo hết phiên (design §7.1, §8)
+      await expireSession();
       throw new AuthError('mã đăng nhập không còn hiệu lực');
     }
     if (projectId && res.status === 403 && (await errorCode(res)) === 'not_member') {
@@ -101,8 +121,8 @@ export async function fetchMe(): Promise<MeResponse> {
 // token khi gặp 401: lúc gọi, token trên máy có thể là của người khác (đang đổi tài khoản), và token
 // mới chỉ được lưu sau khi signIn.ts kiểm xong.
 
-/** Mã lỗi người dùng sửa được khi đăng nhập/đăng ký (design §7.1). `invalid_token`: mã dán vào bị 401. */
-export type AccountErrorCode = 'invalid_credentials' | 'username_taken' | 'too_many_requests' | 'invalid_body' | 'invalid_token';
+/** Mã lỗi người dùng sửa được khi đăng nhập/đăng ký (design §7.1). */
+export type AccountErrorCode = 'invalid_credentials' | 'username_taken' | 'too_many_requests' | 'invalid_body';
 
 const ACCOUNT_ERROR_CODES: readonly AccountErrorCode[] = [
   'invalid_credentials',
@@ -141,14 +161,6 @@ export function register(body: RegisterRequest): Promise<AuthResponse> {
 /** Đăng nhập bằng tên + mật khẩu; mỗi lần là một phiên mới cho máy này. */
 export function login(body: LoginRequest): Promise<AuthResponse> {
   return authCall('/api/auth/login', body);
-}
-
-/** `GET /api/me` bằng một token cho trước (màn hình nhập mã), chưa lưu token đó. Sai mã: AccountError. */
-export async function fetchMeWithToken(token: string): Promise<MeResponse> {
-  const res = await timedFetch('/api/me', { headers: { Authorization: `Bearer ${token}` } });
-  if (res.status === 401) throw new AccountError('invalid_token');
-  if (!res.ok) throw new Error(`GET /api/me ${res.status}`);
-  return res.json();
 }
 
 /**
@@ -202,9 +214,9 @@ export async function saveForm(projectId: string, body: SaveFormRequest): Promis
         : [];
     return { ok: false, errors: details.length > 0 ? details : ['Biểu mẫu không hợp lệ'] };
   }
-  if (code === 'forbidden') return { ok: false, errors: ['Chỉ giám sát viên được lưu biểu mẫu'] };
+  if (code === 'forbidden') return { ok: false, errors: ['Chỉ giám sát viên và Owner được lưu biểu mẫu'] };
   if (code === 'invalid_body') return { ok: false, errors: ['Biểu mẫu không đúng định dạng'] };
-  throw new Error(`POST forms ${res.status}`);
+  throw new ServerError(`POST forms ${res.status}`);
 }
 
 /**
@@ -227,7 +239,7 @@ async function memberCall<T>(
   if (res.ok) return { ok: true, value: await read(res) };
   const code = await errorCode(res);
   if (isMemberErrorCode(code)) return { ok: false, error: code };
-  throw new Error(`${init.method ?? 'GET'} ${path} ${res.status}`);
+  throw new ServerError(`${init.method ?? 'GET'} ${path} ${res.status}`);
 }
 
 const json = (method: string, body: unknown): RequestInit => ({
@@ -348,6 +360,47 @@ export async function downloadExport(projectId: string, formId: string, format: 
     {},
     projectId,
   );
+  if (res.status >= 500) throw new ServerError(`GET export ${res.status}`);
   if (!res.ok) throw new ExportError(res.status, await errorCode(res));
   return res.blob();
+}
+
+/**
+ * Kết quả gọi `/directory`, `/project-requests` (màn hình Tổ chức, cần mạng): giá trị, hoặc mã lỗi để hiện
+ * cho người dùng (design §7.1). Mất mạng ném NetworkError.
+ */
+export type OrgResult<T> = { ok: true; value: T } | { ok: false; error: OrgErrorCode };
+
+async function orgCall<T>(path: string, init: RequestInit, read: (res: Response) => Promise<T>): Promise<OrgResult<T>> {
+  const res = await request(path, init);
+  if (res.ok) return { ok: true, value: await read(res) };
+  const code = await errorCode(res);
+  const known = ORG_ERROR_CODES.find((c) => c === code);
+  if (known) return { ok: false, error: known };
+  throw new ServerError(`${init.method ?? 'GET'} ${path} ${res.status}`);
+}
+
+/** Tên các tổ chức công khai mình chưa thuộc. */
+export function fetchDirectory(): Promise<DirectoryEntry[]> {
+  return orgCall('/api/directory', {}, readJson<DirectoryEntry[]>).then(unwrap);
+}
+
+/** Mọi yêu cầu mở tổ chức của chính mình, kể cả đã xử lý (để đọc lý do từ chối). */
+export function listMyProjectRequests(): Promise<ProjectRequest[]> {
+  return orgCall('/api/project-requests', {}, readJson<ProjectRequest[]>).then(unwrap);
+}
+
+export function requestProject(body: CreateProjectRequestBody): Promise<OrgResult<ProjectRequest>> {
+  return orgCall('/api/project-requests', json('POST', body), readJson<ProjectRequest>);
+}
+
+/** Huỷ yêu cầu đang chờ; đã được xử lý trước đó thì `not_found`. */
+export function cancelProjectRequest(id: string): Promise<OrgResult<void>> {
+  return orgCall(`/api/project-requests/${encodeURIComponent(id)}`, { method: 'DELETE' }, async () => undefined);
+}
+
+/** Hai lệnh GET không có lỗi nào người dùng sửa được: mã lỗi ở đây là lỗi lập trình. */
+function unwrap<T>(r: OrgResult<T>): T {
+  if (r.ok) return r.value;
+  throw new Error(`lỗi không mong đợi: ${r.error}`);
 }

@@ -5,7 +5,8 @@ import { openDb, seed, type Db } from '../src/db';
 import { createApp } from '../src/app';
 import { addUser, disableUser, newTempPassword, resetPassword, revokeSessions, runUserCli } from '../src/cli/user';
 import { seedDemoAllowed } from '../src/cli/seedDemo';
-import { DEMO_PASSWORD, DEMO_PROJECTS, DEMO_TOKENS, DEMO_USERNAMES, seedDemo } from '../src/seedDemo';
+import { DEMO_PASSWORD, DEMO_PROJECTS, DEMO_USERNAMES, seedDemo } from '../src/seedDemo';
+import { hashToken } from '../src/auth';
 
 // Lệnh quản trị theo tài khoản tên + mật khẩu (design §12 bản mới, ADR 0003 §1, ticket TV3-12).
 // Kiểm bằng request thật: đăng nhập qua /api/auth/login, dùng phiên gọi /api/me.
@@ -204,11 +205,25 @@ describe('seed:demo', () => {
     expect(rows.map((r) => r.username)).toEqual([...ids].sort());
   });
 
-  it('tài khoản demo đăng nhập được bằng mật khẩu demo; token demo cũ vẫn dùng được', async () => {
+  it('tài khoản demo đăng nhập được bằng mật khẩu demo; không còn phiên token cố định (N7)', async () => {
     for (const username of Object.values(DEMO_USERNAMES)) {
       expect(await meStatus(await loginToken(username, DEMO_PASSWORD))).toBe(200);
     }
-    expect(await meStatus(DEMO_TOKENS.lan)).toBe(200);
+    for (const name of ['admin', 'lan', 'minh', 'chu']) expect(await meStatus(`demo-token-${name}`)).toBe(401);
+  });
+
+  it('DB dev có phiên token demo từ bản cũ: chạy seed thì phiên đó bị xoá', async () => {
+    // Giả lập DB dev đã seed bằng bản trước N7 (phiên với token đoán được)
+    db.prepare(`INSERT INTO sessions (token_hash, user_id, created_at, last_seen_at) VALUES (?, 'u_lan', 'x', 'x')`).run(
+      hashToken('demo-token-lan'),
+    );
+    expect(await meStatus('demo-token-lan')).toBe(200);
+    seedDemo(db);
+    expect(await meStatus('demo-token-lan')).toBe(401);
+    // Phiên đăng nhập thật của tài khoản demo không bị đụng tới
+    const real = await loginToken('lan', DEMO_PASSWORD);
+    seedDemo(db);
+    expect(await meStatus(real)).toBe(200);
   });
 
   it('chu là Owner của cả hai dự án; lan, minh giữ vai trò cũ; admin không thuộc dự án nào', () => {

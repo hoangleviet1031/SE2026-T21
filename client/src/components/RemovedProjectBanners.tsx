@@ -1,5 +1,7 @@
 import Dexie from 'dexie';
+import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { ConfirmDialog } from './ConfirmDialog';
 import { accountDb, type AccountProject } from '../db/accountDb';
 import { openProjectDb } from '../db/current';
 import { downloadJson } from '../download';
@@ -26,14 +28,8 @@ export function RemovedProjectBanners() {
 
 function RemovedProjectBanner({ project }: { project: AccountProject }) {
   const unsent = useLiveQuery(() => countUnsent(project.id), [project.id]);
+  const [confirming, setConfirming] = useState(false);
   if (!unsent) return null;
-
-  const remove = async () => {
-    if (!window.confirm(`Xoá ${unsent} phiếu chưa gửi của dự án ${project.name} khỏi máy? Không khôi phục được.`)) {
-      return;
-    }
-    await forgetInSyncLock(project.id);
-  };
 
   return (
     <div className="warning banner-removed" role="alert" data-testid="removed-project-banner">
@@ -42,8 +38,22 @@ function RemovedProjectBanner({ project }: { project: AccountProject }) {
       </span>
       <div>
         <button onClick={() => void exportProject(project.id)}>Xuất JSON</button>
-        <button onClick={() => void remove()}>Xoá khỏi máy</button>
+        <button className="danger-outline" onClick={() => setConfirming(true)}>
+          Xoá khỏi máy
+        </button>
       </div>
+      {confirming && (
+        // Câu nêu rõ số phiếu sẽ mất (bất biến 1: chỉ xoá dữ liệu chưa gửi khi người dùng xác nhận)
+        <ConfirmDialog
+          message={`Xoá ${unsent} phiếu chưa gửi của dự án ${project.name} khỏi máy? Không khôi phục được.`}
+          confirmLabel="Xoá khỏi máy"
+          onConfirm={() => {
+            setConfirming(false);
+            void forgetInSyncLock(project.id);
+          }}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
     </div>
   );
 }

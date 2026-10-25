@@ -149,6 +149,18 @@ describe('POST P/members', () => {
     expect(membership(projectId, member.id)?.role).toBe('surveyor');
   });
 
+  it('tài khoản bị khoá → 404 not_found như tên không có, không ghi gì', async () => {
+    const owner = newUser();
+    const locked = newUser();
+    const projectId = newProject([[owner, 'owner']]);
+    t.db.prepare(`UPDATE users SET disabled = 1 WHERE id = ?`).run(locked.id);
+    expect(await errorOf(await call('POST', members(projectId), owner.token, { username: locked.username, role: 'surveyor' }))).toEqual({
+      status: 404,
+      error: 'not_found',
+    });
+    expect(membership(projectId, locked.id)).toBeUndefined();
+  });
+
   it('Q9: thêm tài khoản admin → 409 admin_account (Owner hay supervisor đều vậy)', async () => {
     const owner = newUser();
     const sup = newUser();

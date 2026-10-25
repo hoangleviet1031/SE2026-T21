@@ -1,9 +1,13 @@
 import { randomBytes, randomInt, randomUUID } from 'node:crypto';
-import type { Db } from '../db';
+import type { AdminUser } from '@field-survey/shared';
+import { tx, type Db } from '../db';
 import { hashToken } from '../auth';
+import { hashPassword } from '../password';
 
 // Tài khoản và phiên (ADR 0003 §1). Không nhận `ctx` vì không đọc dữ liệu bên trong dự án.
-// Hàm ghi không tự mở transaction; người gọi bọc trong tx(db, ...).
+// Hàm ghi cơ bản (insertUser, insertSession, deleteSession) không tự mở transaction; người gọi bọc
+// trong tx(db, ...). Các thao tác hỗ trợ ở cuối file (khoá, cấp lại mật khẩu, thu hồi phiên) tự mở
+// transaction và dùng chung cho CLI user:* và API /admin/users (A3), để hai đường cùng một hành vi.
 
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -66,4 +70,86 @@ export function insertSession(db: Db, userId: string, token: string, now: string
 
 export function deleteSession(db: Db, tokenHash: string): void {
   db.prepare(`DELETE FROM sessions WHERE token_hash = ?`).run(tokenHash);
+}
+
+// Bỏ 0 O 1 l I: người dùng phải gõ tay mật khẩu tạm, dễ nhầm các ký tự này với nhau.
+const TEMP_PASSWORD_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+const TEMP_PASSWORD_LENGTH = 12;
+
+export function newTempPassword(): string {
+  let s = '';
+  for (let i = 0; i < TEMP_PASSWORD_LENGTH; i++) s += TEMP_PASSWORD_ALPHABET[randomInt(TEMP_PASSWORD_ALPHABET.length)];
+  return s;
+}
+
+/**
+ * Quên mật khẩu: cấp mật khẩu tạm mới, trả về để đưa cho người dùng đúng một lần; chỉ lưu scrypt.
+ * Không thu hồi phiên (máy đang giữ phiếu chưa gửi vẫn gửi được). `undefined` nếu không có tài khoản.
+ */
+export async function resetUserPassword(db: Db, userId: string): Promise<string | undefined> {
+  if (!userIdExists(db, userId)) return undefined;
+  const password = newTempPassword();
+  // Băm trước khi mở transaction: scrypt chạy bất đồng bộ, không được nằm giữa BEGIN và COMMIT.
+  const passwordHash = await hashPassword(password);
+  const changed = tx(db, () => db.prepare(`UPDATE users SET password_hash = ? WHERE id = ?`).run(passwordHash, userId).changes);
+  return changed > 0 ? password : undefined;
+}
+
+/** Mất máy: mọi phiên của người này hết hiệu lực. Trả số phiên đã thu hồi, `undefined` nếu không có tài khoản. */
+export function revokeUserSessions(db: Db, userId: string): number | undefined {
+  return tx(db, () => {
+    if (!userIdExists(db, userId)) return undefined;
+    return Number(db.prepare(`DELETE FROM sessions WHERE user_id = ?`).run(userId).changes);
+  });
+}
+
+/**
+ * Khoá tài khoản và thu hồi mọi phiên trong một transaction (ADR 0003 §1). Phiếu đã gửi giữ nguyên.
+ * Khoá lại tài khoản đã khoá thì không đổi gì. Trả số phiên đã thu hồi, `undefined` nếu không có tài khoản.
+ */
+export function disableUserAccount(db: Db, userId: string): number | undefined {
+  return tx(db, () => {
+    if (!userIdExists(db, userId)) return undefined;
+    db.prepare(`UPDATE users SET disabled = 1 WHERE id = ?`).run(userId);
+    return Number(db.prepare(`DELETE FROM sessions WHERE user_id = ?`).run(userId).changes);
+  });
+}
+
+const SEARCH_LIMIT = 50;
+
+interface AdminUserRow {
+  id: string;
+  username: string;
+  name: string;
+  disabled: number;
+  created_at: string;
+  project_count: number;
+}
+
+/**
+ * Tìm tài khoản cho màn hình A3: chuỗi con trong tên đăng nhập, không phân biệt hoa thường; `q` rỗng
+ * thì lấy mọi tài khoản. Sắp theo tên đăng nhập, tối đa 50. `%`, `_` trong `q` là ký tự thường
+ * (`_` hợp lệ trong tên đăng nhập). Tài khoản cũ chưa có username thì dùng id, như toAuthUser.
+ */
+export function searchUsers(db: Db, q: string): AdminUser[] {
+  const pattern = `%${q.toLowerCase().replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  const rows = db
+    .prepare(
+      `SELECT u.id, COALESCE(u.username, u.id) AS username, u.name, u.disabled, u.created_at,
+         (SELECT COUNT(*) FROM memberships m JOIN projects p ON p.id = m.project_id
+          WHERE m.user_id = u.id AND p.archived = 0) AS project_count
+       FROM users u
+       WHERE COALESCE(u.username, u.id) LIKE ? ESCAPE '\\'
+       ORDER BY username
+       LIMIT ${SEARCH_LIMIT}`,
+    )
+    .all(pattern) as unknown as AdminUserRow[];
+  return rows.map((r) => ({
+    id: r.id,
+    username: r.username,
+    name: r.name,
+    disabled: r.disabled === 1,
+    createdAt: r.created_at,
+    projectCount: r.project_count,
+  }));
 }

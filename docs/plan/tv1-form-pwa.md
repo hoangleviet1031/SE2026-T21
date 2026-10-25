@@ -30,7 +30,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 ## TV1-02 · Màn hình nhập mã đăng nhập
 
 - **Trạng thái:** ✅ PR #6
-- ⚠ **ADR 0003:** màn hình nhập mã (token) là **bản cũ, vẫn đang chạy**; TV1-14 thay bằng Đăng nhập / Tạo tài khoản (tên + mật khẩu). Nội dung dưới đây giữ nguyên như lúc làm.
+- ⚠ **ADR 0003:** màn hình nhập mã (token) là **bản cũ, đã bỏ**: TV1-14 thay bằng Đăng nhập / Tạo tài khoản (tên + mật khẩu). Nội dung dưới đây giữ nguyên như lúc làm.
 - **Tuần:** 2 · **Phụ thuộc:** không (dùng stub); nối thật sau TV2-05
 - **Spec:** design §4.7 (Lần đầu mở app), §9
 - **File:** `client/src/pages/LoginPage.tsx` (mới), `client/src/auth.ts` (mới, stub), `client/src/App.tsx`
@@ -113,7 +113,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-06 · Bộ chọn dự án
 
-- **Trạng thái:** ✅ PR #23 (phần đang chạy; 🆕 nhãn Owner chờ TV2-16, "Tổ chức khác…" và màn hình 9 chờ TV1-15; nút builder/Xuất/Thành viên chưa có màn hình, dùng `canManageProject` trong `client/src/projects.ts`)
+- **Trạng thái:** ✅ PR #23 (phần đang chạy; 🆕 nhãn Owner chờ TV2-16; "Tổ chức khác…" và 0 tổ chức → màn hình 9 làm ở TV1-15, ✅ PR #54; nút builder/Xuất/Thành viên chưa có màn hình, dùng `canManageProject` trong `client/src/projects.ts`)
 - 🆕 **Cập nhật theo ADR 0003:** nhãn vai trò có thêm "Owner"; nút builder, Xuất, Thành viên hiện cho cả `owner`; mục "Tổ chức khác…" mở màn hình 9 (TV1-15); không có tổ chức nào thì vào màn hình 9 thay cho câu "Gửi mã người dùng `<userId>`".
 - **Tuần:** 4 · **Phụ thuộc:** TV2-05, TV2-06
 - **Spec:** design §4.7, ADR 0002 §4
@@ -122,7 +122,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 **Việc**
 - Thanh trên: tên dự án đang chọn; mở ra liệt kê dự án từ `field-survey-account` kèm vai trò, số cần xử lý, số chưa đồng bộ; dự án `removed` hiện mờ "Đã rời".
 - Chọn dự án → `setCurrentProject(id)` (API của TV2-05), mọi trang dùng CSDL dự án đó.
-- Chỉ một dự án → không hiện danh sách, chỉ hiện tên. Không có dự án nào → màn hình "Bạn chưa được thêm vào dự án nào. Gửi mã người dùng `<userId>` cho giám sát viên."
+- Chỉ một dự án → không hiện danh sách, chỉ hiện tên. Không có dự án nào → trang chủ là màn hình Tổ chức (TV1-15; bản đầu: câu "Gửi mã người dùng `<userId>`…", đã bỏ theo ADR 0003).
 - Ẩn/hiện nút builder, Xuất, Thành viên theo vai trò.
 - Banner "Bạn không còn thuộc dự án X. N phiếu chưa gửi được" với nút "Xuất JSON" / "Xoá khỏi máy" (gọi hàm TV2-07).
 
@@ -132,7 +132,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-07 · Cập nhật SW, Cài đặt, kiểm tra trình duyệt
 
-- **Trạng thái:** ✅ phần 1 PR #20 (trang Cài đặt: tên, `userId`, dung lượng, Đăng xuất) · ✅ phần 2a PR #27: `registerType: 'prompt'` + `UpdatePrompt`, icon PNG + `apple-touch-icon`, runtime cache theo dự án, `/admin/` trong denylist; E2E `update.spec.ts` · ✅ phần 2b PR #28: `browserSupport.ts` + màn hình "Trình duyệt không được hỗ trợ", `storage.persist()` sau khi lưu phiếu, hướng dẫn cài ở Cài đặt, Đăng xuất xoá cache SW `me`/`forms`; unit `browserSupport.test.ts`, E2E `browser-support.spec.ts`, `settings.spec.ts` · còn phần 🆕 theo ADR 0003 (tên đăng nhập, `/auth/logout`) chờ TV2-14/TV2-16
+- **Trạng thái:** ✅ phần 1 PR #20 (trang Cài đặt: tên, `userId`, dung lượng, Đăng xuất) · ✅ phần 2a PR #27: `registerType: 'prompt'` + `UpdatePrompt`, icon PNG + `apple-touch-icon`, runtime cache theo dự án, `/admin/` trong denylist; E2E `update.spec.ts` · ✅ phần 2b PR #28: `browserSupport.ts` + màn hình "Trình duyệt không được hỗ trợ", `storage.persist()` sau khi lưu phiếu, hướng dẫn cài ở Cài đặt, Đăng xuất xoá cache SW `me`/`forms`; unit `browserSupport.test.ts`, E2E `browser-support.spec.ts`, `settings.spec.ts` · ✅ phần 🆕 theo ADR 0003: Cài đặt hiện tên đăng nhập (PR #57); `/auth/logout` đã xong ở TV2-16 (`client/src/logout.ts`); `/admin/` trong `navigateFallbackDenylist` đã xong ở TV1-16 (`/^\/admin(\/|$)/`)
 - 🆕 **Cập nhật theo ADR 0003:** trang Cài đặt hiện **tên đăng nhập** (thay `userId`) để gửi cho giám sát viên; Đăng xuất gọi `logout` của TV2-16. Cấu hình SW: thêm `/admin/` vào `navigateFallbackDenylist` nếu TV1-16 chưa làm. Phần 1 (PR #20) theo bản đang chạy: hiện `userId`, Đăng xuất chưa gọi `/auth/logout`.
 - **Tuần:** 4 · **Phụ thuộc:** không
 - **Spec:** design §4.2 (Chống bị xoá dữ liệu), §4.3, §11.1
@@ -214,15 +214,17 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ---
 
-## TV1-12 · Hoàn thiện UI, tài liệu người dùng
+## TV1-12 · Hoàn thiện UI
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ phần a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ đã gom); a2 ✅ PR #62 (trạng thái lỗi các trang gọi API, hết phiên N5, nhãn ui.md N4); a3 ✅ PR #68 (lỗi lẻ); (b) chia: b1 ✅ PR #69 (trạng thái, chữ còn thiếu); b2 giao diện theo thiết kế, chia: p1 ✅ PR #70 (vào nhánh gom; nền: token, khung chung, nút đang gửi, nút viền đỏ); p2 ✅ PR #71 (vào nhánh gom; trang chủ: thẻ form, Xuất ▾, ẩn bộ lọc); p3 ✅ PR #72 (vào nhánh gom; điền phiếu: đầu trang cùng màu thẻ form, hàng nút dính đáy, ô nhập, ảnh, GPS; xung đột: ô lựa chọn lớn, bỏ câu "đã được gộp" khi không cần; [Xuất ▾] đóng khi mất mạng); p4 ✅ PR #73 (vào nhánh gom; builder: ba khối, ▲▼ hẹp, hàng nút dính đáy, dải và tự cuộn khi xem trước, khung lỗi gần nút Lưu); p5 ✅ PR #74 (thành viên + tổ chức: vòng chữ cái, nhãn vai trò, bỏ " · ", ẩn khối công khai khi chưa tải được); p6 ✅ PR #75 (đăng nhập + cài đặt: tab công tắc, mất mạng nền vàng, khối bị chặn, bốn khối Cài đặt, thanh dung lượng); p7 ✅ PR #76 (trang quản trị: thẻ đăng nhập, thanh trên, dòng kết quả, hàng mở rộng từ chối/Đổi Owner, trạng thái có biểu tượng); p8 ✅ PR #77 (kéo thả trường bằng tay nắm ⠿, Pointer Events, ▲▼ giữ); sửa ▲▼ giữ đúng dòng đang chọn ✅ PR #78 (`selectionAfterMove`, lỗi có từ trước, Dương chốt PR riêng); kiểm cuối ✅ PR #79 (Đăng nhập hết phiên + mất mạng chỉ một dải, góp ý #75; trang quản trị con trỏ về dòng kết quả sau thao tác, góp ý #76); nhánh gom → main ✅ PR #80 (design 0.5.46, ui 0.2.18; chưa thử iPhone thật → tech-debt N13); vùng status Xem trước luôn có sẵn ✅ PR #81 (sau thử máy #80). Còn lại của TV1-12: sửa UI theo kết quả rà TV3-15 (Đại)
+- **Chia phần (a)** (Dương duyệt 2026-10-19; Dương tự thiết kế UI sau, phần (a) chỉ sửa hành vi, trạng thái, chữ): **a1** `feat/tv1-12-confirm-dialogs`: 5 `window.confirm` → `ConfirmDialog` (prop `danger`), E2E đổi theo + ca Esc; hộp Xoá phiếu đóng khi phiếu thành xung đột; chữ "…và Owner…"; Xuất JSON khi bị từ chối báo kết quả; docs chữ cũ. **a2** `feat/tv1-12-api-states`: `ServerError` ở `api.ts`, câu lỗi theo loại (mạng, 5xx, 401, không còn thành viên) ở Thành viên, Tổ chức, builder lưu form, Xuất; server từ chối thêm tài khoản bị khoá (`404 not_found`). **a3** `feat/tv1-12-a3-loi-le` (A chốt 2026-10-22): Xuất gặp mã lỗi không xử lý báo "Máy chủ đang lỗi, thử lại sau" (§8); E2E nút Xuất JSON khi bị từ chối (đã tải N file, không còn phiếu); ui.md màn hình 1 bỏ câu "màn hình 9 chưa có".
+- **Chia phần (b)** (Dương chốt 2026-10-23): **b1** `feat/tv1-12-b1-trang-thai`: trang chủ rỗng "Chưa có phiếu nào."; "← Quay lại" ở Builder và Cài đặt; "Đang tải…" ở Tổ chức; báo lỗi GPS (từ chối quyền, không lấy được, quá 30 s, không có geolocation) kèm "Đang lấy vị trí…", trường GPS là nhóm như trường Ảnh; chữ phụ lúc đang gửi ở Tiếp tục/Tạo tài khoản, Thêm, Gửi yêu cầu, Lưu bản mới, Xuất (không đổi tên nút); ghi tech-debt N10–N12 (nhóm theo form, tiêu đề dòng phiếu, màn hình 4 phiếu Lỗi), làm sau TV2-18. **b2**: bố cục, màu, CSS theo bản thiết kế của Dương (gồm bộ lọc vẫn hiện khi chưa có phiếu, hàng 4 nút của form). Chia 8 phần (Dương duyệt 2026-10-23), mỗi phần một PR vào nhánh gom `feat/tv1-12-b2-giao-dien`, xong hết mới PR nhánh gom → `main` và deploy một lần: **p1** `b2-nen` (token, kiểu nền, biểu tượng, header, bộ chọn tổ chức, dải cập nhật, trình duyệt không hỗ trợ; nút đang gửi chỉ vòng xoay; nút mở hộp xác nhận viền đỏ), **p2** `b2-trang-chu` (thẻ form, menu Xuất ▾, ẩn bộ lọc khi chưa có phiếu), **p3** `b2-dien-phieu` (ô nhập, hàng nút dính đáy, xung đột), **p4** `b2-builder` (dải xem trước, hàng nút dính đáy), **p5** `b2-thanh-vien-to-chuc` (tên và vai trò hai dòng), **p6** `b2-dang-nhap-cai-dat`, **p7** `b2-quan-tri`, **p8** `b2-keo-tha` (kéo thả trường, Pointer Events). Thiếu thời gian cắt p8 rồi p7.
+- **Chuyển đi** (nhóm chốt 2026-10-22): tài liệu người dùng `docs/user-guide.md` sang **TV3-16**; rà khả năng tiếp cận (design §11.3, [tech-debt](../tech-debt.md) N8) sang **TV3-15**, chỗ cần sửa UI theo kết quả rà thì Dương làm trong (b).
 - **Tuần:** 7–8
-- **File:** `docs/user-guide.md` (mới), các trang UI
+- **File:** các trang UI
 
 **Việc**
 - Rà UI ở bề ngang 360px, chữ đúng design, trạng thái rỗng/đang tải/lỗi ở mọi trang.
-- `docs/user-guide.md`: cho điều tra viên (cài app, nhập mã, điền phiếu, xử lý xung đột, khi nào an toàn để đổi máy), giám sát viên (form, thành viên, xuất), quản trị (CLI, tạo dự án). 🆕 ADR 0003: viết theo bản mới: tạo tài khoản và đăng nhập (thay "nhập mã"); Owner (gửi yêu cầu mở tổ chức, thêm giám sát viên, công khai); admin (trang `/admin/`: duyệt yêu cầu, khoá tổ chức, CLI cho tài khoản). AI viết nháp, người sửa theo app thật, kèm ảnh chụp màn hình.
 
 ---
 
@@ -252,7 +254,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-14 · Màn hình Đăng nhập / Tạo tài khoản
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #53
 - **Tuần:** 4 · **Phụ thuộc:** TV2-16 (hàm `register`, `login`); thay cho TV1-02
 - **Spec:** design §4.7 (🆕 Tài khoản, Sau khi đăng nhập), §7.1 (`invalid_credentials`, `username_taken`, `too_many_requests`); ui.md màn hình 1 (🆕)
 - **File:** `client/src/pages/LoginPage.tsx`, `client/src/App.tsx`, `client/e2e/login.spec.ts`
@@ -263,6 +265,8 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 - Tài khoản admin: hiện "Tài khoản quản trị dùng trang /admin" kèm link (lỗi `AdminAccountError` từ TV2-16).
 - Sau khi đăng nhập: chưa thuộc tổ chức nào → màn hình 9 (TV1-15), có → trang chủ.
 - `data-testid`: `login-username`, `login-password`, `register-name`, `register-password2`.
+- Thông báo từ chối "còn phiếu chưa gửi" có nút "Xuất JSON" (design §4.7).
+- Dương chốt 2026-10-19: bỏ hẳn màn hình nhập mã; tab Đăng nhập không kiểm mẫu tên (tài khoản cũ `u_xxxxxxxx`); chưa thuộc tổ chức nào thì tạm hiện tên đăng nhập ở trang chủ tới TV1-15; `docs/deploy.md` ghi bước `user:reset-password` cho tài khoản cũ trên staging.
 
 **Xong khi:** E2E **U7** (tạo tài khoản, tải lại vẫn đăng nhập; offline báo cần mạng); sửa `login.spec.ts` cũ theo màn hình mới, ghi rõ trong PR là thay spec TV1-02 chứ không nới assertion.
 
@@ -270,7 +274,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-15 · Màn hình Tổ chức (danh bạ công khai, mở tổ chức mới)
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #54
 - **Tuần:** 4 · **Phụ thuộc:** TV2-15, TV1-14
 - **Spec:** design §4.7 (🆕 Màn hình Tổ chức); ui.md màn hình 9
 - **File:** `client/src/pages/OrgsPage.tsx` (mới), `client/src/App.tsx` (route `#/orgs`), `client/src/sync/api.ts` (`fetchDirectory`, `requestProject`, `listMyProjectRequests`, `cancelProjectRequest`), `client/e2e/orgs.spec.ts` (mới)
@@ -280,6 +284,9 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 - Danh sách tên tổ chức công khai (không có nút xin vào).
 - Form "Mở tổ chức mới" (tên, ghi chú), danh sách yêu cầu của mình kèm trạng thái, nút Huỷ khi đang chờ. Lỗi `409 project_limit_reached`: "Bạn đã có yêu cầu đang chờ hoặc đã sở hữu 3 tổ chức".
 - Màn hình cần mạng: offline hiện "Cần kết nối mạng để dùng chức năng này".
+- Chưa thuộc tổ chức nào: trang chủ hiện thẳng màn hình này (thay câu tạm của TV1-14), không có link quay lại.
+- Mục "Tổ chức khác…" trong bộ chọn dự án (phần 🆕 còn lại của TV1-06).
+- Dương chốt 2026-10-19: người chỉ có một tổ chức thấy link "Tổ chức khác…" cạnh tên; câu "Đã duyệt", "Đã huỷ", "Nhập tên tổ chức", "Tên tổ chức tối đa 100 ký tự", "Ghi chú tối đa 500 ký tự"; ô tên `data-testid="org-request-name"`.
 
 **Xong khi:** E2E **Q8** (gửi yêu cầu → admin duyệt qua API → sau một vòng đồng bộ thấy tổ chức với vai trò Owner, tạo được form) và **M3**.
 
@@ -287,7 +294,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-16 · Trang quản trị `/admin/` (thay TV1-09)
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ PR #55 (phần 1: khung + đăng nhập), PR #56 (phần 2: A1, A2, Q10 đủ). A3 làm lượt riêng sau khi #51 (TV2-17) merge. Sửa E2E chập chờn `admin.spec.ts` (`openAdmin` chờ A1 tải xong) ⏳ PR #82
 - **Tuần:** 5 · **Phụ thuộc:** TV2-15 (A1, A2); TV2-17 (A3, cắt được)
 - **Spec:** design §4.3 (🆕), §4.9; ADR 0003 §8; ui.md "Trang quản trị" A1–A3
 - **File:** `client/admin/index.html` (mới), `client/src/admin/` (mới: `main.tsx`, `AdminApp.tsx`, `RequestsPage.tsx`, `ProjectsPage.tsx`, `UsersPage.tsx`), `client/vite.config.ts` (nhiều trang; SW bỏ qua `/admin/`), `client/e2e/admin.spec.ts` (mới), `docs/deploy.md` (Caddy cho `/admin/`)
@@ -297,6 +304,11 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 - Đăng nhập bằng `/api/auth/login`; tài khoản không phải admin → "Tài khoản này không phải quản trị", không lưu token. Token trong `sessionStorage`.
 - A1 duyệt/từ chối (lý do bắt buộc), A2 khoá/mở, đổi Owner. A3 **cắt được**.
 - Bố cục bảng cho máy tính.
+
+**Chia 2 phần** (Dương duyệt 2026-10-19)
+- **Phần 1 – khung** `feat/tv1-16-admin-shell`: Vite build hai trang, `admin/index.html`, `src/admin/` (`main.tsx`, `AdminApp.tsx`, `AdminLogin.tsx`, `adminApi.ts`, `session.ts` + unit, `admin.css`); đăng nhập/đăng xuất admin; A1 `/admin/#/`, A2 `/admin/#/projects` (trang trống), A3 ẩn; precache và manifest không có trang admin; E2E `admin.spec.ts` phần đăng nhập (Q10 một phần); deploy.md bước kiểm `/admin/`.
+- **Phần 2 – A1, A2** `feat/tv1-16-admin-pages`: bảng yêu cầu (Duyệt, Từ chối có lý do), bảng tổ chức (Khoá/Mở, Đổi Owner), 401 về đăng nhập, E2E Q10 đủ, thử trên staging.
+- A3 (TV2-17, PR #51) lượt riêng sau khi #51 merge; cắt được.
 
 **Xong khi:** E2E **Q10** (tài khoản thường bị từ chối; admin duyệt ở A1, khoá ở A2; `indexedDB.databases()` trên trang admin rỗng); thử trên staging, `deploy.md` cập nhật.
 
@@ -317,3 +329,27 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 - Ngoài phạm vi: danh sách phiếu §4.8 (tên người tạo, lọc theo người tạo, "(đã rời dự án)").
 
 **Xong khi:** phần 1: integration pull/PUT/409/history có tên, người tạo giữ nguyên sau khi người khác sửa, tài khoản không tìm thấy thì tên rỗng. Phần 2: màn hình xung đột hiện tên người sửa; E2E surveyor mở phiếu người khác tạo thì không có nút "Xoá phiếu", phiếu của mình thì có.
+
+---
+
+# Chia thêm sau PR #59 (nhóm chốt 2026-10-22)
+
+Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-mục-tiêu-và-phạm-vi). Không dùng số TV1-18.
+
+---
+
+## TV1-19 · Vận hành staging: gỡ IP, diễn tập quay lại bản trước, sao lưu hằng ngày
+
+- **Trạng thái:** ✅ phần 1 PR #63 (gỡ IP); phần 2 PR #64 (diễn tập N3, đo QS5); phần 3 PR #67 (bật sao lưu hằng ngày trên staging 2026-10-22)
+- **Mức:** Should
+- **Tuần:** 4 (gỡ IP), 5–6 (diễn tập N3, đo QS5; xong trước đóng băng giữa tuần 7) · **Phụ thuộc:** TV3-13 (phần chạy sao lưu hằng ngày)
+- **Spec:** [deploy.md](../deploy.md) "Quay lại bản trước", "Việc chưa làm"; design §11.4 (QS5), §12; [tech-debt](../tech-debt.md) N2, N3
+- **File:** `docs/deploy.md`, `docs/design.md` (§11.4), `docs/tech-debt.md`
+
+**Việc**
+- Gỡ dòng IP tĩnh khỏi bảng máy trong `deploy.md`. Giữ `azureuser` (tên mặc định của Azure, có trong lệnh và đường dẫn) và tên miền. Ghi trong PR: lịch sử git vẫn còn IP, tên miền vẫn trỏ về IP đó, nên việc này chỉ để tài liệu không phô thêm, không phải bí mật.
+- N3: diễn tập quay lại bản trước trên staging đúng theo `deploy.md`, bấm giờ từ lúc quyết định quay lại tới lúc `/api/health` trả `200` ở bản cũ. Ghi số đo vào QS5 (§11.4), sửa `deploy.md` chỗ nào chạy thật thấy khác.
+- Khi TV3-13 merge: bật sao lưu hằng ngày trên staging theo `deploy.md`, kiểm có file sao lưu sau một ngày.
+- Thao tác trên máy theo kế hoạch Dương đã duyệt; gặp bất thường thì dừng, hỏi Dương.
+
+**Xong khi:** `deploy.md` không còn IP; có một lần diễn tập ghi giờ và số đo QS5; staging có bản sao lưu hằng ngày (CSDL và ảnh). N3 chuyển xuống "Đã trả"; N2 chuyển cùng TV3-13.

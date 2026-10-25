@@ -143,7 +143,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-09 · Export CSV/JSON
 
-- **Trạng thái:** ⏳ `feat/tv3-09-export`
+- **Trạng thái:** ✅ PR #48
 - **Tuần:** 7 · **Phụ thuộc:** TV2-03
 - **Spec:** design §4.6
 - **File:** `server/src/lib/csv.ts` (mới), `server/test/csv.test.ts` (mới), `server/src/routes/export.ts`, `server/test/export.test.ts` (mới), nút Xuất trong trang form (phối hợp TV1)
@@ -170,7 +170,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-11 · Báo cáo kiểm thử
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `docs/test-report.md` bản 0.2: ma trận, truy vết, CI, lỗi đã biết xong; §6 hiệu năng chờ TV2-11, §7 chờ thử trên điện thoại thật
 - **Tuần:** 8
 - **File:** `docs/test-report.md` (mới)
 
@@ -194,3 +194,68 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 - `helpers.ts`: `login(page, username, password)` đi qua màn hình mới của TV1-14 (trước khi TV1-14 xong: đặt token lấy từ `/api/auth/login` vào CSDL account); sửa các spec chỉ ở bước đăng nhập, **không đổi ý nghĩa assertion**.
 
 **Xong khi:** CI xanh với đăng nhập mới; `cli.test.ts` có ca cho ba lệnh mới; README cập nhật bảng tài khoản demo.
+
+---
+
+# Chia thêm sau PR #59 (nhóm chốt 2026-10-22)
+
+Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-mục-tiêu-và-phạm-vi).
+
+---
+
+## TV3-13 · Sao lưu hằng ngày, `UPLOAD_DIR` ngoài repo
+
+- **Trạng thái:** ✅ PR #66 (N2 trả khi Dương bật trên staging, TV1-19 phần 3, PR #67)
+- **Mức:** Must
+- **Tuần:** 4 · **Phụ thuộc:** không · **Làm cùng:** TV1-19 (Dương bật trên staging)
+- **Spec:** [deploy.md](../deploy.md) "Việc chưa làm"; design §12; [tech-debt](../tech-debt.md) N2
+- **File:** `scripts/` (script sao lưu mới), `docs/deploy.md`
+
+**Việc**
+- Script sao lưu CSDL (bản sao nhất quán khi server đang chạy) **và thư mục ảnh**, giữ một số bản gần nhất, chạy hằng ngày bằng cron hoặc systemd timer.
+- Đưa `UPLOAD_DIR` ra ngoài thư mục repo trên staging để deploy không đụng tới ảnh; ghi bước chuyển ảnh đang có.
+- `deploy.md`: cài lịch sao lưu, chỗ để bản sao lưu, cách khôi phục từ một bản. Thao tác trên máy staging do Dương làm (TV1-19).
+
+**Xong khi:** chạy script trên máy dev ra bản sao lưu mở được (CSDL đọc được, đủ ảnh); `deploy.md` đủ bước cài và khôi phục. N2 chuyển xuống "Đã trả" khi staging đã bật (TV1-19).
+
+---
+
+## TV3-14 · E2E lấy GPS, điều tra viên thấy form sau đồng bộ
+
+- **Trạng thái:** ⏳ chờ PR
+- **Mức:** Must
+- **Tuần:** 4–5 · **Phụ thuộc:** không
+- **Spec:** [requirements.md](../requirements.md) US-03, US-07; design §4.1, §5.3
+- **File:** `client/e2e/` (spec mới hoặc thêm vào spec có sẵn)
+
+**Ca**
+- **US-03:** offline bấm lấy GPS (giả vị trí bằng `context.setGeolocation` của Playwright), lưu phiếu, online → server có toạ độ đúng.
+- **US-07:** giám sát viên tạo form ở một trình duyệt; điều tra viên ở context khác bấm Đồng bộ thì thấy form và điền được.
+
+**Xong khi:** hai E2E xanh trong CI; `requirements.md` bỏ chữ "Chưa có E2E…" ở hai dòng truy vết.
+
+---
+
+## TV3-15 · Rà khả năng tiếp cận · **Cắt được**
+
+- **Trạng thái:** —
+- **Mức:** Could
+- **Tuần:** 5–6 (trễ thì cắt, không làm qua đóng băng giữa tuần 7) · **Phụ thuộc:** không
+- **Spec:** design §11.3; [tech-debt](../tech-debt.md) N8
+
+**Việc:** rà từng màn hình theo bốn điểm ở §11.3 (nhãn ô nhập, trạng thái không chỉ bằng màu, tương phản 4,5:1 và cỡ nút, bàn phím) bằng công cụ có sẵn của trình duyệt. **Chỉ rà và ghi**: kết quả ghi vào §11.3 hoặc `tech-debt.md`, chỗ cần sửa UI chuyển cho Dương làm trong TV1-12 (b).
+
+**Xong khi:** có danh sách theo màn hình (đạt / chưa đạt, chỗ nào); N8 đổi thành các dòng nợ cụ thể hoặc chuyển xuống "Đã trả".
+
+---
+
+## TV3-16 · Tài liệu người dùng
+
+- **Trạng thái:** —
+- **Mức:** Must
+- **Tuần:** 8 · **Phụ thuộc:** các màn hình đã xong (chuyển từ TV1-12)
+- **File:** `docs/user-guide.md` (mới)
+
+**Việc:** hướng dẫn cho điều tra viên (cài app, tạo tài khoản và đăng nhập, điền phiếu, xử lý xung đột, khi nào an toàn để đổi máy), giám sát viên và Owner (form, thành viên, gửi yêu cầu mở tổ chức, công khai, xuất), admin (trang `/admin/`: duyệt yêu cầu, khoá tổ chức; CLI cho tài khoản). AI viết nháp, người sửa theo app thật trên staging, kèm ảnh chụp màn hình.
+
+**Xong khi:** đủ ba nhóm người dùng, ảnh chụp từ bản trên staging; README trỏ tới.

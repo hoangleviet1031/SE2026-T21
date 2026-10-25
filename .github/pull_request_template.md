@@ -35,7 +35,8 @@
 - [ ] `npm run typecheck` và `npm test` xanh
 - [ ] Đã cập nhật design.md / ADR / trạng thái ticket nếu cần
 - [ ] Đã ghi một dòng vào `docs/worklog/<tên>.md`
-- [ ] Chạm vùng **Lõi** → đã nhờ hai người duyệt
+- [ ] Chạm vùng **Lõi** → test viết trước, đã ghi ở "Người review cần đọc kỹ"
+- [ ] Đổi hành vi người dùng thấy → đã cập nhật story/truy vết ở `docs/requirements.md`; làm tắt có chủ ý → đã ghi `docs/tech-debt.md`
 
 ## Phát hiện ngoài phạm vi
 

@@ -1,0 +1,68 @@
+/* Trang quản trị (design §4.9, ui.md trang quản trị, TV1-12 b2 khung A0–A2b): bố cục cho máy tính, cùng token
+   với app. Ở 360px bảng cuộn ngang trong khung, không vỡ trang */
+
+/* A0: thẻ đăng nhập giữa màn hình */
+.alogin { display: grid; place-items: center; min-height: 100vh; padding: 16px; }
+.admin-login { width: min(400px, 100%); padding: 28px; gap: 14px; }
+.admin-login .head { display: flex; align-items: center; gap: 12px; }
+.admin-login h1 { margin: 0; font-size: 26px; font-weight: 800; }
+.admin-login > .field-error, .admin-login > .warning { margin: 0; font-weight: 600; }
+
+/* Thanh trên: mục đang xem nền vàng nhạt, gạch vàng dưới */
+.abar { display: flex; align-items: center; gap: 8px; min-height: 64px; padding: 8px 24px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.abar .logo { margin-right: 6px; }
+.abar .brand-a { font-weight: 800; font-size: 18px; margin-right: 18px; }
+.admin-nav { display: flex; gap: 4px; flex: 1; }
+.admin-nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: var(--r-btn); font-weight: 600; text-decoration: none; color: var(--muted); }
+.admin-nav a[aria-current=page] { background: var(--hl-soft); color: var(--ink); box-shadow: inset 0 -3px 0 var(--hl); }
+.abar .who { color: var(--muted); font-weight: 600; margin-right: 6px; }
+.abar button.small { padding: 0 12px; font-size: 15px; }
+.abody { max-width: 1120px; margin: 0 auto; padding: 28px 24px 40px; display: grid; gap: 16px; }
+.abody h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+.abody section { display: grid; gap: 16px; min-width: 0; }
+
+/* Dòng kết quả ngay trên bảng; chữ trên nền ≥ 4,8:1 */
+.result { display: flex; align-items: center; gap: 8px; justify-self: start; margin: 0; padding: 10px 14px; border-radius: 12px; font-weight: 600; }
+.result.ok { background: #e4f2e8; color: var(--ok); }
+.result.bad { background: var(--red-soft); color: var(--red); }
+.result svg.icon { width: 18px; height: 18px; flex: none; }
+
+/* Bảng trong khối bo góc. position: relative để chữ ẩn (.visually-hidden) nằm trong khung cuộn */
+.tcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; }
+.table-wrap { overflow-x: auto; position: relative; }
+table.admin-table { width: 100%; border-collapse: collapse; }
+table.admin-table th { text-align: left; white-space: nowrap; font-size: 14px; font-weight: 700; color: var(--muted); background: var(--paper);
+                       padding: 12px 16px; border-bottom: 1px solid var(--line); }
+table.admin-table td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.admin-table tbody tr:last-child td { border-bottom: 0; }
+table.admin-table td.note { max-width: 320px; white-space: pre-wrap; overflow-wrap: anywhere; }
+table.admin-table td.act { text-align: right; white-space: nowrap; }
+table.admin-table td.when { color: var(--muted); white-space: nowrap; }
+table.admin-table td.none { color: var(--muted); font-style: italic; }
+table.admin-table .hint { font-size: 14px; }
+/* Dòng đang mở ô nhập và hàng mở rộng ngay dưới cùng nền vàng nhạt để thấy thuộc về nhau */
+table.admin-table tr.open td, table.admin-table tr.exp td { background: #fffbef; }
+table.admin-table tr.open td { border-bottom: 0; }
+table.admin-table tr.exp td { padding-top: 0; }
+.row-actions { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.row-actions button { min-height: 40px; }
+.inline-form { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px; padding: 4px 0 6px; }
+.inline-form .field { width: min(380px, 100%); }
+.inline-form button { min-height: 48px; }
+.inline-form small { flex-basis: 100%; color: var(--muted); font-size: 14px; }
+.inline-form textarea { min-height: 48px; }
+
+/* Trạng thái tổ chức: biểu tượng + chữ như trạng thái phiếu (ổ khoá xám 6,4:1, tích xanh 5,4:1) */
+.st-locked { --c: var(--muted); }
+table.admin-table .st { display: inline-flex; align-items: center; gap: 6px; color: var(--c); font-weight: 600; white-space: nowrap; }
+table.admin-table .st svg.icon { width: 18px; height: 18px; }
+
+.aempty { display: grid; justify-items: center; gap: 10px; margin: 0; padding: 48px 16px; text-align: center; color: var(--muted); font-weight: 500; }
+.aempty svg.icon { width: 40px; height: 40px; color: #b9b6ae; }
+
+@media (max-width: 480px) {
+  .abar { flex-wrap: wrap; padding: 8px 16px; }
+  .abar .brand-a { margin-right: 8px; }
+  .admin-nav { flex-basis: 100%; order: 1; }
+  .abody { padding: 20px 16px 40px; }
+}

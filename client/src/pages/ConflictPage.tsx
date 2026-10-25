@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCurrentProjectDb } from '../db/current';
 import { formKey } from '../db/projectDb';
-import { buildConflictView, resolveChoices, resolveRecordLevel, type Choice, type RecordLevelChoice } from '../conflictView';
+import { autoMergedNote, buildConflictView, resolveChoices, resolveRecordLevel, type Choice, type RecordLevelChoice } from '../conflictView';
 import { DeleteConflictDialog } from '../components/DeleteConflictDialog';
+import { Icon } from '../components/Icon';
 import { resolveConflict } from '../sync/engine';
 import { navigate } from '../useHashRoute';
 
@@ -42,6 +43,7 @@ export function ConflictPage({ recordId }: { recordId: string }) {
   // Xoá vs sửa (ADR 0001 quy tắc 6): chỉ hỏi giữ hay xoá, câu hỏi đã nói rõ giữ bản nào nên không
   // hiện thẻ từng trường. Áp dụng khoá tới khi có câu trả lời, không có giá trị mặc định.
   const recordLevel = conflict.recordLevel;
+  const mergedNote = autoMergedNote(auto.length, recordLevel);
   const ready = recordLevel === 'none' ? fields.every((f) => choices[f.id]) : recordLevelChoice !== undefined;
 
   const choose = (field: string, choice: Choice) => setChoices({ ...choices, [field]: choice });
@@ -65,9 +67,9 @@ export function ConflictPage({ recordId }: { recordId: string }) {
         ← Quay lại
       </a>
       <h2>Xử lý xung đột</h2>
-      <p data-testid="conflict-explain">
-        Trong lúc bạn ngoại tuyến, <b>{editor}</b> đã sửa phiếu này (lần cuối {editedAt}). {auto.length} trường đã
-        được gộp tự động.
+      <p className="explain" data-testid="conflict-explain">
+        Trong lúc bạn ngoại tuyến, <b>{editor}</b> đã sửa phiếu này (lần cuối {editedAt}).
+        {mergedNote && ` ${mergedNote}`}
         {recordLevel === 'none' &&
           fields.length > 0 &&
           ' Các trường dưới đây cả hai bên cùng sửa, hãy chọn giá trị giữ lại.'}
@@ -83,14 +85,15 @@ export function ConflictPage({ recordId }: { recordId: string }) {
       {recordLevel === 'none' && (
       <div className="conflict-cards" data-testid="conflict-table">
         {fields.map((f) => (
+          // Mỗi lựa chọn là cả ô bấm lớn: radio thật nằm trong label, bấm chỗ nào trong ô cũng chọn được
           <fieldset key={f.id} className="conflict-card" data-testid="conflict-field">
             <legend>{f.label}</legend>
             <p className="conflict-base">Trước đó: {f.base}</p>
-            <label>
+            <label className="opt">
               <input type="radio" name={f.id} checked={choices[f.id] === 'local'} onChange={() => choose(f.id, 'local')} />
               Của bạn: {f.local}
             </label>
-            <label>
+            <label className="opt">
               <input
                 type="radio"
                 name={f.id}
@@ -100,7 +103,7 @@ export function ConflictPage({ recordId }: { recordId: string }) {
               Trên máy chủ: {f.remote}
             </label>
             {f.union !== undefined && (
-              <label>
+              <label className="opt">
                 <input type="radio" name={f.id} checked={choices[f.id] === 'both'} onChange={() => choose(f.id, 'both')} />
                 Gộp cả hai: {f.union}
               </label>
@@ -111,7 +114,10 @@ export function ConflictPage({ recordId }: { recordId: string }) {
       )}
       {recordLevel === 'none' && auto.length > 0 && (
         <details className="auto-merged" data-testid="auto-merged">
-          <summary>Đã gộp tự động ({auto.length} trường)</summary>
+          <summary>
+            Đã gộp tự động ({auto.length} trường)
+            <Icon name="down" />
+          </summary>
           <ul>
             {auto.map((a) => (
               <li key={a.id}>
@@ -121,7 +127,7 @@ export function ConflictPage({ recordId }: { recordId: string }) {
           </ul>
         </details>
       )}
-      <button className="primary" disabled={!ready} onClick={apply}>
+      <button className="primary wide" disabled={!ready} onClick={apply}>
         Áp dụng và đồng bộ
       </button>
     </section>
