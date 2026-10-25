@@ -58,7 +58,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-09 | ~~Màn hình Dự án cho admin~~ | ❌ Bỏ, thay bởi TV1-16 |
 | TV1-10 | `formVersion`, `hidden`, xuất/nhập form | ✅ PR #32 (phần 1), PR #33 (phần 2) |
 | TV1-11 | E2E O2, O4, T6, T10 | ✅ PR #43 |
-| TV1-12 | Hoàn thiện UI (tài liệu người dùng → TV3-16, rà khả năng tiếp cận → TV3-15) | ⏳ a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ); a2 ✅ PR #62 (lỗi API, hết phiên); a3 ✅ PR #68 (lỗi lẻ); (b) chia: b1 ✅ PR #69 (trạng thái, chữ còn thiếu); b2 giao diện theo thiết kế, chia p1–p8: p1 ✅ PR #70 (nền, khung chung); p2 ✅ PR #71 (trang chủ); p3 ✅ PR #72 (điền phiếu, xung đột); p4 ✅ PR #73 (builder); p5 ✅ PR #74 (thành viên, tổ chức); p6 ✅ PR #75 (đăng nhập, cài đặt); p7 ✅ PR #76 (trang quản trị); p8 ✅ PR #77 (kéo thả trường); sửa ▲▼ giữ dòng chọn ✅ PR #78; kiểm cuối (2 dải vàng Đăng nhập, focus admin) ✅ PR #79; nhánh gom → main ✅ PR #80; vùng status Xem trước ✅ PR #81; sửa UI sau audit/critique: màn 6 ⏳ PR #85 (ô chọn + [Đổi], ← Quay lại đầu trang); còn: sửa UI theo rà TV3-15 |
+| TV1-12 | Hoàn thiện UI (tài liệu người dùng → TV3-16, rà khả năng tiếp cận → TV3-15) | ⏳ a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ); a2 ✅ PR #62 (lỗi API, hết phiên); a3 ✅ PR #68 (lỗi lẻ); (b) chia: b1 ✅ PR #69 (trạng thái, chữ còn thiếu); b2 giao diện theo thiết kế, chia p1–p8: p1 ✅ PR #70 (nền, khung chung); p2 ✅ PR #71 (trang chủ); p3 ✅ PR #72 (điền phiếu, xung đột); p4 ✅ PR #73 (builder); p5 ✅ PR #74 (thành viên, tổ chức); p6 ✅ PR #75 (đăng nhập, cài đặt); p7 ✅ PR #76 (trang quản trị); p8 ✅ PR #77 (kéo thả trường); sửa ▲▼ giữ dòng chọn ✅ PR #78; kiểm cuối (2 dải vàng Đăng nhập, focus admin) ✅ PR #79; nhánh gom → main ✅ PR #80; vùng status Xem trước ✅ PR #81; sửa UI sau audit/critique: màn 6 ✅ PR #85 (ô chọn + [Đổi], ← Quay lại đầu trang); màn 9 ⏳ PR #87 (gửi xong có "Đã gửi yêu cầu", yêu cầu lên trên form, ← Quay lại đầu trang); còn: sửa UI theo rà TV3-15 |
 | TV1-13 | Nút xoá phiếu + hộp xác nhận | ✅ PR #42 · chưa ẩn nút theo người tạo (thiếu `createdBy`) |
 | TV2-01 | Migration + schema multi-tenancy | ✅ PR #8 (chung với TV2-02, TV2-03, TV3-02) |
 | TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ PR #8 · `requireAuth` đã đổi sang `sessions` ở TV2-14 |
@@ -70,7 +70,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-08 | Idempotency hash, dọn key, fault `drop` | ✅ PR #15 |
 | TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | ✅ PR #16 |
 | TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | ✅ PR #34 |
-| TV2-11 | Hiệu năng pull | — |
+| TV2-11 | Hiệu năng pull | ✅ `feat/tv2-11-perf` |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
 | TV2-13 | Xoá phiếu: logic client + đồng bộ | ✅ PR #35 |
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ✅ PR #2 |

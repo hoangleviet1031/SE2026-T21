@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { tx, type Db } from '../db';
+import { MAX_PERF_RECORDS, SeedPerfError, seedPerf } from '../cli/seedPerf';
 
 // Đổi thành viên trực tiếp cho E2E T7–T9 (ADR 0002), chỉ đăng ký khi ENABLE_TEST_ROUTES=1.
 // Không xác thực vì chỉ chạy trên server kiểm thử. Route thật cho giám sát viên là
@@ -7,6 +8,7 @@ import { tx, type Db } from '../db';
 //   PUT    /api/__test/memberships/:projectId/:userId  { "role": "surveyor" | "supervisor" | "owner" }
 //   DELETE /api/__test/memberships/:projectId/:userId
 //   PUT    /api/__test/projects/:projectId  { "name": "..." }
+//   POST   /api/__test/seed-perf  { "projectId", "userId", "count" }
 // Route tạo dự án thay cho POST /api/admin/projects đã bỏ ở TV2-15: E2E cần đặt id "b-…" để dự án
 // đứng trước "demo-…" trong /me, điều mà luồng duyệt yêu cầu (id "p-…" do server sinh) không cho.
 
@@ -30,6 +32,30 @@ export function testMembershipsRouter(db: Db): Router {
       ).run(projectId, name.trim(), new Date().toISOString());
     });
     res.json({ id: projectId, name: name.trim() });
+  });
+
+  // Dữ liệu đo hiệu năng cho client/e2e/perf (TV2-11): server E2E chạy :memory: nên lệnh seed:perf
+  // không ghi vào được; gọi cùng hàm seedPerf. Kiểm thân trước (400), còn lại seedPerf chỉ báo không
+  // có dự án hoặc người dùng (404).
+  r.post('/seed-perf', (req, res) => {
+    const body = (req.body ?? {}) as { projectId?: unknown; userId?: unknown; count?: unknown };
+    const { projectId, userId, count } = body;
+    if (
+      typeof projectId !== 'string' ||
+      typeof userId !== 'string' ||
+      typeof count !== 'number' ||
+      !Number.isInteger(count) ||
+      count < 1 ||
+      count > MAX_PERF_RECORDS
+    ) {
+      return void res.status(400).json({ error: 'invalid_body' });
+    }
+    try {
+      res.status(201).json({ count: seedPerf(db, { projectId, createdBy: userId, count }) });
+    } catch (err) {
+      if (!(err instanceof SeedPerfError)) throw err;
+      res.status(404).json({ error: 'not_found', message: err.message });
+    }
   });
 
   r.put('/memberships/:projectId/:userId', (req, res) => {

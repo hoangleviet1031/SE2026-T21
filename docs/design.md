@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.48 (2026-10-25)
+- **Phiên bản:** 0.5.49 (2026-10-25)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -8,7 +8,7 @@
   - **🆕 Bản mới (ADR 0003, chưa có code):** spec đích, làm theo các ticket nhóm "Theo ADR 0003" trong [plan/](plan/README.md).
   - **🕘 Bản cũ (đang chạy, ADR 0002):** cách code hiện tại đang làm; giữ để đối chiếu, sẽ bỏ khi ticket tương ứng xong.
 
-  Mục không có nhãn thì không bị ADR 0003 ảnh hưởng. Khi ticket xong, xoá đoạn 🕘 và bỏ nhãn 🆕 trong cùng PR. Từ 0.5.48 (A3 có code) không còn nhãn 🆕 hay đoạn 🕘 nào.
+  Mục không có nhãn thì không bị ADR 0003 ảnh hưởng. Khi ticket xong, xoá đoạn 🕘 và bỏ nhãn 🆕 trong cùng PR. Từ 0.5.49 (A3 có code) không còn nhãn 🆕 hay đoạn 🕘 nào.
 - **Phác thảo giao diện:** [ui.md](ui.md)
 
 ## Lịch sử thay đổi
@@ -81,7 +81,8 @@
 | 0.5.45 | 2026-10-23 | TV1-12 b1: danh sách phiếu rỗng hiện "Chưa có phiếu nào." (§4.8); bảng §8 thêm dòng không lấy được vị trí GPS (từ chối quyền, không lấy được, quá 30 s, trình duyệt không có geolocation) và "Đang lấy vị trí…" lúc chờ |
 | 0.5.46 | 2026-10-24 | TV1-12 b2 p1, chỉ đổi giao diện: token và kiểu nền theo bản thiết kế (ui.md "Hệ thống thiết kế"); nút đang gửi chỉ có vòng xoay, chữ phụ chỉ cho trình đọc màn hình trừ Lấy vị trí; nút trong trang mở hộp xác nhận có viền đỏ, đỏ đặc chỉ ở nút xác nhận (§4.7). p2: trang chủ có nút [Xuất ▾] mở hai lựa chọn Xuất CSV, Xuất JSON (§4.6); chưa có phiếu nào thì ẩn bộ lọc (§4.8). p3: câu giải thích ở màn hình xung đột bỏ "N trường đã được gộp tự động." khi không có trường nào gộp hoặc là xoá vs sửa (§4.5); mất mạng lúc đang mở [Xuất ▾] thì đóng hẳn (§4.6). p4: builder tự cuộn tới khung xem trước (kèm dải báo đang xem trước) và tới khung lỗi khi lưu lỗi (§4.1). p5: màn hình Thành viên, Tổ chức theo thiết kế; dòng thành viên và dòng yêu cầu bỏ " · "; Tổ chức chưa tải được danh sách công khai thì ẩn khối đó (ui.md màn hình 6, 9). p6: màn hình Đăng nhập, Cài đặt theo thiết kế; "Cần kết nối mạng" ở Đăng nhập nền vàng như hết phiên, lỗi người dùng chữ đỏ (ui.md màn hình 1, 8). p7: trang quản trị theo thiết kế; ô từ chối và ô Đổi Owner mở ở hàng ngay dưới dòng; ghi chú rỗng hiện "—" (§4.9, ui.md trang quản trị). p8: builder có kéo thả bằng tay nắm ⠿ để sắp xếp trường, bỏ "builder kéo thả" khỏi Won't (§2), sửa §4.1 và bảng rủi ro §13. Lý do: Dương thử builder thấy form nhiều trường bấm ▲▼ mỏi tay (góp ý màn 5, 2026-10-23); làm được bằng Pointer Events có sẵn, không thêm thư viện, ▲▼ vẫn giữ cho bàn phím và trình đọc màn hình. Số phiên bản đặt ở PR nhánh gom → main |
 | 0.5.47 | 2026-10-24 | TV2-17: API tài khoản cho màn hình A3 có code (§7): `GET /admin/users?q=` (chuỗi con trong tên đăng nhập, không phân biệt hoa thường, tối đa 50, `projectCount` chỉ đếm tổ chức chưa lưu trữ), `POST /admin/users/:id/disable | reset-password | revoke-sessions`; dùng chung hàm với CLI `user:*` (`server/src/repo/users.ts`); admin tự khoá hay tự thu hồi phiên → mã mới `409 self_action` (§7.1); kiểu `AdminUser` (§6.2) |
-| 0.5.48 | 2026-10-25 | TV1-16 A3 (Could): màn hình Tài khoản `/admin/#/users` có code (§4.9): mở là tải danh sách, ô tìm theo tên đăng nhập + [Tìm], nhận đủ 50 thì nhắc gõ thêm; bảng như A1/A2; [Khoá] và [Cấp lại mật khẩu] hỏi lại, [Thu hồi phiên] không hỏi; tài khoản đã khoá chỉ hiện trạng thái; mật khẩu tạm ở hàng ngay dưới dòng, mất khi thao tác hay tìm tiếp; `409 self_action` hiện lỗi. Bỏ nhãn 🆕 cuối cùng. Q10 thêm phần A3 (§10.1) |
+| 0.5.48 | 2026-10-25 | TV2-11: đo hiệu năng pull có code (§11.2, [perf.md](perf.md)): pull lần đầu 5.000 phiếu 2,3 s, danh sách 2.000 phiếu 211 ms, đổi dự án 246 ms (CPU ×4: 9,6 s / 880 ms / 559 ms; danh sách sát ngưỡng 1 s, ghi cho TV2-18), đều đạt; đo trên giao diện mới (TV1-12 b2); `EXPLAIN QUERY PLAN` của pull đi theo index có test; bộ đo `npm run test:perf` chạy riêng; lệnh `seed:perf` (§12) và route kiểm thử `POST /api/__test/seed-perf` (§10.1) |
+| 0.5.49 | 2026-10-25 | TV1-16 A3 (Could): màn hình Tài khoản `/admin/#/users` có code (§4.9): mở là tải danh sách, ô tìm theo tên đăng nhập + [Tìm], nhận đủ 50 thì nhắc gõ thêm; bảng như A1/A2; [Khoá] và [Cấp lại mật khẩu] hỏi lại, [Thu hồi phiên] không hỏi; tài khoản đã khoá chỉ hiện trạng thái; mật khẩu tạm ở hàng ngay dưới dòng, mất khi thao tác hay tìm tiếp; `409 self_action` hiện lỗi. Bỏ nhãn 🆕 cuối cùng. Q10 thêm phần A3 (§10.1) |
 
 ## Mục lục
 
@@ -1108,6 +1109,7 @@ Phạm vi đồ án giữ đơn giản:
 | PUT | `/api/__test/memberships/:projectId/:userId` | `{ "role": "surveyor" \| "supervisor" \| "owner" }`: thêm hoặc đổi vai trò, không cần token (E2E T7–T9). Có code, nhận cả `"owner"` |
 | DELETE | `/api/__test/memberships/:projectId/:userId` | Rút khỏi dự án. Có code |
 | PUT | `/api/__test/projects/:projectId` | `{ "name" }`: tạo dự án (không công khai, chưa có thành viên) nếu chưa có, có rồi thì đặt lại tên; `200 { id, name }`, id hoặc tên sai `400`. Thay `POST /admin/projects` đã bỏ, vì E2E cần đặt id `b-…` để dự án đứng trước `demo-…` trong `/me`. Có code (TV2-15) |
+| POST | `/api/__test/seed-perf` | `{ "projectId", "userId", "count" }`: thêm `count` (1–20.000) phiếu của form mẫu do `userId` tạo, ghi như `PUT` thật; `201 { count }`; thân sai `400`, không có dự án hoặc người dùng `404`. Cho bộ đo `client/e2e/perf` (TV2-11), cùng hàm với `npm run seed:perf` |
 
 | `mode` | Hành vi | Dùng cho |
 |---|---|---|
@@ -1148,12 +1150,12 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 |---|---|---|
 | Mở app offline (đã cài) tới khi nhập được | ≤ 3 s trên thiết bị tham chiếu | Playwright, CPU throttle 4× |
 | Lưu một phiếu | ≤ 200 ms | Playwright |
-| Danh sách 2.000 phiếu | Cuộn mượt, hiển thị ≤ 1 s | Thủ công |
+| Danh sách 2.000 phiếu | Cuộn mượt, hiển thị ≤ 1 s | Hiển thị: Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); cuộn mượt: thủ công, chưa thử |
 | Đồng bộ 100 phiếu không ảnh | ≤ 10 s ở mạng "Slow 3G" | Playwright network throttle |
 | Đồng bộ 50 ảnh đã nén | ≤ 3 phút ở mạng 3G (1,6 Mbps) | Playwright network throttle |
-| Pull lần đầu 5.000 phiếu (supervisor) | ≤ 30 s | Script seed |
+| Pull lần đầu 5.000 phiếu (supervisor) | ≤ 30 s | Seed (`seed:perf`) + Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); truy vấn theo index có test `server/test/queryPlan.test.ts` |
 | Dung lượng mỗi máy | Thiết kế cho tổng 2.000 phiếu + 500 ảnh (khoảng 250 MB) trên mọi dự án | `storage.estimate()` |
-| Đổi dự án (đã tải) | ≤ 1 s, kể cả offline | Playwright |
+| Đổi dự án (đã tải) | ≤ 1 s, kể cả offline | Playwright (`project-switcher.spec.ts` với ít dữ liệu; `perf/pull.spec.ts` với 2.000 phiếu, [perf.md](perf.md)) |
 | Số dự án mỗi người dùng | Tối đa 10 | Thiết kế |
 | Kích thước ảnh sau nén | ≤ 600 KB | E2E `photo.spec.ts` (canvas chỉ có trong trình duyệt); unit test `fitWithin` |
 
@@ -1208,6 +1210,7 @@ Người dùng thường tự tạo tài khoản trên app; CLI để tạo admi
 | `npm run user:revoke-sessions -w server -- --user <username>` | Thu hồi mọi phiên (mất máy) |
 | `npm run user:disable -w server -- --user <username>` | Khoá tài khoản và thu hồi mọi phiên (mọi request nhận `401`) |
 | `npm run seed:demo -w server` | Tạo hai dự án mẫu `demo-yte`, `demo-nongnghiep`; tài khoản `lan`, `minh`, `admin`, `chu` (Owner cả hai dự án) mật khẩu `demo-password`. Không tạo token cố định; xoá phiên token demo (`demo-token-<tên>`) nếu DB dev còn giữ từ bản cũ. Từ chối khi `NODE_ENV=production` |
+| `npm run seed:perf -w server -- --project <id> --user <username> [--count 5000]` | Thêm phiếu mẫu vào một dự án có sẵn để đo hiệu năng ([perf.md](perf.md)); ghi như `PUT` thật trong một transaction. Từ chối khi `NODE_ENV=production` |
 | ~~`user:rotate-token`~~ | Đã bỏ (không còn token theo người dùng) |
 
 - **Log và theo dõi:** server ghi ra stdout, systemd giữ trong `journalctl -u survey-api`; có `GET /api/health` cho `deploy.sh` và kiểm tra sau deploy. Chưa có log theo request (method, đường dẫn, mã trả về, thời gian, `userId`, không ghi token) và chưa có số liệu lỗi sau deploy ([tech-debt.md](tech-debt.md) N1). Khi làm: một dòng JSON mỗi request bằng middleware trong `app.ts`, không thêm thư viện.
