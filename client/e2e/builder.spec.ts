@@ -497,3 +497,26 @@ test('form mới: chưa có trường thì có câu hướng dẫn; bỏ trống
   await addField(page, 'Chữ', 'Họ tên');
   await expect(empty).toHaveCount(0);
 });
+
+// Nền trang trắng (Dương chốt 2026-10-25): ô chìm có màu riêng để không thành trắng trên trắng;
+// thanh trạng thái điện thoại theo màu header trắng (audit C11)
+test('nền trang trắng, theme-color trắng; gợi ý và mã khoá trong builder có nền ô chìm', async ({ page, request }) => {
+  const res = await request.post(api('/forms'), {
+    headers: authHeaders(TOKENS.lan),
+    data: { id: 'nen', title: 'Nền trắng', fields: [{ id: 'ten', type: 'text', label: 'Tên' }] },
+  });
+  expect(res.status()).toBe(201);
+  const bg = (el: Element) => getComputedStyle(el).backgroundColor;
+
+  await login(page, 'lan');
+  expect(await page.locator('body').evaluate(bg)).toBe('rgb(255, 255, 255)');
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#ffffff');
+
+  await formRow(page, 'Nền trắng').getByRole('link', { name: 'Sửa form' }).click();
+  const hint = page.getByText('Bấm vào một trường để sửa nhãn, bắt buộc, ẩn, lựa chọn.');
+  await expect(hint).toBeVisible();
+  expect(await hint.evaluate(bg)).toBe('rgb(245, 243, 239)');
+  expect(await page.getByTestId('builder-form-id-locked').getByText('nen', { exact: true }).evaluate(bg)).toBe(
+    'rgb(245, 243, 239)',
+  );
+});
