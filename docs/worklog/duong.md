@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-25 | N15 | docs | tech-debt N15: builder cho lưu biểu mẫu không có trường nào (spec không nói, code cho lưu; phát hiện khi thử staging 2885598), mức Thấp, chưa sửa | PR | chờ review |
 | 2026-10-25 | N12 | fix | Màn 4 nhãn trạng thái đầu trang (displayState, mọi trạng thái); phiếu Lỗi có câu lỗi + [Thử lại] + [Xuất JSON phiếu này] trên trang, khối lỗi tách `RecordErrorBox` dùng chung trang chủ; E2E fill-status.spec 3 ca; ui 0.2.29; tech-debt N12 → Đã trả | PR #95 | chờ review |
 | 2026-10-25 | TV1-12 | fix | Tiêu đề trang màn 5, 6, 8, 9 cùng kiểu màn 2, 4 (22px, đậm 800; audit C10, chỉ CSS); E2E headings.spec mới; ui 0.2.28 | PR #94 | chờ review |
 | 2026-10-25 | TV1-12 | fix | Màn 8 Cài đặt sau audit UI (impeccable): câu lỗi lúc Đăng xuất (vừa có dữ liệu chưa gửi) có ⚠ (C13); nút Đăng xuất khoá gắn dòng lý do bằng aria-describedby (C4, Could); E2E settings.spec +1 ca (2 tab) + assert; ui 0.2.27 | PR #93 | xong |
