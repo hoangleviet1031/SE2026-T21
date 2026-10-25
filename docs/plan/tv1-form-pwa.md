@@ -72,7 +72,7 @@ Cách làm mỗi ticket: [vibe-coding.md §2](../vibe-coding.md#2-quy-trình-cho
 
 ## TV1-04 · Form builder
 
-- **Trạng thái:** ✅ PR #24 (🆕 hiện cho `owner` chờ TV2-16; Xuất/Nhập form ở TV1-10)
+- **Trạng thái:** ✅ PR #24 (🆕 hiện cho `owner` chờ TV2-16; Xuất/Nhập form ở TV1-10). Sửa lỗi đổi thẳng địa chỉ giữa hai builder giữ form cũ (A → new lưu thành version mới của A; vai C phát hiện 2026-10-24) ⏳ PR #84
 - **Tuần:** 3 · **Phụ thuộc:** TV1-03
 - **Spec:** design §4.1 (Builder UI, Tiêu chí chấp nhận), [ui.md màn hình 5](../ui.md#5-form-builder)
 - **File:** `client/src/pages/BuilderPage.tsx` (mới), `client/src/components/FieldEditor.tsx` (mới), `client/src/App.tsx` (route `#/builder/<formId>` và `#/builder/new`), `client/src/sync/api.ts` (hàm `saveForm`)
@@ -294,7 +294,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-16 · Trang quản trị `/admin/` (thay TV1-09)
 
-- **Trạng thái:** ✅ PR #55 (phần 1: khung + đăng nhập), PR #56 (phần 2: A1, A2, Q10 đủ). A3 làm lượt riêng sau khi #51 (TV2-17) merge. Sửa E2E chập chờn `admin.spec.ts` (`openAdmin` chờ A1 tải xong) ⏳ PR #82
+- **Trạng thái:** ✅ PR #55 (phần 1: khung + đăng nhập), PR #56 (phần 2: A1, A2, Q10 đủ). A3 làm lượt riêng sau khi #51 (TV2-17) merge. Sửa E2E chập chờn `admin.spec.ts` (`openAdmin` chờ A1 tải xong) ✅ PR #82
 - **Tuần:** 5 · **Phụ thuộc:** TV2-15 (A1, A2); TV2-17 (A3, cắt được)
 - **Spec:** design §4.3 (🆕), §4.9; ADR 0003 §8; ui.md "Trang quản trị" A1–A3
 - **File:** `client/admin/index.html` (mới), `client/src/admin/` (mới: `main.tsx`, `AdminApp.tsx`, `RequestsPage.tsx`, `ProjectsPage.tsx`, `UsersPage.tsx`), `client/vite.config.ts` (nhiều trang; SW bỏ qua `/admin/`), `client/e2e/admin.spec.ts` (mới), `docs/deploy.md` (Caddy cho `/admin/`)
