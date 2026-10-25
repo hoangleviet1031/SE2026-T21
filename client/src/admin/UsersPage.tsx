@@ -14,6 +14,8 @@ type Confirming = { action: 'disable' | 'reset'; user: AdminUser };
 // Không có mở khoá: tài khoản đã khoá chỉ hiện trạng thái, không còn nút nào.
 export function UsersPage({ token, onError }: { token: string; onError: (err: unknown) => string | null }) {
   const [users, setUsers] = useState<AdminUser[] | null>(null);
+  // Lần tải đầu lỗi: danh sách vẫn chưa có nhưng không còn đang chờ, chỉ hiện dòng lỗi; [Tìm] tải lại (không kẹt "Đang tải…")
+  const [loadFailed, setLoadFailed] = useState(false);
   const [query, setQuery] = useState('');
   // Chuỗi đã tìm: tải lại sau thao tác theo chuỗi này, không theo chữ đang gõ dở trong ô
   const [searched, setSearched] = useState('');
@@ -28,7 +30,11 @@ export function UsersPage({ token, onError }: { token: string; onError: (err: un
   const load = useCallback(
     async (q: string) => {
       const res = await searchUsers(token, q);
-      if (!res.ok) return setNotice({ kind: 'error', text: adminErrorMessage(res.error) });
+      if (!res.ok) {
+        setLoadFailed(true);
+        return setNotice({ kind: 'error', text: adminErrorMessage(res.error) });
+      }
+      setLoadFailed(false);
       setUsers(res.value);
     },
     [token],
@@ -43,7 +49,10 @@ export function UsersPage({ token, onError }: { token: string; onError: (err: un
   );
 
   useEffect(() => {
-    load('').catch(fail);
+    load('').catch((err: unknown) => {
+      setLoadFailed(true);
+      fail(err);
+    });
   }, [load, fail]);
 
   async function search() {
@@ -116,7 +125,7 @@ export function UsersPage({ token, onError }: { token: string; onError: (err: un
       </form>
       <Notice value={notice} ref={noticeRef} />
       {users === null ? (
-        <p className="hint">Đang tải…</p>
+        !loadFailed && <p className="hint">Đang tải…</p>
       ) : users.length === 0 ? (
         <div className="tcard">
           <p className="aempty">
