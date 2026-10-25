@@ -417,3 +417,55 @@ test('Q10 A3: admin tự khoá hay tự thu hồi phiên của mình thì báo l
   await page.setViewportSize({ width: 360, height: 740 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
 });
+
+/** Lần tải danh sách (GET) của trang trả lỗi giả; thao tác khác vẫn tới server thật. */
+async function failListLoad(page: Page, path: RegExp, status: number, body: string) {
+  await page.route(path, (route) =>
+    route.request().method() === 'GET'
+      ? route.fulfill({ status, contentType: 'application/json', body })
+      : route.continue(),
+  );
+}
+
+const CODED_ERROR = JSON.stringify({ error: 'invalid_body' });
+
+// Lần tải đầu lỗi thì chỉ còn dòng lỗi; trước đây danh sách chưa có nên trang hiện "Đang tải…" mãi
+test('A1 tải lần đầu lỗi có mã: báo lỗi, không kẹt "Đang tải…"', async ({ page }) => {
+  await failListLoad(page, /\/api\/admin\/project-requests(\?|$)/, 400, CODED_ERROR);
+  await page.goto('/admin/');
+  await adminSignIn(page, 'admin');
+  await expect(page.getByRole('heading', { name: 'Yêu cầu mở tổ chức' })).toBeVisible();
+  await expect(page.getByTestId('admin-notice')).toHaveText('⚠ Thông tin chưa hợp lệ, kiểm tra lại');
+  await expect(page.getByText('Đang tải…')).toHaveCount(0);
+});
+
+test('A2 tải lần đầu lỗi có mã: báo lỗi, không kẹt "Đang tải…"', async ({ page }) => {
+  await openAdmin(page);
+  await failListLoad(page, /\/api\/admin\/projects(\?|$)/, 400, CODED_ERROR);
+  await page.getByRole('link', { name: 'Tổ chức' }).click();
+  await expect(page.getByTestId('admin-notice')).toHaveText('⚠ Thông tin chưa hợp lệ, kiểm tra lại');
+  await expect(page.getByText('Đang tải…')).toHaveCount(0);
+});
+
+test('A2 tải lần đầu máy chủ lỗi (5xx): báo lỗi, không kẹt "Đang tải…"', async ({ page }) => {
+  await openAdmin(page);
+  await failListLoad(page, /\/api\/admin\/projects(\?|$)/, 500, '{}');
+  await page.getByRole('link', { name: 'Tổ chức' }).click();
+  await expect(page.getByTestId('admin-notice')).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
+  await expect(page.getByText('Đang tải…')).toHaveCount(0);
+});
+
+test('A3 tải lần đầu lỗi có mã: báo lỗi, không kẹt "Đang tải…"; bấm Tìm thì tải lại được', async ({ page }) => {
+  await openAdmin(page);
+  const users = /\/api\/admin\/users(\?|$)/;
+  await failListLoad(page, users, 400, CODED_ERROR);
+  await page.getByRole('link', { name: 'Tài khoản' }).click();
+  await expect(page.getByTestId('admin-notice')).toHaveText('⚠ Thông tin chưa hợp lệ, kiểm tra lại');
+  await expect(page.getByText('Đang tải…')).toHaveCount(0);
+
+  await page.unroute(users);
+  await page.getByLabel('Tìm theo tên đăng nhập').fill('admin');
+  await page.getByRole('button', { name: 'Tìm' }).click();
+  await expect(userRow(page, 'admin')).toBeVisible();
+  await expect(page.getByTestId('admin-notice')).toHaveCount(0);
+});

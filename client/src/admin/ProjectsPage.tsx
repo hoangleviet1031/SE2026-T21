@@ -14,6 +14,8 @@ const COLUMNS = 5;
 // Không hiện form, phiếu hay danh sách thành viên: dữ liệu thuộc về Owner (ADR 0003 Y8).
 export function ProjectsPage({ token, onError }: { token: string; onError: (err: unknown) => string | null }) {
   const [projects, setProjects] = useState<AdminProject[] | null>(null);
+  // Lần tải đầu lỗi: danh sách vẫn chưa có nhưng không còn đang chờ, chỉ hiện dòng lỗi (không kẹt "Đang tải…")
+  const [loadFailed, setLoadFailed] = useState(false);
   const [notice, setNotice] = useState<NoticeValue | null>(null);
   const [confirmLock, setConfirmLock] = useState<AdminProject | null>(null);
   const [ownerFor, setOwnerFor] = useState<string | null>(null);
@@ -24,7 +26,11 @@ export function ProjectsPage({ token, onError }: { token: string; onError: (err:
 
   const load = useCallback(async () => {
     const res = await fetchProjects(token);
-    if (!res.ok) return setNotice({ kind: 'error', text: adminErrorMessage(res.error) });
+    if (!res.ok) {
+      setLoadFailed(true);
+      return setNotice({ kind: 'error', text: adminErrorMessage(res.error) });
+    }
+    setLoadFailed(false);
     setProjects(res.value);
   }, [token]);
 
@@ -37,7 +43,10 @@ export function ProjectsPage({ token, onError }: { token: string; onError: (err:
   );
 
   useEffect(() => {
-    load().catch(fail);
+    load().catch((err: unknown) => {
+      setLoadFailed(true);
+      fail(err);
+    });
   }, [load, fail]);
 
   async function run(action: () => Promise<Outcome>, okText: string) {
@@ -66,7 +75,7 @@ export function ProjectsPage({ token, onError }: { token: string; onError: (err:
       <h1>Tổ chức</h1>
       <Notice value={notice} ref={noticeRef} />
       {projects === null ? (
-        <p className="hint">Đang tải…</p>
+        !loadFailed && <p className="hint">Đang tải…</p>
       ) : (
         <div className="tcard table-wrap">
           <table className="admin-table" data-testid="admin-projects">

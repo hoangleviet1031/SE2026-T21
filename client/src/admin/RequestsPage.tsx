@@ -21,6 +21,8 @@ export function RequestsPage({
   onCount: (n: number) => void;
 }) {
   const [requests, setRequests] = useState<AdminProjectRequest[] | null>(null);
+  // Lần tải đầu lỗi: danh sách vẫn chưa có nhưng không còn đang chờ, chỉ hiện dòng lỗi (không kẹt "Đang tải…")
+  const [loadFailed, setLoadFailed] = useState(false);
   const [notice, setNotice] = useState<NoticeValue | null>(null);
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState('');
@@ -49,7 +51,11 @@ export function RequestsPage({
 
   const load = useCallback(async () => {
     const res = await fetchPendingRequests(token);
-    if (!res.ok) return setNotice({ kind: 'error', text: adminErrorMessage(res.error) });
+    if (!res.ok) {
+      setLoadFailed(true);
+      return setNotice({ kind: 'error', text: adminErrorMessage(res.error) });
+    }
+    setLoadFailed(false);
     setRequests(res.value);
     onCount(res.value.length);
   }, [token, onCount]);
@@ -63,7 +69,10 @@ export function RequestsPage({
   );
 
   useEffect(() => {
-    load().catch(fail);
+    load().catch((err: unknown) => {
+      setLoadFailed(true);
+      fail(err);
+    });
   }, [load, fail]);
 
   async function decide(req: AdminProjectRequest, approve: boolean) {
@@ -103,7 +112,7 @@ export function RequestsPage({
       <h1>Yêu cầu mở tổ chức</h1>
       <Notice value={notice} ref={noticeRef} />
       {requests === null ? (
-        <p className="hint">Đang tải…</p>
+        !loadFailed && <p className="hint">Đang tải…</p>
       ) : requests.length === 0 ? (
         <div className="tcard">
           <p className="aempty">
