@@ -354,6 +354,9 @@ button.wide { width: 100%; min-height: 48px; }
 .addrow { display: flex; gap: 8px; align-items: end; }
 .addrow .field { flex: 1; min-width: 0; }
 .addrow > button { min-height: 48px; }
+/* Chưa có trường thì chỉ có câu hướng dẫn, không vẽ khung danh sách rỗng; chưa chọn trường thì chỗ cuộn tới
+   khối Thuộc tính (critique K2) không chiếm thêm một khoảng của lưới */
+.frows:empty, .editor-anchor:empty { display: none; }
 .hint-box { margin: 0; padding: 14px; color: var(--muted); background: var(--paper); border: 1px dashed var(--edge); border-radius: 12px; line-height: 1.45; }
 .ck-col { display: grid; gap: 8px; }
 .err-banner { display: grid; gap: 4px; margin: 0; padding: 12px 14px; list-style: none; background: var(--warn-bg); color: var(--warn-ink); border-radius: 12px;

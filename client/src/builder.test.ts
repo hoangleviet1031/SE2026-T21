@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { FormSchema } from '@field-survey/shared';
 import {
   addField,
+  FORM_ID_EMPTY,
   FORM_ID_TAKEN,
   builderErrors,
+  formIdInvalid,
   emptyBuilder,
   fromForm,
   fromImport,
@@ -148,6 +150,30 @@ describe('mã form trùng trong dự án', () => {
 
   it('form đã lưu (mã khoá) không tính là trùng với chính nó', () => {
     expect(builderErrors(fromForm(saved), saved, existing)).toEqual([]);
+  });
+});
+
+// Critique K3 (TV1-12 màn hình 5): bỏ trống mã báo câu ngắn, ô Mã biết khi nào phải tô đỏ
+describe('mã biểu mẫu trống hoặc sai', () => {
+  const existing = new Set(['household']);
+
+  it('bỏ trống mã chỉ báo "Nhập mã biểu mẫu", không kèm câu "không hợp lệ" của shared', () => {
+    const errors = builderErrors(setFormId(fromImport(saved), ''), undefined, existing);
+    expect(errors).toEqual([FORM_ID_EMPTY]);
+  });
+
+  it('mã sai mẫu vẫn dùng câu của shared', () => {
+    const errors = builderErrors(setFormId(fromImport(saved), '1ho'), undefined, existing);
+    expect(errors).toEqual([expect.stringContaining('Mã biểu mẫu "1ho" không hợp lệ')]);
+  });
+
+  it('formIdInvalid: trống, sai mẫu, trùng thì đúng; mã hợp lệ hoặc đã khoá thì sai', () => {
+    const s = fromImport(saved);
+    expect(formIdInvalid(setFormId(s, ''), existing)).toBe(true);
+    expect(formIdInvalid(setFormId(s, '1ho'), existing)).toBe(true);
+    expect(formIdInvalid(setFormId(s, 'household'), existing)).toBe(true);
+    expect(formIdInvalid(setFormId(s, 'household2'), existing)).toBe(false);
+    expect(formIdInvalid(fromForm(saved), existing)).toBe(false);
   });
 });
 

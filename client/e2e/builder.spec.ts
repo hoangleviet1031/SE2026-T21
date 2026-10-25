@@ -164,6 +164,9 @@ test('điều tra viên không thấy nút sửa form và không mở được b
   await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toHaveCount(0);
   await page.goto('/#/builder/new');
   await expect(page.getByText('Chỉ giám sát viên và Owner được sửa biểu mẫu.')).toBeVisible();
+  // Audit C9: không đủ quyền vẫn có lối về, không thành ngõ cụt
+  await page.getByRole('link', { name: '← Quay lại' }).click();
+  await expect(page.getByRole('heading', { name: 'Phiếu đã nhập' })).toBeVisible();
 });
 
 // TV1-12 b2 p4: hàng nút dính đáy (Đổi 8), ▲▼ hẹp mà vẫn dễ bấm, khung lỗi luôn gần [Lưu bản mới]
@@ -422,4 +425,75 @@ test('đổi thẳng địa chỉ giữa hai builder: hiện đúng form theo đ
   expect(forms.find((f) => f.id === 'form-a')?.version).toBe(1);
   expect(forms.find((f) => f.id === 'form-b')?.version).toBe(1);
   expect(forms.filter((f) => f.id !== 'form-a' && f.id !== 'form-b')).toHaveLength(1);
+});
+
+// Critique K2 (TV1-12 màn hình 5): khối Thuộc tính nằm dưới danh sách, ở 360 px ngoài tầm nhìn
+test('màn 360 px: chọn hoặc thêm trường thì cuộn tới Thuộc tính, focus giữ ở nút; ▲▼ không cuộn', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  await newFormWith(page, ['Một', 'Hai', 'Ba', 'Bốn', 'Năm', 'Sáu', 'Bảy']);
+  const rows = fieldRows(page);
+  const editor = page.getByTestId('field-editor');
+  // Trường vừa thêm tự chọn nên cũng cuộn tới Thuộc tính; focus vẫn ở nút vừa bấm
+  await expect(editor.getByLabel('Nhãn')).toHaveValue('Bảy');
+  await expect(editor).toBeInViewport();
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const first = rows.nth(0).getByRole('button', { name: /^Một/ });
+  await first.click();
+  await expect(editor.getByLabel('Nhãn')).toHaveValue('Một');
+  await expect(editor).toBeInViewport();
+  await expect(first).toBeFocused();
+
+  await page.getByLabel('Loại trường').selectOption({ label: 'Số' });
+  const addButton = page.getByRole('button', { name: '+ Thêm trường' });
+  await addButton.click();
+  await expect(editor).toContainText('Trường mới (Số)');
+  await expect(editor).toBeInViewport();
+  await expect(addButton).toBeFocused();
+
+  // ▲▼ chỉ đổi thứ tự, trang đứng yên: qua hai khung hình mà scrollY không đổi là không có cuộn nào chạy
+  const twoFrames = () =>
+    page.evaluate(() => new Promise<number>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(window.scrollY)))));
+  await rows.nth(1).scrollIntoViewIfNeeded();
+  const before = await twoFrames();
+  await rows.nth(1).getByRole('button', { name: 'Xuống' }).click();
+  await expect(rows.nth(2)).toContainText('Hai');
+  expect(await twoFrames()).toBe(before);
+});
+
+// Audit C9: địa chỉ form không có thì vẫn có lối về
+test('mở #/builder/<mã không có>: báo không tìm thấy, có ← Quay lại về trang chủ', async ({ page }) => {
+  await login(page, 'lan');
+  await page.goto('/#/builder/khong-co-form-nay');
+  await expect(page.getByText('Không tìm thấy biểu mẫu.')).toBeVisible();
+  await page.getByRole('link', { name: '← Quay lại' }).click();
+  await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toBeVisible();
+});
+
+// Critique K3: bỏ trống mã báo câu ngắn và tô đúng ô; danh sách trường rỗng có câu hướng dẫn
+test('form mới: chưa có trường thì có câu hướng dẫn; bỏ trống mã thì "Nhập mã biểu mẫu" và ô Mã viền đỏ', async ({ page }) => {
+  await login(page, 'lan');
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  const empty = page.getByTestId('builder-fields-empty');
+  await expect(empty).toHaveText('Chưa có trường nào. Chọn loại trường rồi bấm + Thêm trường.');
+
+  await page.getByLabel('Tiêu đề').fill('Không mã');
+  const id = page.getByLabel('Mã biểu mẫu');
+  await id.fill('');
+  // Chưa bấm Lưu thì chưa tô
+  await expect(id).not.toHaveAttribute('aria-invalid');
+  await page.getByRole('button', { name: 'Lưu bản mới' }).click();
+  const errors = page.getByTestId('builder-errors');
+  await expect(errors).toHaveText('⚠ Nhập mã biểu mẫu');
+  await expect(id).toHaveAttribute('aria-invalid', 'true');
+
+  // Gõ mã đúng thì hết viền đỏ ngay, gõ sai lại thì tô lại
+  await id.fill('khongMa');
+  await expect(id).not.toHaveAttribute('aria-invalid');
+  await id.fill('1ma');
+  await expect(id).toHaveAttribute('aria-invalid', 'true');
+  await id.fill('khongMa');
+
+  await addField(page, 'Chữ', 'Họ tên');
+  await expect(empty).toHaveCount(0);
 });

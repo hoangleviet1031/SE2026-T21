@@ -7,6 +7,7 @@ import {
   addField,
   builderErrors,
   emptyBuilder,
+  formIdInvalid,
   fromForm,
   fromImport,
   moveField,
@@ -63,12 +64,24 @@ export function BuilderPage({ formId }: { formId?: string }) {
 
   if (db === undefined || project === undefined || prev === undefined || (db && !formIds)) return null;
   if (!db || !project || !canManageProject(project.role)) {
-    return <p>Chỉ giám sát viên và Owner được sửa biểu mẫu.</p>;
+    return <BuilderMessage text="Chỉ giám sát viên và Owner được sửa biểu mẫu." />;
   }
-  if (formId && !prev) return <p>Không tìm thấy biểu mẫu.</p>;
+  if (formId && !prev) return <BuilderMessage text="Không tìm thấy biểu mẫu." />;
   // key chỉ theo form: vòng đồng bộ tải bản mới hơn trong lúc sửa không được xoá phần đang sửa;
   // `prev` mới vẫn được dùng để kiểm luật khi lưu (nhóm chốt: bản lưu sau thành version mới)
   return <Builder key={formId ?? 'new'} db={db} prev={prev ?? undefined} formIds={formIds ?? new Set()} />;
+}
+
+/** Không mở được builder: vẫn có "← Quay lại" đầu trang như lúc mở được, không thành ngõ cụt (audit C9) */
+function BuilderMessage({ text }: { text: string }) {
+  return (
+    <section>
+      <a href="#/" className="back">
+        ← Quay lại
+      </a>
+      <p>{text}</p>
+    </section>
+  );
 }
 
 function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; formIds: ReadonlySet<string> }) {
@@ -83,6 +96,12 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const errorsRef = useRef<HTMLUListElement>(null);
   const fieldsRef = useRef<HTMLUListElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+  // Tăng mỗi lần bấm chọn hoặc thêm trường: khối Thuộc tính nằm dưới danh sách, trên điện thoại ngoài tầm nhìn
+  // (critique K2). Không tăng khi ▲▼, kéo thả, nhập form: lúc đó người dùng đang nhìn danh sách
+  const [reveal, setReveal] = useState(0);
+  // Đã bấm Lưu hoặc nhập form mà có lỗi thì mới tô ô Mã, không tô lúc đang gõ dở form mới
+  const [checked, setChecked] = useState(false);
   const previewId = useId();
   // Thả xong thì dòng vừa kéo thành dòng đang chọn (ui.md màn hình 5, khung 5f)
   const onDrop = useCallback((from: number, to: number) => {
@@ -102,6 +121,11 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
     if (errors.length > 0) scrollToView(errorsRef.current, 'nearest');
   }, [errors]);
 
+  // Chỉ cuộn, không chuyển focus: người dùng bàn phím vẫn ở nút vừa bấm (A chốt 2026-10-25)
+  useEffect(() => {
+    if (reveal > 0) scrollToView(editorRef.current, 'start');
+  }, [reveal]);
+
   // Trường đang chọn bị xoá thì bỏ chọn
   useEffect(() => {
     if (selected !== null && selected >= state.fields.length) setSelected(null);
@@ -112,6 +136,12 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const add = () => {
     setState(addField(state, newType));
     setSelected(state.fields.length);
+    setReveal((n) => n + 1);
+  };
+
+  const select = (index: number) => {
+    setSelected(index);
+    setReveal((n) => n + 1);
   };
 
   const move = (index: number, delta: -1 | 1) => {
@@ -124,6 +154,7 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const save = async () => {
     const found = builderErrors(state, prev, formIds);
     setErrors(found);
+    setChecked(found.length > 0);
     if (found.length > 0) return;
     // Biết chắc offline thì báo ngay, không chờ hết thời gian request
     if (!navigator.onLine) return setErrors([OFFLINE_MSG]);
@@ -162,8 +193,12 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
     const next = fromImport(parsed.form);
     setState(next);
     setSelected(null);
-    setErrors(builderErrors(next, undefined, formIds));
+    const found = builderErrors(next, undefined, formIds);
+    setErrors(found);
+    setChecked(found.length > 0);
   };
+
+  const idBad = checked && formIdInvalid(state, formIds);
 
   const previewForm: FormSchema = { ...toSaveRequest(state), version: (prev?.version ?? 0) + 1 };
 
@@ -180,7 +215,8 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
           <span>Tiêu đề</span>
           <input value={state.title} onChange={(e) => setState(setTitle(state, e.target.value))} />
         </label>
-        <label className="field">
+        {/* Mã sai thì viền đỏ ngay ô (critique K3); gõ lại đúng thì hết, câu lỗi vẫn ở khung trên hàng nút */}
+        <label className={idBad ? 'field bad' : 'field'}>
           <span>Mã biểu mẫu</span>
           {state.idLocked ? (
             <span className="locked" data-testid="builder-form-id-locked">
@@ -190,6 +226,7 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
             <input
               value={state.id}
               onChange={(e) => setState(setFormId(state, e.target.value))}
+              aria-invalid={idBad || undefined}
               autoCapitalize="off"
               spellCheck={false}
             />
@@ -199,6 +236,11 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
 
       <div className="card">
         <h3>Trường</h3>
+        {state.fields.length === 0 && (
+          <p className="hint" data-testid="builder-fields-empty">
+            Chưa có trường nào. Chọn loại trường rồi bấm + Thêm trường.
+          </p>
+        )}
         <ul className={drag ? 'frows dragging' : 'frows'} data-testid="builder-fields" ref={fieldsRef}>
           {state.fields.map((f, i) => (
             <li
@@ -213,7 +255,7 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
               <span className="grip" aria-hidden="true" data-testid="field-grip" {...gripProps(i)}>
                 <Icon name="grip" />
               </span>
-              <button className="field-name" aria-pressed={i === selected} onClick={() => setSelected(i)}>
+              <button className="field-name" aria-pressed={i === selected} onClick={() => select(i)}>
                 {f.label || 'Trường mới'} ({FIELD_TYPE_LABEL[f.type]}
                 {f.hidden ? ', ẩn' : ''}){f.required ? ' *' : ''}
               </button>
@@ -246,14 +288,17 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
       {!field && state.fields.length > 0 && (
         <p className="hint-box">Bấm vào một trường để sửa nhãn, bắt buộc, ẩn, lựa chọn.</p>
       )}
-      {field && selected !== null && (
-        <FieldEditor
-          key={field.uid}
-          field={field}
-          onChange={(patch) => setState(updateField(state, selected, patch))}
-          onRemove={field.saved ? undefined : () => setState(removeField(state, selected))}
-        />
-      )}
+      {/* Bọc ngoài để có chỗ cuộn tới; luôn có nên ref không mất khi đổi trường */}
+      <div ref={editorRef} className="editor-anchor">
+        {field && selected !== null && (
+          <FieldEditor
+            key={field.uid}
+            field={field}
+            onChange={(patch) => setState(updateField(state, selected, patch))}
+            onRemove={field.saved ? undefined : () => setState(removeField(state, selected))}
+          />
+        )}
+      </div>
 
       <div className="actions">
         {prev ? (

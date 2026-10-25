@@ -1,4 +1,4 @@
-import { validateFormSchema, type FieldDef, type FieldType, type FormSchema, type SaveFormRequest } from '@field-survey/shared';
+import { FORM_ID_PATTERN, validateFormSchema, type FieldDef, type FieldType, type FormSchema, type SaveFormRequest } from '@field-survey/shared';
 
 // Trạng thái và thao tác của form builder (design §4.1, ui.md màn hình 5). Hàm thuần, tách khỏi
 // React để unit test được; BuilderPage chỉ giữ state và gọi các hàm này.
@@ -184,6 +184,16 @@ export function toSaveRequest(state: BuilderState): SaveFormRequest {
 }
 
 export const FORM_ID_TAKEN = 'Mã biểu mẫu đã có trong dự án';
+export const FORM_ID_EMPTY = 'Nhập mã biểu mẫu';
+
+/**
+ * Ô Mã biểu mẫu đang sai (trống, sai mẫu, trùng form đã có) thì tô viền đỏ đúng ô đó, không chỉ báo ở khung
+ * lỗi cuối trang (critique K3). Mã đã khoá thì không sửa được nên không tô.
+ */
+export function formIdInvalid(state: BuilderState, existingFormIds: ReadonlySet<string> = new Set()): boolean {
+  if (state.idLocked) return false;
+  return !FORM_ID_PATTERN.test(state.id) || existingFormIds.has(state.id);
+}
 
 /**
  * Lỗi trước khi gửi: cùng luật với server (`validateFormSchema`, so với bản mới nhất trên máy),
@@ -198,9 +208,16 @@ export function builderErrors(
 ): string[] {
   const req = toSaveRequest(state);
   const errors: string[] = [];
+  const idEmpty = !state.idLocked && req.id === '';
+  if (idEmpty) errors.push(FORM_ID_EMPTY);
   if (!state.idLocked && existingFormIds.has(req.id)) errors.push(FORM_ID_TAKEN);
   req.fields.forEach((f, i) => {
     if (f.label === '') errors.push(`Trường thứ ${i + 1} chưa có nhãn`);
   });
-  return [...errors, ...validateFormSchema({ ...req, version: (prev?.version ?? 0) + 1 }, prev)];
+  // Mã trống thì shared báo `Mã biểu mẫu "" không hợp lệ (chữ cái đầu…)`, đọc như gõ sai; đã có câu ngắn ở
+  // trên nên bỏ câu đó. Không sửa ở shared vì server cũng trả câu đó (critique K3, A chốt 2026-10-25)
+  const schemaErrors = validateFormSchema({ ...req, version: (prev?.version ?? 0) + 1 }, prev).filter(
+    (e) => !(idEmpty && e.startsWith('Mã biểu mẫu ""')),
+  );
+  return [...errors, ...schemaErrors];
 }
