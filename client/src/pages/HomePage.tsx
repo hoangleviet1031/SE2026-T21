@@ -4,16 +4,14 @@ import type { MeResponse } from '@field-survey/shared';
 import { RemovedProjectBanners } from '../components/RemovedProjectBanners';
 import { OrgsPage } from './OrgsPage';
 import { ExportButtons } from '../components/ExportButtons';
+import { RecordErrorBox } from '../components/RecordErrorBox';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { canManageProject } from '../projects';
-import { downloadJson } from '../download';
 import type { LocalAttachment, ProjectDb } from '../db/projectDb';
 import { syncNow } from '../sync/engine';
 import { dropAttachment, retryAttachment } from '../sync/attachments';
 import { displayState } from '../sync/displayState';
-import { exportRecordJson } from '../sync/exportJson';
-import { retryFailed } from '../sync/outbox';
 import { staleWarnings } from '../sync/staleWarnings';
 import { navigate } from '../useHashRoute';
 import { RECORD_FILTERS, matchesFilter, needsAttention, type RecordFilter } from '../recordFilter';
@@ -180,17 +178,7 @@ function ProjectHome({ db }: { db: ProjectDb }) {
                     </span>
                   )}
                 </div>
-                {r.syncState === 'error' && (
-                  <div className="record-error">
-                    <span data-testid="sync-error">{r.lastError ?? 'Máy chủ từ chối phiếu này'}</span>
-                    <div className="acts">
-                      <button className="primary" onClick={() => void retry(db, r.id)}>
-                        Thử lại
-                      </button>
-                      <button onClick={() => void downloadRecord(db, r.id)}>Xuất JSON phiếu này</button>
-                    </div>
-                  </div>
-                )}
+                {r.syncState === 'error' && <RecordErrorBox db={db} recordId={r.id} lastError={r.lastError} />}
                 {state.failedPhotoIds.map((photoId) => (
                   <div className="record-error" key={photoId} data-testid="photo-error">
                     <span>Lỗi ảnh: {photos.find((p) => p.id === photoId)?.lastError ?? 'không gửi được ảnh'}</span>
@@ -230,14 +218,4 @@ async function retryPhoto(db: ProjectDb, photoId: string) {
 async function dropPhoto(db: ProjectDb, recordId: string, photoId: string) {
   await dropAttachment(db, recordId, photoId);
   void syncNow();
-}
-
-async function retry(db: ProjectDb, recordId: string) {
-  await retryFailed(db, recordId);
-  void syncNow();
-}
-
-/** Tải phiếu về máy dưới dạng file .json (design §8, phiếu "Lỗi"). */
-async function downloadRecord(db: ProjectDb, recordId: string) {
-  downloadJson(`phieu-${recordId}.json`, await exportRecordJson(db, recordId));
 }
