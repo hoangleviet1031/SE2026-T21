@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.4 (2026-10-24)
+- **Phiên bản:** 0.5 (2026-10-25)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -125,6 +125,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tài khoản admin, **when** đăng nhập vào app khảo sát, **then** báo "Tài khoản quản trị dùng trang /admin", không tạo CSDL nào.
 - **Given** tài khoản thường, **when** đăng nhập `/admin/`, **then** bị từ chối và phiên vừa cấp bị huỷ; trang admin không dùng IndexedDB.
 - **Given** admin, **when** từ chối yêu cầu mà không ghi lý do, **then** `400 invalid_body`.
+- **Given** admin ở màn hình Tài khoản (A3, Could), **when** cấp lại mật khẩu / thu hồi phiên / khoá một tài khoản, **then** mật khẩu cũ hết dùng / token cũ nhận `401` / tài khoản không đăng nhập được nữa; tự khoá hay tự thu hồi phiên của mình thì báo lỗi, không mất phiên.
 
 ## Truy vết
 
@@ -177,6 +178,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
 | US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Đổi Owner, focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại) | TV1-16 (#55, #56); giao diện TV1-12 (b2 p7, b2) |
 | US-12 | Từ chối thiếu lý do | Q3 `projectRequests.test.ts` | TV2-15 (#49) |
+| US-12 | Hỗ trợ tài khoản ở A3 | Q10 `admin.spec.ts` (ca A3: cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`); API `server/test/admin.test.ts` | TV2-17 (#51), TV1-16 A3 |
 
 Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --json commits`).
 
@@ -188,3 +190,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.2 | 2026-10-22 | TV1-12 a2: US-10 thêm tiêu chí hết phiên (`401`); US-11 thêm tài khoản bị khoá vào tiêu chí `404` và tiêu chí máy chủ lỗi |
 | 0.3 | 2026-10-23 | TV1-12 b1: US-03 thêm tiêu chí không lấy được vị trí |
 | 0.4 | 2026-10-24 | TV3-14: US-03 thêm tiêu chí lấy vị trí khi offline (câu story có ý này, bảng truy vết có dòng nhưng chưa có tiêu chí); E2E `gps-offline.spec.ts` (US-03) và `form-sync.spec.ts` (US-07) thay hai chỗ "Chưa có E2E…" |
+| 0.5 | 2026-10-25 | TV1-16 A3 (Could): US-12 thêm tiêu chí hỗ trợ tài khoản ở A3 (cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`) và dòng truy vết |

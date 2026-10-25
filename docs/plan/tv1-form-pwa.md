@@ -294,7 +294,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV1-16 · Trang quản trị `/admin/` (thay TV1-09)
 
-- **Trạng thái:** ✅ PR #55 (phần 1: khung + đăng nhập), PR #56 (phần 2: A1, A2, Q10 đủ). A3 làm lượt riêng sau khi #51 (TV2-17) merge. Sửa E2E chập chờn `admin.spec.ts` (`openAdmin` chờ A1 tải xong) ✅ PR #82
+- **Trạng thái:** ✅ PR #55 (phần 1: khung + đăng nhập), PR #56 (phần 2: A1, A2, Q10 đủ). A3 làm lượt riêng sau khi #51 (TV2-17) merge. Sửa E2E chập chờn `admin.spec.ts` (`openAdmin` chờ A1 tải xong) ✅ PR #82. A3 Tài khoản (Could) ⏳ nhánh `feat/tv1-16-admin-a3`
 - **Tuần:** 5 · **Phụ thuộc:** TV2-15 (A1, A2); TV2-17 (A3, cắt được)
 - **Spec:** design §4.3 (🆕), §4.9; ADR 0003 §8; ui.md "Trang quản trị" A1–A3
 - **File:** `client/admin/index.html` (mới), `client/src/admin/` (mới: `main.tsx`, `AdminApp.tsx`, `RequestsPage.tsx`, `ProjectsPage.tsx`, `UsersPage.tsx`), `client/vite.config.ts` (nhiều trang; SW bỏ qua `/admin/`), `client/e2e/admin.spec.ts` (mới), `docs/deploy.md` (Caddy cho `/admin/`)
@@ -308,7 +308,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 **Chia 2 phần** (Dương duyệt 2026-10-19)
 - **Phần 1 – khung** `feat/tv1-16-admin-shell`: Vite build hai trang, `admin/index.html`, `src/admin/` (`main.tsx`, `AdminApp.tsx`, `AdminLogin.tsx`, `adminApi.ts`, `session.ts` + unit, `admin.css`); đăng nhập/đăng xuất admin; A1 `/admin/#/`, A2 `/admin/#/projects` (trang trống), A3 ẩn; precache và manifest không có trang admin; E2E `admin.spec.ts` phần đăng nhập (Q10 một phần); deploy.md bước kiểm `/admin/`.
 - **Phần 2 – A1, A2** `feat/tv1-16-admin-pages`: bảng yêu cầu (Duyệt, Từ chối có lý do), bảng tổ chức (Khoá/Mở, Đổi Owner), 401 về đăng nhập, E2E Q10 đủ, thử trên staging.
-- A3 (TV2-17, PR #51) lượt riêng sau khi #51 merge; cắt được.
+- A3 (TV2-17, PR #51) lượt riêng sau khi #51 merge; cắt được. Làm 2026-10-25 `feat/tv1-16-admin-a3` (Could): `UsersPage.tsx`, E2E Q10 phần A3 (dùng 1 lượt đăng ký, cả lượt E2E 4/5 mỗi giờ).
 
 **Xong khi:** E2E **Q10** (tài khoản thường bị từ chối; admin duyệt ở A1, khoá ở A2; `indexedDB.databases()` trên trang admin rỗng); thử trên staging, `deploy.md` cập nhật.
 

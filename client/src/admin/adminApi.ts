@@ -1,6 +1,7 @@
 import type {
   AdminProject,
   AdminProjectRequest,
+  AdminUser,
   AuthResponse,
   DecideProjectRequest,
   LoginRequest,
@@ -111,7 +112,13 @@ export async function adminLogin(body: LoginRequest): Promise<AdminSession> {
 // máy chủ lỗi thì ném, để AdminApp xử lý chung.
 
 /** Mã lỗi API admin mà màn hình hiện câu riêng (design §7.1) */
-export type AdminErrorCode = 'request_decided' | 'project_limit_reached' | 'not_found' | 'admin_account' | 'invalid_body';
+export type AdminErrorCode =
+  | 'request_decided'
+  | 'project_limit_reached'
+  | 'not_found'
+  | 'admin_account'
+  | 'invalid_body'
+  | 'self_action';
 
 const ADMIN_ERROR_CODES: readonly AdminErrorCode[] = [
   'request_decided',
@@ -119,6 +126,7 @@ const ADMIN_ERROR_CODES: readonly AdminErrorCode[] = [
   'not_found',
   'admin_account',
   'invalid_body',
+  'self_action',
 ];
 
 export type AdminResult<T> = { ok: true; value: T } | { ok: false; error: AdminErrorCode };
@@ -171,4 +179,25 @@ export function assignOwner(token: string, projectId: string, username: string):
     'PUT',
     `/projects/${encodeURIComponent(projectId)}/owners/${encodeURIComponent(username.trim())}`,
   );
+}
+
+/** A3: tài khoản có tên đăng nhập chứa `q` (rỗng = mọi tài khoản), server trả tối đa USER_SEARCH_LIMIT */
+export function searchUsers(token: string, q: string): Promise<AdminResult<AdminUser[]>> {
+  const query = q.trim() === '' ? '' : `?q=${encodeURIComponent(q.trim())}`;
+  return adminCall(token, 'GET', `/users${query}`);
+}
+
+/** A3: khoá tài khoản, server thu hồi mọi phiên cùng lúc. Không có mở khoá (design §7) */
+export function disableUser(token: string, userId: string): Promise<AdminResult<{ revokedSessions: number }>> {
+  return adminCall(token, 'POST', `/users/${encodeURIComponent(userId)}/disable`);
+}
+
+/** A3: thu hồi mọi phiên, tài khoản vẫn đăng nhập lại được */
+export function revokeUserSessions(token: string, userId: string): Promise<AdminResult<{ revokedSessions: number }>> {
+  return adminCall(token, 'POST', `/users/${encodeURIComponent(userId)}/revoke-sessions`);
+}
+
+/** A3: mật khẩu tạm chỉ có trong response này (no-store), server không trả lại lần hai */
+export function resetUserPassword(token: string, userId: string): Promise<AdminResult<{ password: string }>> {
+  return adminCall(token, 'POST', `/users/${encodeURIComponent(userId)}/reset-password`);
 }
