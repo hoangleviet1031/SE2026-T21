@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext, type Page, type Request } from '@playwright/test';
 import type { MeResponse, ProjectRequest } from '@field-survey/shared';
-import { DEMO_PASSWORD, TOKENS, authHeaders, createProject, databaseNames, login } from './helpers';
+import { DEMO_PASSWORD, TOKENS, answerConfirm, authHeaders, createProject, databaseNames, login } from './helpers';
 
 // TV1-16: trang quản trị `/admin/` tách khỏi PWA (design §4.9, ADR 0003 §8), ca Q10 (§10.1): tài khoản
 // thường bị từ chối, admin duyệt ở A1, khoá ở A2, trang admin không có IndexedDB.
@@ -94,7 +94,7 @@ test('Q10: tài khoản thường bị từ chối, không lưu token, phiên v�
   expect(await databaseNames(page)).toEqual([]);
 });
 
-test('Q10: admin vào trang quản trị, chuyển A1/A2, tải lại vẫn đăng nhập; không manifest, không SW, không IndexedDB', async ({
+test('Q10: admin vào trang quản trị, chuyển A1/A2/A3, tải lại vẫn đăng nhập; không manifest, không SW, không IndexedDB', async ({
   page,
 }) => {
   await page.goto('/admin/');
@@ -102,8 +102,11 @@ test('Q10: admin vào trang quản trị, chuyển A1/A2, tải lại vẫn đă
 
   await expect(page.getByRole('heading', { name: 'Yêu cầu mở tổ chức' })).toBeVisible();
   await expect(page.getByTestId('admin-user')).toHaveText('admin');
-  // Không có mục Tài khoản (A3) tới khi có API của TV2-17
-  await expect(page.getByRole('link', { name: 'Tài khoản' })).toHaveCount(0);
+
+  await page.getByRole('link', { name: 'Tài khoản' }).click();
+  await expect(page.getByRole('heading', { name: 'Tài khoản' })).toBeVisible();
+  await expect(page).toHaveURL(/\/admin\/#\/users$/);
+  await expect(page.getByRole('link', { name: 'Tài khoản' })).toHaveAttribute('aria-current', 'page');
 
   await page.getByRole('link', { name: 'Tổ chức' }).click();
   await expect(page.getByRole('heading', { name: 'Tổ chức' })).toBeVisible();
@@ -306,4 +309,111 @@ test('b2: mạng rớt lúc đăng nhập trang quản trị: "Cần kết nối
   await page.getByRole('button', { name: 'Đăng nhập' }).click();
   await expect(page.getByRole('alert')).toHaveText('⚠ Cần kết nối mạng');
   await expect(page.getByRole('alert')).toHaveCSS('background-color', WARN_BG);
+});
+
+/** Đăng nhập bằng API, trả mã HTTP (và token nếu được) để kiểm mật khẩu cũ/mới sau thao tác ở A3. */
+async function apiLogin(request: APIRequestContext, username: string, password: string) {
+  const res = await request.post(`${BASE}/auth/login`, { data: { username, password } });
+  return { status: res.status(), token: res.ok() ? ((await res.json()) as { token: string }).token : '' };
+}
+
+const userRow = (page: Page, username: string) => page.getByTestId(`user-row-${username}`);
+
+const lockMessage = (username: string) =>
+  `Khoá tài khoản "${username}"? Mọi phiên đăng nhập bị thu hồi, người này không đăng nhập được nữa. Trang này không mở khoá được.`;
+
+test('Q10 A3: tìm tài khoản; cấp lại mật khẩu (có xác nhận) hiện mật khẩu tạm một lần; thu hồi phiên; khoá (có xác nhận)', async ({
+  page,
+  request,
+}) => {
+  // Một lượt đăng ký (giới hạn 5/giờ/IP, cả lượt E2E dùng 4): làm mọi thao tác trên cùng tài khoản, khoá sau cùng
+  const id = suffix();
+  const username = `a3${id}`.slice(0, 32);
+  const reg = await request.post(`${BASE}/auth/register`, {
+    data: { username, name: 'Người A3', password: 'mat-khau-a3' },
+  });
+  expect(reg.status()).toBe(201);
+  const firstToken = ((await reg.json()) as { token: string }).token;
+
+  await openAdmin(page);
+  await page.getByRole('link', { name: 'Tài khoản' }).click();
+  await expect(page.getByTestId('admin-users')).toBeVisible();
+  // Tìm theo một phần tên đăng nhập, không phân biệt hoa thường
+  await page.getByLabel('Tìm theo tên đăng nhập').fill(id.toUpperCase());
+  await page.getByRole('button', { name: 'Tìm' }).click();
+  // Một dòng tiêu đề + đúng một tài khoản
+  await expect(page.getByTestId('admin-users').getByRole('row')).toHaveCount(2);
+  const row = userRow(page, username);
+  await expect(row).toContainText('Người A3');
+  await expect(row.getByTestId('user-status')).toHaveText('Đang dùng');
+
+  // Cấp lại mật khẩu: Huỷ thì không đổi gì; xác nhận thì mật khẩu cũ hết dùng, phiên cũ vẫn còn
+  const resetMsg = `Cấp mật khẩu tạm cho "${username}"? Mật khẩu cũ hết dùng được; các máy đang đăng nhập vẫn giữ phiên.`;
+  await row.getByRole('button', { name: 'Cấp lại mật khẩu' }).click();
+  await answerConfirm(page, resetMsg, 'Huỷ');
+  await expect(page.getByTestId('temp-password')).toHaveCount(0);
+  expect((await apiLogin(request, username, 'mat-khau-a3')).status).toBe(200);
+
+  const resetRes = page.waitForResponse((r) => r.url().endsWith('/reset-password'));
+  await row.getByRole('button', { name: 'Cấp lại mật khẩu' }).click();
+  await answerConfirm(page, resetMsg, 'Cấp lại mật khẩu');
+  expect((await resetRes).headers()['cache-control']).toBe('no-store');
+  await expect(page.getByTestId('admin-notice')).toHaveText(`Đã cấp mật khẩu tạm cho ${username}`);
+  await expect(page.getByTestId(`user-expand-${username}`)).toHaveText(/^Mật khẩu tạm: \S{12} \(chỉ hiện một lần\)$/);
+  const temp = (await page.getByTestId('temp-password').textContent()) ?? '';
+  expect((await apiLogin(request, username, 'mat-khau-a3')).status).toBe(401);
+  const second = await apiLogin(request, username, temp);
+  expect(second.status).toBe(200);
+  expect(await meStatus(request, firstToken)).toBe(200);
+  // Mật khẩu tạm không bị lưu trên máy
+  expect(await storedSession(page)).not.toContain(temp);
+
+  // Thu hồi phiên: không hỏi lại; mọi phiên mất, mật khẩu tạm biến khỏi trang, vẫn đăng nhập lại được
+  await row.getByRole('button', { name: 'Thu hồi phiên' }).click();
+  await expect(page.getByTestId('admin-notice')).toHaveText(`Đã thu hồi phiên: ${username}`);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByTestId('temp-password')).toHaveCount(0);
+  expect(await meStatus(request, firstToken)).toBe(401);
+  expect(await meStatus(request, second.token)).toBe(401);
+  const third = await apiLogin(request, username, temp);
+  expect(third.status).toBe(200);
+
+  // Khoá: hỏi lại bằng nút đỏ; xong dòng còn trạng thái, hết nút, focus về dòng kết quả
+  await row.getByRole('button', { name: 'Khoá' }).click();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Khoá', exact: true })).toHaveClass(/danger/);
+  await answerConfirm(page, lockMessage(username), 'Khoá');
+  await expect(page.getByTestId('admin-notice')).toHaveText(`Đã khoá: ${username}`);
+  await expect(page.getByTestId('admin-notice')).toBeFocused();
+  await expect(row.getByTestId('user-status')).toHaveText('Đã khoá');
+  await expect(row.getByRole('button')).toHaveCount(0);
+  expect(await meStatus(request, third.token)).toBe(401);
+  expect((await apiLogin(request, username, temp)).status).toBe(401);
+
+  await page.getByLabel('Tìm theo tên đăng nhập').fill('khong-co-ai-ten-nay');
+  await page.getByRole('button', { name: 'Tìm' }).click();
+  await expect(page.getByText('Không tìm thấy tài khoản nào')).toBeVisible();
+});
+
+test('Q10 A3: admin tự khoá hay tự thu hồi phiên của mình thì báo lỗi, vẫn giữ đăng nhập', async ({ page, request }) => {
+  const token = await openAdmin(page);
+  await page.getByRole('link', { name: 'Tài khoản' }).click();
+  await page.getByLabel('Tìm theo tên đăng nhập').fill('admin');
+  await page.getByRole('button', { name: 'Tìm' }).click();
+  const row = userRow(page, 'admin');
+  const selfError = '⚠ Không tự khoá hay tự thu hồi phiên của chính mình được';
+
+  await row.getByRole('button', { name: 'Thu hồi phiên' }).click();
+  await expect(page.getByTestId('admin-notice')).toHaveText(selfError);
+  await expect(page.getByTestId('admin-notice')).toHaveAttribute('role', 'alert');
+
+  await row.getByRole('button', { name: 'Khoá' }).click();
+  await answerConfirm(page, lockMessage('admin'), 'Khoá');
+  await expect(page.getByTestId('admin-notice')).toHaveText(selfError);
+  await expect(row.getByTestId('user-status')).toHaveText('Đang dùng');
+  await expect(page.getByTestId('admin-user')).toBeVisible();
+  expect(await meStatus(request, token)).toBe(200);
+
+  // 360px: bảng A3 cuộn ngang trong khung, cả trang không cuộn ngang
+  await page.setViewportSize({ width: 360, height: 740 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
 });

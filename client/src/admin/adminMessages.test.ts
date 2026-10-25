@@ -1,6 +1,6 @@
 import { MAX_OWNED_PROJECTS } from '@field-survey/shared';
 import { describe, expect, it } from 'vitest';
-import { adminErrorMessage, formatShortTime, ownersLabel } from './adminMessages';
+import { USER_SEARCH_LIMIT, adminErrorMessage, formatShortTime, ownersLabel, userLimitHint } from './adminMessages';
 
 describe('adminErrorMessage', () => {
   it('mỗi mã một câu riêng', () => {
@@ -11,6 +11,7 @@ describe('adminErrorMessage', () => {
     expect(adminErrorMessage('not_found')).toBe('Không có tài khoản hoặc tổ chức này');
     expect(adminErrorMessage('admin_account')).toBe('Không chỉ định được tài khoản quản trị');
     expect(adminErrorMessage('invalid_body')).toBe('Thông tin chưa hợp lệ, kiểm tra lại');
+    expect(adminErrorMessage('self_action')).toBe('Không tự khoá hay tự thu hồi phiên của chính mình được');
   });
 });
 
@@ -27,5 +28,15 @@ describe('ownersLabel', () => {
   });
   it('nhiều Owner nối bằng dấu phẩy', () => {
     expect(ownersLabel(['hoa', 'lan'])).toBe('hoa, lan');
+  });
+});
+
+describe('userLimitHint', () => {
+  it('chưa tới giới hạn thì không có câu', () => {
+    expect(userLimitHint(0)).toBeNull();
+    expect(userLimitHint(USER_SEARCH_LIMIT - 1)).toBeNull();
+  });
+  it('nhận đủ giới hạn thì nhắc gõ thêm', () => {
+    expect(userLimitHint(USER_SEARCH_LIMIT)).toBe('Chỉ hiện 50 tài khoản đầu, gõ thêm để thu hẹp');
   });
 });

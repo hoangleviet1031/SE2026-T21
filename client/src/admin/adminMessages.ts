@@ -21,7 +21,17 @@ export function adminErrorMessage(code: AdminErrorCode): string {
     case 'invalid_body':
       // Màn hình đã kiểm trước khi gửi; tới đây là luật hai bên lệch nhau
       return 'Thông tin chưa hợp lệ, kiểm tra lại';
+    case 'self_action':
+      return 'Không tự khoá hay tự thu hồi phiên của chính mình được';
   }
+}
+
+/** Số tài khoản tối đa `GET /admin/users` trả về (design §7, server/src/repo/users.ts SEARCH_LIMIT) */
+export const USER_SEARCH_LIMIT = 50;
+
+/** Câu dưới bảng A3 khi nhận đủ số tối đa: có thể còn tài khoản khác không hiện */
+export function userLimitHint(count: number): string | null {
+  return count >= USER_SEARCH_LIMIT ? `Chỉ hiện ${USER_SEARCH_LIMIT} tài khoản đầu, gõ thêm để thu hẹp` : null;
 }
 
 /** Ngày giờ theo giờ máy, dạng "12/10 09:12" như ui.md A1 (chỉ để đọc, không dùng so thứ tự) */

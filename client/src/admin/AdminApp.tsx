@@ -6,10 +6,11 @@ import { AdminLogin, type LoginProblem } from './AdminLogin';
 import { OFFLINE_MSG, SERVER_ERROR_MSG, SESSION_LOST_MSG, adminErrorMessage } from './adminMessages';
 import { ProjectsPage } from './ProjectsPage';
 import { RequestsPage } from './RequestsPage';
+import { UsersPage } from './UsersPage';
 import { clearSession, readSession, saveSession, type AdminSession } from './session';
 
 // Khung trang quản trị (design §4.9, ui.md "Trang quản trị"): A1 Yêu cầu ở `#/` (mặc định), A2 Tổ chức
-// ở `#/projects`. Mục Tài khoản (A3) chưa hiện tới khi có API của TV2-17.
+// ở `#/projects`, A3 Tài khoản ở `#/users`.
 export function AdminApp() {
   const [session, setSession] = useState<AdminSession | null>(readSession);
   // Câu hiện ở form đăng nhập khi bị đẩy ra do phiên mất
@@ -49,7 +50,7 @@ function AdminShell({
   const [problem, setProblem] = useState<string | null>(null);
   const [pending, setPending] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
-  const onProjects = page === 'projects';
+  const current = page === 'projects' || page === 'users' ? page : 'requests';
   const { token } = session;
 
   // Lỗi chung của mọi lời gọi API admin. Phiên mất thì về form đăng nhập (trả null: không còn gì để hiện
@@ -105,11 +106,14 @@ function AdminShell({
         </span>
         <span className="brand-a">Quản trị</span>
         <nav className="admin-nav">
-          <a href="#/" aria-current={onProjects ? undefined : 'page'}>
+          <a href="#/" aria-current={current === 'requests' ? 'page' : undefined}>
             Yêu cầu{pending === null ? '' : ` (${pending})`}
           </a>
-          <a href="#/projects" aria-current={onProjects ? 'page' : undefined}>
+          <a href="#/projects" aria-current={current === 'projects' ? 'page' : undefined}>
             Tổ chức
+          </a>
+          <a href="#/users" aria-current={current === 'users' ? 'page' : undefined}>
+            Tài khoản
           </a>
         </nav>
         <span className="who" data-testid="admin-user">
@@ -127,8 +131,10 @@ function AdminShell({
             ⚠ {problem}
           </p>
         )}
-        {onProjects ? (
+        {current === 'projects' ? (
           <ProjectsPage token={token} onError={handleError} />
+        ) : current === 'users' ? (
+          <UsersPage token={token} onError={handleError} />
         ) : (
           <RequestsPage token={token} onError={handleError} onCount={setPending} />
         )}
