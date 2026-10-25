@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-25 | N12 | fix | Màn 4 nhãn trạng thái đầu trang (displayState, mọi trạng thái); phiếu Lỗi có câu lỗi + [Thử lại] + [Xuất JSON phiếu này] trên trang, khối lỗi tách `RecordErrorBox` dùng chung trang chủ; E2E fill-status.spec 3 ca; ui 0.2.28; tech-debt N12 → Đã trả | PR | chờ review |
+| 2026-10-25 | N12 | fix | Màn 4 nhãn trạng thái đầu trang (displayState, mọi trạng thái); phiếu Lỗi có câu lỗi + [Thử lại] + [Xuất JSON phiếu này] trên trang, khối lỗi tách `RecordErrorBox` dùng chung trang chủ; E2E fill-status.spec 3 ca; ui 0.2.28; tech-debt N12 → Đã trả | PR #95 | chờ review |
 | 2026-10-25 | TV1-12 | fix | Màn 8 Cài đặt sau audit UI (impeccable): câu lỗi lúc Đăng xuất (vừa có dữ liệu chưa gửi) có ⚠ (C13); nút Đăng xuất khoá gắn dòng lý do bằng aria-describedby (C4, Could); E2E settings.spec +1 ca (2 tab) + assert; ui 0.2.27 | PR #93 | chờ review |
 | 2026-10-25 | TV1-12 | fix | A2 sau critique UI (impeccable, K5): nút "Đổi Owner…" thành "Thêm Owner…" vì Owner cũ vẫn giữ quyền (chữ Dương duyệt 2026-10-24); E2E admin.spec đổi tên nút; design 0.5.50, ui 0.2.26 | PR #92 | xong |
 | 2026-10-25 | TV1-12 | fix | Nền trang trắng (Dương chốt): `--paper` `#ffffff`, token ô chìm `--sunken` `#f5f3ef` cho gợi ý, mã khoá, toạ độ, bản gốc khi xung đột, menu Xuất, tiêu đề bảng quản trị; `theme-color` + manifest `theme_color` `#ffffff` thay `#0f766e` (audit C11); E2E builder.spec 1 ca; ui 0.2.25 | PR #91 | xong |
