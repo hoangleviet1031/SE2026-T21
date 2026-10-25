@@ -63,15 +63,29 @@ test('Q8: tạo tài khoản → gửi yêu cầu → admin duyệt → sau mộ
   // Chưa thuộc tổ chức nào: trang chủ là màn hình Tổ chức, không có link quay lại
   await expect(page.getByTestId('orgs')).toBeVisible();
   await expect(page.getByTestId('orgs-username')).toHaveText(username);
-  await expect(page.getByRole('link', { name: '← Về danh sách phiếu' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: '← Quay lại' })).toHaveCount(0);
 
   const orgName = `HTX Q8 ${suffix()}`;
   await sendRequest(page, `  ${orgName}  `, 'Mở cho xã Tân Lập');
   await expect(requestRow(page, orgName).getByTestId('org-request-status')).toHaveText('Đang chờ duyệt');
   await expect(page.getByTestId('org-request-name')).toHaveValue('');
+  // Critique K1: gửi xong có dòng báo ngay dưới nút (cả vùng status cho trình đọc màn hình), yêu cầu vừa
+  // gửi nằm trên form chứ không ở đáy trang
+  await expect(page.getByTestId('org-request-sent')).toHaveText('Đã gửi yêu cầu');
+  const sentStatus = page.getByTestId('org-request-sent-status');
+  await expect(sentStatus).toHaveRole('status');
+  await expect(sentStatus).toHaveText('Đã gửi yêu cầu');
+  const requestsBox = await page.getByTestId('org-requests').boundingBox();
+  const formBox = await page.getByRole('heading', { name: 'Mở tổ chức mới' }).boundingBox();
+  expect(requestsBox && formBox && requestsBox.y < formBox.y).toBe(true);
+  // Gõ tiếp thì dòng báo không còn đúng nữa
+  await page.getByTestId('org-request-name').fill('H');
+  await expect(page.getByTestId('org-request-sent')).toHaveCount(0);
+  await expect(sentStatus).toHaveText('');
   // Đang có 1 yêu cầu chờ thì không gửi thêm được (409 project_limit_reached)
   await sendRequest(page, `HTX khác ${suffix()}`);
   await expect(page.getByTestId('org-request-error')).toHaveText('⚠ Bạn đã có yêu cầu đang chờ hoặc đã sở hữu 3 tổ chức');
+  await expect(page.getByTestId('org-request-sent')).toHaveCount(0);
 
   await decide(request, orgName, { decision: 'approve' });
   await page.getByRole('button', { name: 'Đồng bộ' }).click();
@@ -156,8 +170,11 @@ test('huỷ yêu cầu đang chờ; yêu cầu bị từ chối hiện lý do', 
   const cancelled = `Huỷ ${suffix()}`;
   await sendRequest(page, cancelled);
   await expect(requestRow(page, cancelled).getByTestId('org-request-status')).toHaveText('Đang chờ duyệt');
-  await requestRow(page, cancelled).getByRole('button', { name: 'Huỷ' }).click();
+  // Tên đọc ra có tên tổ chức (audit C5): nhiều dòng chờ/huỷ vẫn biết nút thuộc yêu cầu nào
+  await page.getByRole('button', { name: `Huỷ yêu cầu ${cancelled}`, exact: true }).click();
   await expect(requestRow(page, cancelled).getByTestId('org-request-status')).toHaveText('Đã huỷ');
+  // Huỷ rồi thì dòng "Đã gửi yêu cầu" không còn đúng
+  await expect(page.getByTestId('org-request-sent')).toHaveCount(0);
   await expect(requestRow(page, cancelled).getByRole('button', { name: 'Huỷ' })).toHaveCount(0);
 
   const rejected = `Từ chối ${suffix()}`;
@@ -215,7 +232,13 @@ test('danh bạ chỉ có tên tổ chức công khai mình chưa thuộc; kiể
   await expect(page.getByText('⚠ Cần kết nối mạng để dùng chức năng này')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Gửi yêu cầu' })).toBeDisabled();
 
-  await page.getByRole('link', { name: '← Về danh sách phiếu' }).click();
+  // "← Quay lại" ở đầu trang như Builder, Cài đặt, Thành viên (critique K4), không còn link cuối trang
+  await expect(page.getByRole('link', { name: '← Về danh sách phiếu' })).toHaveCount(0);
+  const back = page.getByRole('link', { name: '← Quay lại' });
+  const backBox = await back.boundingBox();
+  const titleBox = await page.getByRole('heading', { name: 'Tổ chức', exact: true }).boundingBox();
+  expect(backBox && titleBox && backBox.y < titleBox.y).toBe(true);
+  await back.click();
   await expect(page.getByTestId('orgs')).toHaveCount(0);
 });
 

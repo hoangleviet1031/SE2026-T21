@@ -167,7 +167,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-10 | Trùng tên → `409 username_taken` | U2 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Sai 11 lần → `429` | U4 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Phiên bị thu hồi → về Đăng nhập, báo hết phiên, giữ dữ liệu | `api-errors.spec.ts` (cả hết phiên + mất mạng chỉ một dải) | TV1-12 (#62, b2) |
-| US-10 | Gửi yêu cầu, được duyệt, thành Owner | Q1, Q2 `projectRequests.test.ts`; Q8 `orgs.spec.ts` (cả dòng yêu cầu hai dòng, ngoại tuyến không có khối công khai); unit `requestStatusKind` (`orgs.test.ts`) | TV2-15 (#49), TV1-15 (#54); giao diện TV1-12 (b2 p5) |
+| US-10 | Gửi yêu cầu, được duyệt, thành Owner | Q1, Q2 `projectRequests.test.ts`; Q8 `orgs.spec.ts` (cả dòng yêu cầu hai dòng, ngoại tuyến không có khối công khai; gửi xong có "Đã gửi yêu cầu", khối yêu cầu trên form, ← Quay lại đầu trang, [Huỷ] kèm tên); unit `requestStatusKind` (`orgs.test.ts`) | TV2-15 (#49), TV1-15 (#54); giao diện TV1-12 (b2 p5, màn 9 sau audit UI) |
 | US-11 | Supervisor thêm surveyor; không thêm supervisor | M1 `members.test.ts` | TV1-08 (#38) |
 | US-11 | Đã là thành viên / tên không có / tài khoản bị khoá | M2 và ca tài khoản bị khoá `members.test.ts` | TV1-08 (#38), TV1-12 (#62) |
 | US-11 | Owner cuối cùng | A7 `members.test.ts`; `members.spec.ts` (cả dòng thành viên hai dòng; chọn vai trò rồi bấm [Đổi], ← Quay lại khi không đủ quyền) | TV1-08 (#38, #39); giao diện TV1-12 (b2 p5, màn 6 sau audit UI) |
