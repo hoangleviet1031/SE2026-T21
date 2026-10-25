@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-25 | TV1-12 | fix | A2 sau critique UI (impeccable, K5): nút "Đổi Owner…" thành "Thêm Owner…" vì Owner cũ vẫn giữ quyền (chữ Dương duyệt 2026-10-24); E2E admin.spec đổi tên nút; design 0.5.50, ui 0.2.26 | (chưa có PR) | chờ review |
+| 2026-10-25 | TV1-12 | fix | A2 sau critique UI (impeccable, K5): nút "Đổi Owner…" thành "Thêm Owner…" vì Owner cũ vẫn giữ quyền (chữ Dương duyệt 2026-10-24); E2E admin.spec đổi tên nút; design 0.5.50, ui 0.2.26 | PR #92 | chờ review |
 | 2026-10-25 | TV1-12 | fix | Nền trang trắng (Dương chốt): `--paper` `#ffffff`, token ô chìm `--sunken` `#f5f3ef` cho gợi ý, mã khoá, toạ độ, bản gốc khi xung đột, menu Xuất, tiêu đề bảng quản trị; `theme-color` + manifest `theme_color` `#ffffff` thay `#0f766e` (audit C11); E2E builder.spec 1 ca; ui 0.2.25 | PR #91 | xong |
 | 2026-10-25 | TV1-16 | fix | Trang quản trị A1, A2, A3 tải lần đầu lỗi (lỗi có mã, máy chủ lỗi, mất mạng) không còn kẹt "Đang tải…", chỉ còn dòng lỗi; E2E admin.spec 4 ca; tech-debt N14 (thứ tự kết quả khi Tìm lúc A3 đang tải); ui 0.2.24; sửa dấu ⏳ còn sót (#84, #88) | PR #90 | chờ review |
 | 2026-10-25 | TV1-12 | fix | Màn 5 Builder sau audit/critique UI (impeccable): chọn hoặc thêm trường thì cuộn tới khối Thuộc tính, focus giữ ở nút, ▲▼/kéo thả không cuộn (critique K2); ← Quay lại khi không đủ quyền hoặc không tìm thấy biểu mẫu (audit C9); bỏ trống mã báo "Nhập mã biểu mẫu", ô Mã viền đỏ + aria-invalid, câu khi chưa có trường (critique K3); unit builder.test, E2E builder.spec; ui 0.2.23 | PR #89 | xong |
