@@ -170,7 +170,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-10 | Gửi yêu cầu, được duyệt, thành Owner | Q1, Q2 `projectRequests.test.ts`; Q8 `orgs.spec.ts` (cả dòng yêu cầu hai dòng, ngoại tuyến không có khối công khai); unit `requestStatusKind` (`orgs.test.ts`) | TV2-15 (#49), TV1-15 (#54); giao diện TV1-12 (b2 p5) |
 | US-11 | Supervisor thêm surveyor; không thêm supervisor | M1 `members.test.ts` | TV1-08 (#38) |
 | US-11 | Đã là thành viên / tên không có / tài khoản bị khoá | M2 và ca tài khoản bị khoá `members.test.ts` | TV1-08 (#38), TV1-12 (#62) |
-| US-11 | Owner cuối cùng | A7 `members.test.ts`; `members.spec.ts` (cả dòng thành viên hai dòng) | TV1-08 (#38, #39); giao diện TV1-12 (b2 p5) |
+| US-11 | Owner cuối cùng | A7 `members.test.ts`; `members.spec.ts` (cả dòng thành viên hai dòng; chọn vai trò rồi bấm [Đổi], ← Quay lại khi không đủ quyền) | TV1-08 (#38, #39); giao diện TV1-12 (b2 p5, màn 6 sau audit UI) |
 | US-11 | Người mới thêm thấy tổ chức, gửi được phiếu | M3 `orgs.spec.ts` | TV1-08 (#39), TV1-15 (#54) |
 | US-11 | Máy chủ lỗi ở Thành viên | `api-errors.spec.ts` (cả Tổ chức, builder lưu form, Xuất) | TV1-12 (#62, #68, b2 p5: Thử lại ngoài vùng alert, Tổ chức ẩn khối công khai) |
 | US-12 | Admin không đọc được dữ liệu | Q7 `projectRequests.test.ts`; T4 `isolation.test.ts`, `admin.test.ts` | TV2-15 (#49) |

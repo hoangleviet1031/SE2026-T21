@@ -383,8 +383,9 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 .role { justify-self: start; padding: 2px 10px; border-radius: var(--r-pill); background: var(--chip); color: var(--ink); font-size: 13px; font-weight: 700; }
 .role.owner { background: #ece4f7; color: #4b3a78; }
 .role.sup { background: #dcebf6; color: #1f4f78; }
-.mrow .acts { grid-column: 2; display: flex; gap: 8px; }
-.mrow .acts select { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--field); border-radius: var(--r-btn); background: var(--surface);
+/* [ô chọn][Đổi][Rút]; ô chọn không hẹp hơn chữ "Đổi vai trò…", chật thì [Rút] xuống dòng */
+.mrow .acts { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; }
+.mrow .acts select { flex: 1 1 9.5rem; min-width: 0; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--field); border-radius: var(--r-btn); background: var(--surface);
                      color: var(--ink); font: inherit; font-size: 15px; }
 .mrow .acts button { padding: 0 12px; font-size: 15px; }
 .card .hint { margin: 0; }
