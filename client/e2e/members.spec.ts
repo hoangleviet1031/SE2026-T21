@@ -43,6 +43,7 @@ async function changeRole(page: Page, username: string, roleLabel: string) {
 }
 
 const row = (page: Page, username: string) => page.getByTestId(`member-${username}`);
+const roleLabel = (page: Page, username: string) => page.getByTestId(`member-role-${username}`);
 const error = (page: Page) => page.getByTestId('member-error');
 
 test('Owner thêm bằng tên đăng nhập, báo lỗi đúng, đổi vai trò và rút có xác nhận', async ({ page, request }) => {
@@ -64,7 +65,7 @@ test('Owner thêm bằng tên đăng nhập, báo lỗi đúng, đổi vai trò 
   await expect(error(page)).toHaveText('⚠ Không thêm được tài khoản quản trị');
 
   await changeRole(page, 'minh', 'Giám sát viên');
-  await expect(row(page, 'minh')).toContainText('Giám sát viên');
+  await expect(roleLabel(page, 'minh')).toHaveText('Giám sát viên');
 
   // Huỷ (hoặc Esc) ở hộp xác nhận thì không rút
   await page.getByRole('button', { name: 'Rút minh' }).click();
@@ -192,16 +193,20 @@ test('đổi vai trò người khác: chọn ở ô chưa gửi gì, [Đổi] kh
 
   await page.getByLabel('Vai trò mới của minh').selectOption({ label: 'Giám sát viên' });
   await expect(doi).toBeEnabled();
-  await expect(row(page, 'minh')).toContainText('Điều tra viên');
+  // Đọc nhãn vai trò, không đọc cả dòng: chữ <option> trong ô chọn cũng có "Giám sát viên"
+  await expect(roleLabel(page, 'minh')).toHaveText('Điều tra viên');
+  expect(puts).toHaveLength(0);
 
   await doi.click();
-  await expect(row(page, 'minh')).toContainText('Giám sát viên');
+  await expect(roleLabel(page, 'minh')).toHaveText('Giám sát viên');
   // Xong thì ô về "Đổi vai trò…", [Đổi] khoá lại
   await expect(page.getByLabel('Vai trò mới của minh')).toHaveValue('');
   await expect(doi).toBeDisabled();
-  // Chỉ một lần gửi: lúc bấm [Đổi], không phải lúc chọn ở ô
+  // Chờ server đổi xong rồi mới đếm: chỉ một lần gửi, lúc bấm [Đổi], không phải lúc chọn ở ô
+  await expect
+    .poll(async () => (await serverMembers(request)).find((m) => m.username === 'minh')?.role)
+    .toBe('supervisor');
   expect(puts).toHaveLength(1);
-  expect(await serverMembers(request)).toContainEqual(expect.objectContaining({ username: 'minh', role: 'supervisor' }));
 
   // "← Quay lại" ở đầu trang, không còn link cuối trang (ui.md màn hình 6)
   await expect(page.getByRole('link', { name: '← Về danh sách phiếu' })).toHaveCount(0);

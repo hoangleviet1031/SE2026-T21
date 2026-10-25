@@ -292,7 +292,9 @@ function MemberRow({
         <span>
           <b>{member.name}</b> <span className="un">({member.username})</span>
         </span>
-        <span className={ROLE_CLASS[member.role]}>{ROLE_LABEL[member.role]}</span>
+        <span className={ROLE_CLASS[member.role]} data-testid={`member-role-${member.username}`}>
+          {ROLE_LABEL[member.role]}
+        </span>
       </span>
       {(actions.changeTo.length > 0 || actions.canRemove) && (
         <span className="acts">
