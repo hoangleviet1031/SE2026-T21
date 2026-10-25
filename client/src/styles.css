@@ -202,6 +202,10 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 .rec-top .st-link svg.icon { width: 16px; height: 16px; }
 .record-error { position: relative; z-index: 1; display: grid; gap: 8px; margin-top: 10px; font-size: 15px; font-weight: 500; color: var(--red); }
 .record-error .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Nhãn trạng thái đầu trang điền phiếu (ui.md màn hình 4): cùng màu và biểu tượng với dòng phiếu ở trang chủ */
+.record-state { margin: 0 0 14px; }
+.record-state .st { display: inline-flex; align-items: center; gap: 6px; color: var(--c); font-size: 15px; font-weight: 600; }
+.record-state .st svg.icon { width: 20px; height: 20px; }
 .members-link { display: flex; align-items: center; gap: 10px; min-height: 52px; margin-top: 16px; padding: 0 14px; background: var(--surface);
                 border: 1px solid var(--line); border-radius: var(--r-card); font-weight: 600; text-decoration: none; }
 .members-link span { flex: 1; }

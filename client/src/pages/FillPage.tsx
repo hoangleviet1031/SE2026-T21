@@ -7,9 +7,12 @@ import { canDeleteRecord } from '../projects';
 import { formTone, latestForms } from '../formDisplay';
 import { FormRenderer } from '../components/FormRenderer';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { RecordErrorBox } from '../components/RecordErrorBox';
 import { Icon } from '../components/Icon';
 import { RecordInConflictError, deleteRecordLocally, saveRecordLocally } from '../sync/outbox';
 import { syncNow } from '../sync/engine';
+import { displayState } from '../sync/displayState';
+import { statusIcon } from '../statusIcon';
 import { requestPersistentStorage } from '../persistStorage';
 import { navigate } from '../useHashRoute';
 import { useOnline } from '../useOnline';
@@ -21,6 +24,8 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const forms = useLiveQuery(async () => db?.forms.where('id').equals(formId).toArray(), [db, formId]);
   // Đầu trang cùng màu với thẻ form này ở trang chủ (ui.md màn hình 4, TV1-12 b2)
   const allForms = useLiveQuery(async () => db?.forms.toArray(), [db]);
+  // Ảnh của phiếu cho nhãn trạng thái đầu trang ("Đang tải ảnh", "Lỗi ảnh"), cùng cách tính với trang chủ
+  const photos = useLiveQuery(async () => db?.attachments.where('recordId').equals(id).toArray(), [db, id]);
   // Vai trò và id của mình để biết có được xoá phiếu này không (design §5.7)
   const project = useCurrentProject();
   const user = useLiveQuery(() => getAccountValue<MeResponse['user'] | null>('user', null), []);
@@ -80,6 +85,8 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // Chỉnh state ngay lúc render (không dùng effect vì phía trên có return sớm)
   if (readOnly && confirmingDelete) setConfirmingDelete(false);
   const tone = formTone(latestForms(allForms ?? []).findIndex((f) => f.id === form.id));
+  // Phiếu mới chưa lưu thì chưa có trạng thái gì
+  const state = record ? displayState(record, photos ?? []) : undefined;
   const canDelete = !!record && !!project && !!user && canDeleteRecord(project.role, user.id, record.createdBy);
   // Bấm Lưu đúng lúc phiếu vừa thành conflict (trước khi liveQuery kịp cập nhật): tầng dữ liệu từ chối.
   const unlessInConflict = async <T,>(write: () => Promise<T>): Promise<T | undefined> => {
@@ -127,6 +134,15 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
         </span>
         <h2>{form.title}</h2>
       </div>
+      {record && state && (
+        <div className={`record-state st-${state.kind}`}>
+          <span className="st" data-testid="record-state">
+            <Icon name={statusIcon(state.kind)} />
+            {state.label}
+          </span>
+          {record.syncState === 'error' && <RecordErrorBox db={db} recordId={id} lastError={record.lastError} />}
+        </div>
+      )}
       {readOnly && (
         <div className="ro-banner" data-testid="record-in-conflict">
           <span>Phiếu này cần xử lý xung đột trước.</span> <a href={`#/conflict/${id}`}>Xử lý</a>
