@@ -2,17 +2,17 @@
 
 Số đo cho các chỉ tiêu ở [design.md §11.2](design.md#112-chỉ-tiêu) mà TV2-11 phụ trách: pull lần đầu, danh sách nhiều phiếu, đổi dự án. Các chỉ tiêu khác của §11.2 (mở app offline, lưu một phiếu, đồng bộ qua mạng chậm, ảnh) chưa đo ở đây.
 
-## Kết quả (2026-10-18)
+## Kết quả (2026-10-25)
 
-Mỗi lượt chạy 3 lần, bảng ghi **trung vị** (ba lần đo trong ngoặc).
+Mỗi lượt chạy 3 lần, bảng ghi **trung vị** (ba lần đo trong ngoặc). Đo lại sau khi giao diện đổi theo bản thiết kế (TV1-12 b2); số đo lần đầu (2026-10-18, giao diện cũ) ở cột cuối để so.
 
-| Chỉ tiêu (§11.2) | Mục tiêu | Lượt A: CPU bình thường | Lượt B: CPU chậm ×4 | Đạt |
-|---|---|---|---|---|
-| Pull lần đầu 5.000 phiếu (supervisor) | ≤ 30 s | **2,3 s** (2,37 / 2,26 / 2,11) | **9,1 s** (9,09 / 9,25 / 8,94) | Đạt |
-| Danh sách 2.000 phiếu hiển thị | ≤ 1 s | **123 ms** (123 / 129 / 111) | **498 ms** (508 / 498 / 412) | Đạt |
-| Đổi dự án đã tải (offline, sang dự án 2.000 phiếu) | ≤ 1 s | **128 ms** (128 / 112 / 145) | **316 ms** (363 / 316 / 271) | Đạt |
-| *Tải lại trang tới khi đủ 2.000 dòng (tham khảo, không có chỉ tiêu riêng)* | – | 108 ms (156 / 108 / 103) | 561 ms (587 / 517 / 561) | – |
-| Danh sách 2.000 phiếu cuộn mượt | thủ công | chưa thử | chưa thử | Chưa đo |
+| Chỉ tiêu (§11.2) | Mục tiêu | Lượt A: CPU bình thường | Lượt B: CPU chậm ×4 | Đạt | 2026-10-18 (A / B) |
+|---|---|---|---|---|---|
+| Pull lần đầu 5.000 phiếu (supervisor) | ≤ 30 s | **2,3 s** (2,33 / 2,14 / 2,42) | **9,6 s** (10,30 / 9,60 / 9,24) | Đạt | 2,3 s / 9,1 s |
+| Danh sách 2.000 phiếu hiển thị | ≤ 1 s | **211 ms** (203 / 211 / 224) | **880 ms** (679 / 991 / 880) | Đạt; lượt B sát ngưỡng | 123 ms / 498 ms |
+| Đổi dự án đã tải (offline, sang dự án 2.000 phiếu) | ≤ 1 s | **246 ms** (248 / 230 / 246) | **559 ms** (593 / 331 / 559) | Đạt | 128 ms / 316 ms |
+| *Tải lại trang tới khi đủ 2.000 dòng (tham khảo, không có chỉ tiêu riêng)* | – | 178 ms (178 / 186 / 174) | 1.152 ms (662 / 1.356 / 1.152) | – | 108 ms / 561 ms |
+| Danh sách 2.000 phiếu cuộn mượt | thủ công | chưa thử | chưa thử | Chưa đo | – |
 
 Truy vấn pull trên server đi theo index, không quét bảng: phạm vi `all` dùng `records_project_seq (project_id, seq)`, phạm vi `own` dùng `records_project_creator_seq (project_id, created_by, seq)`, ghép tên người tạo/sửa tra `users` theo khoá chính, không có bước sắp xếp tạm. Kiểm tự động trong `server/test/queryPlan.test.ts` (chạy cùng `npm test`).
 
@@ -51,5 +51,5 @@ Dữ liệu seed: `POST /api/__test/seed-perf` (server E2E chạy CSDL `:memory:
 ## Chỗ có thể chậm khi dữ liệu lớn hơn
 
 Chưa vượt chỉ tiêu nên chưa sửa; ghi lại để biết chỗ cần xem khi số phiếu tăng:
-- **Danh sách** (`client/src/pages/HomePage.tsx`) đọc toàn bộ `records` rồi vẽ hết, không ảo hoá. Thời gian tăng tuyến tính theo số phiếu; ở 2.000 phiếu với CPU ×4 là khoảng 0,5 s, nên tới khoảng 4.000 phiếu trên máy yếu có thể chạm 1 s.
+- **Danh sách** (`client/src/pages/HomePage.tsx`) đọc toàn bộ `records` rồi vẽ hết, không ảo hoá. Thời gian tăng tuyến tính theo số phiếu. Giao diện mới (TV1-12 b2) vẽ mỗi dòng nặng hơn: ở 2.000 phiếu với CPU ×4 từ khoảng 0,5 s lên khoảng 0,9 s, một lần đo 991 ms, tức là máy yếu đã sát chỉ tiêu 1 s ngay ở 2.000 phiếu. TV2-18 (danh sách 2.000 phiếu) nên xem chỗ này trước: vẽ theo trang hoặc chỉ vẽ phần đang thấy.
 - **Pull** (`pullAll` trong `client/src/sync/engine.ts`): mỗi phiếu đọc `records.get` và đếm `outbox` riêng trong transaction của trang. Server chưa trả `hasMore` (design §7), client dừng khi gặp trang rỗng nên tốn thêm một request.

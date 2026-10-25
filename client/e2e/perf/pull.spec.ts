@@ -117,7 +117,9 @@ test('danh sách 2.000 phiếu hiển thị ≤ 1 s; đổi dự án đã tải 
   // Đổi sang dự án nhỏ rồi quay lại dự án 2.000 phiếu khi offline
   await context.setOffline(true);
   await choose(page, NONGNGHIEP);
-  await expect(page.getByTestId('project-switcher').getByRole('button', { expanded: false })).toHaveText(`${NONGNGHIEP} ▾`);
+  await expect(page.getByTestId('project-switcher').getByRole('button', { expanded: false })).toHaveAccessibleName(
+    NONGNGHIEP,
+  );
   await expect(listItems(page)).not.toHaveCount(2000);
   started = Date.now();
   await choose(page, name);
