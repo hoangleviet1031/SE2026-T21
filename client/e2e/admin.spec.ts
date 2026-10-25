@@ -195,7 +195,7 @@ test('Q10: A1 từ chối bắt buộc lý do; người gửi thấy lý do', as
   expect(mine.find((r) => r.name === name)).toMatchObject({ status: 'rejected', reason: 'Trùng tên tổ chức đã có' });
 });
 
-test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) → mất khỏi /me, mở lại; Đổi Owner', async ({
+test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) → mất khỏi /me, mở lại; Thêm Owner', async ({
   page,
   request,
 }) => {
@@ -244,13 +244,13 @@ test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) �
   await expect(page.getByTestId('admin-notice')).toBeFocused();
   expect((await me(request, userToken)).projects.map((p) => p.id)).toContain(projectId);
 
-  // Đổi Owner ở tổ chức chưa có Owner (như tổ chức có từ trước migration 4)
+  // Thêm Owner ở tổ chức chưa có Owner (như tổ chức có từ trước migration 4)
   const orphan = `x-${id}`;
   await createProject(request, orphan, `Chưa có Owner ${id}`);
   await page.reload();
   const orphanRow = page.getByTestId(`project-row-${orphan}`);
   await expect(orphanRow.getByTestId('project-owners')).toHaveText('Chưa có Owner');
-  const ownerButton = orphanRow.getByRole('button', { name: 'Đổi Owner…' });
+  const ownerButton = orphanRow.getByRole('button', { name: 'Thêm Owner…' });
   await expect(ownerButton).toHaveAttribute('aria-expanded', 'false');
   await ownerButton.click();
   await expect(ownerButton).toHaveAttribute('aria-expanded', 'true');
