@@ -36,7 +36,14 @@ async function add(page: Page, username: string, roleLabel: string) {
   await page.getByRole('button', { name: 'Thêm' }).click();
 }
 
+/** Chọn vai trò ở ô của dòng rồi bấm [Đổi]: ô chọn không tự gửi (ui.md màn hình 6, TV1-12). */
+async function changeRole(page: Page, username: string, roleLabel: string) {
+  await page.getByLabel(`Vai trò mới của ${username}`).selectOption({ label: roleLabel });
+  await page.getByRole('button', { name: `Đổi vai trò ${username}` }).click();
+}
+
 const row = (page: Page, username: string) => page.getByTestId(`member-${username}`);
+const roleLabel = (page: Page, username: string) => page.getByTestId(`member-role-${username}`);
 const error = (page: Page) => page.getByTestId('member-error');
 
 test('Owner thêm bằng tên đăng nhập, báo lỗi đúng, đổi vai trò và rút có xác nhận', async ({ page, request }) => {
@@ -50,14 +57,15 @@ test('Owner thêm bằng tên đăng nhập, báo lỗi đúng, đổi vai trò 
   await expect(row(page, 'minh')).toContainText('Điều tra viên');
 
   await add(page, 'khong.co.ai', 'Điều tra viên');
-  await expect(error(page)).toHaveText('Không có tên đăng nhập này');
+  // Câu lỗi có "⚠ " đứng trước như Đăng nhập, Tổ chức (TV1-12 màn hình 6, Dương chốt 2026-10-24)
+  await expect(error(page)).toHaveText('⚠ Không có tên đăng nhập này');
   await add(page, 'minh', 'Owner');
-  await expect(error(page)).toHaveText('Người này đã là thành viên');
+  await expect(error(page)).toHaveText('⚠ Người này đã là thành viên');
   await add(page, 'admin', 'Owner');
-  await expect(error(page)).toHaveText('Không thêm được tài khoản quản trị');
+  await expect(error(page)).toHaveText('⚠ Không thêm được tài khoản quản trị');
 
-  await page.getByLabel('Đổi vai trò minh').selectOption({ label: 'Giám sát viên' });
-  await expect(row(page, 'minh')).toContainText('Giám sát viên');
+  await changeRole(page, 'minh', 'Giám sát viên');
+  await expect(roleLabel(page, 'minh')).toHaveText('Giám sát viên');
 
   // Huỷ (hoặc Esc) ở hộp xác nhận thì không rút
   await page.getByRole('button', { name: 'Rút minh' }).click();
@@ -79,13 +87,13 @@ test('Owner thêm bằng tên đăng nhập, báo lỗi đúng, đổi vai trò 
 test('Owner cuối cùng không tự hạ, tự rút được: hỏi rõ mất quyền rồi báo lỗi last_owner', async ({ page, request }) => {
   await openMembers(page, 'chu');
 
-  await page.getByLabel('Đổi vai trò chu').selectOption({ label: 'Giám sát viên' });
+  await changeRole(page, 'chu', 'Giám sát viên');
   await answerConfirm(page, 'Bạn sẽ mất quyền Owner ngay, chỉ còn quyền Giám sát viên. Tiếp tục?', 'Đổi vai trò');
-  await expect(error(page)).toHaveText('Tổ chức phải còn ít nhất một Owner');
+  await expect(error(page)).toHaveText('⚠ Tổ chức phải còn ít nhất một Owner');
 
   await page.getByRole('button', { name: 'Rút chu' }).click();
   await answerConfirm(page, 'Bạn sẽ rời tổ chức này ngay và không xem được dữ liệu của tổ chức nữa. Tiếp tục?', 'Rút');
-  await expect(error(page)).toHaveText('Tổ chức phải còn ít nhất một Owner');
+  await expect(error(page)).toHaveText('⚠ Tổ chức phải còn ít nhất một Owner');
   expect(await serverMembers(request)).toEqual([expect.objectContaining({ username: 'chu', role: 'owner' })]);
 });
 
@@ -93,7 +101,7 @@ test('Owner tự hạ khi còn Owner khác: về trang chủ, vai trò mới có
   await setMembership(request, project, 'u_lan', 'owner');
   await openMembers(page, 'chu');
 
-  await page.getByLabel('Đổi vai trò chu').selectOption({ label: 'Điều tra viên' });
+  await changeRole(page, 'chu', 'Điều tra viên');
   await answerConfirm(page, 'Bạn sẽ mất quyền Owner ngay, chỉ còn quyền Điều tra viên. Tiếp tục?', 'Đổi vai trò');
 
   await expect(page.getByRole('heading', { name: 'Phiếu đã nhập' })).toBeVisible({ timeout: 10_000 });
@@ -109,7 +117,8 @@ test('supervisor chỉ thấy thao tác với điều tra viên, không có ở 
   await openMembers(page, 'lan');
 
   await expect(row(page, 'minh').getByRole('button', { name: 'Rút minh' })).toBeVisible();
-  await expect(page.getByLabel('Đổi vai trò minh')).toHaveCount(0);
+  await expect(page.getByLabel('Vai trò mới của minh')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Đổi vai trò minh' })).toHaveCount(0);
   for (const username of ['lan', 'chu']) {
     await expect(row(page, username).getByRole('button')).toHaveCount(0);
     await expect(row(page, username).getByRole('combobox')).toHaveCount(0);
@@ -165,7 +174,53 @@ test('dòng thành viên: tên và vai trò hai dòng, không còn dấu " · ";
   await expect(minh).toContainText('(minh)');
   await expect(minh).toContainText('Điều tra viên');
   await expect(minh).not.toContainText('·');
-  await expect(minh.getByRole('combobox', { name: 'Đổi vai trò minh' })).toBeVisible();
+  await expect(minh.getByRole('combobox', { name: 'Vai trò mới của minh' })).toBeVisible();
+  await expect(minh.getByRole('button', { name: 'Đổi vai trò minh' })).toBeVisible();
   const box = await minh.getByRole('button', { name: 'Rút minh' }).boundingBox();
   expect(box?.height).toBeGreaterThanOrEqual(44);
+});
+
+// Audit C1 (TV1-12 màn hình 6): ô chọn chỉ ghi vai trò muốn đổi, bấm [Đổi] mới gửi
+test('đổi vai trò người khác: chọn ở ô chưa gửi gì, [Đổi] khoá tới khi chọn, bấm mới đổi', async ({ page, request }) => {
+  await setMembership(request, project, 'u_minh', 'surveyor');
+  const puts: string[] = [];
+  page.on('request', (r) => {
+    if (r.method() === 'PUT' && r.url().includes('/members/')) puts.push(r.url());
+  });
+  await openMembers(page, 'chu');
+  const doi = page.getByRole('button', { name: 'Đổi vai trò minh' });
+  await expect(doi).toBeDisabled();
+
+  await page.getByLabel('Vai trò mới của minh').selectOption({ label: 'Giám sát viên' });
+  await expect(doi).toBeEnabled();
+  // Đọc nhãn vai trò, không đọc cả dòng: chữ <option> trong ô chọn cũng có "Giám sát viên"
+  await expect(roleLabel(page, 'minh')).toHaveText('Điều tra viên');
+  expect(puts).toHaveLength(0);
+
+  await doi.click();
+  await expect(roleLabel(page, 'minh')).toHaveText('Giám sát viên');
+  // Xong thì ô về "Đổi vai trò…", [Đổi] khoá lại
+  await expect(page.getByLabel('Vai trò mới của minh')).toHaveValue('');
+  await expect(doi).toBeDisabled();
+  // Chờ server đổi xong rồi mới đếm: chỉ một lần gửi, lúc bấm [Đổi], không phải lúc chọn ở ô
+  await expect
+    .poll(async () => (await serverMembers(request)).find((m) => m.username === 'minh')?.role)
+    .toBe('supervisor');
+  expect(puts).toHaveLength(1);
+
+  // "← Quay lại" ở đầu trang, không còn link cuối trang (ui.md màn hình 6)
+  await expect(page.getByRole('link', { name: '← Về danh sách phiếu' })).toHaveCount(0);
+  await page.getByRole('link', { name: '← Quay lại' }).click();
+  await expect(page.getByRole('heading', { name: 'Phiếu đã nhập' })).toBeVisible();
+});
+
+// Audit C9: không đủ quyền thì vẫn có lối về, không thành ngõ cụt
+test('điều tra viên mở #/members: báo không có quyền, có ← Quay lại về trang chủ', async ({ page, request }) => {
+  await setMembership(request, project, 'u_minh', 'surveyor');
+  await login(page, 'minh');
+  await page.goto('/#/members');
+  await expect(page.getByText('Chỉ giám sát viên và Owner xem được trang này.')).toBeVisible();
+  await expect(page.getByTestId('members')).toHaveCount(0);
+  await page.getByRole('link', { name: '← Quay lại' }).click();
+  await expect(page.getByRole('heading', { name: 'Phiếu đã nhập' })).toBeVisible();
 });

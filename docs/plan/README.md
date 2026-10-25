@@ -50,7 +50,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-01 | Staging HTTPS | ✅ PR #12 |
 | TV1-02 | Màn hình nhập mã đăng nhập | ✅ PR #6 · ⚠ bản cũ, TV1-14 thay |
 | TV1-03 | Validate form + `POST P/forms` | ✅ PR #19 |
-| TV1-04 | Form builder | ✅ PR #24 |
+| TV1-04 | Form builder | ✅ PR #24; sửa lỗi đổi form giữa hai builder ⏳ PR #84 |
 | TV1-05 | Validate phiếu + nháp | ✅ PR #7 (`validateRecord`), PR #17 (client) |
 | TV1-06 | Bộ chọn dự án | ✅ PR #23 · 🆕 Owner sau TV2-16; "Tổ chức khác…" ở TV1-15 (✅ PR #54) |
 | TV1-07 | Cập nhật SW, Cài đặt, kiểm tra trình duyệt | ✅ phần 1 PR #20 (Cài đặt + Đăng xuất) · ✅ phần 2a PR #27 (cập nhật SW, icon PNG) · ✅ phần 2b PR #28 (kiểm tra trình duyệt, `persist()`, hướng dẫn cài, Đăng xuất xoá cache SW) · ✅ 🆕 cập nhật theo ADR 0003 PR #57 (tên đăng nhập ở Cài đặt) |
@@ -58,7 +58,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-09 | ~~Màn hình Dự án cho admin~~ | ❌ Bỏ, thay bởi TV1-16 |
 | TV1-10 | `formVersion`, `hidden`, xuất/nhập form | ✅ PR #32 (phần 1), PR #33 (phần 2) |
 | TV1-11 | E2E O2, O4, T6, T10 | ✅ PR #43 |
-| TV1-12 | Hoàn thiện UI (tài liệu người dùng → TV3-16, rà khả năng tiếp cận → TV3-15) | ⏳ a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ); a2 ✅ PR #62 (lỗi API, hết phiên); a3 ✅ PR #68 (lỗi lẻ); (b) chia: b1 ✅ PR #69 (trạng thái, chữ còn thiếu); b2 giao diện theo thiết kế, chia p1–p8: p1 ✅ PR #70 (nền, khung chung); p2 ✅ PR #71 (trang chủ); p3 ✅ PR #72 (điền phiếu, xung đột); p4 ✅ PR #73 (builder); p5 ✅ PR #74 (thành viên, tổ chức); p6 ✅ PR #75 (đăng nhập, cài đặt); p7 ✅ PR #76 (trang quản trị); p8 ✅ PR #77 (kéo thả trường); sửa ▲▼ giữ dòng chọn ✅ PR #78; kiểm cuối (2 dải vàng Đăng nhập, focus admin) ✅ PR #79; nhánh gom → main ✅ PR #80; vùng status Xem trước ✅ PR #81; còn: sửa UI theo rà TV3-15 |
+| TV1-12 | Hoàn thiện UI (tài liệu người dùng → TV3-16, rà khả năng tiếp cận → TV3-15) | ⏳ a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ); a2 ✅ PR #62 (lỗi API, hết phiên); a3 ✅ PR #68 (lỗi lẻ); (b) chia: b1 ✅ PR #69 (trạng thái, chữ còn thiếu); b2 giao diện theo thiết kế, chia p1–p8: p1 ✅ PR #70 (nền, khung chung); p2 ✅ PR #71 (trang chủ); p3 ✅ PR #72 (điền phiếu, xung đột); p4 ✅ PR #73 (builder); p5 ✅ PR #74 (thành viên, tổ chức); p6 ✅ PR #75 (đăng nhập, cài đặt); p7 ✅ PR #76 (trang quản trị); p8 ✅ PR #77 (kéo thả trường); sửa ▲▼ giữ dòng chọn ✅ PR #78; kiểm cuối (2 dải vàng Đăng nhập, focus admin) ✅ PR #79; nhánh gom → main ✅ PR #80; vùng status Xem trước ✅ PR #81; sửa UI sau audit/critique: màn 6 ⏳ PR #85 (ô chọn + [Đổi], ← Quay lại đầu trang); còn: sửa UI theo rà TV3-15 |
 | TV1-13 | Nút xoá phiếu + hộp xác nhận | ✅ PR #42 · chưa ẩn nút theo người tạo (thiếu `createdBy`) |
 | TV2-01 | Migration + schema multi-tenancy | ✅ PR #8 (chung với TV2-02, TV2-03, TV3-02) |
 | TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ PR #8 · `requireAuth` đã đổi sang `sessions` ở TV2-14 |
@@ -95,7 +95,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-17 | API quản lý tài khoản cho màn hình A3 · **Cắt được** | CLI `user:*` | ⏳ PR #51 |
 | TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | ✅ PR #53 |
 | TV1-15 | Màn hình Tổ chức (danh bạ, mở tổ chức mới) | – | ✅ PR #54 |
-| TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | ✅ PR #55 (khung), PR #56 (A1, A2); A3 lượt riêng sau #51; sửa E2E chập chờn ⏳ PR #82 |
+| TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | ✅ PR #55 (khung), PR #56 (A1, A2); A3 lượt riêng sau #51; sửa E2E chập chờn ✅ PR #82 |
 | TV1-17 | Tên người tạo/sửa trong `ServerRecord`; ẩn Xoá với surveyor theo người tạo | Phần bỏ của TV1-13 | ✅ PR #44 (phần 1: shared + server), PR #45 (phần 2: client) |
 | TV3-12 | CLI, fixture, helper E2E theo tài khoản mới | Phần CLI/helper của TV3-02 | ✅ PR #36 |
 
