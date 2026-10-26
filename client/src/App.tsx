@@ -25,7 +25,7 @@ export function App() {
   // Đọc qua liveQuery để khi token bị xoá (401, đăng xuất) app tự quay về màn hình đăng nhập
   const token = useLiveQuery(getToken, []);
   const project = useCurrentProject();
-  const menu = useNavMenu();
+  const menu = useNavMenu([page, ...args].join('/'));
 
   // Đang đọc IndexedDB: chưa vẽ gì, tránh nháy màn hình đăng nhập với người đã đăng nhập
   if (token === undefined) return null;

@@ -82,7 +82,7 @@ Máy tính (≥ 1024px)
 ```
 
 - Mục: **Phiếu** (`#/`), **Tổ chức** (`#/orgs`), **Thành viên** (`#/members`, chỉ supervisor và owner), **Cài đặt** (`#/settings`). Mỗi dòng biểu tượng nét đơn + chữ, cao ≥ 44px; mục đang ở nền vàng nhấn và có `aria-current="page"`. Chưa thuộc tổ chức nào (trang chủ là màn hình 9) thì không có mục Phiếu, mục Tổ chức đang chọn.
-- Điện thoại: nút **Menu** (☰ + chữ nhỏ) đầu header, có `aria-expanded`; bấm thì ngăn kéo (`<nav>` tên "Menu", rộng 280px, tối đa 85% màn) trượt từ trái, nền mờ phía sau, con trỏ vào mục đầu. Esc, bấm nền mờ hoặc chọn một mục thì đóng, con trỏ về nút Menu. Máy bật giảm chuyển động thì không trượt. Safe-area iPhone chưa thử máy thật (tech-debt N13).
+- Điện thoại: nút **Menu** (☰ + chữ nhỏ) đầu header, có `aria-expanded`; bấm thì ngăn kéo (`<nav>` tên "Menu", rộng 280px, tối đa 85% màn) trượt từ trái, nền mờ phía sau, con trỏ vào mục đầu. Esc, bấm nền mờ hoặc chọn một mục thì đóng, con trỏ về nút Menu. Rời trang bằng cách khác (nút Back, Tab ra nội dung phía sau rồi bấm) thì ngăn kéo cũng đóng, quay lại không tự mở. Ngăn kéo không khoá con trỏ: Tab qua mục cuối ra nội dung phía sau nền mờ (chưa làm, để TV3-15 rà khả năng tiếp cận quyết). Máy bật giảm chuyển động thì không trượt. Safe-area iPhone chưa thử máy thật (tech-debt N13).
 - Máy tính: thanh bên rộng 240px luôn hiện, dính trái dưới header, không có nút Menu. Màn hình 3, 4, 5 không có thanh bên, nội dung 720px ở giữa.
 - Giữ nguyên: [Đồng bộ] và trạng thái mạng trên header, "Tổ chức khác…" trong bộ chọn, "← Quay lại" ở màn hình 6, 8, 9.
 

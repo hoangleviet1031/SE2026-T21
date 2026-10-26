@@ -65,6 +65,35 @@ test('điện thoại 360px: nút Menu mở ngăn kéo; Esc, bấm nền, chọn
   await expect(nav(page).getByRole('link', { name: 'Phiếu' })).not.toHaveAttribute('aria-current');
 });
 
+test('điện thoại 360px: rời trang khi ngăn kéo đang mở (Back, sang builder) thì quay lại không tự mở', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await login(page);
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();
+  await menuButton(page).click();
+  await nav(page).getByRole('link', { name: 'Cài đặt' }).click();
+  await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
+
+  // Nút Back của Android khi ngăn kéo đang mở
+  await menuButton(page).click();
+  await expect(nav(page)).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();
+  await expect(nav(page)).toBeHidden();
+  await expect(menuButton(page)).toHaveAttribute('aria-expanded', 'false');
+
+  // Tab ra nội dung sau nền mờ rồi mở màn hình không có menu (builder), "← Quay lại" về trang chủ
+  await menuButton(page).click();
+  await expect(nav(page)).toBeVisible();
+  await page.evaluate(() => (location.hash = '#/builder/new'));
+  await expect(page.getByRole('textbox', { name: 'Tiêu đề' })).toBeVisible();
+  await page.getByRole('link', { name: '← Quay lại' }).click();
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();
+  await expect(nav(page)).toBeHidden();
+  await expect(menuButton(page)).toHaveAttribute('aria-expanded', 'false');
+});
+
 test('điện thoại 360px: điều tra viên không có mục Thành viên', async ({ page, request }) => {
   await setMembership(request, project, 'u_minh', 'surveyor');
   await page.setViewportSize({ width: 360, height: 740 });

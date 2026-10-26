@@ -7,8 +7,17 @@ import { Icon } from './Icon';
 
 const MENU_ID = 'app-menu';
 
-export function useNavMenu() {
+/**
+ * Đổi route bằng cách khác (Tab ra nội dung rồi Enter, nút Back) thì đóng ngăn kéo, không kéo con trỏ đi:
+ * nếu không, quay lại trang có menu thì ngăn kéo tự mở lại và giật con trỏ vào mục đầu.
+ */
+export function useNavMenu(route: string) {
   const [open, setOpen] = useState(false);
+  const [lastRoute, setLastRoute] = useState(route);
+  if (route !== lastRoute) {
+    setLastRoute(route);
+    setOpen(false);
+  }
   const buttonRef = useRef<HTMLButtonElement>(null);
   // Đóng xong trả con trỏ về nút ☰ để người dùng bàn phím, trình đọc màn hình không bị lạc
   const close = useCallback(() => {
