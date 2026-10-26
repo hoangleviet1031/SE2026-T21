@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-26 | TV1-12 | feat | Menu điều hướng: ☰ + ngăn kéo trên điện thoại, thanh bên ≥1024px ở màn 2, 6, 8, 9 (Phiếu, Tổ chức, Thành viên, Cài đặt); bỏ [Cài đặt] header và khối Thành viên cuối trang chủ; header rộng hết màn; `navMenu.ts` + unit, E2E nav-menu.spec 5 ca; ui 0.2.30, N13 | nhánh `feat/tv1-12-menu` | chờ review |
+| 2026-10-26 | TV1-12 | feat | Menu điều hướng: ☰ + ngăn kéo trên điện thoại, thanh bên ≥1024px ở màn 2, 6, 8, 9 (Phiếu, Tổ chức, Thành viên, Cài đặt); bỏ [Cài đặt] header và khối Thành viên cuối trang chủ; header rộng hết màn; `navMenu.ts` + unit, E2E nav-menu.spec 5 ca; ui 0.2.30, N13 | PR #97 | chờ review |
 | 2026-10-25 | N15 | docs | tech-debt N15: builder cho lưu biểu mẫu không có trường nào (spec không nói, code cho lưu; phát hiện khi thử staging 2885598), mức Vừa, chưa sửa | PR #96 | chờ review |
 | 2026-10-25 | N12 | fix | Màn 4 nhãn trạng thái đầu trang (displayState, mọi trạng thái); phiếu Lỗi có câu lỗi + [Thử lại] + [Xuất JSON phiếu này] trên trang, khối lỗi tách `RecordErrorBox` dùng chung trang chủ; E2E fill-status.spec 3 ca; ui 0.2.29; tech-debt N12 → Đã trả | PR #95 | chờ review |
 | 2026-10-25 | TV1-12 | fix | Tiêu đề trang màn 5, 6, 8, 9 cùng kiểu màn 2, 4 (22px, đậm 800; audit C10, chỉ CSS); E2E headings.spec mới; ui 0.2.28 | PR #94 | chờ review |
