@@ -1,11 +1,18 @@
 import { Router, type Request, type RequestHandler } from 'express';
-import { parseLoginRequest, parseRegisterRequest, type AuthResponse } from '@field-survey/shared';
+import {
+  parseChangePasswordRequest,
+  parseLoginRequest,
+  parseRegisterRequest,
+  type AuthResponse,
+} from '@field-survey/shared';
 import { tx, type Db } from '../db';
 import { toAuthUser } from '../auth';
 import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from '../password';
 import { createRateLimiter } from '../rateLimit';
 import {
+  changeUserPassword,
   deleteSession,
+  findPasswordHash,
   findUserByUsername,
   insertSession,
   insertUser,
@@ -13,7 +20,7 @@ import {
   type LoginUserRow,
 } from '../repo/users';
 
-// Tự tạo tài khoản, đăng nhập, đăng xuất (ADR 0003 §1, design §7). Không bao giờ ghi log mật khẩu
+// Tự tạo tài khoản, đăng nhập, đăng xuất (ADR 0003 §1, design §7), tự đổi mật khẩu (design §4.7). Không bao giờ ghi log mật khẩu
 // hay token; DB chỉ giữ scrypt của mật khẩu và SHA-256 của token phiên.
 
 const MINUTE = 60_000;
@@ -114,6 +121,41 @@ export function authRouter(db: Db, requireAuth: RequestHandler): Router {
     const sessionHash = req.sessionHash;
     // Chỉ phiên của máy đang gửi; máy khác của cùng người vẫn đăng nhập.
     tx(db, () => deleteSession(db, sessionHash));
+    res.status(204).end();
+  });
+
+  r.post('/change-password', requireAuth, async (req, res) => {
+    if (!req.user || !req.sessionHash) throw new Error('req.user chưa có: /change-password phải đi qua requireAuth');
+    const { id: userId, username } = req.user;
+    const sessionHash = req.sessionHash;
+    const body = parseChangePasswordRequest(req.body);
+    if (!body) return void res.status(400).json({ error: 'invalid_body' });
+    // Dùng chung bộ đếm và khoá với /login: đoán mật khẩu qua đây (máy đang mở sẵn phiên) cũng bị chặn,
+    // và sai ở đây làm /login của cùng tên bị chặn theo. Giữ chỗ trước khi chờ scrypt như /login.
+    const userKey = `u:${username}`;
+    const ipKey = `ip:${clientIp(req)}`;
+    const reservedAt = Date.now();
+    if (loginFailures.isBlocked(userKey, reservedAt) || loginFailures.isBlocked(ipKey, reservedAt)) {
+      return void res.status(429).json({ error: 'too_many_requests' });
+    }
+    loginFailures.hit(userKey, reservedAt);
+    loginFailures.hit(ipKey, reservedAt);
+
+    let ok = false;
+    try {
+      const stored = findPasswordHash(db, userId);
+      ok = stored !== null && (await verifyPassword(body.currentPassword, stored));
+    } finally {
+      if (ok) {
+        loginFailures.release(userKey, reservedAt);
+        loginFailures.release(ipKey, reservedAt);
+      }
+    }
+    // Không trả 401: app coi 401 là phiên hết hạn và đưa về màn hình đăng nhập (design §7.1)
+    if (!ok) return void res.status(403).json({ error: 'wrong_password' });
+
+    const passwordHash = await hashPassword(body.newPassword);
+    changeUserPassword(db, userId, passwordHash, sessionHash);
     res.status(204).end();
   });
 

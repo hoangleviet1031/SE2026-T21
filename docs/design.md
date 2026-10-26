@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.50 (2026-10-25)
+- **Phiên bản:** 0.5.51 (2026-10-26)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -84,6 +84,7 @@
 | 0.5.48 | 2026-10-25 | TV2-11: đo hiệu năng pull có code (§11.2, [perf.md](perf.md)): pull lần đầu 5.000 phiếu 2,3 s, danh sách 2.000 phiếu 211 ms, đổi dự án 246 ms (CPU ×4: 9,6 s / 880 ms / 559 ms; danh sách sát ngưỡng 1 s, ghi cho TV2-18), đều đạt; đo trên giao diện mới (TV1-12 b2); `EXPLAIN QUERY PLAN` của pull đi theo index có test; bộ đo `npm run test:perf` chạy riêng; lệnh `seed:perf` (§12) và route kiểm thử `POST /api/__test/seed-perf` (§10.1) |
 | 0.5.49 | 2026-10-25 | TV1-16 A3 (Could): màn hình Tài khoản `/admin/#/users` có code (§4.9): mở là tải danh sách, ô tìm theo tên đăng nhập + [Tìm], nhận đủ 50 thì nhắc gõ thêm; bảng như A1/A2; [Khoá] và [Cấp lại mật khẩu] hỏi lại, [Thu hồi phiên] không hỏi; tài khoản đã khoá chỉ hiện trạng thái; mật khẩu tạm ở hàng ngay dưới dòng, mất khi thao tác hay tìm tiếp; `409 self_action` hiện lỗi. Bỏ nhãn 🆕 cuối cùng. Q10 thêm phần A3 (§10.1) |
 | 0.5.50 | 2026-10-25 | TV1-12 sau critique UI (K5), chỉ đổi chữ: nút A2 "Đổi Owner…" thành "Thêm Owner…" (§4.9, §10.1 Q10) vì API chỉ thêm hoặc nâng, Owner cũ vẫn giữ quyền; chữ Dương duyệt 2026-10-24. Không đổi API |
+| 0.5.51 | 2026-10-26 | Tự đổi mật khẩu (Could, Dương chốt 2026-10-26, mở rộng ADR 0003 §1; không sửa ADR), phần API có code: `POST /auth/change-password` (§7): mật khẩu mới theo luật đăng ký, sai mật khẩu hiện tại → mã mới `403 wrong_password` (§7.1; không dùng 401 vì app coi 401 là hết phiên), dùng chung giới hạn đăng nhập sai, đổi xong thu hồi mọi phiên khác và giữ phiên máy đang đổi; kiểu `ChangePasswordRequest` và `parseChangePasswordRequest` (§6.2, `shared/`); §1 thêm mức Could; §4.7 đoạn Đổi mật khẩu (giao diện màn hình 8 🆕); U8–U10 (§10.1) |
 
 ## Mục lục
 
@@ -133,7 +134,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Nhóm chức năng | Nội dung | Mức |
 |---|---|---|
 | Dự án và thành viên | Mỗi nhóm là một dự án (tổ chức) có form, phiếu, ảnh và thành viên riêng. Một người thuộc được nhiều dự án với vai trò khác nhau; đổi dự án ngay trong app, kể cả khi offline. | Must |
-| Tài khoản và tổ chức | Tự tạo tài khoản (tên + mật khẩu); gửi yêu cầu mở tổ chức, admin duyệt, người gửi thành Owner; tổ chức công khai hiện tên trong danh sách; trang quản trị riêng cho admin (ADR 0003). | Must; màn hình A3 Tài khoản: Could (CLI làm thay) |
+| Tài khoản và tổ chức | Tự tạo tài khoản (tên + mật khẩu); gửi yêu cầu mở tổ chức, admin duyệt, người gửi thành Owner; tổ chức công khai hiện tên trong danh sách; trang quản trị riêng cho admin (ADR 0003). | Must; màn hình A3 Tài khoản: Could (CLI làm thay); tự đổi mật khẩu: Could |
 | Form builder | Tạo/sửa form với 7 loại trường: text, number, select, multiselect, date, photo, gps. Form có phiên bản, thuộc một dự án. | Must; xuất/nhập form JSON: Could |
 | Offline storage | Form, phiếu, ảnh, hàng đợi đồng bộ trong IndexedDB (Dexie). App shell được service worker precache. | Must |
 | Sync queue | Outbox bền vững, retry với exponential backoff, idempotency key. | Must |
@@ -519,6 +520,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003. Mọi mục dư�
 - **Trang Cài đặt** (ui.md màn hình 8): tên hiển thị và **tên đăng nhập** (`settings-username`) để gửi cho giám sát viên hoặc Owner. Chưa thuộc tổ chức nào: "Gửi tên này cho giám sát viên của tổ chức để được thêm vào."; đã thuộc: "Giám sát viên hoặc Owner cần tên này nếu muốn thêm bạn vào tổ chức khác." `account.user` lưu từ trước TV2-14 chưa có `username` tới vòng `/me` kế tiếp: hiện `userId` (tài khoản cũ có username = id, migration 4), không bao giờ rỗng; luật này dùng chung với màn hình Tổ chức (`client/src/accountDisplay.ts`). Có code (TV1-07).
 - **Hộp hỏi xác nhận** trong PWA đều là hộp xác nhận trong app (`ConfirmDialog`, không dùng hộp của trình duyệt; Esc = Huỷ); nút xác nhận màu đỏ cho việc mất dữ liệu hoặc mất quyền (Đăng xuất, Rút, Xoá khỏi máy, Xoá phiếu), màu thường cho Tải lại, Đổi vai trò (TV1-12). Nút trong trang chỉ mở hộp (Xoá phiếu, Rút, Đăng xuất, Xoá khỏi máy, Khoá ở trang quản trị) có viền đỏ, không đỏ đặc (TV1-12 b2, ui.md "Hệ thống thiết kế").
 - **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Đăng xuất xoá cả cache runtime `me` và `forms` của SW (§4.3; tên ở `client/src/swCaches.ts`) để dữ liệu của người cũ không nằm lại trên máy dùng chung, nhưng giữ precache để app vẫn mở được offline. Đang online thì gọi thêm `POST /api/auth/logout` để huỷ phiên của máy này: gọi sau khi đã xoá dữ liệu trên máy, trước khi xoá token; lỗi mạng thì vẫn đăng xuất trên máy (phiên còn trên server, admin thu hồi được bằng `user:revoke-sessions`). Có code (TV2-16).
+- **Đổi mật khẩu** (Could, Dương chốt 2026-10-26; mở rộng ADR 0003 §1, ADR không đổi): người dùng tự đổi mật khẩu, không phải giữ mãi mật khẩu tạm admin đã thấy khi cấp lại. `POST /api/auth/change-password` với mật khẩu hiện tại và mật khẩu mới (luật như lúc tạo tài khoản, 8–128 ký tự); trùng mật khẩu cũ vẫn được. Sai mật khẩu hiện tại → `403 wrong_password` "Mật khẩu hiện tại không đúng" (không dùng `401`: app coi `401` là hết phiên và đưa về màn hình Đăng nhập); lần sai tính chung giới hạn đăng nhập sai (10 lần / 15 phút theo tên hoặc IP, `429`). Đổi xong thu hồi mọi phiên khác của người này trong cùng transaction, giữ phiên máy đang đổi: máy khác gặp `401` như phiên bị thu hồi (dữ liệu trên máy giữ nguyên, đăng nhập lại bằng mật khẩu mới rồi gửi tiếp). Mọi tài khoản đã đăng nhập gọi được, kể cả admin, nhưng admin không có giao diện (PWA chặn admin, trang `/admin/` không có): admin đổi bằng CLI `user:reset-password`. Có code phần API (`server/src/routes/auth.ts`, `changeUserPassword` ở `server/src/repo/users.ts`). 🆕 Khối "Đổi mật khẩu" ở trang Cài đặt (ui.md màn hình 8, cần mạng) chưa có code.
 - **Tạo tài khoản admin và hỗ trợ** (cấp lại mật khẩu, thu hồi phiên) không có UI trong PWA: chạy CLI ở server (§12), hoặc trang quản trị (§4.9).
 
 **Tiêu chí chấp nhận:** đủ các ca T1–T10 ở ADR 0002; thêm U1–U7, Q1–Q9, Q11, D1–D2, M1–M3, A5–A8 ở ADR 0003 (§10.1).
@@ -746,10 +748,11 @@ interface MeResponse {
 
 interface RegisterRequest { username: string; name: string; password: string }
 interface LoginRequest { username: string; password: string }
+interface ChangePasswordRequest { currentPassword: string; newPassword: string }  // §4.7 Đổi mật khẩu
 interface AuthResponse { token: string; user: MeResponse['user'] }
 ```
 
-Luật thân request nằm ở `shared/src/accountValidation.ts` để client báo lỗi giống server: `parseRegisterRequest` chuyển `username` về chữ thường rồi kiểm `^[a-z0-9._]{3,32}$`, cắt khoảng trắng hai đầu `name` (1–100 ký tự), `password` 8–128 ký tự, không cắt; `parseLoginRequest` chỉ kiểm kiểu và chuyển `username` về chữ thường.
+Luật thân request nằm ở `shared/src/accountValidation.ts` để client báo lỗi giống server: `parseRegisterRequest` chuyển `username` về chữ thường rồi kiểm `^[a-z0-9._]{3,32}$`, cắt khoảng trắng hai đầu `name` (1–100 ký tự), `password` 8–128 ký tự, không cắt; `parseLoginRequest` chỉ kiểm kiểu và chuyển `username` về chữ thường; `parseChangePasswordRequest` kiểm `newPassword` 8–128 ký tự như lúc đăng ký, `currentPassword` chỉ kiểm kiểu (sai thì là `wrong_password`).
 
 **Theo ADR 0003** (có code: `Member`, `ProjectSettings` ở TV1-08; còn lại ở TV2-15):
 
@@ -818,6 +821,7 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | POST | `/auth/register` | Tạo tài khoản, đăng nhập luôn (ADR 0003 §1) | không cần token | Có |
 | POST | `/auth/login` | Đăng nhập, cấp phiên cho máy này | không cần token | Có |
 | POST | `/auth/logout` | Huỷ phiên hiện tại | mọi | Có |
+| POST | `/auth/change-password` | Tự đổi mật khẩu, thu hồi các phiên khác (§4.7) | mọi | Có |
 | GET | `/me` | Người dùng hiện tại và danh sách dự án kèm vai trò (`owner`, `supervisor`, `surveyor`) | mọi | Có |
 | GET | `/directory` | Tên các tổ chức công khai mình chưa thuộc | mọi | Có |
 | GET/POST | `/project-requests` | Yêu cầu mở tổ chức của mình / gửi yêu cầu mới | mọi | Có |
@@ -899,6 +903,7 @@ Content-Type: application/json
 | `POST /auth/register` | `{ username, name, password }` | `201 AuthResponse`; `409 username_taken`; `400 invalid_body`; `429 too_many_requests` (đã có 5 tài khoản tạo thành công trong 60 phút gần nhất từ IP này; đăng ký hỏng không tính) |
 | `POST /auth/login` | `{ username, password }` | `200 AuthResponse`; sai tên, sai mật khẩu, tài khoản chưa có mật khẩu hay bị khoá đều `401 invalid_credentials`; `429 too_many_requests` khi đã sai 10 lần trong 15 phút gần nhất theo tên hoặc theo IP (cửa sổ trượt; đăng nhập đúng không xoá bộ đếm; đang bị chặn thì mật khẩu đúng cũng `429`) |
 | `POST /auth/logout` | – | `204`, xoá phiên của token đang gửi; phiên khác của cùng người giữ nguyên |
+| `POST /auth/change-password` | `{ currentPassword, newPassword }` | `204`, đổi mật khẩu và xoá mọi phiên khác của người này (một transaction), phiên đang gửi giữ nguyên; `400 invalid_body` (sai kiểu, mật khẩu mới ngoài 8–128 ký tự); `429 too_many_requests` (chung bộ đếm với `/auth/login`, theo tên và IP; đang bị chặn thì mật khẩu đúng cũng `429`); `403 wrong_password` (sai mật khẩu hiện tại, kể cả tài khoản chưa có mật khẩu); `401` khi không có phiên. Kiểm theo thứ tự đó |
 | `GET /directory` | – | `200 DirectoryEntry[]`: tổ chức `public`, chưa lưu trữ, mình chưa là thành viên |
 | `POST /project-requests` | `{ name, note? }` | `201 ProjectRequest`; `409 project_limit_reached` (đang có 1 yêu cầu chờ, hoặc đã là Owner của 3 tổ chức chưa lưu trữ) |
 | `GET /project-requests` | – | `200 ProjectRequest[]` của chính mình |
@@ -947,6 +952,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | 401 | `unauthorized` | Thiếu hoặc sai token, phiên đã bị huỷ hoặc tài khoản bị khoá | dừng đồng bộ, yêu cầu đăng nhập lại |
 | 401 | `invalid_credentials` | Sai tên đăng nhập hoặc mật khẩu (không phân biệt) | "Sai tên đăng nhập hoặc mật khẩu" |
 | 403 | `not_member` | Không (còn) là thành viên dự án, hoặc dự án đã lưu trữ | dừng dự án, xử lý như bị rút (ADR 0002 §6) |
+| 403 | `wrong_password` | Sai mật khẩu hiện tại khi tự đổi mật khẩu (`/auth/change-password`) | "Mật khẩu hiện tại không đúng", ở lại trang |
 | 403 | `forbidden` | Là thành viên nhưng sai vai trò (vd. surveyor gọi export) | hiện lỗi; ẩn nút tương ứng |
 | 404 | `not_found` | Không có tài nguyên, ngoài phạm vi, hoặc thuộc dự án khác (không phân biệt để không lộ thông tin) | op `failed` |
 | 409 | `last_owner` | Rút hoặc hạ Owner cuối cùng của tổ chức | hiện lỗi ở màn hình Thành viên / A2 |
@@ -1078,6 +1084,9 @@ Phạm vi đồ án giữ đơn giản:
 | U5 | Integration | Hai phiên (hai máy) cùng gửi phiếu; đăng xuất một máy | Cả hai gửi được; máy kia không ảnh hưởng | Có (`server/test/accounts.test.ts`) |
 | U6 | Integration | DB chỉ chứa hash | Không có mật khẩu/token gốc trong `users`, `sessions` | Có (`server/test/accounts.test.ts`) |
 | U7 | E2E | Tạo tài khoản trên app, tải lại trang; offline lần đầu | Vẫn đăng nhập; báo cần mạng | Có (`client/e2e/login.spec.ts`) |
+| U8 | Integration | Tự đổi mật khẩu đúng (cả tài khoản admin, cả trùng mật khẩu cũ) | `204`; mật khẩu mới đăng nhập được, cũ `401`; phiên đang dùng còn, phiên khác của người này `401`, phiên người khác không đổi; DB không có mật khẩu gốc | Có (`server/test/accounts.test.ts`) |
+| U9 | Integration | Đổi mật khẩu sai mật khẩu hiện tại (cả tài khoản chưa có mật khẩu); không có phiên; thân sai | `403 wrong_password` không đổi gì; `401`; `400 invalid_body` | Có (`server/test/accounts.test.ts`) |
+| U10 | Integration | Đổi mật khẩu sai 10 lần; sai đăng nhập 10 lần rồi đổi mật khẩu | Lần 11 `429` kể cả mật khẩu đúng, `/login` cùng tên cũng `429`; ngược lại cũng `429`; đổi đúng không chiếm lượt sai | Có (`server/test/accounts.test.ts`) |
 | MG1 | Integration | DB `user_version = 3` có admin là thành viên tổ chức → `openDb` | Lỗi liệt kê tài khoản và tổ chức; `user_version` vẫn 3, dữ liệu không đổi | Có (`server/test/db.test.ts`) |
 | MG2 | Integration | DB `user_version = 3` không có admin là thành viên → `openDb` | Lên 4; membership giữ nguyên; token cũ dùng được; supervisor vẫn dùng `P/...` khi tổ chức chưa có Owner | Có (`server/test/db.test.ts`) |
 | Q1 | Integration | Gửi yêu cầu mở tổ chức | `201 pending`, chưa có tổ chức, `/me` rỗng | Có (`server/test/projectRequests.test.ts`) |

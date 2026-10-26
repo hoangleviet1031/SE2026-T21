@@ -95,6 +95,25 @@ export async function resetUserPassword(db: Db, userId: string): Promise<string 
   return changed > 0 ? password : undefined;
 }
 
+/** scrypt của mật khẩu hiện tại; `null` khi tài khoản cũ chưa có mật khẩu (trước migration 4). */
+export function findPasswordHash(db: Db, userId: string): string | null {
+  const row = db.prepare(`SELECT password_hash FROM users WHERE id = ?`).get(userId) as
+    { password_hash: string | null } | undefined;
+  return row?.password_hash ?? null;
+}
+
+/**
+ * Người dùng tự đổi mật khẩu (design §4.7): đổi hash và thu hồi mọi phiên khác trong một transaction,
+ * giữ phiên của máy đang đổi. Máy khác gặp 401, phiếu chưa gửi trên máy đó vẫn còn (§4.7, 401 giữa chừng).
+ * `passwordHash` băm trước khi gọi: scrypt bất đồng bộ không được nằm trong transaction.
+ */
+export function changeUserPassword(db: Db, userId: string, passwordHash: string, keepSessionHash: string): void {
+  tx(db, () => {
+    db.prepare(`UPDATE users SET password_hash = ? WHERE id = ?`).run(passwordHash, userId);
+    db.prepare(`DELETE FROM sessions WHERE user_id = ? AND token_hash <> ?`).run(userId, keepSessionHash);
+  });
+}
+
 /** Mất máy: mọi phiên của người này hết hiệu lực. Trả số phiên đã thu hồi, `undefined` nếu không có tài khoản. */
 export function revokeUserSessions(db: Db, userId: string): number | undefined {
   return tx(db, () => {

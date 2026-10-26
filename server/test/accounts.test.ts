@@ -261,3 +261,105 @@ describe('phiên theo máy', () => {
     expect(sessions).toHaveLength(2);
   });
 });
+
+// Tự đổi mật khẩu (design §4.7, §7; ca U8–U10 ở §10.1): mở rộng ADR 0003 §1, người dùng không phải giữ
+// mãi mật khẩu tạm admin đã thấy.
+describe('POST /api/auth/change-password', () => {
+  const NEW_PASSWORD = 'mat-khau-moi-cua-hoa';
+
+  function changePassword(token: string | undefined, currentPassword: unknown, newPassword: unknown, ip?: string) {
+    return post('change-password', { currentPassword, newPassword }, { token, ip });
+  }
+
+  it('U8: đúng mật khẩu hiện tại → 204; mật khẩu mới đăng nhập được, cũ thì không; giữ phiên máy này, thu hồi phiên khác', async () => {
+    const a = ((await (await register('hoa')).json()) as AuthResponse).token;
+    const b = ((await (await login('hoa', PASSWORD)).json()) as AuthResponse).token;
+    const other = ((await (await register('mai')).json()) as AuthResponse).token;
+
+    const res = await changePassword(a, PASSWORD, NEW_PASSWORD);
+    expect(res.status).toBe(204);
+
+    expect((await me(a)).status).toBe(200);
+    expect((await me(b)).status).toBe(401);
+    // Phiên của người khác không bị đụng tới
+    expect((await me(other)).status).toBe(200);
+    expect((await login('hoa', PASSWORD)).status).toBe(401);
+    expect((await login('hoa', NEW_PASSWORD)).status).toBe(200);
+
+    const dump = JSON.stringify(t.db.prepare(`SELECT * FROM users`).all());
+    expect(dump).not.toContain(NEW_PASSWORD);
+  });
+
+  it('U8: tài khoản admin cũng đổi được (không có giao diện, design §4.7)', async () => {
+    const reg = (await (await register('quantri')).json()) as AuthResponse;
+    t.db.prepare(`UPDATE users SET is_admin = 1 WHERE id = ?`).run(reg.user.id);
+    expect((await changePassword(reg.token, PASSWORD, NEW_PASSWORD)).status).toBe(204);
+    expect((await login('quantri', NEW_PASSWORD)).status).toBe(200);
+  });
+
+  it('U8: mật khẩu mới trùng mật khẩu cũ vẫn đổi được (luật đăng ký không cấm)', async () => {
+    const { token } = (await (await register('hoa')).json()) as AuthResponse;
+    expect((await changePassword(token, PASSWORD, PASSWORD)).status).toBe(204);
+    expect((await login('hoa', PASSWORD)).status).toBe(200);
+  });
+
+  it('U9: sai mật khẩu hiện tại → 403 wrong_password (không phải 401), không đổi gì', async () => {
+    const a = ((await (await register('hoa')).json()) as AuthResponse).token;
+    const b = ((await (await login('hoa', PASSWORD)).json()) as AuthResponse).token;
+
+    const res = await changePassword(a, 'sai-mat-khau', NEW_PASSWORD);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'wrong_password' });
+
+    expect((await me(a)).status).toBe(200);
+    expect((await me(b)).status).toBe(200);
+    expect((await login('hoa', NEW_PASSWORD)).status).toBe(401);
+    expect((await login('hoa', PASSWORD)).status).toBe(200);
+  });
+
+  it('U9: tài khoản cũ chưa có mật khẩu → 403 wrong_password', async () => {
+    const { token, user } = (await (await register('hoa')).json()) as AuthResponse;
+    t.db.prepare(`UPDATE users SET password_hash = NULL WHERE id = ?`).run(user.id);
+    const res = await changePassword(token, '', NEW_PASSWORD);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'wrong_password' });
+  });
+
+  it('U9: chưa đăng nhập → 401', async () => {
+    expect((await changePassword(undefined, PASSWORD, NEW_PASSWORD)).status).toBe(401);
+  });
+
+  it.each([
+    ['mật khẩu mới 7 ký tự', PASSWORD, '1234567'],
+    ['mật khẩu mới 129 ký tự', PASSWORD, 'x'.repeat(129)],
+    ['thiếu mật khẩu mới', PASSWORD, undefined],
+    ['mật khẩu hiện tại sai kiểu', 123, NEW_PASSWORD],
+  ])('U9: %s → 400 invalid_body, mật khẩu không đổi', async (_name, currentPassword, newPassword) => {
+    const { token } = (await (await register('hoa')).json()) as AuthResponse;
+    const res = await changePassword(token, currentPassword, newPassword);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'invalid_body' });
+    expect((await login('hoa', PASSWORD)).status).toBe(200);
+  });
+
+  it('U10: sai 10 lần thì lần 11 nhận 429 kể cả mật khẩu đúng; /login của cùng tên cũng bị chặn', async () => {
+    const { token } = (await (await register('hoa')).json()) as AuthResponse;
+    for (let i = 0; i < 10; i++) {
+      // Mỗi lần một IP khác để chắc chắn là chặn theo tên đăng nhập
+      expect((await changePassword(token, `sai-${i}`, NEW_PASSWORD, `10.7.0.${i}`)).status).toBe(403);
+    }
+    const res = await changePassword(token, PASSWORD, NEW_PASSWORD, '10.7.0.99');
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ error: 'too_many_requests' });
+    expect((await login('hoa', PASSWORD, '10.7.0.98')).status).toBe(429);
+    // Bị chặn thì không đổi gì
+    expect((await me(token)).status).toBe(200);
+  });
+
+  it('U10: sai đăng nhập 10 lần thì đổi mật khẩu cũng 429; đổi đúng không chiếm lượt sai', async () => {
+    const { token } = (await (await register('hoa')).json()) as AuthResponse;
+    for (let i = 0; i < 3; i++) expect((await changePassword(token, PASSWORD, PASSWORD, `10.8.0.${i}`)).status).toBe(204);
+    for (let i = 0; i < 10; i++) expect((await login('hoa', `sai-${i}`, `10.8.1.${i}`)).status).toBe(401);
+    expect((await changePassword(token, PASSWORD, NEW_PASSWORD, '10.8.2.1')).status).toBe(429);
+  });
+});
