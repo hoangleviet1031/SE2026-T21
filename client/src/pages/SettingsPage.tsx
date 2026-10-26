@@ -1,15 +1,27 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { accountUsername } from '../accountDisplay';
+import { apiFailureText } from '../apiErrors';
+import {
+  CHANGE_PASSWORD_DONE_MSG,
+  CHANGE_PASSWORD_OFFLINE_MSG,
+  changePasswordError,
+  changePasswordErrorText,
+  type ChangePasswordInput,
+} from '../changePasswordForm';
+import { BusyNote } from '../components/BusyNote';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
 import { formatBytes, usagePercent } from '../formatBytes';
 import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
+import { apiFailure, changePassword } from '../sync/api';
+import { useOnline } from '../useOnline';
 
-// Xem docs/ui.md màn hình 8 và design §4.2, §4.7. Chỉ đọc IndexedDB, dùng được khi offline.
+// Xem docs/ui.md màn hình 8 và design §4.2, §4.7. Chỉ đọc IndexedDB, dùng được khi offline; riêng Đổi mật khẩu
+// gọi API thẳng (cần mạng, CLAUDE.md bất biến 7).
 
 // Đang chạy như app đã cài: Android/máy tính báo qua display-mode, Safari iOS qua navigator.standalone
 // (thuộc tính riêng của Safari, không có trong kiểu DOM chuẩn nên đọc bằng Reflect)
@@ -90,6 +102,8 @@ export function SettingsPage() {
         )}
       </div>
 
+      {user && <ChangePasswordCard />}
+
       {storage && (
         <div className="card">
           <h3>Dung lượng</h3>
@@ -159,5 +173,136 @@ export function SettingsPage() {
         />
       )}
     </section>
+  );
+}
+
+const EMPTY_PASSWORDS: ChangePasswordInput = { currentPassword: '', newPassword: '', newPassword2: '' };
+
+/**
+ * Đổi mật khẩu (design §4.7, ui.md màn hình 8). Ba ô chỉ hiện khi bấm [Đổi mật khẩu…]: trang Cài đặt mở
+ * thường xuyên, để sẵn ô mật khẩu thì trình duyệt tự điền và trang rối (Dương chốt 2026-10-26).
+ */
+function ChangePasswordCard() {
+  const online = useOnline();
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState(EMPTY_PASSWORDS);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const firstRef = useRef<HTMLInputElement>(null);
+  const formId = useId();
+  const offlineId = useId();
+
+  useEffect(() => {
+    if (open) firstRef.current?.focus();
+  }, [open]);
+
+  // Huỷ, đổi xong đều xoá chữ đã gõ: không để mật khẩu nằm lại trong ô khi mở lại
+  function close() {
+    setOpen(false);
+    setInput(EMPTY_PASSWORDS);
+    setError(null);
+    toggleRef.current?.focus();
+  }
+
+  function edit(key: keyof ChangePasswordInput, value: string) {
+    setInput((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    const invalid = changePasswordError(input);
+    if (invalid) return setError(invalid);
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await changePassword({ currentPassword: input.currentPassword, newPassword: input.newPassword });
+      if (!r.ok) return setError(changePasswordErrorText(r.error));
+      close();
+      setDone(true);
+    } catch (err) {
+      const failure = apiFailure(err);
+      if (!failure) throw err;
+      setError(apiFailureText(failure, CHANGE_PASSWORD_OFFLINE_MSG));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const field = (key: keyof ChangePasswordInput, label: string, autoComplete: string) => (
+    <label className="field">
+      <span>{label}</span>
+      <input
+        ref={key === 'currentPassword' ? firstRef : undefined}
+        type="password"
+        autoComplete={autoComplete}
+        value={input[key]}
+        onChange={(e) => edit(key, e.target.value)}
+      />
+    </label>
+  );
+
+  return (
+    <div className="card">
+      <h3>Đổi mật khẩu</h3>
+      <button
+        ref={toggleRef}
+        className="wide"
+        aria-expanded={open}
+        aria-controls={open ? formId : undefined}
+        onClick={() => {
+          // Không khoá nút bằng disabled: đổi xong con trỏ quay về nút này ngay, lúc đó busy chưa kịp tắt
+          if (busy) return;
+          if (open) return close();
+          setDone(false);
+          setOpen(true);
+        }}
+      >
+        Đổi mật khẩu…
+      </button>
+      {/* Vùng status luôn có, chỉ đổi chữ: vùng chèn vào cùng lúc với chữ thì có máy bỏ qua (như màn hình 9) */}
+      <p className="visually-hidden" role="status">
+        {done ? CHANGE_PASSWORD_DONE_MSG : ''}
+      </p>
+      {done && (
+        <p className="ok-line" data-testid="change-password-done">
+          <Icon name="synced" />
+          {CHANGE_PASSWORD_DONE_MSG}
+        </p>
+      )}
+      {open && (
+        <form id={formId} className="form" noValidate onSubmit={(e) => void submit(e)}>
+          {field('currentPassword', 'Mật khẩu hiện tại', 'current-password')}
+          {field('newPassword', 'Mật khẩu mới', 'new-password')}
+          {field('newPassword2', 'Nhập lại mật khẩu mới', 'new-password')}
+          <div className="actions">
+            <button
+              type="submit"
+              className="primary"
+              disabled={busy || !online}
+              aria-busy={busy}
+              aria-describedby={online ? undefined : offlineId}
+            >
+              Đổi mật khẩu
+            </button>
+            <button type="button" className="soft" onClick={close} disabled={busy}>
+              Huỷ
+            </button>
+          </div>
+          <BusyNote busy={busy} text="Đang đổi mật khẩu…" />
+          {!online && (
+            <p className="hint" id={offlineId} data-testid="change-password-offline">
+              {CHANGE_PASSWORD_OFFLINE_MSG}
+            </p>
+          )}
+          {error && (
+            <p className="field-error" role="alert" data-testid="change-password-error">
+              ⚠ {error}
+            </p>
+          )}
+        </form>
+      )}
+    </div>
   );
 }
