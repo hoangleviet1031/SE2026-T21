@@ -194,7 +194,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-11 · Hiệu năng pull
 
-- **Trạng thái:** ✅ `feat/tv2-11-perf`. Mọi chỉ tiêu đạt, số đo ở `docs/perf.md` (đo lại 2026-10-25 sau khi merge giao diện mới; danh sách 2.000 phiếu với CPU ×4 là 880 ms, sát ngưỡng, chuyển cho TV2-18). Thêm (được duyệt khi làm): bộ đo chạy riêng `npm run test:perf` (`client/playwright.perf.config.ts`), lượt CPU ×4 chỉ ghi số đo; route `POST /api/__test/seed-perf` vì server E2E chạy `:memory:`; `PULL_SQL` export để test kế hoạch truy vấn. "Cuộn mượt" trên điện thoại chưa thử (hướng dẫn trong perf.md)
+- **Trạng thái:** ✅ PR #86. Mọi chỉ tiêu đạt, số đo ở `docs/perf.md` (đo lại 2026-10-25 sau khi merge giao diện mới; danh sách 2.000 phiếu với CPU ×4 là 880 ms, sát ngưỡng, chuyển cho TV2-18). Thêm (được duyệt khi làm): bộ đo chạy riêng `npm run test:perf` (`client/playwright.perf.config.ts`), lượt CPU ×4 chỉ ghi số đo; route `POST /api/__test/seed-perf` vì server E2E chạy `:memory:`; `PULL_SQL` export để test kế hoạch truy vấn. "Cuộn mượt" trên điện thoại chưa thử (hướng dẫn trong perf.md)
 - **Tuần:** 6 · **Phụ thuộc:** TV2-07
 - **Spec:** design §11.2
 - **File:** `server/src/cli/seedPerf.ts` (mới), `client/e2e/perf/pull.spec.ts` (mới), `docs/perf.md` (mới)
@@ -287,7 +287,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV2-16 · Client: đăng nhập bằng phiên, vai trò `owner`, chặn tài khoản admin · **Lõi**
 
-- **Trạng thái:** ✅ `feat/tv2-16-client-session`. Thêm (được duyệt khi làm, phương án A): màn hình nhập mã hiện có đi qua `signInWithToken` (kiểm mã bằng `/me` trước khi lưu) để Q11 và E2E đổi tài khoản chạy được trước TV1-14; điều phối đăng nhập ở `client/src/signIn.ts` (mới, tránh import vòng `auth.ts` ↔ `api.ts`); phiên bị từ chối được huỷ trên server; `logout.ts` gọi `/auth/logout`. Nút "Xuất JSON" ở thông báo từ chối để TV1-14
+- **Trạng thái:** ✅ PR #50. Thêm (được duyệt khi làm, phương án A): màn hình nhập mã hiện có đi qua `signInWithToken` (kiểm mã bằng `/me` trước khi lưu) để Q11 và E2E đổi tài khoản chạy được trước TV1-14; điều phối đăng nhập ở `client/src/signIn.ts` (mới, tránh import vòng `auth.ts` ↔ `api.ts`); phiên bị từ chối được huỷ trên server; `logout.ts` gọi `/auth/logout`. Nút "Xuất JSON" ở thông báo từ chối để TV1-14
 - **Tuần:** 4 · **Phụ thuộc:** TV2-14
 - **Spec:** ADR 0003 §1, §8; design §4.2, §4.7, §4.9
 - **File:** `client/src/sync/api.ts` (`register`, `login`, `logout`), `client/src/auth.ts`, `client/src/db/accountDb.ts` (`username`), `client/src/sync/accountSync.ts` (vai trò `owner`), `client/src/sync/engine.ts`, `client/src/sync/*.test.ts`
@@ -306,7 +306,7 @@ Các ticket dưới đây làm theo [ADR 0003](../adr/0003-accounts-and-owner-ro
 
 ## TV2-17 · API quản lý tài khoản cho màn hình A3 · **Cắt được**
 
-- **Trạng thái:** ✅ `feat/tv2-17-admin-users`. `repo/users.ts` đã có từ TV2-14 nên chỉ thêm hàm; `cli/user.ts` (TV3-12) đổi sang gọi các hàm đó, lệnh và hành vi giữ nguyên. Thêm (được duyệt khi làm): `q` tìm chuỗi con, tối đa 50; `projectCount` chỉ đếm tổ chức chưa lưu trữ; admin tự khoá/tự thu hồi phiên → `409 self_action`
+- **Trạng thái:** ✅ PR #51. `repo/users.ts` đã có từ TV2-14 nên chỉ thêm hàm; `cli/user.ts` (TV3-12) đổi sang gọi các hàm đó, lệnh và hành vi giữ nguyên. Thêm (được duyệt khi làm): `q` tìm chuỗi con, tối đa 50; `projectCount` chỉ đếm tổ chức chưa lưu trữ; admin tự khoá/tự thu hồi phiên → `409 self_action`
 - **Tuần:** 6 · **Phụ thuộc:** TV2-15
 - **Spec:** ADR 0003 §8 (A3); design §7
 - **File:** `server/src/routes/admin.ts`, `server/src/repo/users.ts` (mới, dùng chung với CLI của TV3-12), `server/test/admin.test.ts`

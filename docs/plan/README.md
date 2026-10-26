@@ -70,7 +70,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-08 | Idempotency hash, dọn key, fault `drop` | ✅ PR #15 |
 | TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | ✅ PR #16 |
 | TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | ✅ PR #34 |
-| TV2-11 | Hiệu năng pull | ✅ `feat/tv2-11-perf` |
+| TV2-11 | Hiệu năng pull | ✅ PR #86 |
 | TV2-12 | Sửa lỗi, tài liệu kỹ thuật | — |
 | TV2-13 | Xoá phiếu: logic client + đồng bộ | ✅ PR #35 |
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ✅ PR #2 |
@@ -91,8 +91,8 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 |---|---|---|---|
 | TV2-14 | Migration 3, tài khoản + phiên, vai trò `owner` (server) · **Lõi** | Phần token của TV2-02 | ✅ PR #36 (chung với TV3-12) · thành **migration 4** vì số 3 đã là `attachments` (TV3-05) |
 | TV2-15 | Yêu cầu mở tổ chức, danh bạ công khai, API admin mới (server) · **Lõi** | Phần `/admin/projects` của TV2-04 | ✅ PR #49 |
-| TV2-16 | Client: đăng nhập bằng phiên, vai trò `owner`, chặn tài khoản admin · **Lõi** | `auth.ts`, `api.ts` | ✅ `feat/tv2-16-client-session` |
-| TV2-17 | API quản lý tài khoản cho màn hình A3 · **Cắt được** | CLI `user:*` | ⏳ PR #51 |
+| TV2-16 | Client: đăng nhập bằng phiên, vai trò `owner`, chặn tài khoản admin · **Lõi** | `auth.ts`, `api.ts` | ✅ PR #50 |
+| TV2-17 | API quản lý tài khoản cho màn hình A3 · **Cắt được** | CLI `user:*` | ✅ PR #51 |
 | TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | ✅ PR #53 |
 | TV1-15 | Màn hình Tổ chức (danh bạ, mở tổ chức mới) | – | ✅ PR #54 |
 | TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | ✅ PR #55 (khung), PR #56 (A1, A2); sửa E2E chập chờn ✅ PR #82; A3 Tài khoản (Could) ✅ PR #88; sửa tải lần đầu lỗi kẹt "Đang tải…" ⏳ PR #90 |
