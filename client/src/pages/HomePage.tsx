@@ -44,7 +44,7 @@ function NoProject() {
 
 function ProjectHome({ db }: { db: ProjectDb }) {
   const project = useCurrentProject();
-  // Sửa form, Thành viên chỉ cho giám sát viên và Owner (ui.md màn hình 2); server cũng chặn (403 forbidden)
+  // Sửa form chỉ cho giám sát viên và Owner (ui.md màn hình 2); server cũng chặn (403 forbidden)
   const canManage = project ? canManageProject(project.role) : false;
   const forms = useLiveQuery(async () => db.forms.toArray(), [db]) ?? [];
   const records = useLiveQuery(async () => db.records.orderBy('updatedAt').reverse().toArray(), [db]) ?? [];
@@ -198,14 +198,6 @@ function ProjectHome({ db }: { db: ProjectDb }) {
           </ul>
         )}
       </section>
-      {/* Màn hình Thành viên cần mạng; tự báo khi offline (ui.md màn hình 6) */}
-      {canManage && (
-        <a className="members-link" href="#/members">
-          <Icon name="users" />
-          <span>Thành viên</span>
-          <Icon name="right" className="go" />
-        </a>
-      )}
     </>
   );
 }
