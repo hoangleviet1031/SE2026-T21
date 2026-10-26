@@ -30,8 +30,10 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); font-size: 16px; }
-.app { max-width: 720px; margin: 0 auto; padding-bottom: 48px; }
-.app > main { padding: 0 16px; }
+.app { padding-bottom: 48px; }
+/* Thanh đầu rộng hết màn ở mọi màn hình (không nhảy bề rộng khi chuyển màn), nội dung tối đa 720px ở giữa */
+.page { width: 100%; max-width: 720px; margin: 0 auto; min-width: 0; }
+.page > main { padding: 0 16px; }
 /* Link không đổi màu; nhận ra nhờ dạng nút hoặc mũi tên ›, chỉ link giữa câu văn mới gạch chân */
 a, a:visited { color: inherit; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -59,7 +61,7 @@ button.primary[aria-busy="true"]::before { border-color: rgba(255, 255, 255, .4)
 @media (prefers-reduced-motion: reduce) { button[aria-busy="true"]::before { animation-duration: 2.4s; } }
 .busy-note { color: var(--muted); font-size: 14px; font-weight: 600; }
 
-/* Header: logo vàng + tên app (tự rút gọn bằng "…"), trạng thái mạng dưới tên; Đồng bộ, Cài đặt là biểu tượng + chữ nhỏ */
+/* Header: (☰ Menu) logo vàng + tên app (tự rút gọn bằng "…"), trạng thái mạng dưới tên; Menu, Đồng bộ là biểu tượng + chữ nhỏ */
 header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
 .brand { font-weight: 800; }
 .hdr { gap: 2px; padding: 8px 8px 8px 14px; }
@@ -71,6 +73,25 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
              font-size: 12px; font-weight: 600; border-radius: var(--r-btn); text-decoration: none; }
 .hdr .hbtn svg.icon { width: 22px; height: 22px; }
 .hdr .hbtn:disabled { background: none; color: #8a8780; }
+/* Menu điều hướng (ui.md "Menu điều hướng"): điện thoại là ngăn kéo trượt từ trái, đóng thì ẩn hẳn (không nằm trong
+   thứ tự Tab); ≥1024px là thanh bên luôn hiện, không có nút Menu */
+.hdr .menu-btn { margin-left: -10px; margin-right: 4px; }
+.sidenav { display: none; }
+.sidenav.open { display: grid; align-content: start; gap: 4px; position: fixed; top: 0; bottom: 0; left: 0; z-index: 20; width: min(280px, 85vw);
+                padding: 16px 10px calc(16px + env(safe-area-inset-bottom)); overflow-y: auto; background: var(--surface);
+                box-shadow: 0 0 24px rgba(31, 30, 27, .18); animation: nav-in .2s ease-out; }
+.nav-backdrop { position: fixed; inset: 0; z-index: 19; background: rgba(31, 30, 27, .4); }
+.sidenav a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 14px; border-radius: var(--r-btn); font-weight: 600; text-decoration: none; }
+.sidenav a:hover { background: var(--sunken); }
+.sidenav a[aria-current="page"] { background: var(--hl); }
+@keyframes nav-in { from { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) { .sidenav.open { animation: none; } }
+@media (min-width: 1024px) {
+  .hdr .menu-btn, .nav-backdrop { display: none; }
+  .shell.with-nav { display: grid; grid-template-columns: 240px minmax(0, 1fr); }
+  .sidenav, .sidenav.open { display: grid; align-content: start; align-self: start; gap: 4px; position: sticky; top: 0; z-index: auto; width: auto; max-height: 100vh;
+                            padding: 16px 12px; overflow-y: auto; box-shadow: none; animation: none; }
+}
 .hdr-simple { gap: 10px; padding: 12px 16px; font-weight: 800; font-size: 17px; }
 .net { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
 .net::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
@@ -211,10 +232,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 .record-state { margin: 0 0 14px; }
 .record-state .st { display: inline-flex; align-items: center; gap: 6px; color: var(--c); font-size: 15px; font-weight: 600; }
 .record-state .st svg.icon { width: 20px; height: 20px; }
-.members-link { display: flex; align-items: center; gap: 10px; min-height: 52px; margin-top: 16px; padding: 0 14px; background: var(--surface);
-                border: 1px solid var(--line); border-radius: var(--r-card); font-weight: 600; text-decoration: none; }
-.members-link span { flex: 1; }
-.members-link .go { color: var(--muted); }
 
 /* Hộp xác nhận: [Huỷ] đứng trước và nhận focus đầu tiên; mất dữ liệu/quyền thì nút đỏ, không mất gì thì nút chính */
 .confirm-dialog { max-width: min(400px, calc(100vw - 32px)); border: none; border-radius: var(--r-card); padding: 20px; background: var(--surface); color: var(--ink);

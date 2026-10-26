@@ -13,13 +13,19 @@ import { OrgsPage } from './pages/OrgsPage';
 import { ProjectSwitcher } from './components/ProjectSwitcher';
 import { UpdatePrompt } from './components/UpdatePrompt';
 import { Icon } from './components/Icon';
+import { MenuButton, NavMenu, useNavMenu } from './components/NavMenu';
 import { syncNow } from './sync/engine';
+import { useCurrentProject } from './db/current';
+import { canManageProject } from './projects';
+import { currentNavId, navItems } from './navMenu';
 
 export function App() {
   const [page, ...args] = useHashRoute();
   const online = useOnline();
   // Đọc qua liveQuery để khi token bị xoá (401, đăng xuất) app tự quay về màn hình đăng nhập
   const token = useLiveQuery(getToken, []);
+  const project = useCurrentProject();
+  const menu = useNavMenu();
 
   // Đang đọc IndexedDB: chưa vẽ gì, tránh nháy màn hình đăng nhập với người đã đăng nhập
   if (token === undefined) return null;
@@ -34,18 +40,25 @@ export function App() {
           </span>
           Khảo sát thực địa
         </header>
-        <main>
-          <LoginPage />
-        </main>
+        <div className="page">
+          <main>
+            <LoginPage />
+          </main>
+        </div>
       </div>
     );
   }
 
+  // Đang đọc IndexedDB (undefined) thì coi như có dự án để mục Phiếu không nháy
+  const hasProject = project !== null;
+  const navId = currentNavId([page ?? '', ...args], hasProject);
+
   return (
     <div className="app">
       <UpdatePrompt />
-      {/* Đồng bộ, Cài đặt là biểu tượng + chữ nhỏ bên dưới để tên app không bị cắt ở 360px */}
+      {/* Menu, Đồng bộ là biểu tượng + chữ nhỏ bên dưới để tên app không bị cắt ở 360px */}
       <header className="hdr">
+        {navId && <MenuButton open={menu.open} onToggle={menu.toggle} buttonRef={menu.buttonRef} />}
         <span className="logo">
           <Icon name="logo" />
         </span>
@@ -59,31 +72,39 @@ export function App() {
           <Icon name="sync" />
           Đồng bộ
         </button>
-        <a className="hbtn" href="#/settings">
-          <Icon name="gear" />
-          Cài đặt
-        </a>
       </header>
-      {/* Hàng riêng dưới header: header đã kín chỗ ở bề ngang 360px */}
-      <ProjectSwitcher />
-      <main>
-        {page === 'fill' && args[0] ? (
-          <FillPage formId={args[0]} recordId={args[1]} />
-        ) : page === 'conflict' && args[0] ? (
-          <ConflictPage recordId={args[0]} />
-        ) : page === 'builder' && args[0] ? (
-          // #/builder/new: form mới; #/builder/<formId>: sửa form đã có (ui.md màn hình 5)
-          <BuilderPage formId={args[0] === 'new' ? undefined : args[0]} />
-        ) : page === 'members' ? (
-          <MembersPage />
-        ) : page === 'orgs' ? (
-          <OrgsPage />
-        ) : page === 'settings' ? (
-          <SettingsPage />
-        ) : (
-          <HomePage />
+      <div className={navId ? 'shell with-nav' : 'shell'}>
+        {navId && (
+          <NavMenu
+            items={navItems(project ? canManageProject(project.role) : false, hasProject)}
+            current={navId}
+            open={menu.open}
+            onClose={menu.close}
+          />
         )}
-      </main>
+        <div className="page">
+          {/* Hàng riêng dưới header: header đã kín chỗ ở bề ngang 360px */}
+          <ProjectSwitcher />
+          <main>
+            {page === 'fill' && args[0] ? (
+              <FillPage formId={args[0]} recordId={args[1]} />
+            ) : page === 'conflict' && args[0] ? (
+              <ConflictPage recordId={args[0]} />
+            ) : page === 'builder' && args[0] ? (
+              // #/builder/new: form mới; #/builder/<formId>: sửa form đã có (ui.md màn hình 5)
+              <BuilderPage formId={args[0] === 'new' ? undefined : args[0]} />
+            ) : page === 'members' ? (
+              <MembersPage />
+            ) : page === 'orgs' ? (
+              <OrgsPage />
+            ) : page === 'settings' ? (
+              <SettingsPage />
+            ) : (
+              <HomePage />
+            )}
+          </main>
+        </div>
+      </div>
     </div>
   );
 }
