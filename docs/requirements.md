@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.5 (2026-10-25)
+- **Phiên bản:** 0.6 (2026-10-26)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -16,7 +16,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 | K1 | Không mất phiếu: mọi phiếu đã lưu trên máy lên server đúng một lần | US-01, US-02, US-03, US-04, US-06 |
 | K2 | Không ghi đè âm thầm: hai nơi cùng sửa thì người dùng thấy và tự chọn | US-05, US-06 |
 | K3 | Không phải nhập lại: giám sát viên có dữ liệu dạng bảng ngay từ app | US-07, US-08 |
-| K4 | Không lẫn dữ liệu giữa các tổ chức, kể cả với người vận hành | US-09, US-10, US-11, US-12 |
+| K4 | Không lẫn dữ liệu giữa các tổ chức, kể cả với người vận hành | US-09, US-10, US-11, US-12, US-13 |
 
 ## User story
 
@@ -127,6 +127,14 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** admin, **when** từ chối yêu cầu mà không ghi lý do, **then** `400 invalid_body`.
 - **Given** admin ở màn hình Tài khoản (A3, Could), **when** cấp lại mật khẩu / thu hồi phiên / khoá một tài khoản, **then** mật khẩu cũ hết dùng / token cũ nhận `401` / tài khoản không đăng nhập được nữa; tự khoá hay tự thu hồi phiên của mình thì báo lỗi, không mất phiên.
 
+### US-13 · Tự đổi mật khẩu · Could
+
+*Là người dùng vừa được admin cấp mật khẩu tạm, tôi muốn tự đổi sang mật khẩu của riêng mình, để không ai khác (kể cả người vận hành) còn biết mật khẩu đang dùng.*
+
+- **Given** đúng mật khẩu hiện tại và mật khẩu mới hợp lệ, **when** tôi đổi mật khẩu, **then** đăng nhập bằng mật khẩu mới được, mật khẩu cũ bị từ chối; máy đang dùng vẫn đăng nhập, các máy khác phải đăng nhập lại (dữ liệu trên máy đó giữ nguyên).
+- **Given** sai mật khẩu hiện tại, **when** đổi mật khẩu, **then** `403 wrong_password`, báo "Mật khẩu hiện tại không đúng", không đổi gì và không bị đưa về màn hình Đăng nhập.
+- **Given** đã sai 10 lần trong 15 phút (đổi mật khẩu hoặc đăng nhập), **when** đổi mật khẩu, **then** `429` kể cả mật khẩu đúng.
+
 ## Truy vết
 
 Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → test chứng minh → ticket và PR. Chỗ **chưa có test** in đậm; thêm test thì sửa dòng đó.
@@ -179,6 +187,9 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Thêm Owner (chữ "Thêm Owner…" TV1-12 sau critique K5), focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại, A1/A2/A3 tải lần đầu lỗi không kẹt "Đang tải…") | TV1-16 (#55, #56, sửa tải lỗi); giao diện TV1-12 (b2 p7, b2) |
 | US-12 | Từ chối thiếu lý do | Q3 `projectRequests.test.ts` | TV2-15 (#49) |
 | US-12 | Hỗ trợ tài khoản ở A3 | Q10 `admin.spec.ts` (ca A3: cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`); API `server/test/admin.test.ts` | TV2-17 (#51), TV1-16 A3 |
+| US-13 | Đổi đúng: mật khẩu mới dùng được, máy khác đăng nhập lại | U8 `accounts.test.ts`; **giao diện màn 8 chưa có (phần 2)** | không ticket (Dương chốt 2026-10-26), phần API |
+| US-13 | Sai mật khẩu hiện tại → `403 wrong_password` | U9 `accounts.test.ts`; unit `parseChangePasswordRequest` (`shared/src/accountValidation.test.ts`) | không ticket, phần API |
+| US-13 | Sai 10 lần → `429` | U10 `accounts.test.ts` | không ticket, phần API |
 
 Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --json commits`).
 
@@ -191,3 +202,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.3 | 2026-10-23 | TV1-12 b1: US-03 thêm tiêu chí không lấy được vị trí |
 | 0.4 | 2026-10-24 | TV3-14: US-03 thêm tiêu chí lấy vị trí khi offline (câu story có ý này, bảng truy vết có dòng nhưng chưa có tiêu chí); E2E `gps-offline.spec.ts` (US-03) và `form-sync.spec.ts` (US-07) thay hai chỗ "Chưa có E2E…" |
 | 0.5 | 2026-10-25 | TV1-16 A3 (Could): US-12 thêm tiêu chí hỗ trợ tài khoản ở A3 (cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`) và dòng truy vết |
+| 0.6 | 2026-10-26 | Tự đổi mật khẩu (Could, không ticket, Dương chốt 2026-10-26): thêm US-13 và dòng truy vết phần API (U8–U10); giao diện màn 8 làm ở phần 2 |

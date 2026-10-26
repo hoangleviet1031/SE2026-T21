@@ -112,6 +112,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | TV3-14 | E2E lấy GPS (US-03), điều tra viên thấy form sau đồng bộ (US-07) | Must | – | ⏳ chờ PR |
 | TV3-15 | Rà khả năng tiếp cận · **Cắt được** | Could | N8 | — |
 | TV3-16 | Tài liệu người dùng (chuyển từ TV1-12) | Must | – | — |
+| — | Tự đổi mật khẩu (không ticket, Dương chốt 2026-10-26) · **Cắt được** | Could | – | ⏳ phần 1 PR #98 (API); phần 2 giao diện màn 8 |
 
 ## Phụ thuộc quan trọng
 
