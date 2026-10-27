@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-27 | — | docs | Sửa dấu trạng thái còn sót của TV1: plan menu điều hướng (#97), A1–A3 tải lần đầu lỗi (#90) → ✅; worklog các dòng đã merge (#99…#90, #7, #6, `docs/worklog-process`) → xong | nhánh `docs/tv1-dau-sot` | chờ review |
+| 2026-10-27 | — | docs | Sửa dấu trạng thái còn sót của TV1: plan menu điều hướng (#97), A1–A3 tải lần đầu lỗi (#90) → ✅; worklog các dòng đã merge (#99…#90, #7, #6, `docs/worklog-process`) → xong | PR #100 | chờ review |
 | 2026-10-26 | — | feat | Tự đổi mật khẩu phần 2 (giao diện, Could, không ticket): khối Đổi mật khẩu màn 8 (nút [Đổi mật khẩu…] mở 3 ô, Huỷ xoá chữ, offline khoá nút, đổi xong dòng xanh); `changePassword` ở api.ts, `changePasswordForm.ts` + unit; E2E change-password.spec 3 ca; ui 0.2.31, design 0.5.52, requirements 0.7 | PR #99 | xong |
 | 2026-10-26 | — | feat | Tự đổi mật khẩu phần 1 (API, Could, không ticket): `POST /api/auth/change-password` (400 → 429 chung bộ đếm đăng nhập → 403 `wrong_password` → 204, thu hồi phiên khác), `parseChangePasswordRequest` + unit; U8–U10 `accounts.test.ts`; design 0.5.51, requirements US-13 | PR #98 | xong |
 | 2026-10-26 | TV1-12 | feat | Menu điều hướng: ☰ + ngăn kéo trên điện thoại, thanh bên ≥1024px ở màn 2, 6, 8, 9 (Phiếu, Tổ chức, Thành viên, Cài đặt); bỏ [Cài đặt] header và khối Thành viên cuối trang chủ; header rộng hết màn; `navMenu.ts` + unit, E2E nav-menu.spec 5 ca; ui 0.2.30, N13 | PR #97 | xong |
