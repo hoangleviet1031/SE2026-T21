@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import type { AdminUser } from '@field-survey/shared';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
@@ -27,9 +27,21 @@ export function UsersPage({ token, onError }: { token: string; onError: (err: un
   const [finished, setFinished] = useState(0);
   const noticeRef = useNoticeFocus(finished);
 
+  // Số thứ tự lần tải mới nhất: bấm [Tìm] lúc lần tải đầu chưa về thì kết quả cũ về sau không được đè
+  // kết quả tìm (tech-debt N14). Lỗi của lần cũ cũng bỏ qua: lần mới gặp cùng lỗi (vd. 401) sẽ tự báo.
+  const latestLoad = useRef(0);
+
   const load = useCallback(
     async (q: string) => {
-      const res = await searchUsers(token, q);
+      const seq = ++latestLoad.current;
+      let res: AdminResult<AdminUser[]>;
+      try {
+        res = await searchUsers(token, q);
+      } catch (err) {
+        if (seq !== latestLoad.current) return;
+        throw err;
+      }
+      if (seq !== latestLoad.current) return;
       if (!res.ok) {
         setLoadFailed(true);
         return setNotice({ kind: 'error', text: adminErrorMessage(res.error) });

@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-27 | N14 | fix | A3 Tài khoản: bấm [Tìm] lúc danh sách lần đầu còn đang tải không còn bị kết quả cũ đè (đánh số lần tải); E2E admin.spec ca N14; tech-debt N14 → Đã trả; requirements 0.8 | nhánh `fix/n14-a3-tim-khi-dang-tai` | chờ review |
+| 2026-10-27 | — | docs | PR #100 đã merge | PR #100 | xong |
 | 2026-10-27 | — | docs | Sửa dấu trạng thái còn sót của TV1 trong plan: menu điều hướng (#97), A1–A3 tải lần đầu lỗi (#90) ⏳ → ✅ | PR #100 | chờ review |
 | 2026-10-27 | — | docs | PR #90, #94, #95, #96, #97, #98, #99, #6, #7 và nhánh `docs/worklog-process` (PR #5) đã merge | PR #5, #6, #7, #90, #94–#99 | xong |
 | 2026-10-26 | — | feat | Tự đổi mật khẩu phần 2 (giao diện, Could, không ticket): khối Đổi mật khẩu màn 8 (nút [Đổi mật khẩu…] mở 3 ô, Huỷ xoá chữ, offline khoá nút, đổi xong dòng xanh); `changePassword` ở api.ts, `changePasswordForm.ts` + unit; E2E change-password.spec 3 ca; ui 0.2.31, design 0.5.52, requirements 0.7 | PR #99 | chờ review |
