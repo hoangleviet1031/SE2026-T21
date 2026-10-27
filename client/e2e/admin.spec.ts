@@ -469,3 +469,29 @@ test('A3 tải lần đầu lỗi có mã: báo lỗi, không kẹt "Đang tải
   await expect(userRow(page, 'admin')).toBeVisible();
   await expect(page.getByTestId('admin-notice')).toHaveCount(0);
 });
+
+// N14: trước đây lần tải đầu về sau [Tìm] thì danh sách đầy đủ đè kết quả tìm. Không đếm số dòng (dữ liệu ca
+// khác có thể khớp chuỗi tìm) và không đăng ký tài khoản mới (bộ E2E đã dùng hết 5 lượt/giờ/IP): tìm tài khoản
+// demo `minh`, kiểm dòng `lan` (chỉ có trong danh sách đầy đủ) không hiện ra sau khi lần tải đầu về.
+test('A3: bấm Tìm lúc danh sách lần đầu còn đang tải thì bảng chỉ giữ kết quả tìm (N14)', async ({ page }) => {
+  await openAdmin(page);
+  let release = () => {};
+  const held = new Promise<void>((resolve) => (release = resolve));
+  const firstLoad = /\/api\/admin\/users$/;
+  await page.route(firstLoad, async (route) => {
+    await held;
+    await route.continue();
+  });
+  await page.getByRole('link', { name: 'Tài khoản' }).click();
+  await expect(page.getByText('Đang tải…')).toBeVisible();
+
+  await page.getByLabel('Tìm theo tên đăng nhập').fill('minh');
+  await page.getByRole('button', { name: 'Tìm' }).click();
+  await expect(userRow(page, 'minh')).toBeVisible();
+
+  const firstDone = page.waitForResponse(firstLoad);
+  release();
+  await firstDone;
+  await expect(userRow(page, 'lan')).toHaveCount(0);
+  await expect(userRow(page, 'minh')).toBeVisible();
+});

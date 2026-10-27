@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.7 (2026-10-26)
+- **Phiên bản:** 0.8 (2026-10-27)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -186,7 +186,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
 | US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Thêm Owner (chữ "Thêm Owner…" TV1-12 sau critique K5), focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại, A1/A2/A3 tải lần đầu lỗi không kẹt "Đang tải…") | TV1-16 (#55, #56, sửa tải lỗi); giao diện TV1-12 (b2 p7, b2) |
 | US-12 | Từ chối thiếu lý do | Q3 `projectRequests.test.ts` | TV2-15 (#49) |
-| US-12 | Hỗ trợ tài khoản ở A3 | Q10 `admin.spec.ts` (ca A3: cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`); API `server/test/admin.test.ts` | TV2-17 (#51), TV1-16 A3 |
+| US-12 | Hỗ trợ tài khoản ở A3 | Q10 `admin.spec.ts` (ca A3: cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`; bấm Tìm lúc lần tải đầu chưa về thì bảng chỉ giữ kết quả tìm, N14); API `server/test/admin.test.ts` | TV2-17 (#51), TV1-16 A3, N14 |
 | US-13 | Đổi đúng: mật khẩu mới dùng được, máy khác đăng nhập lại | U8 `accounts.test.ts`; `change-password.spec.ts` (đổi trên màn 8, mật khẩu cũ bị từ chối, mới dùng được, máy này vẫn đăng nhập; Huỷ xoá chữ; offline khoá nút) | không ticket (Dương chốt 2026-10-26): API #98, giao diện phần 2 |
 | US-13 | Sai mật khẩu hiện tại → `403 wrong_password` | U9 `accounts.test.ts`; unit `parseChangePasswordRequest` (`shared/src/accountValidation.test.ts`); `change-password.spec.ts` (báo lỗi, ở lại trang); unit `changePasswordForm.test.ts` | không ticket: API #98, giao diện phần 2 |
 | US-13 | Sai 10 lần → `429` | U10 `accounts.test.ts`; câu "Thử lại sau ít phút" unit `changePasswordForm.test.ts` | không ticket: API #98, giao diện phần 2 |
@@ -204,3 +204,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.5 | 2026-10-25 | TV1-16 A3 (Could): US-12 thêm tiêu chí hỗ trợ tài khoản ở A3 (cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`) và dòng truy vết |
 | 0.6 | 2026-10-26 | Tự đổi mật khẩu (Could, không ticket, Dương chốt 2026-10-26): thêm US-13 và dòng truy vết phần API (U8–U10); giao diện màn 8 làm ở phần 2 |
 | 0.7 | 2026-10-26 | Tự đổi mật khẩu phần 2: dòng truy vết US-13 có E2E `change-password.spec.ts` và unit `changePasswordForm.test.ts` |
+| 0.8 | 2026-10-27 | Trả tech-debt N14: dòng truy vết US-12 (A3) có ca E2E bấm Tìm lúc lần tải đầu chưa về |
