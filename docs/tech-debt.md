@@ -34,7 +34,7 @@ Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](pla
 
 | # | Món nợ | Trả ở |
 |---|---|---|
-| N14 | A3 Tài khoản: bấm [Tìm] lúc danh sách lần đầu còn đang tải thì kết quả về sau đè kết quả về trước | `UsersPage.tsx` đánh số thứ tự lần tải, kết quả và lỗi của lần cũ bị bỏ qua; E2E `admin.spec.ts` ca N14 (nhánh `fix/n14-a3-tim-khi-dang-tai`) |
+| N14 | A3 Tài khoản: bấm [Tìm] lúc danh sách lần đầu còn đang tải thì kết quả về sau đè kết quả về trước | `UsersPage.tsx` đánh số thứ tự lần tải, kết quả và lỗi của lần cũ bị bỏ qua; E2E `admin.spec.ts` ca N14 (PR #101) |
 | N12 | Màn hình điền phiếu thiếu nhãn trạng thái đầu trang và nút cho phiếu Lỗi | ui 0.2.29: `FillPage.tsx` nhãn `displayState` dưới khối tên biểu mẫu; khối lỗi tách thành `components/RecordErrorBox.tsx` dùng chung với trang chủ; E2E `fill-status.spec.ts` (PR #95, làm trước TV2-18, Dương chốt 2026-10-25) |
 | N7 | `seed:demo` vẫn tạo phiên token cố định `demo-token-<tên>` | Seed bỏ token cố định, xoá phiên token cũ trong DB dev; E2E lấy token bằng đăng nhập (`client/e2e/global-setup.ts`), test server đăng nhập qua API (nhánh `fix/n7-demo-tokens`) |
 | N4 | `ui.md` còn nhãn 🆕/🕘 của phần đã có code | ui 0.2.15: bỏ nhãn ở màn hình 5, 7 và trang quản trị A1–A2; A3 ghi "chưa có code" (PR #62) |
