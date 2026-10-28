@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-28 | — | test | E2E settings.spec ca "đang hỏi Đăng xuất thì tab khác lưu phiếu": đổ cache runtime trước, cuối ca kiểm cache me và forms còn nguyên khi bị chặn trong khoá (góp ý review #28); không đổi code | PR #102 | chờ review |
+| 2026-10-28 | N14 | fix | PR #101 đã merge | PR #101 | xong |
 | 2026-10-27 | N14 | fix | A3 Tài khoản: bấm [Tìm] lúc danh sách lần đầu còn đang tải không còn bị kết quả cũ đè (đánh số lần tải); E2E admin.spec ca N14; tech-debt N14 → Đã trả; requirements 0.8 | PR #101 | chờ review |
 | 2026-10-27 | — | docs | PR #100 đã merge | PR #100 | xong |
 | 2026-10-27 | — | docs | Sửa dấu trạng thái còn sót của TV1 trong plan: menu điều hướng (#97), A1–A3 tải lần đầu lỗi (#90) ⏳ → ✅ | PR #100 | chờ review |
