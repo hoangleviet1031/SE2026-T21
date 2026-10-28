@@ -75,9 +75,12 @@ test('còn phiếu chưa gửi: nút Đăng xuất bị khoá; đồng bộ xong
 });
 
 // Hộp xác nhận đang mở thì tab khác lưu phiếu: lúc bấm Đăng xuất mới thấy còn dữ liệu chưa gửi.
-// Câu lỗi có ⚠ như các màn khác (audit C13), không xoá gì
+// Câu lỗi có ⚠ như các màn khác (audit C13), không xoá gì, kể cả cache me và forms: ca này đi qua
+// nhánh kiểm lại trong khoá của logout(), ca nút bị khoá ở dưới thì không
 test('đang hỏi Đăng xuất thì tab khác lưu phiếu: báo lỗi có ⚠, không xoá dữ liệu', async ({ page, context }) => {
   await login(page);
+  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await fillRuntimeCaches(page);
   await openSettings(page);
   await page.getByTestId('logout-button').click();
   await expect(page.getByText('Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.')).toBeVisible();
@@ -94,6 +97,7 @@ test('đang hỏi Đăng xuất thì tab khác lưu phiếu: báo lỗi có ⚠,
   await expect(page.getByRole('alert')).toHaveText(/^⚠ Còn dữ liệu chưa gửi ở dự án/);
   await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
   expect(await databaseNames(page)).toContain(PROJECT_DB);
+  expect(await cacheNames(page)).toEqual(expect.arrayContaining(['me', 'forms']));
 });
 
 test('máy lưu thông tin tài khoản từ bản cũ (chưa có username): Cài đặt hiện userId, không hiện rỗng', async ({
