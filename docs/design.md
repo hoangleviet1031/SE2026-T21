@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.55 (2026-10-29)
+- **Phiên bản:** 0.5.56 (2026-10-29)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -89,6 +89,7 @@
 | 0.5.53 | 2026-10-29 | TV3-15: rà khả năng tiếp cận theo bốn điểm §11.3, kết quả theo màn hình ghi ở §11.3, chỗ chưa đạt tách thành nợ N16–N21 cho TV1-12 (b); trả nợ N8. Ngăn kéo menu giữ con trỏ khi mở (ui.md, §14; Đại chốt). Không đổi hành vi |
 | 0.5.54 | 2026-10-29 | Danh sách phiếu nhóm theo form và tiêu đề phiếu có code (§4.8, tech-debt N10, N11; không ticket, Dương chốt 2026-10-26): mục theo thứ tự thẻ form, phiếu có form không còn trên máy gom vào mục cuối "Biểu mẫu chưa có trên máy" (chữ mới, Dương duyệt 2026-10-29); khi lọc, số phiếu đếm theo bộ lọc và mục rỗng ẩn; tiêu đề lấy theo `hidden` của bản form của phiếu; giờ sửa cuối. Tên người tạo, lọc theo người tạo, ô tìm kiếm vẫn là TV2-18; §11.3 ghi nợ N11 đã trả |
 | 0.5.55 | 2026-10-29 | Trả tech-debt N18 (không ticket, TV1-12 (b), Dương chốt 2026-10-29): §4.7 hộp xác nhận Huỷ hoặc Esc thì con trỏ về lại nút đã mở hộp, bấm xác nhận thì theo luật từng màn (`ConfirmDialog`); §11.3 ghi N18 đã trả |
+| 0.5.56 | 2026-10-29 | Trả tech-debt N16, N17 (không ticket, TV1-12 (b), Dương chốt 2026-10-29): ô nhập đang có con trỏ viền đen + quầng vàng, ô đang báo lỗi giữ viền đỏ; ô "+ Chụp ảnh" có vòng focus quanh cả ô (ui.md "Hệ thống thiết kế" 0.2.34); §11.3 ghi N16, N17 đã trả. Chỉ đổi CSS |
 
 ## Mục lục
 
@@ -1188,16 +1189,16 @@ Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chi
 
 | Màn hình | Nhãn ô nhập | Không chỉ bằng màu | Tương phản chữ | Cỡ nút | Bàn phím |
 |---|---|---|---|---|---|
-| 1 Đăng nhập / Tạo tài khoản | Đạt | Đạt | Đạt | Đạt | Chưa: N16 |
-| 2 Danh sách phiếu | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16, N18 (đã trả, #106) (Xoá khỏi máy), N19 |
+| 1 Đăng nhập / Tạo tài khoản | Đạt | Đạt | Đạt | Đạt | Chưa: N16 (đã trả, #107) |
+| 2 Danh sách phiếu | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Xoá khỏi máy), N19 |
 | 3 Xung đột | Đạt | Đạt | Đạt | Chưa: N21 | Đạt |
-| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16, N17, N18 (đã trả, #106) (Xoá phiếu) |
-| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16, N17 (xem trước) |
-| 6 Thành viên | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16, N18 (đã trả, #106) (Rút, đổi vai trò), N19 |
-| 8 Cài đặt | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16, N18 (đã trả, #106) (Đăng xuất), N19 |
-| 9 Tổ chức | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16, N19 |
+| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N17 (đã trả, #107), N18 (đã trả, #106) (Xoá phiếu) |
+| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N17 (đã trả, #107) (xem trước) |
+| 6 Thành viên | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Rút, đổi vai trò), N19 |
+| 8 Cài đặt | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Đăng xuất), N19 |
+| 9 Tổ chức | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N19 |
 | Dải cập nhật, Trình duyệt không được hỗ trợ | – | Đạt | Đạt | Đạt | Chưa: N18 (đã trả, #106) (Tải lại) |
-| A0–A3 trang quản trị | Đạt | Đạt | Đạt | Không xét | Chưa: N16, N18 (đã trả, #106) (A2 Khoá; A3 Khoá, Cấp lại mật khẩu) |
+| A0–A3 trang quản trị | Đạt | Đạt | Đạt | Không xét | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (A2 Khoá; A3 Khoá, Cấp lại mật khẩu) |
 
 - **Cách rà:** script Playwright chạy một lần (không commit) trên bản build và server in-memory, Chromium ở bề ngang 360px và 1280px, đi qua từng màn hình ở các trạng thái chính (rỗng, có phiếu, nháp, xung đột, offline, hộp xác nhận mở, builder xem trước). Script đo tên truy cập của mọi ô nhập, tỉ lệ tương phản của mọi đoạn chữ đang hiện (màu lấy từ style thật, trộn các lớp nền bán trong suốt), kích thước mọi phần tử bấm được, thứ tự Tab, viền focus, Esc ở hộp thoại. Chỗ nghi ngờ xem lại bằng ảnh chụp. Chưa thử trình đọc màn hình thật (TalkBack; VoiceOver ở N13).
 - **Đạt, ghi để khỏi rà lại:** mọi ô nhập có `<label>`. Nhãn trạng thái phiếu có chữ và biểu tượng, bộ lọc đang chọn có dấu tích, trạng thái mạng có chữ và chấm đặc/rỗng, dự án đang chọn có dấu tích, trường đang chọn ở builder có vạch trái và chữ đậm. Mọi chữ trên nút và nội dung đang dùng được ≥ 4,5:1; viền ô nhập `--field` 3,6:1 (đủ 3:1 cho viền điều khiển). Dòng phiếu cao khoảng 46px nhờ link tên phủ cả dòng. Thứ tự Tab theo thứ tự trên màn hình (máy tính: thanh bên rồi mới tới nội dung). Hộp xác nhận nhận Esc = Huỷ, focus đầu vào [Huỷ], Tab chỉ đi trong hộp. Ngăn kéo menu đóng bằng Esc thì con trỏ về nút Menu.
