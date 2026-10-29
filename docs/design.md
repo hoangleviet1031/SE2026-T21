@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.53 (2026-10-29)
+- **Phiên bản:** 0.5.54 (2026-10-29)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -86,7 +86,8 @@
 | 0.5.50 | 2026-10-25 | TV1-12 sau critique UI (K5), chỉ đổi chữ: nút A2 "Đổi Owner…" thành "Thêm Owner…" (§4.9, §10.1 Q10) vì API chỉ thêm hoặc nâng, Owner cũ vẫn giữ quyền; chữ Dương duyệt 2026-10-24. Không đổi API |
 | 0.5.51 | 2026-10-26 | Tự đổi mật khẩu (Could, Dương chốt 2026-10-26, mở rộng ADR 0003 §1; không sửa ADR), phần API có code: `POST /auth/change-password` (§7): mật khẩu mới theo luật đăng ký, sai mật khẩu hiện tại → mã mới `403 wrong_password` (§7.1; không dùng 401 vì app coi 401 là hết phiên), dùng chung giới hạn đăng nhập sai, đổi xong thu hồi mọi phiên khác và giữ phiên máy đang đổi; kiểu `ChangePasswordRequest` và `parseChangePasswordRequest` (§6.2, `shared/`); §1 thêm mức Could; §4.7 đoạn Đổi mật khẩu (giao diện màn hình 8 🆕); U8–U10 (§10.1) |
 | 0.5.52 | 2026-10-26 | Tự đổi mật khẩu phần giao diện có code (§4.7): khối Đổi mật khẩu ở trang Cài đặt (ui.md màn hình 8), `changePassword` ở `client/src/sync/api.ts`, kiểm form và câu lỗi ở `client/src/changePasswordForm.ts`; bỏ nhãn 🆕 |
-| 0.5.53 | 2026-10-29 | Danh sách phiếu nhóm theo form và tiêu đề phiếu có code (§4.8, tech-debt N10, N11; không ticket, Dương chốt 2026-10-26): mục theo thứ tự thẻ form, phiếu có form không còn trên máy gom vào mục cuối "Biểu mẫu chưa có trên máy" (chữ mới, Dương duyệt 2026-10-29); khi lọc, số phiếu đếm theo bộ lọc và mục rỗng ẩn; tiêu đề lấy theo `hidden` của bản form của phiếu; giờ sửa cuối. Tên người tạo, lọc theo người tạo, ô tìm kiếm vẫn là TV2-18 |
+| 0.5.53 | 2026-10-29 | TV3-15: rà khả năng tiếp cận theo bốn điểm §11.3, kết quả theo màn hình ghi ở §11.3, chỗ chưa đạt tách thành nợ N16–N21 cho TV1-12 (b); trả nợ N8. Ngăn kéo menu giữ con trỏ khi mở (ui.md, §14; Đại chốt). Không đổi hành vi |
+| 0.5.54 | 2026-10-29 | Danh sách phiếu nhóm theo form và tiêu đề phiếu có code (§4.8, tech-debt N10, N11; không ticket, Dương chốt 2026-10-26): mục theo thứ tự thẻ form, phiếu có form không còn trên máy gom vào mục cuối "Biểu mẫu chưa có trên máy" (chữ mới, Dương duyệt 2026-10-29); khi lọc, số phiếu đếm theo bộ lọc và mục rỗng ẩn; tiêu đề lấy theo `hidden` của bản form của phiếu; giờ sửa cuối. Tên người tạo, lọc theo người tạo, ô tìm kiếm vẫn là TV2-18; §11.3 ghi nợ N11 đã trả |
 
 ## Mục lục
 
@@ -1182,7 +1183,24 @@ Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chi
 - Chữ và nền đạt độ tương phản tối thiểu 4,5:1 (WCAG 2.1 AA); nút đủ lớn để bấm bằng ngón tay (khoảng 44×44 px).
 - Dùng được bằng bàn phím trên máy tính: hộp xác nhận nhận Esc = Huỷ (§4.7), thứ tự Tab theo thứ tự trên màn hình.
 
-Chưa rà hết theo các điểm trên ([tech-debt.md](tech-debt.md) N8).
+**Kết quả rà** (TV3-15, 2026-10-29, bản `main` 90f0546). Chỗ chưa đạt là nợ N16–N21 ở [tech-debt.md](tech-debt.md), Dương sửa trong TV1-12 (b).
+
+| Màn hình | Nhãn ô nhập | Không chỉ bằng màu | Tương phản chữ | Cỡ nút | Bàn phím |
+|---|---|---|---|---|---|
+| 1 Đăng nhập / Tạo tài khoản | Đạt | Đạt | Đạt | Đạt | Chưa: N16 |
+| 2 Danh sách phiếu | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16, N18 (Xoá khỏi máy), N19 |
+| 3 Xung đột | Đạt | Đạt | Đạt | Chưa: N21 | Đạt |
+| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16, N17, N18 (Xoá phiếu) |
+| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16, N17 (xem trước) |
+| 6 Thành viên | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16, N18 (Rút, đổi vai trò), N19 |
+| 8 Cài đặt | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16, N18 (Đăng xuất), N19 |
+| 9 Tổ chức | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16, N19 |
+| Dải cập nhật, Trình duyệt không được hỗ trợ | – | Đạt | Đạt | Đạt | Chưa: N18 (Tải lại) |
+| A0–A3 trang quản trị | Đạt | Đạt | Đạt | Không xét | Chưa: N16, N18 (A2 Khoá; A3 Khoá, Cấp lại mật khẩu) |
+
+- **Cách rà:** script Playwright chạy một lần (không commit) trên bản build và server in-memory, Chromium ở bề ngang 360px và 1280px, đi qua từng màn hình ở các trạng thái chính (rỗng, có phiếu, nháp, xung đột, offline, hộp xác nhận mở, builder xem trước). Script đo tên truy cập của mọi ô nhập, tỉ lệ tương phản của mọi đoạn chữ đang hiện (màu lấy từ style thật, trộn các lớp nền bán trong suốt), kích thước mọi phần tử bấm được, thứ tự Tab, viền focus, Esc ở hộp thoại. Chỗ nghi ngờ xem lại bằng ảnh chụp. Chưa thử trình đọc màn hình thật (TalkBack; VoiceOver ở N13).
+- **Đạt, ghi để khỏi rà lại:** mọi ô nhập có `<label>`. Nhãn trạng thái phiếu có chữ và biểu tượng, bộ lọc đang chọn có dấu tích, trạng thái mạng có chữ và chấm đặc/rỗng, dự án đang chọn có dấu tích, trường đang chọn ở builder có vạch trái và chữ đậm. Mọi chữ trên nút và nội dung đang dùng được ≥ 4,5:1; viền ô nhập `--field` 3,6:1 (đủ 3:1 cho viền điều khiển). Dòng phiếu cao khoảng 46px nhờ link tên phủ cả dòng. Thứ tự Tab theo thứ tự trên màn hình (máy tính: thanh bên rồi mới tới nội dung). Hộp xác nhận nhận Esc = Huỷ, focus đầu vào [Huỷ], Tab chỉ đi trong hộp. Ngăn kéo menu đóng bằng Esc thì con trỏ về nút Menu.
+- **Không tính là chưa đạt:** chữ trên nút đang khoá (`--disabled-ink` trên `--chip` 3,96:1; ▲▼ khoá ở builder 2,03:1; [Đồng bộ] lúc offline 3,58:1), vì WCAG 1.4.3 không áp cho thành phần đang khoá và nút khoá có lý do đọc kèm (ui.md). Trang quản trị không xét cỡ nút 44px vì bố cục cho máy tính (ui.md); nút trong bảng cao 40px. Phiếu chưa có tên đọc ra mã phiếu là nợ N11 (đã trả, #105) (luật tiêu đề §4.8), không tính lại ở đây.
 
 ### 11.4 Kịch bản chất lượng
 
@@ -1274,6 +1292,7 @@ Rủi ro của sản phẩm và cách giảm. Chỗ spec đã chốt mà code ho
 | Xoá phiếu (P6)? | Xoá hẳn nếu chưa thể tới server, tombstone nếu có thể đã tới (§5.7). Phân công: TV2-13 (logic và đồng bộ, Hoàng), TV1-13 (nút xoá và hộp xác nhận, Dương) (nhóm, 2026-10-10) |
 | API kiểm thử chung (P8)? | Một API dùng chung gồm `match`, `chunkIndex`, `400`, `stats` (§10.1); không ticket nào tự thêm mode riêng vào `faults.ts` (TV2 và TV3, 2026-10-10) |
 | Tài khoản, Owner, trang quản trị (P9)? | Theo [ADR 0003](adr/0003-accounts-and-owner-role.md), chấp nhận 2026-10-12 (PR #21). Spec đã cập nhật với nhãn 🆕/🕘; ticket nhóm "Theo ADR 0003" ở [plan/](plan/README.md) |
+| Ngăn kéo menu có giữ con trỏ không? | Có: lúc ngăn kéo mở, Tab và Shift+Tab chỉ đi trong ngăn kéo như hộp thoại, vì con trỏ ra nội dung sau nền mờ thì người dùng bàn phím và trình đọc màn hình lạc chỗ (ui.md menu điều hướng; chưa có code, nợ N19; Đại, TV3-15, 2026-10-29) |
 
 **Đề xuất đã chốt (lưu lại nội dung gốc)**
 
