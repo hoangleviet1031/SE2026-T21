@@ -161,5 +161,7 @@ test('N11: tiêu đề là trường text đầu tiên, rỗng thì "Phiếu ch�
   await expect(untitled.getByTestId('record-title')).toHaveText('Phiếu chưa có tên');
   // Phiếu vừa tạo hôm nay: giờ:phút
   await expect(untitled.getByTestId('edited-at')).toHaveText(/^\d{2}:\d{2}$/);
+  // Dấu "·" giữa nhãn và giờ chỉ để nhìn, trình đọc màn hình không đọc (design §11.3)
+  await expect(untitled.getByText('·', { exact: true })).toHaveAttribute('aria-hidden', 'true');
   await expect(group(page, s.ho).getByTestId('edited-at')).toHaveCount(2);
 });

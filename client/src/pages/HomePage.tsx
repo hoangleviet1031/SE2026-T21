@@ -195,6 +195,10 @@ function ProjectHome({ db }: { db: ProjectDb }) {
                               {state.label}
                             </span>
                           )}
+                          {/* Dấu ngăn chỉ để nhìn, trình đọc màn hình không đọc (design §11.3) */}
+                          <span className="sep" aria-hidden="true">
+                            ·
+                          </span>
                           <time dateTime={r.updatedAt} data-testid="edited-at">
                             {editedAt(r.updatedAt)}
                           </time>
