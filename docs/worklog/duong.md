@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-29 | — | fix | Ngăn kéo menu giữ con trỏ: Tab, Shift+Tab chỉ quay vòng trong ngăn kéo khi đang mở (N19) | PR #PR | chờ review |
+| 2026-10-29 | — | fix | PR #107 đã merge | PR #107 | xong |
 | 2026-10-29 | — | fix | Ô nhập đang có con trỏ viền đen + quầng vàng, ô báo lỗi giữ viền đỏ (N16); ô "+ Chụp ảnh" có vòng focus (N17); ui.md 0.2.34 ghi luật | PR #107 | chờ review |
 | 2026-10-29 | — | fix | PR #106 đã merge | PR #106 | xong |
 | 2026-10-29 | — | fix | Hộp xác nhận: Huỷ hoặc Esc thì con trỏ về lại nút đã mở hộp, không rơi về đầu trang (tech-debt N18); E2E Xoá phiếu, A2 Khoá | PR #106 | chờ review |

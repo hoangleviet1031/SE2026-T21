@@ -83,7 +83,8 @@ test('điện thoại 360px: rời trang khi ngăn kéo đang mở (Back, sang b
   await expect(nav(page)).toBeHidden();
   await expect(menuButton(page)).toHaveAttribute('aria-expanded', 'false');
 
-  // Tab ra nội dung sau nền mờ rồi mở màn hình không có menu (builder), "← Quay lại" về trang chủ
+  // Đổi trang bằng cách khác khi ngăn kéo đang mở (vd. link trong trang được bấm bằng trình đọc màn hình) sang
+  // màn hình không có menu (builder), "← Quay lại" về trang chủ
   await menuButton(page).click();
   await expect(nav(page)).toBeVisible();
   await page.evaluate(() => (location.hash = '#/builder/new'));
@@ -101,6 +102,40 @@ test('điện thoại 360px: điều tra viên không có mục Thành viên', a
   await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();
   await menuButton(page).click();
   await expect(nav(page).getByRole('link')).toHaveText(['Phiếu', 'Tổ chức', 'Cài đặt']);
+  // Mục cuối khác giám sát viên: vẫn quay vòng trong ngăn kéo (tech-debt N19)
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect(nav(page).getByRole('link', { name: 'Cài đặt' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(nav(page).getByRole('link', { name: 'Phiếu' })).toBeFocused();
+});
+
+// Tech-debt N19 (ui.md "Menu điều hướng", design §14): ngăn kéo giữ con trỏ như hộp thoại
+test('điện thoại 360px: ngăn kéo mở thì Tab, Shift+Tab chỉ quay vòng trong ngăn kéo', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await login(page);
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();
+  await menuButton(page).click();
+  const first = nav(page).getByRole('link', { name: 'Phiếu' });
+  const last = nav(page).getByRole('link', { name: 'Cài đặt' });
+  await expect(first).toBeFocused();
+
+  await page.keyboard.press('Shift+Tab');
+  await expect(last).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(nav(page).getByRole('link', { name: 'Thành viên' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(last).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(first).toBeFocused();
+
+  // Con trỏ rơi ra ngoài ngăn kéo (vd. về body) thì Tab đưa về mục đầu
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+  await page.keyboard.press('Tab');
+  await expect(first).toBeFocused();
+  await expect(nav(page)).toBeVisible();
 });
 
 test('máy tính 1280px: thanh bên luôn hiện, không có nút Menu', async ({ page }) => {
