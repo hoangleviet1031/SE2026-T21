@@ -231,6 +231,14 @@ test('Q10: A1 duyệt → người gửi là Owner; A2 khoá (có xác nhận) �
   await dialog.getByRole('button', { name: 'Huỷ' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(row.getByTestId('project-status')).toHaveText('Đang dùng');
+  // Huỷ hoặc Esc: con trỏ về lại nút Khoá, không rơi về đầu trang (tech-debt N18)
+  await expect(row.getByRole('button', { name: 'Khoá' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(row.getByTestId('project-status')).toHaveText('Đang dùng');
+  await expect(row.getByRole('button', { name: 'Khoá' })).toBeFocused();
 
   await row.getByRole('button', { name: 'Khoá' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Khoá' }).click();

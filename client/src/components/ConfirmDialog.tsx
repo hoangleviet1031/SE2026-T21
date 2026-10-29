@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 // Hộp xác nhận trong app thay cho confirm() của trình duyệt (design §5.7). Dùng <dialog> có sẵn:
 // showModal() khoá phần trang phía sau và giữ focus trong hộp, không cần thêm thư viện.
@@ -20,10 +20,23 @@ export function ConfirmDialog({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const messageId = useId();
+  // Hộp bị gỡ chứ không close() nên trình duyệt không trả con trỏ về nút đã mở hộp (tech-debt N18).
+  // Chỉ Huỷ/Esc mới trả: bấm xác nhận thì mỗi màn tự lo (vd. trang quản trị về dòng kết quả), design §4.7.
+  const cancelled = useRef(false);
+  // Nhớ lúc render đầu, trước showModal: StrictMode chạy effect hai lần, lần sau con trỏ đã ở trong hộp
+  const [opener] = useState(() => document.activeElement);
 
   useEffect(() => {
     ref.current?.showModal();
-  }, []);
+    return () => {
+      if (cancelled.current && opener instanceof HTMLElement && opener.isConnected) opener.focus();
+    };
+  }, [opener]);
+
+  const cancel = () => {
+    cancelled.current = true;
+    onCancel();
+  };
 
   return (
     <dialog
@@ -33,13 +46,13 @@ export function ConfirmDialog({
       // Esc: trình duyệt tự đóng hộp, nhưng cha mới là nơi quyết định đóng nên chặn lại và báo Huỷ
       onCancel={(e) => {
         e.preventDefault();
-        onCancel();
+        cancel();
       }}
     >
       <p id={messageId}>{message}</p>
       {/* Huỷ đứng trước để nhận focus đầu tiên: lỡ bấm Enter thì không mất gì */}
       <div className="actions">
-        <button className="soft" onClick={onCancel}>
+        <button className="soft" onClick={cancel}>
           Huỷ
         </button>
         <button className={danger ? 'danger' : 'primary'} onClick={onConfirm}>

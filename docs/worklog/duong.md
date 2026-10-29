@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-29 | — | fix | Hộp xác nhận: Huỷ hoặc Esc thì con trỏ về lại nút đã mở hộp, không rơi về đầu trang (tech-debt N18); E2E Xoá phiếu, A2 Khoá | PR #106 | chờ review |
+| 2026-10-29 | — | fix | PR #105 đã merge | PR #105 | xong |
 | 2026-10-29 | — | fix | Trang chủ nhóm phiếu theo form có số phiếu, tiêu đề phiếu theo §4.8 ("Phiếu chưa có tên"), giờ sửa cuối (N10, N11); requirements 0.10 thêm US-14 | PR #105 | chờ review |
 | 2026-10-29 | — | docs | PR #103 đã merge | PR #103 | xong |
 | 2026-10-28 | — | docs | requirements 0.9 vá truy vết: tiêu chí + dòng truy vết cho xuất/nhập form (US-07), xuất JSON (US-08), Đăng xuất bị chặn, hỏi trước khi tải lại, persist, trình duyệt không hỗ trợ (US-01); US-13 ghi #99 | PR #103 | chờ review |
