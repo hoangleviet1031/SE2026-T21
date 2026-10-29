@@ -36,7 +36,7 @@ Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](pla
 
 | # | Món nợ | Trả ở |
 |---|---|---|
-| N18 | Đóng hộp xác nhận thì con trỏ rơi về đầu trang | `components/ConfirmDialog.tsx` nhớ nút đã mở hộp, Huỷ hoặc Esc thì trả con trỏ về nút đó; bấm xác nhận thì theo luật từng màn (design §4.7); E2E `delete.spec.ts` ca N18, `admin.spec.ts` Q10 (A2 Khoá) (PR #PR) |
+| N18 | Đóng hộp xác nhận thì con trỏ rơi về đầu trang | `components/ConfirmDialog.tsx` nhớ nút đã mở hộp, Huỷ hoặc Esc thì trả con trỏ về nút đó; bấm xác nhận thì theo luật từng màn (design §4.7); E2E `delete.spec.ts` ca N18, `admin.spec.ts` Q10 (A2 Khoá) (PR #106) |
 | N11 | Dòng phiếu chưa theo luật tiêu đề §4.8 | `client/src/recordList.ts` `recordTitle` (trường `text` đầu tiên không ẩn theo bản form của phiếu, rỗng thì "Phiếu chưa có tên") và `formatEditedAt` (giờ sửa cuối); unit `recordList.test.ts`, E2E `home.spec.ts` ca N11 (PR #105, làm trước TV2-18, Dương chốt 2026-10-26) |
 | N10 | Trang chủ không nhóm phiếu theo form | `groupRecordsByForm` (`client/src/recordList.ts`), `HomePage.tsx` chia mục "Phiếu đã nhập" thành nhóm theo form có số phiếu, nhóm cuối "Biểu mẫu chưa có trên máy"; E2E `home.spec.ts` ca N10 (PR #105, làm trước TV2-18, Dương chốt 2026-10-26) |
 | N8 | Chưa có yêu cầu và chưa kiểm khả năng tiếp cận | TV3-15 rà từng màn hình theo bốn điểm của [design.md §11.3](design.md#113-khả-năng-tiếp-cận) (2026-10-29), bảng đạt / chưa đạt ở §11.3; chỗ chưa đạt thành N16–N21 (nhánh `docs/tv3-15-a11y-audit`) |
