@@ -148,6 +148,9 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
   font: inherit; font-weight: 400; }
 .field textarea, .builder textarea, .row-form textarea { min-height: 96px; padding: 12px 14px; resize: vertical; }
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--hl); outline-offset: 0; border-color: var(--ink); }
+/* Luật viền ô ở trên cụ thể hơn luật focus nên phải nhắc lại viền đen (tech-debt N16); ô đang báo lỗi (.field.bad, phía dưới) vẫn giữ viền đỏ */
+.field input:not([type=checkbox]):not([type=radio]):focus-visible, .field select:focus-visible, .field textarea:focus-visible,
+.builder textarea:focus-visible, .builder select:focus-visible, .row-form textarea:focus-visible { border-color: var(--ink); }
 button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 .field input:disabled, .field select:disabled, .field textarea:disabled { background: var(--chip); border-color: var(--chip); color: var(--disabled-ink); }
 .checks { display: flex; flex-wrap: wrap; gap: 12px; font-weight: 500; }
@@ -305,6 +308,8 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
              border-radius: 12px; background: var(--surface); font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
 .photo-add svg.icon { width: 26px; height: 26px; }
 .field .photo-add input { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0; }
+/* Input file ẩn nên vẽ vòng focus quanh cả ô chụp, như ô đánh dấu (tech-debt N17) */
+.photo-add:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
 /* Chỉ đọc (đang xung đột, trường đã ẩn): ô khoá nhưng chữ vẫn đậm, đọc rõ; không có nút bỏ ảnh, ô chụp */
 .form-fieldset:disabled .field :is(input, select), fieldset.readonly :is(input, select), fieldset.preview:disabled .field :is(input, select) {
   background-color: #f1efea; border-color: #e0ddd6; color: var(--ink); -webkit-text-fill-color: var(--ink); opacity: 1; }

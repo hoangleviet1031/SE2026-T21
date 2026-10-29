@@ -64,3 +64,17 @@ test('chọn nhiều: là nhóm mang tên trường, mỗi ô tên đúng lựa 
   await group.getByText('Tài sản', { exact: true }).click();
   await expect(group.getByRole('checkbox', { checked: true })).toHaveCount(0);
 });
+
+// Tech-debt N16 (ui.md "Hệ thống thiết kế"): ô đang báo lỗi lúc nhập vẫn giữ viền đỏ, chỉ thêm quầng vàng
+test('N16: ô thiếu trường bắt buộc, Tab về lại thì vẫn viền đỏ + quầng vàng', async ({ page }) => {
+  await login(page);
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  const name = page.getByLabel('Tên chủ hộ *');
+  await expect(name).toHaveCSS('border-top-color', 'rgb(192, 38, 26)');
+  await page.getByLabel('Số thành viên').focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(name).toBeFocused();
+  await expect(name).toHaveCSS('border-top-color', 'rgb(192, 38, 26)');
+  await expect(name).toHaveCSS('outline', 'rgb(253, 229, 154) solid 3px');
+});

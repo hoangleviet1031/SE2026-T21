@@ -69,6 +69,8 @@ test('tạo form đủ 7 loại trường, lưu, thấy ngay ở trang chủ và
   // Xem trước chỉ để nhìn, ô nhập bị khoá
   await page.getByRole('button', { name: 'Xem trước' }).click();
   await expect(page.getByTestId('builder-preview').getByLabel('Tên chủ hộ *')).toBeDisabled();
+  // Ô ảnh cũng khoá nên không nhận con trỏ, không cần vòng focus (tech-debt N17)
+  await expect(page.getByTestId('builder-preview').getByTestId('photo-input-anhNha')).toBeDisabled();
 
   await page.getByRole('button', { name: 'Lưu bản mới' }).click();
   await expect(formRow(page, title)).toBeVisible();

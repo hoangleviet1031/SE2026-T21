@@ -135,3 +135,17 @@ test('b2: mạng rớt lúc bấm Tiếp tục cũng nền vàng như lúc ngo�
   await expect(page.getByRole('alert')).toHaveCSS('color', RED);
   await expect(page.getByRole('alert')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 });
+
+// Tech-debt N16 (design §11.3, ui.md "Hệ thống thiết kế"): ô đang nhập phải viền đen + quầng vàng.
+// Trước đây luật viền xám của .field cụ thể hơn luật focus nên chỉ còn quầng vàng nhạt.
+test('N16: Tab tới ô Tên đăng nhập thì viền đổi đen, quầng vàng', async ({ page }) => {
+  await page.goto('/');
+  const username = page.getByLabel('Tên đăng nhập');
+  await expect(username).toHaveCSS('border-top-color', 'rgb(138, 135, 128)');
+  // Ô ngay sau hai tab Đăng nhập / Tạo tài khoản
+  await page.getByRole('tab', { name: 'Tạo tài khoản' }).focus();
+  await page.keyboard.press('Tab');
+  await expect(username).toBeFocused();
+  await expect(username).toHaveCSS('border-top-color', 'rgb(38, 37, 34)');
+  await expect(username).toHaveCSS('outline', 'rgb(253, 229, 154) solid 3px');
+});
