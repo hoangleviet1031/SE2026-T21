@@ -1191,13 +1191,13 @@ Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chi
 | Màn hình | Nhãn ô nhập | Không chỉ bằng màu | Tương phản chữ | Cỡ nút | Bàn phím |
 |---|---|---|---|---|---|
 | 1 Đăng nhập / Tạo tài khoản | Đạt | Đạt | Đạt | Đạt | Chưa: N16 (đã trả, #107) |
-| 2 Danh sách phiếu | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Xoá khỏi máy), N19 (đã trả, #PR) |
+| 2 Danh sách phiếu | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Xoá khỏi máy), N19 (đã trả, #108) |
 | 3 Xung đột | Đạt | Đạt | Đạt | Chưa: N21 | Đạt |
 | 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N17 (đã trả, #107), N18 (đã trả, #106) (Xoá phiếu) |
 | 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N17 (đã trả, #107) (xem trước) |
-| 6 Thành viên | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Rút, đổi vai trò), N19 (đã trả, #PR) |
-| 8 Cài đặt | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Đăng xuất), N19 (đã trả, #PR) |
-| 9 Tổ chức | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N19 (đã trả, #PR) |
+| 6 Thành viên | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Rút, đổi vai trò), N19 (đã trả, #108) |
+| 8 Cài đặt | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Đăng xuất), N19 (đã trả, #108) |
+| 9 Tổ chức | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N19 (đã trả, #108) |
 | Dải cập nhật, Trình duyệt không được hỗ trợ | – | Đạt | Đạt | Đạt | Chưa: N18 (đã trả, #106) (Tải lại) |
 | A0–A3 trang quản trị | Đạt | Đạt | Đạt | Không xét | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (A2 Khoá; A3 Khoá, Cấp lại mật khẩu) |
 
@@ -1295,7 +1295,7 @@ Rủi ro của sản phẩm và cách giảm. Chỗ spec đã chốt mà code ho
 | Xoá phiếu (P6)? | Xoá hẳn nếu chưa thể tới server, tombstone nếu có thể đã tới (§5.7). Phân công: TV2-13 (logic và đồng bộ, Hoàng), TV1-13 (nút xoá và hộp xác nhận, Dương) (nhóm, 2026-10-10) |
 | API kiểm thử chung (P8)? | Một API dùng chung gồm `match`, `chunkIndex`, `400`, `stats` (§10.1); không ticket nào tự thêm mode riêng vào `faults.ts` (TV2 và TV3, 2026-10-10) |
 | Tài khoản, Owner, trang quản trị (P9)? | Theo [ADR 0003](adr/0003-accounts-and-owner-role.md), chấp nhận 2026-10-12 (PR #21). Spec đã cập nhật với nhãn 🆕/🕘; ticket nhóm "Theo ADR 0003" ở [plan/](plan/README.md) |
-| Ngăn kéo menu có giữ con trỏ không? | Có: lúc ngăn kéo mở, Tab và Shift+Tab chỉ đi trong ngăn kéo như hộp thoại, vì con trỏ ra nội dung sau nền mờ thì người dùng bàn phím và trình đọc màn hình lạc chỗ (ui.md menu điều hướng; Đại, TV3-15, 2026-10-29; có code từ #PR, tech-debt N19) |
+| Ngăn kéo menu có giữ con trỏ không? | Có: lúc ngăn kéo mở, Tab và Shift+Tab chỉ đi trong ngăn kéo như hộp thoại, vì con trỏ ra nội dung sau nền mờ thì người dùng bàn phím và trình đọc màn hình lạc chỗ (ui.md menu điều hướng; Đại, TV3-15, 2026-10-29; có code từ #108, tech-debt N19) |
 
 **Đề xuất đã chốt (lưu lại nội dung gốc)**
 

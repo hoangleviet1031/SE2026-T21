@@ -33,7 +33,7 @@ Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](pla
 
 | # | Món nợ | Trả ở |
 |---|---|---|
-| N19 | Ngăn kéo menu chưa giữ con trỏ | `components/NavMenu.tsx` bắt Tab trong handler phím lúc ngăn kéo mở: Tab ở mục cuối về mục đầu, Shift+Tab ở mục đầu về mục cuối, con trỏ ở ngoài ngăn kéo thì về mục đầu; E2E `nav-menu.spec.ts` ca quay vòng (giám sát viên) và ca điều tra viên (PR #PR) |
+| N19 | Ngăn kéo menu chưa giữ con trỏ | `components/NavMenu.tsx` bắt Tab trong handler phím lúc ngăn kéo mở: Tab ở mục cuối về mục đầu, Shift+Tab ở mục đầu về mục cuối, con trỏ ở ngoài ngăn kéo thì về mục đầu; E2E `nav-menu.spec.ts` ca quay vòng (giám sát viên) và ca điều tra viên (PR #108) |
 | N17 | Ô "+ Chụp ảnh" không có vòng focus | `client/src/styles.css` luật `.photo-add:has(input:focus-visible)` vẽ vòng đen quanh cả ô như `.ck`, `.opt`; xem trước ở màn hình 5 ô ảnh bị khoá nên không nhận con trỏ; E2E `photo.spec.ts` ca N17, `builder.spec.ts` (ô ảnh xem trước khoá) (PR #107) |
 | N16 | Ô nhập đang focus chỉ có quầng vàng nhạt, viền không đổi đen | `client/src/styles.css` nhắc lại viền `--ink` lúc `:focus-visible` cho ô `.field`, `.builder`, `.row-form` (cùng độ cụ thể với luật viền ô); ô `.field.bad` giữ viền đỏ; luật ghi ở ui.md "Hệ thống thiết kế" 0.2.34; E2E `login.spec.ts`, `fill.spec.ts` ca N16 (PR #107) |
 | N18 | Đóng hộp xác nhận thì con trỏ rơi về đầu trang | `components/ConfirmDialog.tsx` nhớ nút đã mở hộp, Huỷ hoặc Esc thì trả con trỏ về nút đó; bấm xác nhận thì theo luật từng màn (design §4.7); E2E `delete.spec.ts` ca N18, `admin.spec.ts` Q10 (A2 Khoá) (PR #106) |
