@@ -1189,16 +1189,16 @@ Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chi
 
 | Màn hình | Nhãn ô nhập | Không chỉ bằng màu | Tương phản chữ | Cỡ nút | Bàn phím |
 |---|---|---|---|---|---|
-| 1 Đăng nhập / Tạo tài khoản | Đạt | Đạt | Đạt | Đạt | Chưa: N16 (đã trả, #PR) |
-| 2 Danh sách phiếu | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #PR), N18 (đã trả, #106) (Xoá khỏi máy), N19 |
+| 1 Đăng nhập / Tạo tài khoản | Đạt | Đạt | Đạt | Đạt | Chưa: N16 (đã trả, #107) |
+| 2 Danh sách phiếu | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Xoá khỏi máy), N19 |
 | 3 Xung đột | Đạt | Đạt | Đạt | Chưa: N21 | Đạt |
-| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #PR), N17 (đã trả, #PR), N18 (đã trả, #106) (Xoá phiếu) |
-| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #PR), N17 (đã trả, #PR) (xem trước) |
-| 6 Thành viên | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #PR), N18 (đã trả, #106) (Rút, đổi vai trò), N19 |
-| 8 Cài đặt | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #PR), N18 (đã trả, #106) (Đăng xuất), N19 |
-| 9 Tổ chức | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #PR), N19 |
+| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N17 (đã trả, #107), N18 (đã trả, #106) (Xoá phiếu) |
+| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N17 (đã trả, #107) (xem trước) |
+| 6 Thành viên | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Rút, đổi vai trò), N19 |
+| 8 Cài đặt | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Đăng xuất), N19 |
+| 9 Tổ chức | Đạt | Chưa: N20 | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N19 |
 | Dải cập nhật, Trình duyệt không được hỗ trợ | – | Đạt | Đạt | Đạt | Chưa: N18 (đã trả, #106) (Tải lại) |
-| A0–A3 trang quản trị | Đạt | Đạt | Đạt | Không xét | Chưa: N16 (đã trả, #PR), N18 (đã trả, #106) (A2 Khoá; A3 Khoá, Cấp lại mật khẩu) |
+| A0–A3 trang quản trị | Đạt | Đạt | Đạt | Không xét | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (A2 Khoá; A3 Khoá, Cấp lại mật khẩu) |
 
 - **Cách rà:** script Playwright chạy một lần (không commit) trên bản build và server in-memory, Chromium ở bề ngang 360px và 1280px, đi qua từng màn hình ở các trạng thái chính (rỗng, có phiếu, nháp, xung đột, offline, hộp xác nhận mở, builder xem trước). Script đo tên truy cập của mọi ô nhập, tỉ lệ tương phản của mọi đoạn chữ đang hiện (màu lấy từ style thật, trộn các lớp nền bán trong suốt), kích thước mọi phần tử bấm được, thứ tự Tab, viền focus, Esc ở hộp thoại. Chỗ nghi ngờ xem lại bằng ảnh chụp. Chưa thử trình đọc màn hình thật (TalkBack; VoiceOver ở N13).
 - **Đạt, ghi để khỏi rà lại:** mọi ô nhập có `<label>`. Nhãn trạng thái phiếu có chữ và biểu tượng, bộ lọc đang chọn có dấu tích, trạng thái mạng có chữ và chấm đặc/rỗng, dự án đang chọn có dấu tích, trường đang chọn ở builder có vạch trái và chữ đậm. Mọi chữ trên nút và nội dung đang dùng được ≥ 4,5:1; viền ô nhập `--field` 3,6:1 (đủ 3:1 cho viền điều khiển). Dòng phiếu cao khoảng 46px nhờ link tên phủ cả dòng. Thứ tự Tab theo thứ tự trên màn hình (máy tính: thanh bên rồi mới tới nội dung). Hộp xác nhận nhận Esc = Huỷ, focus đầu vào [Huỷ], Tab chỉ đi trong hộp. Ngăn kéo menu đóng bằng Esc thì con trỏ về nút Menu.
