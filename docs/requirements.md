@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.10 (2026-10-29)
+- **Phiên bản:** 0.11 (2026-10-29)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -179,7 +179,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-05 | Cùng trường → màn hình xung đột, không chọn sẵn | C2 `conflict.spec.ts` (cả ca bấm chỗ trống trong ô lựa chọn) | TV3-07 (#41); ô lựa chọn TV1-12 (b2 p3) |
 | US-05 | Phiếu xung đột chỉ đọc | C7 `conflict.spec.ts` (cả ca không có hàng nút, ô chụp ảnh) | TV2-10 (#34), TV3-07 (#41), TV1-12 (b2 p3) |
 | US-05 | Server đổi tiếp lúc đang chọn | C8 `conflict.spec.ts`; C6 sửa 3 lần một op | TV2-10 (#34) |
-| US-06 | Xoá phiếu chưa gửi, Huỷ/Esc | O7 `delete.spec.ts` | TV2-13 (#35), TV1-13 (#42), TV1-12 (#58) |
+| US-06 | Xoá phiếu chưa gửi, Huỷ/Esc | O7 `delete.spec.ts`; Huỷ/Esc thì con trỏ về nút Xoá phiếu `delete.spec.ts` (ca N18) | TV2-13 (#35), TV1-13 (#42), TV1-12 (#58); không ticket, N18 (#PR) |
 | US-06 | Xoá phiếu đã đồng bộ → tombstone | O8 `delete.spec.ts` | TV2-13 (#35) |
 | US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts`; unit `autoMergedNote` (`client/src/conflictView.test.ts`) | TV3-08 (#47); bỏ câu "đã được gộp" TV1-12 (b2 p3) |
 | US-06 | Điều tra viên không xoá phiếu người khác | `record-owner.spec.ts` | TV1-17 (#44, #45) |
@@ -208,7 +208,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-11 | Máy chủ lỗi ở Thành viên | `api-errors.spec.ts` (cả Tổ chức, builder lưu form, Xuất) | TV1-12 (#62, #68, b2 p5: Thử lại ngoài vùng alert, Tổ chức ẩn khối công khai) |
 | US-12 | Admin không đọc được dữ liệu | Q7 `projectRequests.test.ts`; T4 `isolation.test.ts`, `admin.test.ts` | TV2-15 (#49) |
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
-| US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Thêm Owner (chữ "Thêm Owner…" TV1-12 sau critique K5), focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại, A1/A2/A3 tải lần đầu lỗi không kẹt "Đang tải…") | TV1-16 (#55, #56, sửa tải lỗi); giao diện TV1-12 (b2 p7, b2) |
+| US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Thêm Owner (chữ "Thêm Owner…" TV1-12 sau critique K5), focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại, A1/A2/A3 tải lần đầu lỗi không kẹt "Đang tải…", A2 Khoá Huỷ/Esc thì con trỏ về nút Khoá) | TV1-16 (#55, #56, sửa tải lỗi); giao diện TV1-12 (b2 p7, b2); không ticket, N18 (#PR) |
 | US-12 | Từ chối thiếu lý do | Q3 `projectRequests.test.ts` | TV2-15 (#49) |
 | US-12 | Hỗ trợ tài khoản ở A3 | Q10 `admin.spec.ts` (ca A3: cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`; bấm Tìm lúc lần tải đầu chưa về thì bảng chỉ giữ kết quả tìm, N14); API `server/test/admin.test.ts` | TV2-17 (#51), TV1-16 A3, N14 |
 | US-13 | Đổi đúng: mật khẩu mới dùng được, máy khác đăng nhập lại | U8 `accounts.test.ts`; `change-password.spec.ts` (đổi trên màn 8, mật khẩu cũ bị từ chối, mới dùng được, máy này vẫn đăng nhập; Huỷ xoá chữ; offline khoá nút) | không ticket (Dương chốt 2026-10-26): API #98, giao diện #99 |
@@ -236,3 +236,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.8 | 2026-10-27 | Trả tech-debt N14: dòng truy vết US-12 (A3) có ca E2E bấm Tìm lúc lần tải đầu chưa về |
 | 0.9 | 2026-10-28 | Rà truy vết (không ticket, Dương chốt 2026-10-28), chỉ thêm tiêu chí cho hành vi đã có code và test: US-07 thêm tiêu chí xuất/nhập form (Could, TV1-10); US-08 thêm tiêu chí xuất JSON (Should, TV3-09); US-01 thêm tiêu chí Đăng xuất bị khoá/bị chặn khi còn dữ liệu chưa gửi, hỏi trước khi tải lại bản mới, xin giữ bộ nhớ và trình duyệt không hỗ trợ (TV1-07); phần Đăng xuất của `settings.spec.ts` chuyển từ dòng US-10 sang US-01; dòng US-13 ghi PR giao diện #99 |
 | 0.10 | 2026-10-29 | Thêm US-14 "Danh sách phiếu" (Must, không ticket, Dương chốt 2026-10-26) cùng dòng truy vết: nhóm theo form và tiêu đề phiếu, giờ sửa (tech-debt N10, N11), bộ lọc trạng thái (TV3-07), câu khi rỗng (TV1-12), phiếu đã xoá ẩn trừ khi xung đột; K2 thêm US-14 (phiếu xung đột hiện ở "Cần xử lý"). Lọc theo người tạo, ô tìm kiếm (TV2-18) chưa có code nên chưa có tiêu chí |
+| 0.11 | 2026-10-29 | Trả tech-debt N18: dòng truy vết US-06 (Huỷ/Esc ở hộp Xoá phiếu) và US-12 (A2 Khoá) thêm ca con trỏ về nút đã mở hộp |

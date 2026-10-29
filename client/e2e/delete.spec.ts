@@ -140,6 +140,29 @@ test('O7: bấm Huỷ ở hộp xác nhận thì phiếu, op, ảnh còn nguyên
   expect(await photos(page, id)).toHaveLength(1);
 });
 
+test('N18: Huỷ hoặc Esc ở hộp Xoá phiếu thì con trỏ về lại nút Xoá phiếu, không rơi về đầu trang', async ({ page }) => {
+  await login(page);
+  const name = uniq('Hộ N18');
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await page.locator('input[name=householdName]').fill(name);
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await recordRow(page, name).getByRole('link').first().click();
+
+  // Mở hộp bằng bàn phím như người dùng không có chuột
+  const del = page.getByRole('button', { name: 'Xoá phiếu' });
+  await del.focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('dialog').getByRole('button', { name: 'Huỷ' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(del).toBeFocused();
+
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(del).toBeFocused();
+});
+
 test('O8: xoá phiếu đã đồng bộ thì server có tombstone, máy xoá phiếu và ảnh sau khi server xác nhận', async ({
   page,
   context,
