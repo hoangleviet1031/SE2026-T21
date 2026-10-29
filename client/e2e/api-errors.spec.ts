@@ -93,7 +93,7 @@ test('401: phiên bị huỷ trên server → về Đăng nhập, báo hết phi
   request,
 }) => {
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   const before = await databaseNames(page);
   expect(before.some((n) => n.startsWith('field-survey-p-'))).toBe(true);
 
@@ -126,7 +126,7 @@ test('Hết phiên rồi mất mạng: chỉ một dải "Cần kết nối mạ
   request,
 }) => {
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   const rows = (await readStore(page, 'field-survey-account', 'account')) as { key: string; value: unknown }[];
   const token = rows.find((r) => r.key === 'token')?.value;
   expect(typeof token).toBe('string');

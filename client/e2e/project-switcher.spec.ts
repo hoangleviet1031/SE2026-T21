@@ -65,7 +65,7 @@ test('đổi dự án khi offline trong 1 s, mỗi dự án chỉ hiện phiếu
   // design §11.2: đổi dự án đã tải ≤ 1 s, kể cả offline
   await choose(page, YTE);
   await expect(switcher(page).getByRole('button', { expanded: false })).toHaveAccessibleName(YTE, { timeout: 1000 });
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible({ timeout: 1000 });
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible({ timeout: 1000 });
   await expect(record).toHaveCount(0);
 
   await choose(page, NONGNGHIEP);

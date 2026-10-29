@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.9 (2026-10-28)
+- **Phiên bản:** 0.10 (2026-10-29)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -14,7 +14,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 | Mã | Kết quả | Story phục vụ |
 |---|---|---|
 | K1 | Không mất phiếu: mọi phiếu đã lưu trên máy lên server đúng một lần | US-01, US-02, US-03, US-04, US-06 |
-| K2 | Không ghi đè âm thầm: hai nơi cùng sửa thì người dùng thấy và tự chọn | US-05, US-06 |
+| K2 | Không ghi đè âm thầm: hai nơi cùng sửa thì người dùng thấy và tự chọn | US-05, US-06, US-14 |
 | K3 | Không phải nhập lại: giám sát viên có dữ liệu dạng bảng ngay từ app | US-07, US-08 |
 | K4 | Không lẫn dữ liệu giữa các tổ chức, kể cả với người vận hành | US-09, US-10, US-11, US-12, US-13 |
 
@@ -141,6 +141,18 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** sai mật khẩu hiện tại, **when** đổi mật khẩu, **then** `403 wrong_password`, báo "Mật khẩu hiện tại không đúng", không đổi gì và không bị đưa về màn hình Đăng nhập.
 - **Given** đã sai 10 lần trong 15 phút (đổi mật khẩu hoặc đăng nhập), **when** đổi mật khẩu, **then** `429` kể cả mật khẩu đúng.
 
+### US-14 · Danh sách phiếu · Must
+
+*Là điều tra viên hay giám sát viên, tôi muốn trang chủ chia phiếu theo biểu mẫu, mỗi phiếu có tên dễ đọc và giờ sửa, lọc được theo trạng thái, để tìm nhanh phiếu cần làm tiếp mà không phải mở từng phiếu.*
+
+- **Given** dự án có phiếu của nhiều form, **when** mở trang chủ, **then** phiếu chia thành nhóm theo form (cùng thứ tự thẻ form), tiêu đề nhóm có tên form và số phiếu; trong nhóm, phiếu sửa sau nằm trên; phiếu có form chưa có trên máy nằm ở nhóm cuối "Biểu mẫu chưa có trên máy".
+- **Given** một phiếu, **when** xem dòng của nó, **then** tiêu đề là giá trị trường `text` đầu tiên không ẩn ("Phiếu chưa có tên" nếu rỗng), kèm nhãn trạng thái và giờ sửa cuối.
+- **Given** có phiếu cần xử lý, **when** chọn bộ lọc trạng thái (hoặc bấm "Cần xử lý (n)"), **then** chỉ còn phiếu khớp, số trong tiêu đề nhóm đếm theo bộ lọc, nhóm không còn phiếu khớp thì ẩn.
+- **Given** dự án chưa có phiếu nào, **when** mở trang chủ, **then** báo "Chưa có phiếu nào." và ẩn bộ lọc; có phiếu mà lọc ra rỗng thì giữ bộ lọc, báo "Không có phiếu nào ở trạng thái này."
+- **Given** phiếu đã xoá, **when** mở trang chủ, **then** phiếu không hiện, trừ khi đang xung đột (xoá ở máy này, sửa ở máy kia).
+
+Lọc theo người tạo, tên người tạo cho giám sát viên và ô tìm kiếm (design §4.8) là TV2-18, chưa có code nên chưa có tiêu chí.
+
 ## Truy vết
 
 Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → test chứng minh → ticket và PR. Chỗ **chưa có test** in đậm; thêm test thì sửa dòng đó.
@@ -202,6 +214,11 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-13 | Đổi đúng: mật khẩu mới dùng được, máy khác đăng nhập lại | U8 `accounts.test.ts`; `change-password.spec.ts` (đổi trên màn 8, mật khẩu cũ bị từ chối, mới dùng được, máy này vẫn đăng nhập; Huỷ xoá chữ; offline khoá nút) | không ticket (Dương chốt 2026-10-26): API #98, giao diện #99 |
 | US-13 | Sai mật khẩu hiện tại → `403 wrong_password` | U9 `accounts.test.ts`; unit `parseChangePasswordRequest` (`shared/src/accountValidation.test.ts`); `change-password.spec.ts` (báo lỗi, ở lại trang); unit `changePasswordForm.test.ts` | không ticket: API #98, giao diện #99 |
 | US-13 | Sai 10 lần → `429` | U10 `accounts.test.ts`; câu "Thử lại sau ít phút" unit `changePasswordForm.test.ts` | không ticket: API #98, giao diện #99 |
+| US-14 | Nhóm theo form, số phiếu, phiếu sửa sau lên trên; nhóm "Biểu mẫu chưa có trên máy" | `home.spec.ts` (ca N10); unit `groupRecordsByForm` (`client/src/recordList.test.ts`) | không ticket, tech-debt N10 |
+| US-14 | Tiêu đề phiếu, "Phiếu chưa có tên", giờ sửa cuối | `home.spec.ts` (ca N11); unit `recordTitle`, `formatEditedAt` (`recordList.test.ts`) | không ticket, tech-debt N11 |
+| US-14 | Lọc trạng thái, "Cần xử lý (n)", nhóm rỗng ẩn | `conflict.spec.ts` (ca số "Cần xử lý" và bộ lọc); `home.spec.ts` (ca N10: lọc "Chưa đồng bộ" đếm theo lọc, ẩn nhóm rỗng); unit `recordFilter.test.ts` | TV3-07 (#41); không ticket, N10 |
+| US-14 | "Chưa có phiếu nào." ẩn bộ lọc; lọc rỗng giữ bộ lọc | `ui-states.spec.ts` (ca chưa có phiếu); `home.spec.ts` (ca lọc ra rỗng) | TV1-12 (b1, b2 p2) |
+| US-14 | Phiếu đã xoá không hiện, trừ khi đang xung đột | `delete.spec.ts` (O7, O8, xoá mềm); `conflict.spec.ts` (ca xoá vs sửa hiện ở "Cần xử lý") | TV2-13 (#35), TV1-13 (#42), TV3-08 (#47) |
 
 Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --json commits`).
 
@@ -218,3 +235,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.7 | 2026-10-26 | Tự đổi mật khẩu phần 2: dòng truy vết US-13 có E2E `change-password.spec.ts` và unit `changePasswordForm.test.ts` |
 | 0.8 | 2026-10-27 | Trả tech-debt N14: dòng truy vết US-12 (A3) có ca E2E bấm Tìm lúc lần tải đầu chưa về |
 | 0.9 | 2026-10-28 | Rà truy vết (không ticket, Dương chốt 2026-10-28), chỉ thêm tiêu chí cho hành vi đã có code và test: US-07 thêm tiêu chí xuất/nhập form (Could, TV1-10); US-08 thêm tiêu chí xuất JSON (Should, TV3-09); US-01 thêm tiêu chí Đăng xuất bị khoá/bị chặn khi còn dữ liệu chưa gửi, hỏi trước khi tải lại bản mới, xin giữ bộ nhớ và trình duyệt không hỗ trợ (TV1-07); phần Đăng xuất của `settings.spec.ts` chuyển từ dòng US-10 sang US-01; dòng US-13 ghi PR giao diện #99 |
+| 0.10 | 2026-10-29 | Thêm US-14 "Danh sách phiếu" (Must, không ticket, Dương chốt 2026-10-26) cùng dòng truy vết: nhóm theo form và tiêu đề phiếu, giờ sửa (tech-debt N10, N11), bộ lọc trạng thái (TV3-07), câu khi rỗng (TV1-12), phiếu đã xoá ẩn trừ khi xung đột; K2 thêm US-14 (phiếu xung đột hiện ở "Cần xử lý"). Lọc theo người tạo, ô tìm kiếm (TV2-18) chưa có code nên chưa có tiêu chí |

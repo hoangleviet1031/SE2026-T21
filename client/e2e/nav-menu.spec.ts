@@ -123,7 +123,7 @@ test('máy tính 1280px: màn hình điền phiếu không có thanh bên, thanh
   await setMembership(request, project, 'u_minh', null);
   await page.setViewportSize({ width: 1280, height: 800 });
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await expect(nav(page)).toBeVisible();
   const homeWidth = (await page.getByRole('banner').boundingBox())?.width;
   expect(homeWidth).toBe(1280);

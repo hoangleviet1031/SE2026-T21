@@ -17,7 +17,7 @@ test.afterEach(async () => {
 
 async function loginControlledBySw(page: Page) {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   // Lần cài đầu SW nắm trang bằng clientsClaim; chờ tới lúc đó rồi mới giả lập bản mới
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
@@ -44,7 +44,7 @@ test('có bản mới thì hiện dải, bấm Tải lại thì chạy bản m�
   await expect(page.getByTestId('update-prompt')).toContainText('Có phiên bản mới', { timeout: 15_000 });
 
   await page.getByRole('button', { name: 'Tải lại' }).click();
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await expect(page.getByTestId('update-prompt')).toHaveCount(0);
   // Không còn SW nào chờ: bản mới đã thay bản cũ
   expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.waiting ?? null)).toBeNull();

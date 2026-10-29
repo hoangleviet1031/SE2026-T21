@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { login } from './helpers';
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { TOKENS, authHeaders, createProject, login, setMembership } from './helpers';
 
 // Trang chủ theo bản thiết kế (TV1-12 b2 p2; design §4.6, §4.8, ui.md màn hình 2): nút [Xuất ▾] và
 // dòng phiếu bấm được cả hàng. Ẩn bộ lọc khi chưa có phiếu ở ui-states.spec.ts.
@@ -70,4 +70,96 @@ test('có phiếu mà lọc ra rỗng: vẫn hiện bộ lọc, báo "Không có
   await page.getByRole('radio', { name: 'Lỗi' }).check();
   await expect(page.getByTestId('no-records')).toHaveText('Không có phiếu nào ở trạng thái này.');
   await expect(page.getByRole('radiogroup', { name: 'Lọc theo trạng thái' })).toBeVisible();
+});
+
+// N10, N11 (design §4.8, tech-debt): dự án riêng "b-…" có hai form, phiếu tạo qua API như projects.spec.ts.
+const created: string[] = [];
+
+test.afterEach(async ({ request }) => {
+  for (const id of created.splice(0)) await setMembership(request, id, 'u_lan', null);
+});
+
+/** Dự án mới, lan là giám sát viên; mỗi form một trường text "ten", phiếu tạo lần lượt nên phiếu sau mới hơn. */
+async function seedTwoForms(request: APIRequestContext) {
+  const id = `b-${crypto.randomUUID().slice(0, 8)}`;
+  const name = `Dự án nhóm ${id}`;
+  await createProject(request, id, name);
+  created.push(id);
+  await setMembership(request, id, 'u_lan', 'supervisor');
+  const api = (path: string) => `http://localhost:3001/api/projects/${id}${path}`;
+  for (const [formId, title] of [
+    ['ho', `Hộ gia đình ${id}`],
+    ['truong', `Trường học ${id}`],
+  ]) {
+    const res = await request.post(api('/forms'), {
+      headers: authHeaders(TOKENS.lan),
+      data: { id: formId, title, fields: [{ id: 'ten', type: 'text', label: 'Tên' }] },
+    });
+    expect(res.status()).toBe(201);
+  }
+  for (const [formId, data] of [
+    ['ho', { ten: `Hộ An ${id}` }],
+    ['truong', {}],
+    ['ho', { ten: `Hộ Bình ${id}` }],
+  ] as const) {
+    const res = await request.put(api(`/records/${crypto.randomUUID()}`), {
+      headers: { ...authHeaders(TOKENS.lan), 'Idempotency-Key': crypto.randomUUID() },
+      data: { formId, formVersion: 1, baseVersion: 0, data, deleted: false },
+    });
+    expect(res.status()).toBe(201);
+  }
+  return { id, name, ho: `Hộ gia đình ${id}`, truong: `Trường học ${id}`, an: `Hộ An ${id}`, binh: `Hộ Bình ${id}` };
+}
+
+async function openProject(page: Page, name: string) {
+  await login(page, 'lan');
+  const switcher = page.getByTestId('project-switcher');
+  await switcher.getByRole('button', { expanded: false }).click();
+  await switcher.getByRole('listitem').getByRole('button').filter({ hasText: name }).click();
+  await expect(switcher.getByRole('button', { expanded: false })).toHaveAccessibleName(name);
+}
+
+const group = (page: Page, title: string) => page.getByTestId('record-group').filter({ hasText: title });
+
+test('N10: phiếu nhóm theo form, mỗi nhóm có số phiếu; phiếu sửa sau lên đầu; lọc thì đếm theo lọc, ẩn nhóm rỗng', async ({
+  page,
+  request,
+}) => {
+  const s = await seedTwoForms(request);
+  await openProject(page, s.name);
+
+  // Nhóm theo thứ tự thẻ form, tiêu đề là heading để nhảy giữa các nhóm
+  await expect(page.getByTestId('record-group').getByRole('heading', { level: 3 })).toHaveText([
+    `${s.ho} (2)`,
+    `${s.truong} (1)`,
+  ]);
+  const hoRows = group(page, s.ho).getByRole('listitem');
+  await expect(group(page, s.ho).getByTestId('record-title')).toHaveText([s.binh, s.an]);
+
+  // Sửa phiếu cũ hơn khi mất mạng: phiếu đó lên đầu nhóm, nhãn "Chờ đồng bộ"
+  await page.context().setOffline(true);
+  await hoRows.getByRole('link', { name: s.an }).click();
+  await page.locator('input[name=ten]').fill(`${s.an} sửa`);
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await expect(group(page, s.ho).getByTestId('record-title')).toHaveText([`${s.an} sửa`, s.binh]);
+  await expect(hoRows.first().getByTestId('sync-state')).toHaveText('Chờ đồng bộ');
+
+  // "Chưa đồng bộ": chỉ còn nhóm Hộ gia đình với 1 phiếu, nhóm Trường học ẩn
+  await page.getByRole('radio', { name: 'Chưa đồng bộ' }).check();
+  await expect(page.getByTestId('record-group').getByRole('heading', { level: 3 })).toHaveText([`${s.ho} (1)`]);
+  await page.context().setOffline(false);
+});
+
+test('N11: tiêu đề là trường text đầu tiên, rỗng thì "Phiếu chưa có tên"; dòng phiếu có giờ sửa', async ({
+  page,
+  request,
+}) => {
+  const s = await seedTwoForms(request);
+  await openProject(page, s.name);
+
+  const untitled = group(page, s.truong).getByRole('listitem');
+  await expect(untitled.getByTestId('record-title')).toHaveText('Phiếu chưa có tên');
+  // Phiếu vừa tạo hôm nay: giờ:phút
+  await expect(untitled.getByTestId('edited-at')).toHaveText(/^\d{2}:\d{2}$/);
+  await expect(group(page, s.ho).getByTestId('edited-at')).toHaveCount(2);
 });

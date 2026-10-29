@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.52 (2026-10-26)
+- **Phiên bản:** 0.5.53 (2026-10-29)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -86,6 +86,7 @@
 | 0.5.50 | 2026-10-25 | TV1-12 sau critique UI (K5), chỉ đổi chữ: nút A2 "Đổi Owner…" thành "Thêm Owner…" (§4.9, §10.1 Q10) vì API chỉ thêm hoặc nâng, Owner cũ vẫn giữ quyền; chữ Dương duyệt 2026-10-24. Không đổi API |
 | 0.5.51 | 2026-10-26 | Tự đổi mật khẩu (Could, Dương chốt 2026-10-26, mở rộng ADR 0003 §1; không sửa ADR), phần API có code: `POST /auth/change-password` (§7): mật khẩu mới theo luật đăng ký, sai mật khẩu hiện tại → mã mới `403 wrong_password` (§7.1; không dùng 401 vì app coi 401 là hết phiên), dùng chung giới hạn đăng nhập sai, đổi xong thu hồi mọi phiên khác và giữ phiên máy đang đổi; kiểu `ChangePasswordRequest` và `parseChangePasswordRequest` (§6.2, `shared/`); §1 thêm mức Could; §4.7 đoạn Đổi mật khẩu (giao diện màn hình 8 🆕); U8–U10 (§10.1) |
 | 0.5.52 | 2026-10-26 | Tự đổi mật khẩu phần giao diện có code (§4.7): khối Đổi mật khẩu ở trang Cài đặt (ui.md màn hình 8), `changePassword` ở `client/src/sync/api.ts`, kiểm form và câu lỗi ở `client/src/changePasswordForm.ts`; bỏ nhãn 🆕 |
+| 0.5.53 | 2026-10-29 | Danh sách phiếu nhóm theo form và tiêu đề phiếu có code (§4.8, tech-debt N10, N11; không ticket, Dương chốt 2026-10-26): mục theo thứ tự thẻ form, phiếu có form không còn trên máy gom vào mục cuối "Biểu mẫu chưa có trên máy" (chữ mới, Dương duyệt 2026-10-29); khi lọc, số phiếu đếm theo bộ lọc và mục rỗng ẩn; tiêu đề lấy theo `hidden` của bản form của phiếu; giờ sửa cuối. Tên người tạo, lọc theo người tạo, ô tìm kiếm vẫn là TV2-18 |
 
 ## Mục lục
 
@@ -530,8 +531,9 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003. Mọi mục dư�
 
 Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), không gọi API.
 
-- **Nhóm theo form**, mỗi form một mục có số phiếu; trong mục, phiếu sắp theo `updatedAt` cục bộ mới nhất trước.
+- **Nhóm theo form**, mỗi form một mục có số phiếu; trong mục, phiếu sắp theo `updatedAt` cục bộ mới nhất trước. Mục theo thứ tự thẻ form; phiếu có form không còn trên máy gom vào mục cuối "Biểu mẫu chưa có trên máy". Khi bộ lọc đang bật, số phiếu đếm theo bộ lọc và mục không còn phiếu khớp thì ẩn.
 - **Mỗi dòng:** tiêu đề phiếu (giá trị trường `text` đầu tiên không ẩn, rỗng thì "Phiếu chưa có tên"), nhãn trạng thái hiển thị (§5.1, §5.6), giờ sửa cuối. Với `supervisor` thêm tên người tạo (`createdByName`, kèm "(đã rời dự án)" nếu cần).
+  - Có code (tech-debt N10, N11; `client/src/recordList.ts`): "không ẩn" theo `hidden` của đúng bản form của phiếu (§4.1), máy thiếu bản đó thì theo bản mới nhất cùng form (id trường không đổi giữa các bản); không có form thì "Phiếu chưa có tên". Giờ sửa theo giờ máy, chỉ để hiển thị (dạng chữ ở ui.md màn hình 2). Tên người tạo: chưa có code (TV2-18).
 - **Bộ lọc:** trạng thái ("Tất cả", "Cần xử lý", "Chưa đồng bộ", "Nháp", "Lỗi"); với `supervisor` thêm lọc theo người tạo (cần `createdBy`, §6.2). Ô tìm kiếm theo tiêu đề phiếu. Bộ lọc chạy trên index `syncState` và lọc trong bộ nhớ, đủ cho 2.000 phiếu (§11.2).
   - Có code (TV3-07, `client/src/recordFilter.ts`): lọc theo nhãn hiển thị (§5.6) chứ không theo `syncState` thô. "Cần xử lý" = xung đột, lỗi, lỗi ảnh; "Chưa đồng bộ" = chờ đồng bộ, đang tải ảnh; "Nháp"; "Lỗi" = lỗi, lỗi ảnh. Số "Cần xử lý (n)" đầu danh sách, bấm vào thì bật bộ lọc đó. Lọc theo người tạo và ô tìm kiếm: chưa có code (TV2-18).
 - **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định, **trừ khi đang `conflict`** (vd. xoá ở máy này, sửa ở máy kia): người dùng phải thấy để xử lý.

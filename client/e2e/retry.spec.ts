@@ -29,7 +29,7 @@ test('R2: server giữ request quá timeout của client: client huỷ, gửi l�
   request,
 }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   // Server giữ request 15 s; client huỷ sau 10 s rồi retry theo backoff
   await request.post(FAULTS, { data: { mode: 'timeout', count: 1 } });
 
@@ -46,7 +46,7 @@ test('R3: server ghi xong nhưng kết nối bị cắt trước response: gửi
   request,
 }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await request.post(FAULTS, { data: { mode: 'drop', count: 1 } });
 
   const replayed: number[] = [];

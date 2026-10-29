@@ -94,7 +94,7 @@ test('O7: xoá phiếu chưa từng gửi thì phiếu, op, ảnh biến khỏi 
   const keepName = uniq('Hộ O7 giữ lại');
   const name = uniq('Hộ O7 xoá');
   // Chờ vòng đồng bộ đầu tải biểu mẫu về rồi mới ngắt mạng
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await context.setOffline(true);
   // Phiếu khác có ảnh, để kiểm việc xoá không đụng tới nó
   const otherId = await createWithPhoto(page, keepName);
@@ -121,7 +121,7 @@ test('O7: xoá phiếu chưa từng gửi thì phiếu, op, ảnh biến khỏi 
 test('O7: bấm Huỷ ở hộp xác nhận thì phiếu, op, ảnh còn nguyên, ở lại trang phiếu', async ({ page, context }) => {
   await login(page);
   const name = uniq('Hộ O7 huỷ');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await context.setOffline(true);
   const id = await createWithPhoto(page, name);
   const before = (await records(page)).find((r) => r.id === id);
@@ -191,7 +191,7 @@ test('server đã ghi nhưng mất response (op đã gửi, baseVersion 0): xoá
   await login(page);
   const name = uniq('Hộ mất response');
   // Chờ vòng đồng bộ đầu tải biểu mẫu xong: lỗi tiêm cũng cắt request pull nên bật sớm thì form không về
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   // Mọi request phiếu đều bị cắt sau khi server ghi: op giữ attempts ≥ 1, phiếu vẫn baseVersion 0
   await request.post(FAULTS, { data: { mode: 'drop', count: 100 } });
   try {
