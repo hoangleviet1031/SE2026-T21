@@ -32,8 +32,8 @@ Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](pla
 
 | # | Món nợ | Trả ở |
 |---|---|---|
-| N11 | Dòng phiếu chưa theo luật tiêu đề §4.8 | `client/src/recordList.ts` `recordTitle` (trường `text` đầu tiên không ẩn theo bản form của phiếu, rỗng thì "Phiếu chưa có tên") và `formatEditedAt` (giờ sửa cuối); unit `recordList.test.ts`, E2E `home.spec.ts` ca N11 (nhánh `fix/n10-n11-trang-chu`, làm trước TV2-18, Dương chốt 2026-10-26) |
-| N10 | Trang chủ không nhóm phiếu theo form | `groupRecordsByForm` (`client/src/recordList.ts`), `HomePage.tsx` chia mục "Phiếu đã nhập" thành nhóm theo form có số phiếu, nhóm cuối "Biểu mẫu chưa có trên máy"; E2E `home.spec.ts` ca N10 (nhánh `fix/n10-n11-trang-chu`, làm trước TV2-18, Dương chốt 2026-10-26) |
+| N11 | Dòng phiếu chưa theo luật tiêu đề §4.8 | `client/src/recordList.ts` `recordTitle` (trường `text` đầu tiên không ẩn theo bản form của phiếu, rỗng thì "Phiếu chưa có tên") và `formatEditedAt` (giờ sửa cuối); unit `recordList.test.ts`, E2E `home.spec.ts` ca N11 (PR #105, làm trước TV2-18, Dương chốt 2026-10-26) |
+| N10 | Trang chủ không nhóm phiếu theo form | `groupRecordsByForm` (`client/src/recordList.ts`), `HomePage.tsx` chia mục "Phiếu đã nhập" thành nhóm theo form có số phiếu, nhóm cuối "Biểu mẫu chưa có trên máy"; E2E `home.spec.ts` ca N10 (PR #105, làm trước TV2-18, Dương chốt 2026-10-26) |
 | N14 | A3 Tài khoản: bấm [Tìm] lúc danh sách lần đầu còn đang tải thì kết quả về sau đè kết quả về trước | `UsersPage.tsx` đánh số thứ tự lần tải, kết quả và lỗi của lần cũ bị bỏ qua; E2E `admin.spec.ts` ca N14 (PR #101) |
 | N12 | Màn hình điền phiếu thiếu nhãn trạng thái đầu trang và nút cho phiếu Lỗi | ui 0.2.29: `FillPage.tsx` nhãn `displayState` dưới khối tên biểu mẫu; khối lỗi tách thành `components/RecordErrorBox.tsx` dùng chung với trang chủ; E2E `fill-status.spec.ts` (PR #95, làm trước TV2-18, Dương chốt 2026-10-25) |
 | N7 | `seed:demo` vẫn tạo phiên token cố định `demo-token-<tên>` | Seed bỏ token cố định, xoá phiên token cũ trong DB dev; E2E lấy token bằng đăng nhập (`client/e2e/global-setup.ts`), test server đăng nhập qua API (nhánh `fix/n7-demo-tokens`) |

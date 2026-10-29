@@ -214,9 +214,9 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-13 | Đổi đúng: mật khẩu mới dùng được, máy khác đăng nhập lại | U8 `accounts.test.ts`; `change-password.spec.ts` (đổi trên màn 8, mật khẩu cũ bị từ chối, mới dùng được, máy này vẫn đăng nhập; Huỷ xoá chữ; offline khoá nút) | không ticket (Dương chốt 2026-10-26): API #98, giao diện #99 |
 | US-13 | Sai mật khẩu hiện tại → `403 wrong_password` | U9 `accounts.test.ts`; unit `parseChangePasswordRequest` (`shared/src/accountValidation.test.ts`); `change-password.spec.ts` (báo lỗi, ở lại trang); unit `changePasswordForm.test.ts` | không ticket: API #98, giao diện #99 |
 | US-13 | Sai 10 lần → `429` | U10 `accounts.test.ts`; câu "Thử lại sau ít phút" unit `changePasswordForm.test.ts` | không ticket: API #98, giao diện #99 |
-| US-14 | Nhóm theo form, số phiếu, phiếu sửa sau lên trên; nhóm "Biểu mẫu chưa có trên máy" | `home.spec.ts` (ca N10); unit `groupRecordsByForm` (`client/src/recordList.test.ts`) | không ticket, tech-debt N10 |
-| US-14 | Tiêu đề phiếu, "Phiếu chưa có tên", giờ sửa cuối | `home.spec.ts` (ca N11); unit `recordTitle`, `formatEditedAt` (`recordList.test.ts`) | không ticket, tech-debt N11 |
-| US-14 | Lọc trạng thái, "Cần xử lý (n)", nhóm rỗng ẩn | `conflict.spec.ts` (ca số "Cần xử lý" và bộ lọc); `home.spec.ts` (ca N10: lọc "Chưa đồng bộ" đếm theo lọc, ẩn nhóm rỗng); unit `recordFilter.test.ts` | TV3-07 (#41); không ticket, N10 |
+| US-14 | Nhóm theo form, số phiếu, phiếu sửa sau lên trên; nhóm "Biểu mẫu chưa có trên máy" | `home.spec.ts` (ca N10); unit `groupRecordsByForm` (`client/src/recordList.test.ts`) | không ticket, tech-debt N10 (#105) |
+| US-14 | Tiêu đề phiếu, "Phiếu chưa có tên", giờ sửa cuối | `home.spec.ts` (ca N11); unit `recordTitle`, `formatEditedAt` (`recordList.test.ts`) | không ticket, tech-debt N11 (#105) |
+| US-14 | Lọc trạng thái, "Cần xử lý (n)", nhóm rỗng ẩn | `conflict.spec.ts` (ca số "Cần xử lý" và bộ lọc); `home.spec.ts` (ca N10: lọc "Chưa đồng bộ" đếm theo lọc, ẩn nhóm rỗng); unit `recordFilter.test.ts` | TV3-07 (#41); không ticket, N10 (#105) |
 | US-14 | "Chưa có phiếu nào." ẩn bộ lọc; lọc rỗng giữ bộ lọc | `ui-states.spec.ts` (ca chưa có phiếu); `home.spec.ts` (ca lọc ra rỗng) | TV1-12 (b1, b2 p2) |
 | US-14 | Phiếu đã xoá không hiện, trừ khi đang xung đột | `delete.spec.ts` (O7, O8, xoá mềm); `conflict.spec.ts` (ca xoá vs sửa hiện ở "Cần xử lý") | TV2-13 (#35), TV1-13 (#42), TV3-08 (#47) |
 
