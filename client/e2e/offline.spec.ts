@@ -15,7 +15,7 @@ async function waitForServiceWorker(page: Page) {
 test('điền phiếu khi offline, có mạng lại thì tự đồng bộ', async ({ page, context, request }) => {
   await login(page);
   await waitForServiceWorker(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   await context.setOffline(true);
   await page.reload();
@@ -40,7 +40,7 @@ test('điền phiếu khi offline, có mạng lại thì tự đồng bộ', asy
 
 test('server lỗi 500 hai lần: retry và vẫn đồng bộ đúng một bản ghi', async ({ page, request }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await request.post('http://localhost:3001/api/__test/faults', { data: { mode: '500', count: 2 } });
 
   await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();

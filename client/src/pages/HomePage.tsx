@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { RemovedProjectBanners } from '../components/RemovedProjectBanners';
@@ -17,6 +17,7 @@ import { navigate } from '../useHashRoute';
 import { RECORD_FILTERS, matchesFilter, needsAttention, type RecordFilter } from '../recordFilter';
 import { statusIcon } from '../statusIcon';
 import { formTone, latestForms } from '../formDisplay';
+import { editedAtFormatter, groupRecordsByForm, recordTitle } from '../recordList';
 import { Icon } from '../components/Icon';
 
 export function HomePage() {
@@ -64,6 +65,10 @@ function ProjectHome({ db }: { db: ProjectDb }) {
     });
   const attentionCount = rows.filter((x) => needsAttention(x.state.kind)).length;
   const shown = rows.filter((x) => matchesFilter(x.state.kind, filter));
+  // Nhóm theo form sau khi lọc: số trong ngoặc là số dòng đang thấy, form không còn phiếu khớp thì ẩn
+  const groups = groupRecordsByForm(shown, forms);
+  // Giờ sửa chỉ tính lại khi danh sách phiếu đổi, không phải mỗi lần ảnh hay outbox đổi (design §11.2)
+  const editedAt = useMemo(() => editedAtFormatter(new Date()), [records]);
   // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
   const warnings = useLiveQuery(async () => staleWarnings(await db.outbox.toArray(), Date.now()), [db]);
   const shownForms = latestForms(forms);
@@ -150,52 +155,76 @@ function ProjectHome({ db }: { db: ProjectDb }) {
             Chưa có phiếu nào.
           </p>
         )}
-        {rows.length > 0 && shown.length === 0 && (
+        {rows.length > 0 && groups.length === 0 && (
           <p className="empty" data-testid="no-records">
             <Icon name="inbox" />
             Không có phiếu nào ở trạng thái này.
           </p>
         )}
-        {shown.length > 0 && (
-          <ul className="records" data-testid="records">
-            {shown.map(({ r, photos, state }) => (
-              <li key={r.id} className={`st-${state.kind}`}>
-                {/* Link tên phủ cả phần trên của dòng (mũi tên › báo bấm được); link xung đột nằm trên lớp đó */}
-                <div className="rec-top">
-                  <Icon name={statusIcon(state.kind)} className="st-icon" />
-                  <a className="name" href={`#/fill/${r.formId}/${r.id}`}>
-                    {String(Object.values(r.data)[0] ?? r.id)}
-                  </a>
-                  <Icon name="right" className="go" />
-                  {r.syncState === 'conflict' ? (
-                    <a className="st st-link" href={`#/conflict/${r.id}`}>
-                      {state.label}
-                      <Icon name="right" />
-                    </a>
-                  ) : (
-                    <span className="st" data-testid="sync-state">
-                      {state.label}
-                    </span>
-                  )}
-                </div>
-                {r.syncState === 'error' && <RecordErrorBox db={db} recordId={r.id} lastError={r.lastError} />}
-                {state.failedPhotoIds.map((photoId) => (
-                  <div className="record-error" key={photoId} data-testid="photo-error">
-                    <span>Lỗi ảnh: {photos.find((p) => p.id === photoId)?.lastError ?? 'không gửi được ảnh'}</span>
-                    <div className="acts">
-                      <button className="primary" onClick={() => void retryPhoto(db, photoId)}>
-                        Thử lại
-                      </button>
-                      {/* Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7): bỏ ảnh là sửa phiếu */}
-                      {r.syncState !== 'conflict' && (
-                        <button onClick={() => void dropPhoto(db, r.id, photoId)}>Bỏ ảnh này</button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </li>
+        {groups.length > 0 && (
+          <div data-testid="records">
+            {/* Mỗi form một nhóm, cùng màu với thẻ form; tiêu đề là heading để trình đọc màn hình nhảy giữa các nhóm */}
+            {groups.map((g, gi) => (
+              <section
+                key={g.formId ?? ''}
+                className={g.formIndex < 0 ? 'rgroup' : `rgroup tone-${formTone(g.formIndex)}`}
+                aria-labelledby={`record-group-${gi}`}
+                data-testid="record-group"
+              >
+                <h3 id={`record-group-${gi}`}>
+                  {g.title} ({g.rows.length})
+                </h3>
+                <ul className="records">
+                  {g.rows.map(({ r, photos, state }) => (
+                    <li key={r.id} className={`st-${state.kind}`}>
+                      {/* Link tên phủ cả phần trên của dòng (mũi tên › báo bấm được); link xung đột nằm trên lớp đó */}
+                      <div className="rec-top">
+                        <Icon name={statusIcon(state.kind)} className="st-icon" />
+                        <a className="name" href={`#/fill/${r.formId}/${r.id}`} data-testid="record-title">
+                          {recordTitle(r, forms)}
+                        </a>
+                        <Icon name="right" className="go" />
+                        <div className="meta">
+                          {r.syncState === 'conflict' ? (
+                            <a className="st st-link" href={`#/conflict/${r.id}`}>
+                              {state.label}
+                              <Icon name="right" />
+                            </a>
+                          ) : (
+                            <span className="st" data-testid="sync-state">
+                              {state.label}
+                            </span>
+                          )}
+                          {/* Dấu ngăn chỉ để nhìn, trình đọc màn hình không đọc (design §11.3) */}
+                          <span className="sep" aria-hidden="true">
+                            ·
+                          </span>
+                          <time dateTime={r.updatedAt} data-testid="edited-at">
+                            {editedAt(r.updatedAt)}
+                          </time>
+                        </div>
+                      </div>
+                      {r.syncState === 'error' && <RecordErrorBox db={db} recordId={r.id} lastError={r.lastError} />}
+                      {state.failedPhotoIds.map((photoId) => (
+                        <div className="record-error" key={photoId} data-testid="photo-error">
+                          <span>Lỗi ảnh: {photos.find((p) => p.id === photoId)?.lastError ?? 'không gửi được ảnh'}</span>
+                          <div className="acts">
+                            <button className="primary" onClick={() => void retryPhoto(db, photoId)}>
+                              Thử lại
+                            </button>
+                            {/* Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7): bỏ ảnh là sửa phiếu */}
+                            {r.syncState !== 'conflict' && (
+                              <button onClick={() => void dropPhoto(db, r.id, photoId)}>Bỏ ảnh này</button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         )}
       </section>
     </>

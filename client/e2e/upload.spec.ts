@@ -101,7 +101,7 @@ async function createRecordWithPhotos(page: Page, name: string, photos: Buffer[]
 
 async function goOffline(page: Page, context: BrowserContext) {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await context.setOffline(true);
   await expect(page.getByTestId('network-status')).toHaveText('Ngoại tuyến');
 }
@@ -167,7 +167,7 @@ test('R4: mất kết nối trước khi server ghi chunk thứ 2: gửi tiếp 
   request,
 }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await setFault(request, { mode: 'drop-before', count: 1, match: '/attachments', chunkIndex: 1 });
 
   const { row, photoIds } = await createRecordWithPhotos(page, `Ảnh R4 ${Date.now()}`, [await bigPhoto(page)]);
@@ -189,7 +189,7 @@ test('R4: mất kết nối sau khi server đã ghi chunk thứ 2: không gửi 
   request,
 }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await setFault(request, { mode: 'drop', count: 1, match: '/attachments', chunkIndex: 1 });
 
   const { row, photoIds } = await createRecordWithPhotos(page, `Ảnh R4 drop ${Date.now()}`, [await bigPhoto(page)]);

@@ -159,7 +159,7 @@ test('lỗi kiểm ở máy không gửi request; offline thì báo cần kết 
 test('điều tra viên không thấy nút sửa form và không mở được builder', async ({ page }) => {
   // minh là điều tra viên ở demo-yte và không thuộc dự án của test này
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Sửa form' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toHaveCount(0);
   await page.goto('/#/builder/new');

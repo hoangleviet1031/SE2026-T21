@@ -64,11 +64,11 @@ test('đăng nhập bằng tên + mật khẩu vào trang chủ; tải lại v�
 
   // Tên gõ chữ hoa vẫn là cùng tài khoản (server lưu chữ thường)
   await fillLogin(page, '  Minh ', DEMO_PASSWORD);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await expect(page.getByTestId('login-username')).toHaveCount(0);
 
   await page.reload();
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await expect(page.getByTestId('login-username')).toHaveCount(0);
 });
 
