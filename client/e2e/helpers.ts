@@ -1,4 +1,4 @@
-import { expect, type APIRequestContext, type Page } from '@playwright/test';
+import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test';
 
 // Hàm dùng chung cho E2E. Tài khoản, mật khẩu và dự án khớp server/src/seedDemo.ts
 // (server E2E chạy với SEED_DEMO=1).
@@ -188,4 +188,23 @@ export async function answerConfirm(page: Page, message: string, answer: string 
   if (answer === 'Esc') await page.keyboard.press('Escape');
   else await dialog.getByRole('button', { name: answer, exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
+}
+
+/**
+ * Đích bấm cao ≥ 44px (design §11.3, tech-debt N21), và bấm sát mép trên, mép dưới (cách 2px) vẫn trúng chính nó,
+ * không bị phần tử bên cạnh đè (vùng bấm nới bằng padding hay viền trong suốt mà vẫn nhìn như cũ).
+ */
+export async function expectTapTarget(target: Locator) {
+  await expect(target).toBeVisible();
+  const box = await target.boundingBox();
+  expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+  const hits = await target.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    return [r.top + 2, r.bottom - 2].map((y) => {
+      const hit = document.elementFromPoint(x, y);
+      return hit !== null && el.contains(hit);
+    });
+  });
+  expect(hits).toEqual([true, true]);
 }

@@ -68,7 +68,10 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--hl); display: grid; place-items: center; flex: none; }
 .hdr .logo { margin-right: 10px; }
 .hdr .brand { flex: 1; min-width: 0; display: grid; gap: 1px; }
-.hdr .brand a { font-size: 17px; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
+/* Chữ cao 24px; padding 11px trên dưới nới vùng bấm lên 44px (design §11.3, tech-debt N21), margin âm bù lại để header không cao thêm.
+   position: relative để link nằm trên dòng trạng thái mạng, không thì phần padding dưới bị dòng đó che */
+.hdr .brand a { position: relative; padding-block: 11px; margin-block: -11px; font-size: 17px; text-decoration: none; white-space: nowrap; overflow: hidden;
+                text-overflow: ellipsis; letter-spacing: -.01em; }
 .hdr .hbtn { display: grid; justify-items: center; gap: 1px; min-width: 56px; min-height: 48px; padding: 4px; border: 0; background: none; box-shadow: none;
              font-size: 12px; font-weight: 600; border-radius: var(--r-btn); text-decoration: none; }
 .hdr .hbtn svg.icon { width: 22px; height: 22px; }
@@ -110,7 +113,7 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .org-switcher { overflow: hidden; }
 .tile { width: 30px; height: 30px; border-radius: 8px; background: var(--f3); display: grid; place-items: center; flex: none; font-size: 15px; font-weight: 800; }
 .org-one .name, .org-head .name { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
-.org-other { display: inline-flex; align-items: center; gap: 2px; min-height: 40px; padding: 0 8px 0 12px; border-radius: var(--r-btn); background: var(--chip);
+.org-other { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding: 0 8px 0 12px; border-radius: var(--r-btn); background: var(--chip);
              font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .org-other svg.icon { width: 18px; height: 18px; }
 .org-switcher .org-head { width: 100%; min-height: 48px; padding: 0 12px 0 8px; gap: 10px; border: 0; border-radius: 0; box-shadow: none; justify-content: flex-start;
@@ -137,7 +140,7 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .hint { color: var(--muted); font-size: 14px; margin: 0; }
 .banner-removed { flex-direction: column; display: flex; gap: 10px; margin-top: 12px; }
 .banner-removed div { display: flex; flex-wrap: wrap; gap: 8px; }
-.back { display: inline-flex; justify-self: start; align-items: center; min-height: 40px; margin-top: 12px; padding: 0 14px; border-radius: var(--r-pill); background: var(--chip);
+.back { display: inline-flex; justify-self: start; align-items: center; min-height: 44px; margin-top: 12px; padding: 0 14px; border-radius: var(--r-pill); background: var(--chip);
         font-size: 15px; font-weight: 600; text-decoration: none; }
 
 /* Ô nhập: nhãn đậm phía trên, ô trắng viền rõ; đang nhập = viền đen + quầng vàng */
@@ -234,7 +237,11 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 .rec-top .go { grid-column: 3; grid-row: 1 / span 2; color: var(--muted); }
 .rec-top .st { grid-column: 2; justify-self: start; display: inline-flex; align-items: center; gap: 6px; color: var(--c); font-size: 14px; font-weight: 600; }
 /* "Cần xử lý xung đột" là link riêng: viên thuốc đỏ nhạt có mũi tên, nằm trên lớp link tên */
-.rec-top .st-link { position: relative; z-index: 1; min-height: 32px; padding: 4px 8px 4px 10px; border-radius: var(--r-pill); background: var(--red-soft); text-decoration: none; }
+/* Viên nhìn cao 32px; viền trong suốt 6px trên dưới nới vùng bấm lên 44px (design §11.3, tech-debt N21), margin âm bù lại
+   để dòng không cao thêm; vòng focus thụt vào cho ôm sát viên */
+.rec-top .st-link { position: relative; z-index: 1; min-height: 44px; margin-block: -6px; padding: 4px 8px 4px 10px; border-block: 6px solid transparent;
+                    border-radius: var(--r-pill); background: var(--red-soft); background-clip: padding-box; text-decoration: none; }
+.rec-top .st-link:focus-visible { outline-offset: -4px; }
 .rec-top .st-link svg.icon { width: 16px; height: 16px; }
 .record-error { position: relative; z-index: 1; display: grid; gap: 8px; margin-top: 10px; font-size: 15px; font-weight: 500; color: var(--red); }
 .record-error .acts { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -319,7 +326,7 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
 .form-fieldset:disabled :is(.photo-thumb button, .photo-add), fieldset.readonly :is(.photo-thumb button, .photo-add) { display: none; }
 .ro-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--red-soft);
              color: var(--red); font-weight: 600; line-height: 1.4; }
-.ro-banner a { flex: none; display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: var(--r-btn); background: var(--red); color: #fff;
+.ro-banner a { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: var(--r-btn); background: var(--red); color: #fff;
                text-decoration: none; white-space: nowrap; }
 /* Hàng nút dính đáy màn hình; nằm trong luồng trang nên cuộn hết cỡ thì trường cuối vẫn ở trên hàng nút */
 .actionbar { position: sticky; bottom: 0; z-index: 1; display: flex; gap: 8px; margin: 20px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
