@@ -105,7 +105,7 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 
 /* Dải "Có phiên bản mới": nằm trên header, nền tối để khác hẳn banner cảnh báo */
 .update-prompt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 16px; background: var(--btn); color: #fff; font-weight: 600; }
-.update-prompt > button { background: #fff; color: var(--ink); border-color: transparent; min-height: 40px; }
+.update-prompt > button { background: #fff; color: var(--ink); border-color: transparent; min-height: 44px; }
 
 /* Bộ chọn tổ chức: ô chữ cái + tên; một tổ chức thì kèm "Tổ chức khác…", nhiều thì danh sách mở ngay dưới */
 .org-one, .org-switcher { margin: 12px 16px 0; background: var(--surface); border: 1px solid var(--edge); border-radius: 12px; }

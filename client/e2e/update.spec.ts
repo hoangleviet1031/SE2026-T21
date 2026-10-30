@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
-import { answerConfirm, login } from './helpers';
+import { answerConfirm, expectTapTarget, login } from './helpers';
 
 // Cập nhật phiên bản app và icon cài đặt (TV1-07 phần 2a; design §4.3).
 // Giả lập "vừa deploy bản mới": thêm một dòng vào dist/sw.js mà vite preview đang phục vụ, để trình
@@ -48,6 +48,19 @@ test('có bản mới thì hiện dải, bấm Tải lại thì chạy bản m�
   await expect(page.getByTestId('update-prompt')).toHaveCount(0);
   // Không còn SW nào chờ: bản mới đã thay bản cũ
   expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.waiting ?? null)).toBeNull();
+});
+
+// Ngoài danh sách N21 của TV3-15, thấy ở #110 (design §11.3 "nút khoảng 44×44 px")
+test('360px: nút Tải lại cao ≥ 44px, dải nằm trên header không đè', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await loginControlledBySw(page);
+  await deployNewVersion(page);
+  const prompt = page.getByTestId('update-prompt');
+  await expect(prompt).toBeVisible({ timeout: 15_000 });
+  await expectTapTarget(prompt.getByRole('button', { name: 'Tải lại' }));
+  const promptBox = await prompt.boundingBox();
+  const headerBox = await page.getByRole('banner').boundingBox();
+  expect((promptBox?.y ?? 0) + (promptBox?.height ?? 0)).toBeLessThanOrEqual(headerBox?.y ?? 0);
 });
 
 test('đang nhập phiếu thì hỏi trước khi tải lại; Huỷ thì giữ nguyên chỗ đang nhập', async ({ page }) => {
