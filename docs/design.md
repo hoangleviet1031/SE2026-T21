@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.61 (2026-10-30)
+- **Phiên bản:** 0.5.62 (2026-10-30)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -95,6 +95,7 @@
 | 0.5.59 | 2026-10-30 | Trả tech-debt N21 (không ticket, TV1-12 (b), Dương chốt 2026-10-30): "← Quay lại", "Tổ chức khác…", [Xử lý] cao 44px; link tên app ở header và "Cần xử lý xung đột" nới vùng bấm lên 44px mà nhìn không đổi (`styles.css`); ▲▼ ở builder giữ 34px; §11.3 ghi N21 đã trả ở màn hình 2–9 |
 | 0.5.60 | 2026-10-30 | Trả tech-debt N22 (không ticket, TV1-12 (b), Dương chốt 2026-10-30): ngăn kéo menu mở thì dải cập nhật, header, nội dung có `inert` (`App.tsx`); đóng bằng Esc, nền mờ, chọn mục thì bỏ inert trước rồi con trỏ về nút Menu; rộng lên ≥ 1024px thì ngăn kéo đóng (`useNavMenu`, `matchMedia`); §14 ghi thêm |
 | 0.5.61 | 2026-10-30 | [Tải lại] ở dải cập nhật (§4.3) cao 44px thay 40px (không ticket, không số nợ, TV1-12 (b), Dương chốt 2026-10-30; phát hiện ở #110); §11.3 ghi vào danh sách "Đạt" |
+| 0.5.62 | 2026-10-30 | Tự lưu chữ đang gõ ở màn hình 4 (Could, ngoài MVP, Dương chốt 2026-10-30), phần 1: §1 thêm dòng MoSCoW; §4.1 "Bộ đệm đang nhập" (meta `typing:<recordId>`, không tạo op, hỏi khôi phục, gộp theo trường khi phiếu bị đổi); §4.2 ghi khoá meta mới; §4.3 hộp hỏi Tải lại đổi chữ, ghi bộ đệm trước khi tải lại; §5.1 bộ đệm không phải trạng thái |
 
 ## Mục lục
 
@@ -155,6 +156,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Danh sách phiếu (§4.8) | Nhóm theo form, nhãn trạng thái, lọc theo trạng thái; tìm theo tiêu đề, lọc theo người tạo, 2.000 phiếu cuộn mượt. | Must (lọc theo trạng thái); tìm kiếm, lọc người tạo, 2.000 phiếu: Could (TV2-18) |
 | Khả năng tiếp cận (§11.3) | Rà nhãn ô nhập, trạng thái không chỉ bằng màu, tương phản, bàn phím. | Could (TV3-15) |
 | Log và theo dõi (§12) | Một dòng log mỗi request, không ghi token. | Could (TV2-19) |
+| Tự lưu chữ đang gõ (§4.1) | Chữ chưa bấm Lưu ở màn hình 4 được giữ trên máy; tải lại hay app bị tắt thì mở lại phiếu hỏi khôi phục. | Could (Dương chốt 2026-10-30, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
 **Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
@@ -404,6 +406,11 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
 
   Với `photo` bắt buộc: chỉ cần ảnh đã lưu trên máy là hợp lệ; ảnh chưa upload xong **không** làm phiếu thành nháp (việc upload là của §5.6). Option bị bỏ khỏi form ở phiên bản mới không làm phiếu cũ thành lỗi, vì phiếu luôn validate theo `formVersion` của chính nó.
 - Phiếu đã từng lên server mà bị sửa thành không hợp lệ cũng thành `draft`: bản trên server giữ nguyên, thay đổi cục bộ được giữ và không bị pull ghi đè (ADR quy tắc 8).
+- **Bộ đệm đang nhập** (Could, Dương chốt 2026-10-30; `client/src/typingBuffer.ts`, `client/src/db/typingBuffer.ts`): chữ đang gõ ở màn hình 4 mà chưa bấm Lưu được tự ghi vào `meta` `typing:<recordId>` (§4.2) sau 1 s ngừng gõ và ngay khi trang bị ẩn. Bộ đệm không phải phiếu: không đổi `syncState`, không tạo, sửa hay xoá op, không lên server, không chặn Đăng xuất (Đăng xuất xoá CSDL dự án thì mất theo).
+  - Chỉ ghi khi chữ khác bản đã nạp vào form; ô rỗng (`''`, `[]`, `null`, thiếu) coi như nhau, xoá một giá trị cũ vẫn là thay đổi. Phiếu đang `conflict` (chỉ đọc) không ghi thêm; phần đã gõ trước lúc phiếu thành chỉ đọc (đồng bộ chạy nền) vẫn được ghi khi ẩn hay rời trang.
+  - Mở lại phiếu có bộ đệm thì hỏi [Khôi phục] / [Bỏ], form khoá tới khi chọn; không tự điền. Bộ đệm trùng phiếu (máy tắt giữa lúc Lưu và lúc xoá bộ đệm) thì bỏ, không hỏi. Phiếu đã bị xoá thì chỉ có [Bỏ].
+  - Phiếu bị đổi trong lúc chưa Lưu (pull bản của máy khác): [Khôi phục] gộp theo trường bằng `threeWayMerge` với gốc là bản đã nạp lúc gõ (ADR 0001 quy tắc 5). Trường cả hai cùng sửa giữ bản mới và hiện chữ đã gõ để người dùng nhập lại nếu cần, không tự chọn hộ (bất biến 1).
+  - Lưu (cả nháp) hay Xoá phiếu thì xoá bộ đệm; "← Quay lại" giữ. Ảnh đã chọn nằm sẵn trong `attachments` (§5.6) nên bộ đệm chỉ giữ id ảnh. Bấm [Tải lại] ở dải cập nhật (§4.3) thì ghi nốt bộ đệm rồi mới tải lại.
 
 **Tiêu chí chấp nhận**
 - Giám sát viên tạo form 7 loại trường, lưu, điều tra viên thấy form sau lần đồng bộ kế tiếp.
@@ -431,7 +438,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 | `outbox` | `++seq`, unique `opId`, index `recordId`, `nextAttemptAt` | Thao tác chờ gửi (§5.2) |
 | `conflicts` | `recordId` | Bản server, lịch sử, kết quả merge chờ người dùng |
 | `attachments` | `id`, index `recordId`, `uploadState`, `nextAttemptAt` | Blob ảnh, chunk đã upload, trạng thái retry (§5.6) |
-| `meta` | `key` | `pull: { cursor, scope }` (§5.5), ... |
+| `meta` | `key` | `pull: { cursor, scope }` (§5.5); `typing:<recordId>: { formId, formVersion, data, base, savedAt }` bộ đệm đang nhập (§4.1, `savedAt` giờ thiết bị chỉ để hiển thị) |
 
 - **Dự án đang chọn:** lưu trong `account` (`currentProjectId`). Chưa chọn lần nào, hoặc dự án đã chọn không còn active (đã rời), thì dùng dự án active đầu tiên trong `projects` (thứ tự `/me`); không có dự án active nào thì không mở CSDL dự án nào (`client/src/projects.ts`, `resolveCurrentProjectId`).
 - **Đổi dự án:** UI đóng CSDL cũ, mở CSDL của dự án mới; mọi `liveQuery` chỉ chạy trên CSDL đang mở, nên không thể hiển thị lẫn dữ liệu hai dự án.
@@ -448,7 +455,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - **Precache** toàn bộ app shell (HTML, JS, CSS, icon). Điều hướng bất kỳ (trừ `/api/`) trả `index.html` khi offline.
 - **Runtime cache** `GET /api/projects/*/forms` và `GET /api/me` theo NetworkFirst (timeout 3s). Dữ liệu phiếu **không** cache qua SW vì nguồn là IndexedDB.
 - **Không đụng tới trang quản trị:** `/admin/` nằm trong `navigateFallbackDenylist` (regex `/^\/admin(\/|$)/`, khớp cả `/admin` không có `/`; thiếu thì SW trả `index.html` của PWA trước khi request tới Caddy) và không có trong precache, để trang quản trị luôn lấy bản mới từ server và không chạy offline (§4.9). Có code (TV1-16): `globIgnores` loại `admin/**` và entry `assets/admin-*`; chunk dùng chung cho cả hai trang (`assets/shared-*`: React, `shared/`…) vẫn precache vì app khảo sát cần. vite-plugin-pwa chèn `<link rel="manifest">` vào mọi trang nên `vite.config.ts` có plugin nhỏ bỏ thẻ này khỏi `admin/index.html`.
-- **Cập nhật phiên bản app:** dùng `registerType: 'prompt'`: khi có SW mới, hiện dải "Có phiên bản mới" với nút [Tải lại] (`client/src/components/UpdatePrompt.tsx`); không tự reload. Đang ở trang nhập phiếu thì hỏi "Phiếu đang nhập chưa lưu sẽ mất. Tải lại?" trước. Trình duyệt kiểm bản mới khi mở trang; app kiểm thêm mỗi 60 phút vì app đã cài thường mở cả ngày.
+- **Cập nhật phiên bản app:** dùng `registerType: 'prompt'`: khi có SW mới, hiện dải "Có phiên bản mới" với nút [Tải lại] (`client/src/components/UpdatePrompt.tsx`); không tự reload. Đang ở trang nhập phiếu thì hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?" trước, ghi nốt bộ đệm đang nhập (§4.1) rồi mới tải lại. Trình duyệt kiểm bản mới khi mở trang; app kiểm thêm mỗi 60 phút vì app đã cài thường mở cả ngày.
 - **Lần cài đầu:** `clientsClaim` để SW nắm luôn trang đang mở (rời mạng ngay sau lần mở đầu vẫn tải lại được). Không có `skipWaiting`, nên bản cập nhật vẫn chờ người dùng bấm Tải lại. Lần deploy đầu tiên sau khi đổi từ `autoUpdate` thì SW cũ vẫn tự thay như trước.
 - **Đồng bộ nền:** sync engine chạy trong trang (§5.3). Background Sync API chỉ có trên Chromium nên là tuỳ chọn nâng cao, không phải yêu cầu.
 - **Hướng dẫn cài:** trang Cài đặt có mục "Cài lên màn hình chính" cho Android (Chrome) và iPhone (Safari); app đang chạy ở chế độ đã cài (`display-mode: standalone` hoặc `navigator.standalone` trên iOS) thì chỉ ghi "Đã cài lên màn hình chính." (ui.md màn hình 8).
@@ -599,6 +606,7 @@ stateDiagram-v2
 - `conflict`: phiếu chỉ đọc cho tới khi giải quyết (§4.5).
 - `error`: op ở trạng thái `failed` (lần bị `4xx` tính là một lần gửi, `attempts + 1`). Sửa phiếu thì op `failed` bị bỏ và dữ liệu mới đi trong một op mới với `opId` mới, không dùng lại key cho dữ liệu khác (CLAUDE.md bất biến 3; an toàn vì server không lưu key cho response lỗi). Bấm "Thử lại" thì gửi lại đúng op đó (cùng `opId`, cùng dữ liệu, giữ `attempts`).
 - Nhãn hiển thị tách khỏi `syncState`: phiếu `synced` nhưng còn ảnh chưa lên hiện "Đang tải ảnh (n)" (§5.6).
+- Bộ đệm đang nhập (§4.1) không phải một trạng thái: phiếu giữ nguyên `syncState` cho tới khi người dùng bấm Lưu.
 
 ### 5.2 Outbox
 
