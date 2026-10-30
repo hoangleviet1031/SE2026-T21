@@ -87,6 +87,47 @@ test('đang nhập phiếu thì hỏi trước khi tải lại; Huỷ thì giữ
   await expect(page.locator('input[name=householdName]')).toHaveValue('');
 });
 
+// Tự lưu chờ 1 s ngừng gõ (design §4.1): bấm Tải lại ngay sau khi gõ thì app phải ghi nốt bộ đệm rồi mới tải lại
+test('gõ xong bấm Tải lại ngay: tải lại xong vẫn khôi phục được đúng chữ vừa gõ', async ({ page }) => {
+  await loginControlledBySw(page);
+  await page.reload();
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await deployNewVersion(page);
+  await expect(page.getByTestId('update-prompt')).toBeVisible({ timeout: 15_000 });
+
+  // SW mới mất hơn 1 s mới nắm trang, lúc đó tự lưu cũng đã kịp ghi: nên ghi lại bộ đệm đã có chưa ngay lúc
+  // app gửi SKIP_WAITING cho SW mới (bước đầu của tải lại), cất ở localStorage để đọc sau khi trang tải lại
+  const id = page.url().split('/').pop() ?? '';
+  await page.evaluate((recordId) => {
+    const send = ServiceWorker.prototype.postMessage;
+    ServiceWorker.prototype.postMessage = function (
+      this: ServiceWorker,
+      ...args: [unknown, (Transferable[] | StructuredSerializeOptions)?]
+    ) {
+      const open = indexedDB.open('field-survey-p-demo-yte');
+      open.onsuccess = () => {
+        const read = open.result.transaction('meta').objectStore('meta').get(`typing:${recordId}`);
+        read.onsuccess = () => {
+          localStorage.setItem('e2e-typing-at-skip', String(read.result !== undefined));
+          open.result.close();
+          Reflect.apply(send, this, args);
+        };
+      };
+    };
+  }, id);
+
+  await page.locator('input[name=householdName]').fill('Vừa gõ xong');
+  await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
+  await answerConfirm(page, 'Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?', 'Tải lại');
+  await expect(page.getByTestId('update-prompt')).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('e2e-typing-at-skip'))).toBe('true');
+
+  const restore = page.getByTestId('typing-restore');
+  await expect(restore).toBeVisible();
+  await restore.getByRole('button', { name: 'Khôi phục' }).click();
+  await expect(page.locator('input[name=householdName]')).toHaveValue('Vừa gõ xong');
+});
+
 test('manifest có icon PNG 192 và 512, trang có apple-touch-icon', async ({ page }) => {
   await page.goto('/');
   const href = await page.locator('link[rel=manifest]').getAttribute('href');
