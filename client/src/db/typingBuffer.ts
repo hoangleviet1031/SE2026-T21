@@ -5,10 +5,17 @@ import type { ProjectDb } from './projectDb';
 // schema, Đăng xuất hay "Xoá khỏi máy" xoá CSDL thì mất theo. Mỗi lần ghi là một transaction riêng, không
 // nằm chung với lưu phiếu hay vòng pull.
 
-const key = (recordId: string) => `typing:${recordId}`;
+const PREFIX = 'typing:';
+const key = (recordId: string) => `${PREFIX}${recordId}`;
 
 export async function getTypingBuffer(db: ProjectDb, recordId: string): Promise<TypingBuffer | undefined> {
   return (await db.meta.get(key(recordId)))?.value as TypingBuffer | undefined;
+}
+
+/** Mọi bộ đệm của dự án, cho dải "Phiếu đang nhập dở" ở trang chủ */
+export async function listTypingBuffers(db: ProjectDb): Promise<{ recordId: string; buffer: TypingBuffer }[]> {
+  const rows = await db.meta.where('key').startsWith(PREFIX).toArray();
+  return rows.map((r) => ({ recordId: r.key.slice(PREFIX.length), buffer: r.value as TypingBuffer }));
 }
 
 export async function putTypingBuffer(db: ProjectDb, recordId: string, buffer: TypingBuffer): Promise<void> {

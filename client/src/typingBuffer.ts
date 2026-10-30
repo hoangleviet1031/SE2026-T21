@@ -1,4 +1,6 @@
 import { threeWayMerge, valuesEqual, type FieldValue, type FormSchema, type RecordData } from '@field-survey/shared';
+import { latestForms } from './formDisplay';
+import { recordTitle } from './recordList';
 
 // Bộ đệm chữ đang gõ ở màn hình 4 (design §4.1 "Bộ đệm đang nhập", ui.md màn hình 4). Hàm thuần, không I/O;
 // đọc ghi CSDL ở db/typingBuffer.ts. Bộ đệm không phải phiếu: không đổi syncState, không tạo op (bất biến 2, 3).
@@ -77,4 +79,38 @@ export function keptFieldLine(form: FormSchema, kept: KeptField): string {
   if (isEmpty(kept.typed)) return `${label}: bạn đã để trống`;
   const text = Array.isArray(kept.typed) ? kept.typed.join(', ') : String(kept.typed);
   return `${label}: bạn đã nhập "${text}"`;
+}
+
+/** Một dòng ở dải "Phiếu đang nhập dở, chưa lưu" trên trang chủ (ui.md màn hình 2) */
+export interface UnsavedRecord {
+  id: string;
+  formId: string;
+  title: string;
+  formTitle: string;
+  savedAt: string;
+}
+
+/**
+ * Phiếu mới gõ dở mà chưa Lưu lần nào: không có trong danh sách phiếu nên app bị tắt rồi mở lại thì chỉ tới được
+ * qua dải này (design §4.8). Phiếu đã có trên máy thì mở từ danh sách như thường. Form không còn trên máy thì ẩn,
+ * vì mở ra chỉ được "Không tìm thấy biểu mẫu." mà không có [Bỏ]. Bộ đệm mới gõ lên trên; savedAt là giờ máy,
+ * chỉ để xếp cho chính máy này xem (không so thứ tự với server, CLAUDE.md bất biến 4).
+ */
+export function unsavedNewRecords(
+  buffers: readonly { recordId: string; buffer: TypingBuffer }[],
+  recordIds: ReadonlySet<string>,
+  forms: readonly FormSchema[],
+): UnsavedRecord[] {
+  const latest = new Map(latestForms(forms).map((f) => [f.id, f]));
+  return buffers
+    .filter(({ recordId, buffer }) => !recordIds.has(recordId) && latest.has(buffer.formId))
+    .map(({ recordId, buffer }) => ({
+      id: recordId,
+      formId: buffer.formId,
+      // Tiêu đề theo bản form của bộ đệm như luật tiêu đề ở §4.8; tên form theo bản mới nhất
+      title: recordTitle({ formId: buffer.formId, formVersion: buffer.formVersion, data: buffer.data }, forms),
+      formTitle: latest.get(buffer.formId)?.title ?? '',
+      savedAt: buffer.savedAt,
+    }))
+    .sort((a, b) => b.savedAt.localeCompare(a.savedAt));
 }

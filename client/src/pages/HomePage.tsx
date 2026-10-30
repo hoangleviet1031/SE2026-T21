@@ -19,6 +19,8 @@ import { statusIcon } from '../statusIcon';
 import { formTone, latestForms } from '../formDisplay';
 import { editedAtFormatter, groupRecordsByForm, recordTitle } from '../recordList';
 import { Icon } from '../components/Icon';
+import { listTypingBuffers } from '../db/typingBuffer';
+import { unsavedNewRecords } from '../typingBuffer';
 
 export function HomePage() {
   const db = useCurrentProjectDb();
@@ -72,6 +74,9 @@ function ProjectHome({ db }: { db: ProjectDb }) {
   // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
   const warnings = useLiveQuery(async () => staleWarnings(await db.outbox.toArray(), Date.now()), [db]);
   const shownForms = latestForms(forms);
+  // Phiếu mới gõ dở chưa Lưu lần nào (design §4.8, tự lưu ở §4.1): app bị tắt rồi mở lại vẫn tìm được đường về
+  const typingBuffers = useLiveQuery(() => listTypingBuffers(db), [db]) ?? [];
+  const unsaved = unsavedNewRecords(typingBuffers, new Set(records.map((r) => r.id)), forms);
 
   return (
     <>
@@ -84,6 +89,27 @@ function ProjectHome({ db }: { db: ProjectDb }) {
         <p className="warning" role="status">
           ⚠ Máy chủ đang lỗi, sẽ thử lại
         </p>
+      )}
+      {unsaved.length > 0 && (
+        <section className="unsaved" aria-labelledby="unsaved-title" data-testid="typing-unsaved">
+          <h2 id="unsaved-title">Phiếu đang nhập dở, chưa lưu</h2>
+          <ul>
+            {unsaved.map((u) => (
+              <li key={u.id}>
+                {/* Mở phiếu thì màn hình 4 hỏi Khôi phục / Bỏ; không có Bỏ ở đây để tránh mất nhầm */}
+                <a href={`#/fill/${u.formId}/${u.id}`}>
+                  <span className="t">{u.title}</span>
+                  <span className="m">
+                    {u.formTitle}
+                    <span aria-hidden="true"> · </span>
+                    {editedAt(u.savedAt)}
+                  </span>
+                  <Icon name="right" className="go" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
       <section>
         <div className="sec">
