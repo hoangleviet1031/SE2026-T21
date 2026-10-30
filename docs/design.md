@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.58 (2026-10-30)
+- **Phiên bản:** 0.5.59 (2026-10-30)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -92,6 +92,7 @@
 | 0.5.56 | 2026-10-29 | Trả tech-debt N16, N17 (không ticket, TV1-12 (b), Dương chốt 2026-10-29): ô nhập đang có con trỏ viền đen + quầng vàng, ô đang báo lỗi giữ viền đỏ; ô "+ Chụp ảnh" có vòng focus quanh cả ô (ui.md "Hệ thống thiết kế" 0.2.34); §11.3 ghi N16, N17 đã trả. Chỉ đổi CSS |
 | 0.5.57 | 2026-10-29 | Trả tech-debt N19 (không ticket, TV1-12 (b), Dương chốt 2026-10-29): ngăn kéo menu giữ con trỏ có code (`NavMenu.tsx`: Tab ở mục cuối về mục đầu, Shift+Tab ngược lại, con trỏ ở ngoài thì Tab về mục đầu); §14 bỏ "chưa có code", §11.3 ghi N19 đã trả |
 | 0.5.58 | 2026-10-30 | Trả tech-debt N20 (không ticket, TV1-12 (b), Dương chốt 2026-10-30): mục menu đang ở có vạch trái đậm và chữ đậm ngoài nền vàng (`styles.css`); §11.3 ghi N20 đã trả ở màn hình 2, 6, 8, 9 |
+| 0.5.59 | 2026-10-30 | Trả tech-debt N21 (không ticket, TV1-12 (b), Dương chốt 2026-10-30): "← Quay lại", "Tổ chức khác…", [Xử lý] cao 44px; link tên app ở header và "Cần xử lý xung đột" nới vùng bấm lên 44px mà nhìn không đổi (`styles.css`); ▲▼ ở builder giữ 34px; §11.3 ghi N21 đã trả ở màn hình 2–9 |
 
 ## Mục lục
 
@@ -1192,19 +1193,19 @@ Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chi
 | Màn hình | Nhãn ô nhập | Không chỉ bằng màu | Tương phản chữ | Cỡ nút | Bàn phím |
 |---|---|---|---|---|---|
 | 1 Đăng nhập / Tạo tài khoản | Đạt | Đạt | Đạt | Đạt | Chưa: N16 (đã trả, #107) |
-| 2 Danh sách phiếu | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Xoá khỏi máy), N19 (đã trả, #108) |
-| 3 Xung đột | Đạt | Đạt | Đạt | Chưa: N21 | Đạt |
-| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N17 (đã trả, #107), N18 (đã trả, #106) (Xoá phiếu) |
-| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N17 (đã trả, #107) (xem trước) |
-| 6 Thành viên | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Rút, đổi vai trò), N19 (đã trả, #108) |
-| 8 Cài đặt | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Đăng xuất), N19 (đã trả, #108) |
-| 9 Tổ chức | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 | Chưa: N16 (đã trả, #107), N19 (đã trả, #108) |
+| 2 Danh sách phiếu | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Xoá khỏi máy), N19 (đã trả, #108) |
+| 3 Xung đột | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #110) | Đạt |
+| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N17 (đã trả, #107), N18 (đã trả, #106) (Xoá phiếu) |
+| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N17 (đã trả, #107) (xem trước) |
+| 6 Thành viên | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Rút, đổi vai trò), N19 (đã trả, #108) |
+| 8 Cài đặt | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Đăng xuất), N19 (đã trả, #108) |
+| 9 Tổ chức | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N19 (đã trả, #108) |
 | Dải cập nhật, Trình duyệt không được hỗ trợ | – | Đạt | Đạt | Đạt | Chưa: N18 (đã trả, #106) (Tải lại) |
 | A0–A3 trang quản trị | Đạt | Đạt | Đạt | Không xét | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (A2 Khoá; A3 Khoá, Cấp lại mật khẩu) |
 
 - **Cách rà:** script Playwright chạy một lần (không commit) trên bản build và server in-memory, Chromium ở bề ngang 360px và 1280px, đi qua từng màn hình ở các trạng thái chính (rỗng, có phiếu, nháp, xung đột, offline, hộp xác nhận mở, builder xem trước). Script đo tên truy cập của mọi ô nhập, tỉ lệ tương phản của mọi đoạn chữ đang hiện (màu lấy từ style thật, trộn các lớp nền bán trong suốt), kích thước mọi phần tử bấm được, thứ tự Tab, viền focus, Esc ở hộp thoại. Chỗ nghi ngờ xem lại bằng ảnh chụp. Chưa thử trình đọc màn hình thật (TalkBack; VoiceOver ở N13).
 - **Đạt, ghi để khỏi rà lại:** mọi ô nhập có `<label>`. Nhãn trạng thái phiếu có chữ và biểu tượng, bộ lọc đang chọn có dấu tích, trạng thái mạng có chữ và chấm đặc/rỗng, dự án đang chọn có dấu tích, trường đang chọn ở builder và mục menu đang ở có vạch trái và chữ đậm (mục menu từ #109, N20). Mọi chữ trên nút và nội dung đang dùng được ≥ 4,5:1; viền ô nhập `--field` 3,6:1 (đủ 3:1 cho viền điều khiển). Dòng phiếu cao khoảng 46px nhờ link tên phủ cả dòng. Thứ tự Tab theo thứ tự trên màn hình (máy tính: thanh bên rồi mới tới nội dung). Hộp xác nhận nhận Esc = Huỷ, focus đầu vào [Huỷ], Tab chỉ đi trong hộp. Ngăn kéo menu đóng bằng Esc thì con trỏ về nút Menu.
-- **Không tính là chưa đạt:** chữ trên nút đang khoá (`--disabled-ink` trên `--chip` 3,96:1; ▲▼ khoá ở builder 2,03:1; [Đồng bộ] lúc offline 3,58:1), vì WCAG 1.4.3 không áp cho thành phần đang khoá và nút khoá có lý do đọc kèm (ui.md). Trang quản trị không xét cỡ nút 44px vì bố cục cho máy tính (ui.md); nút trong bảng cao 40px. Phiếu chưa có tên đọc ra mã phiếu là nợ N11 (đã trả, #105) (luật tiêu đề §4.8), không tính lại ở đây.
+- **Không tính là chưa đạt:** chữ trên nút đang khoá (`--disabled-ink` trên `--chip` 3,96:1; ▲▼ khoá ở builder 2,03:1; [Đồng bộ] lúc offline 3,58:1), vì WCAG 1.4.3 không áp cho thành phần đang khoá và nút khoá có lý do đọc kèm (ui.md). Trang quản trị không xét cỡ nút 44px vì bố cục cho máy tính (ui.md); nút trong bảng cao 40px. ▲▼ ở builder giữ rộng 34px (cao 44px) theo ui.md "▲▼ hẹp" (Dương chốt 2026-10-30, N21): đã có tay nắm ⠿ 44×44 để đổi thứ tự, và 34px vẫn trên mức AA 24px của WCAG 2.2. Phiếu chưa có tên đọc ra mã phiếu là nợ N11 (đã trả, #105) (luật tiêu đề §4.8), không tính lại ở đây.
 
 ### 11.4 Kịch bản chất lượng
 
