@@ -75,14 +75,14 @@ test('đang nhập phiếu thì hỏi trước khi tải lại; Huỷ thì giữ
 
   // Huỷ (hoặc Esc) thì giữ nguyên phần đang gõ
   await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
-  await answerConfirm(page, 'Phiếu đang nhập chưa lưu sẽ mất. Tải lại?', 'Huỷ');
+  await answerConfirm(page, 'Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?', 'Huỷ');
   await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
-  await answerConfirm(page, 'Phiếu đang nhập chưa lưu sẽ mất. Tải lại?', 'Esc');
+  await answerConfirm(page, 'Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?', 'Esc');
   await expect(page.locator('input[name=householdName]')).toHaveValue('Đang gõ dở');
   await expect(page.getByTestId('update-prompt')).toBeVisible();
 
   await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
-  await answerConfirm(page, 'Phiếu đang nhập chưa lưu sẽ mất. Tải lại?', 'Tải lại');
+  await answerConfirm(page, 'Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?', 'Tải lại');
   await expect(page.getByTestId('update-prompt')).toHaveCount(0);
   await expect(page.locator('input[name=householdName]')).toHaveValue('');
 });

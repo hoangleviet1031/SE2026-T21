@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.11 (2026-10-29)
+- **Phiên bản:** 0.12 (2026-10-30)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -28,7 +28,8 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tôi đã lưu 10 phiếu khi offline, **when** có mạng trở lại, **then** server có đủ 10 phiếu, mỗi phiếu version 1, và nhãn đổi thành "Đã đồng bộ".
 - **Given** còn phiếu chưa gửi, **when** tôi đóng tab rồi mở lại, **then** phiếu vẫn còn và tự đồng bộ khi có mạng.
 - **Given** còn dữ liệu chưa gửi ở bất kỳ dự án nào, **when** tôi mở Cài đặt, **then** nút Đăng xuất bị khoá và đọc kèm lý do; lúc bấm [Đăng xuất] trong hộp xác nhận mới thấy còn dữ liệu chưa gửi (vd. tab khác vừa lưu) thì báo "⚠ Còn dữ liệu chưa gửi ở dự án …", không xoá phiếu, CSDL dự án hay cache `me`/`forms`.
-- **Given** đang ở trang nhập phiếu, **when** có phiên bản mới và tôi bấm [Tải lại], **then** app hỏi "Phiếu đang nhập chưa lưu sẽ mất. Tải lại?"; Huỷ thì giữ nguyên chỗ đang nhập.
+- **Given** đang ở trang nhập phiếu, **when** có phiên bản mới và tôi bấm [Tải lại], **then** app hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?"; Huỷ thì giữ nguyên chỗ đang nhập.
+- (Could) **Given** tôi đang gõ phiếu mà chưa bấm Lưu, **when** trang bị tải lại hoặc tôi bấm "← Quay lại" rồi mở lại phiếu, **then** app hỏi [Khôi phục] / [Bỏ]; Khôi phục thì có lại chữ đã gõ (cả ảnh đã chọn), trong lúc đó phiếu không đổi trạng thái và không có op nào; phiếu đã bị sửa ở nơi khác thì trường cả hai cùng sửa giữ bản mới và hiện chữ tôi đã gõ.
 - **Given** tôi lưu phiếu (kể cả nháp), **when** lưu xong, **then** app xin trình duyệt giữ bộ nhớ (`storage.persist()`); **given** trình duyệt thiếu API bắt buộc (vd. Web Locks), **when** mở app, **then** hiện "Trình duyệt không được hỗ trợ" thay cho app.
 
 ### US-02 · Lưu nháp khi phiếu chưa đủ · Must
@@ -163,7 +164,8 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | 10 phiếu offline lên đủ, version 1 | O2 `offline-install.spec.ts` | TV1-11 (#43) |
 | US-01 | Đóng tab vẫn đồng bộ | O4 `offline-install.spec.ts` | TV1-11 (#43) |
 | US-01 | Còn dữ liệu chưa gửi → Đăng xuất bị khoá/bị chặn, không xoá gì | `settings.spec.ts` (Đăng xuất bị khoá, đồng bộ xong tự mở; nút khoá đọc kèm lý do; đang hỏi Đăng xuất mà tab khác lưu phiếu thì báo ⚠, không xoá CSDL và cache; bị chặn thì cache `me`/`forms` còn nguyên) | TV1-07 (#20, #28); TV1-12 (sau audit UI); không ticket (#102) |
-| US-01 | Có bản mới khi đang nhập → hỏi trước khi tải lại | `update.spec.ts` | TV1-07 (#27) |
+| US-01 | Có bản mới khi đang nhập → hỏi trước khi tải lại | `update.spec.ts` | TV1-07 (#27); câu hỏi đổi khi có bộ đệm (#PR) |
+| US-01 | Chữ đang gõ được giữ, mở lại hỏi khôi phục, không tạo op; gộp theo trường khi phiếu bị đổi (Could) | `typing-buffer.spec.ts`; unit `needsBuffer`, `restorePlan`, `keptFieldLine` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p1 (#PR) |
 | US-01 | Lưu phiếu thì xin giữ bộ nhớ; thiếu Web Locks → "Trình duyệt không được hỗ trợ" | `browser-support.spec.ts`; unit `browserSupport.test.ts` | TV1-07 (#28) |
 | US-02 | Nháp không lên server; sửa đủ thì đồng bộ | O5 `draft.spec.ts`; unit `shared/src/recordValidation.test.ts` | TV1-05 (#7, #17) |
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
@@ -237,3 +239,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.9 | 2026-10-28 | Rà truy vết (không ticket, Dương chốt 2026-10-28), chỉ thêm tiêu chí cho hành vi đã có code và test: US-07 thêm tiêu chí xuất/nhập form (Could, TV1-10); US-08 thêm tiêu chí xuất JSON (Should, TV3-09); US-01 thêm tiêu chí Đăng xuất bị khoá/bị chặn khi còn dữ liệu chưa gửi, hỏi trước khi tải lại bản mới, xin giữ bộ nhớ và trình duyệt không hỗ trợ (TV1-07); phần Đăng xuất của `settings.spec.ts` chuyển từ dòng US-10 sang US-01; dòng US-13 ghi PR giao diện #99 |
 | 0.10 | 2026-10-29 | Thêm US-14 "Danh sách phiếu" (Must, không ticket, Dương chốt 2026-10-26) cùng dòng truy vết: nhóm theo form và tiêu đề phiếu, giờ sửa (tech-debt N10, N11), bộ lọc trạng thái (TV3-07), câu khi rỗng (TV1-12), phiếu đã xoá ẩn trừ khi xung đột; K2 thêm US-14 (phiếu xung đột hiện ở "Cần xử lý"). Lọc theo người tạo, ô tìm kiếm (TV2-18) chưa có code nên chưa có tiêu chí |
 | 0.11 | 2026-10-29 | Trả tech-debt N18: dòng truy vết US-06 (Huỷ/Esc ở hộp Xoá phiếu) và US-12 (A2 Khoá) thêm ca con trỏ về nút đã mở hộp |
+| 0.12 | 2026-10-30 | Tự lưu chữ đang gõ (Could, Dương chốt 2026-10-30): US-01 thêm tiêu chí và dòng truy vết; câu hỏi Tải lại ở màn hình 4 đổi chữ |

@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-30 | — | feat | Tự lưu chữ đang gõ ở màn hình 4, phần 1 (Could): bộ đệm meta `typing:<id>`, mở lại hỏi Khôi phục/Bỏ, gộp theo trường khi phiếu bị đổi, không tạo op; hộp Tải lại đổi chữ | PR #PR | chờ review |
+| 2026-10-30 | — | docs | PR #113 đã merge | PR #113 | xong |
 | 2026-10-30 | — | docs | Trạng thái TV1-12 trong plan: nối N10, N11, N16–N22, [Tải lại] kèm PR; còn N13 | PR #113 | chờ review |
 | 2026-10-30 | — | fix | PR #112 đã merge | PR #112 | xong |
 | 2026-10-30 | — | fix | Nút [Tải lại] ở dải "Có phiên bản mới" cao 44px thay 40px (phát hiện ở #110) | PR #112 | chờ review |
