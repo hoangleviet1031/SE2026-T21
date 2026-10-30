@@ -83,7 +83,8 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .nav-backdrop { position: fixed; inset: 0; z-index: 19; background: rgba(31, 30, 27, .4); }
 .sidenav a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 14px; border-radius: var(--r-btn); font-weight: 600; text-decoration: none; }
 .sidenav a:hover { background: var(--sunken); }
-.sidenav a[aria-current="page"] { background: var(--hl); }
+/* Vạch trái và chữ đậm như dòng đang chọn ở builder, để không chỉ phân biệt bằng màu nền (design §11.3, tech-debt N20) */
+.sidenav a[aria-current="page"] { background: var(--hl); box-shadow: inset 4px 0 0 var(--btn); font-weight: 700; }
 @keyframes nav-in { from { transform: translateX(-100%); } }
 @media (prefers-reduced-motion: reduce) { .sidenav.open { animation: none; } }
 @media (min-width: 1024px) {
