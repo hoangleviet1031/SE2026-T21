@@ -1298,7 +1298,7 @@ Rủi ro của sản phẩm và cách giảm. Chỗ spec đã chốt mà code ho
 | Xoá phiếu (P6)? | Xoá hẳn nếu chưa thể tới server, tombstone nếu có thể đã tới (§5.7). Phân công: TV2-13 (logic và đồng bộ, Hoàng), TV1-13 (nút xoá và hộp xác nhận, Dương) (nhóm, 2026-10-10) |
 | API kiểm thử chung (P8)? | Một API dùng chung gồm `match`, `chunkIndex`, `400`, `stats` (§10.1); không ticket nào tự thêm mode riêng vào `faults.ts` (TV2 và TV3, 2026-10-10) |
 | Tài khoản, Owner, trang quản trị (P9)? | Theo [ADR 0003](adr/0003-accounts-and-owner-role.md), chấp nhận 2026-10-12 (PR #21). Spec đã cập nhật với nhãn 🆕/🕘; ticket nhóm "Theo ADR 0003" ở [plan/](plan/README.md) |
-| Ngăn kéo menu có giữ con trỏ không? | Có: lúc ngăn kéo mở, Tab và Shift+Tab chỉ đi trong ngăn kéo như hộp thoại, vì con trỏ ra nội dung sau nền mờ thì người dùng bàn phím và trình đọc màn hình lạc chỗ (ui.md menu điều hướng; Đại, TV3-15, 2026-10-29; có code từ #108, tech-debt N19). Phần trang phía sau nền mờ có `inert` để trình đọc màn hình cũng không ra được; rộng lên ≥ 1024px thì ngăn kéo đóng (#PR, tech-debt N22) |
+| Ngăn kéo menu có giữ con trỏ không? | Có: lúc ngăn kéo mở, Tab và Shift+Tab chỉ đi trong ngăn kéo như hộp thoại, vì con trỏ ra nội dung sau nền mờ thì người dùng bàn phím và trình đọc màn hình lạc chỗ (ui.md menu điều hướng; Đại, TV3-15, 2026-10-29; có code từ #108, tech-debt N19). Phần trang phía sau nền mờ có `inert` để trình đọc màn hình cũng không ra được; rộng lên ≥ 1024px thì ngăn kéo đóng (#111, tech-debt N22) |
 
 **Đề xuất đã chốt (lưu lại nội dung gốc)**
 
