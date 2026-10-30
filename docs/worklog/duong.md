@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-30 | — | fix | Mục menu đang ở có vạch trái và chữ đậm, không chỉ nền vàng (N20); ghi nợ N22 (TalkBack ra sau nền mờ, Tab bị giữ khi kéo rộng) | PR #PR | chờ review |
+| 2026-10-30 | — | fix | Mục menu đang ở có vạch trái và chữ đậm, không chỉ nền vàng (N20); ghi nợ N22 (TalkBack ra sau nền mờ, Tab bị giữ khi kéo rộng) | PR #109 | chờ review |
 | 2026-10-30 | — | fix | PR #108 đã merge | PR #108 | xong |
 | 2026-10-29 | — | fix | Ngăn kéo menu giữ con trỏ: Tab, Shift+Tab chỉ quay vòng trong ngăn kéo khi đang mở (N19) | PR #108 | chờ review |
 | 2026-10-29 | — | fix | PR #107 đã merge | PR #107 | xong |

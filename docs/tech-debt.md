@@ -33,7 +33,7 @@ Không ghi vào đây việc vốn đã có ticket từ đầu trong [plan/](pla
 
 | # | Món nợ | Trả ở |
 |---|---|---|
-| N20 | Mục menu đang ở chỉ phân biệt bằng màu nền | `client/src/styles.css` `.sidenav a[aria-current="page"]` thêm vạch trái `inset 4px` màu `--btn` và chữ 700 như `.frow.sel` ở builder, giữ nền `--hl`; E2E `nav-menu.spec.ts` ca mục đang ở ở ngăn kéo 360px và thanh bên 1280px (PR #PR) |
+| N20 | Mục menu đang ở chỉ phân biệt bằng màu nền | `client/src/styles.css` `.sidenav a[aria-current="page"]` thêm vạch trái `inset 4px` màu `--btn` và chữ 700 như `.frow.sel` ở builder, giữ nền `--hl`; E2E `nav-menu.spec.ts` ca mục đang ở ở ngăn kéo 360px và thanh bên 1280px (PR #109) |
 | N19 | Ngăn kéo menu chưa giữ con trỏ | `components/NavMenu.tsx` bắt Tab trong handler phím lúc ngăn kéo mở: Tab ở mục cuối về mục đầu, Shift+Tab ở mục đầu về mục cuối, con trỏ ở ngoài ngăn kéo thì về mục đầu; E2E `nav-menu.spec.ts` ca quay vòng (giám sát viên) và ca điều tra viên (PR #108) |
 | N17 | Ô "+ Chụp ảnh" không có vòng focus | `client/src/styles.css` luật `.photo-add:has(input:focus-visible)` vẽ vòng đen quanh cả ô như `.ck`, `.opt`; xem trước ở màn hình 5 ô ảnh bị khoá nên không nhận con trỏ; E2E `photo.spec.ts` ca N17, `builder.spec.ts` (ô ảnh xem trước khoá) (PR #107) |
 | N16 | Ô nhập đang focus chỉ có quầng vàng nhạt, viền không đổi đen | `client/src/styles.css` nhắc lại viền `--ink` lúc `:focus-visible` cho ô `.field`, `.builder`, `.row-form` (cùng độ cụ thể với luật viền ô); ô `.field.bad` giữ viền đỏ; luật ghi ở ui.md "Hệ thống thiết kế" 0.2.34; E2E `login.spec.ts`, `fill.spec.ts` ca N16 (PR #107) |
