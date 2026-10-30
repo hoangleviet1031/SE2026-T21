@@ -8,7 +8,8 @@ import { ConfirmDialog } from './ConfirmDialog';
 // App đã cài thường mở cả ngày, trình duyệt chỉ tự kiểm bản mới khi điều hướng
 const CHECK_INTERVAL_MS = 60 * 60 * 1000;
 
-export function UpdatePrompt() {
+/** `inert`: ngăn kéo menu đang mở, dải nằm sau nền mờ (tech-debt N22) */
+export function UpdatePrompt({ inert = false }: { inert?: boolean }) {
   const [confirming, setConfirming] = useState(false);
   const {
     needRefresh: [needRefresh],
@@ -36,7 +37,7 @@ export function UpdatePrompt() {
 
   // Nền tối, nằm trên header: khác hẳn banner cảnh báo vàng, không tự ẩn (ui.md "Dải cập nhật app")
   return (
-    <div className="update-prompt" role="status" data-testid="update-prompt">
+    <div className="update-prompt" role="status" data-testid="update-prompt" inert={inert}>
       <span>Có phiên bản mới</span>
       {/* Nội dung đang gõ ở trang nhập phiếu chỉ nằm trong state React, tải lại là mất: hỏi trước */}
       <button onClick={() => (location.hash.startsWith('#/fill/') ? setConfirming(true) : reload())}>Tải lại</button>

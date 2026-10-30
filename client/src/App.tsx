@@ -55,9 +55,11 @@ export function App() {
 
   return (
     <div className="app">
-      <UpdatePrompt />
+      {/* Ngăn kéo mở thì phần trang sau nền mờ có inert: không bấm, không Tab tới, trình đọc màn hình không vuốt ra
+          được (ui.md "Menu điều hướng", tech-debt N22). Không đặt lên <nav> */}
+      <UpdatePrompt inert={menu.open} />
       {/* Menu, Đồng bộ là biểu tượng + chữ nhỏ bên dưới để tên app không bị cắt ở 360px */}
-      <header className="hdr">
+      <header className="hdr" inert={menu.open}>
         {navId && <MenuButton open={menu.open} onToggle={menu.toggle} buttonRef={menu.buttonRef} />}
         <span className="logo">
           <Icon name="logo" />
@@ -82,7 +84,7 @@ export function App() {
             onClose={menu.close}
           />
         )}
-        <div className="page">
+        <div className="page" inert={menu.open}>
           {/* Hàng riêng dưới header: header đã kín chỗ ở bề ngang 360px */}
           <ProjectSwitcher />
           <main>

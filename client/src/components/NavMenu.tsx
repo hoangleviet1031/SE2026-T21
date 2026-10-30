@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { flushSync } from 'react-dom';
 import type { NavId, NavItem } from '../navMenu';
 import { Icon } from './Icon';
 
@@ -8,7 +9,7 @@ import { Icon } from './Icon';
 const MENU_ID = 'app-menu';
 
 /**
- * Đổi route bằng cách khác (nút Back, trình đọc màn hình bấm link sau nền mờ) thì đóng ngăn kéo, không kéo con trỏ đi:
+ * Đổi route bằng cách khác (nút Back của máy) thì đóng ngăn kéo, không kéo con trỏ đi:
  * nếu không, quay lại trang có menu thì ngăn kéo tự mở lại và giật con trỏ vào mục đầu.
  */
 export function useNavMenu(route: string) {
@@ -19,11 +20,23 @@ export function useNavMenu(route: string) {
     setOpen(false);
   }
   const buttonRef = useRef<HTMLButtonElement>(null);
-  // Đóng xong trả con trỏ về nút ☰ để người dùng bàn phím, trình đọc màn hình không bị lạc
+  // Đóng xong trả con trỏ về nút ☰ để người dùng bàn phím, trình đọc màn hình không bị lạc. Header còn inert
+  // lúc ngăn kéo mở (tech-debt N22) thì nút không nhận con trỏ, nên vẽ lại cho hết inert trước rồi mới focus
   const close = useCallback(() => {
-    setOpen(false);
+    flushSync(() => setOpen(false));
     buttonRef.current?.focus();
   }, []);
+  // Màn hình rộng lên ≥1024px (xoay máy, kéo cửa sổ) lúc ngăn kéo mở: thành thanh bên, không giữ Tab nữa.
+  // Cùng mốc với CSS; nút ☰ đã ẩn nên không trả con trỏ về đó
+  useEffect(() => {
+    if (!open) return;
+    const wide = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => {
+      if (wide.matches) setOpen(false);
+    };
+    wide.addEventListener('change', onChange);
+    return () => wide.removeEventListener('change', onChange);
+  }, [open]);
   return { open, toggle: () => setOpen((v) => !v), close, buttonRef };
 }
 

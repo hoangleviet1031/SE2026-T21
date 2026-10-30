@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { createProject, login, setMembership } from './helpers';
 
 // Menu điều hướng (TV1-12, ui.md "Menu điều hướng"): điện thoại có nút Menu mở ngăn kéo, máy tính (≥1024px)
@@ -136,6 +136,61 @@ test('điện thoại 360px: ngăn kéo mở thì Tab, Shift+Tab chỉ quay vòn
   await page.keyboard.press('Tab');
   await expect(first).toBeFocused();
   await expect(nav(page)).toBeVisible();
+});
+
+// Tech-debt N22: lúc ngăn kéo mở, phần trang sau nền mờ có inert để trình đọc màn hình (TalkBack vuốt) không ra được
+const isInert = (target: Locator) => target.evaluate((el) => el.closest('[inert]') !== null);
+async function expectBehindInert(page: Page, inert: boolean) {
+  expect(await isInert(page.getByRole('banner'))).toBe(inert);
+  expect(await isInert(page.getByRole('main'))).toBe(inert);
+  expect(await isInert(page.getByTestId('project-switcher'))).toBe(inert);
+  // Ngăn kéo đóng thì <nav> ẩn hẳn (không có vai trò để tìm), chỉ kiểm lúc mở
+  if (inert) expect(await isInert(nav(page))).toBe(false);
+}
+
+test('điện thoại 360px: ngăn kéo mở thì header, bộ chọn dự án, nội dung có inert; đóng thì hết', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await login(page);
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();
+  await expectBehindInert(page, false);
+
+  await menuButton(page).click();
+  await expect(nav(page)).toBeVisible();
+  await expectBehindInert(page, true);
+  // Esc: bỏ inert trước rồi con trỏ mới về được nút Menu nằm trong header
+  await page.keyboard.press('Escape');
+  await expectClosed(page);
+  await expectBehindInert(page, false);
+
+  await menuButton(page).click();
+  await page.getByTestId('nav-backdrop').click({ position: { x: 340, y: 400 } });
+  await expectClosed(page);
+  await expectBehindInert(page, false);
+
+  await menuButton(page).click();
+  await nav(page).getByRole('link', { name: 'Cài đặt' }).click();
+  await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
+  await expectClosed(page);
+  await expectBehindInert(page, false);
+});
+
+test('ngăn kéo đang mở mà màn hình rộng lên 1280px thì đóng, Tab ra được nội dung', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await login(page);
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();
+  await menuButton(page).click();
+  await expect(nav(page)).toBeVisible();
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  // Nút Menu ẩn ở ≥1024px nhưng vẫn giữ trạng thái mở/đóng
+  await expect(page.getByRole('button', { name: 'Menu', includeHidden: true })).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.getByTestId('nav-backdrop')).toHaveCount(0);
+  await expectBehindInert(page, false);
+  const last = nav(page).getByRole('link', { name: 'Cài đặt' });
+  await last.focus();
+  await page.keyboard.press('Tab');
+  await expect(last).not.toBeFocused();
+  expect(await page.evaluate(() => document.activeElement?.closest('nav') === null && document.activeElement !== document.body)).toBe(true);
 });
 
 test('máy tính 1280px: thanh bên luôn hiện, không có nút Menu', async ({ page }) => {
