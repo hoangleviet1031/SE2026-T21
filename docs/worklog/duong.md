@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-10-30 | — | fix | Đích bấm ≥ 44px: Quay lại, Tổ chức khác…, Xử lý cao 44px; tên app, Cần xử lý xung đột nới vùng bấm, nhìn không đổi; ▲▼ giữ 34px (N21) | PR #PR | chờ review |
+| 2026-10-30 | — | fix | Đích bấm ≥ 44px: Quay lại, Tổ chức khác…, Xử lý cao 44px; tên app, Cần xử lý xung đột nới vùng bấm, nhìn không đổi; ▲▼ giữ 34px (N21) | PR #110 | chờ review |
 | 2026-10-30 | — | fix | PR #109 đã merge | PR #109 | xong |
 | 2026-10-30 | — | fix | Mục menu đang ở có vạch trái và chữ đậm, không chỉ nền vàng (N20); ghi nợ N22 (TalkBack ra sau nền mờ, Tab bị giữ khi kéo rộng) | PR #109 | chờ review |
 | 2026-10-30 | — | fix | PR #108 đã merge | PR #108 | xong |

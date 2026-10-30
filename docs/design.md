@@ -1193,13 +1193,13 @@ Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chi
 | Màn hình | Nhãn ô nhập | Không chỉ bằng màu | Tương phản chữ | Cỡ nút | Bàn phím |
 |---|---|---|---|---|---|
 | 1 Đăng nhập / Tạo tài khoản | Đạt | Đạt | Đạt | Đạt | Chưa: N16 (đã trả, #107) |
-| 2 Danh sách phiếu | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #PR) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Xoá khỏi máy), N19 (đã trả, #108) |
-| 3 Xung đột | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #PR) | Đạt |
-| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #PR) | Chưa: N16 (đã trả, #107), N17 (đã trả, #107), N18 (đã trả, #106) (Xoá phiếu) |
-| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #PR) | Chưa: N16 (đã trả, #107), N17 (đã trả, #107) (xem trước) |
-| 6 Thành viên | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #PR) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Rút, đổi vai trò), N19 (đã trả, #108) |
-| 8 Cài đặt | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #PR) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Đăng xuất), N19 (đã trả, #108) |
-| 9 Tổ chức | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #PR) | Chưa: N16 (đã trả, #107), N19 (đã trả, #108) |
+| 2 Danh sách phiếu | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Xoá khỏi máy), N19 (đã trả, #108) |
+| 3 Xung đột | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #110) | Đạt |
+| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N17 (đã trả, #107), N18 (đã trả, #106) (Xoá phiếu) |
+| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N17 (đã trả, #107) (xem trước) |
+| 6 Thành viên | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Rút, đổi vai trò), N19 (đã trả, #108) |
+| 8 Cài đặt | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Đăng xuất), N19 (đã trả, #108) |
+| 9 Tổ chức | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N19 (đã trả, #108) |
 | Dải cập nhật, Trình duyệt không được hỗ trợ | – | Đạt | Đạt | Đạt | Chưa: N18 (đã trả, #106) (Tải lại) |
 | A0–A3 trang quản trị | Đạt | Đạt | Đạt | Không xét | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (A2 Khoá; A3 Khoá, Cấp lại mật khẩu) |
 
