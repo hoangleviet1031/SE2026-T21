@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-10-30 | — | fix | Nút [Tải lại] ở dải "Có phiên bản mới" cao 44px thay 40px (phát hiện ở #110) | PR #112 | chờ review |
+| 2026-10-30 | — | fix | PR #111 đã merge | PR #111 | xong |
 | 2026-10-30 | — | fix | Ngăn kéo menu mở thì phần trang phía sau có inert (TalkBack không vuốt ra được), rộng lên ≥ 1024px thì ngăn kéo đóng (N22) | PR #111 | chờ review |
 | 2026-10-30 | — | fix | PR #110 đã merge | PR #110 | xong |
 | 2026-10-30 | — | fix | Đích bấm ≥ 44px: Quay lại, Tổ chức khác…, Xử lý cao 44px; tên app, Cần xử lý xung đột nới vùng bấm, nhìn không đổi; ▲▼ giữ 34px (N21) | PR #110 | chờ review |
