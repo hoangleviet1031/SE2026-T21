@@ -200,3 +200,45 @@ async function goConflict(page: Page, context: BrowserContext, request: APIReque
   await context.setOffline(false);
   await expect(recordRow(page, name).getByRole('link', { name: 'Cần xử lý xung đột' })).toBeVisible({ timeout: 15_000 });
 }
+
+// Tự lưu p2 (design §4.8, ui.md màn hình 2): phiếu mới chưa Lưu lần nào không có trong danh sách, app bị tắt
+// rồi mở lại vào trang chủ thì dải "Phiếu đang nhập dở, chưa lưu" dẫn về phiếu đó
+const unsavedStrip = (page: Page) => page.getByTestId('typing-unsaved');
+
+test('phiếu mới gõ dở, mở lại app vào trang chủ: dải dẫn về phiếu, Khôi phục có lại chữ; Lưu xong dải mất', async ({
+  page,
+}) => {
+  await login(page);
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await nameInput(page).fill('Hộ mở lại app');
+  const id = idFromUrl(page);
+  await expectBuffered(page, id, 'householdName', 'Hộ mở lại app');
+
+  // Mở app từ màn hình chính thì vào trang chủ, không phải trang đang nhập
+  await page.goto('/');
+  const strip = unsavedStrip(page);
+  await expect(strip.getByRole('heading', { name: 'Phiếu đang nhập dở, chưa lưu' })).toBeVisible();
+  const link = strip.getByRole('listitem').getByRole('link');
+  await expect(link).toHaveCount(1);
+  await expect(link).toContainText('Hộ mở lại app');
+  await expect(link).toContainText('Khảo sát hộ gia đình');
+
+  await link.click();
+  await banner(page).getByRole('button', { name: 'Khôi phục' }).click();
+  await expect(nameInput(page)).toHaveValue('Hộ mở lại app');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await expect(recordRow(page, 'Hộ mở lại app')).toBeVisible();
+  await expect(unsavedStrip(page)).toHaveCount(0);
+});
+
+test('phiếu đã có trong danh sách mà đang sửa dở thì không lên dải trang chủ', async ({ page }) => {
+  await login(page);
+  const id = await createSynced(page, 'Hộ có sẵn sửa dở');
+  await recordRow(page, 'Hộ có sẵn sửa dở').getByTestId('record-title').click();
+  await membersInput(page).fill('8');
+  await expectBuffered(page, id, 'members', 8);
+
+  await page.goto('/');
+  await expect(recordRow(page, 'Hộ có sẵn sửa dở')).toBeVisible();
+  await expect(unsavedStrip(page)).toHaveCount(0);
+});

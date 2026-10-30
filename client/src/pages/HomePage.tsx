@@ -19,6 +19,8 @@ import { statusIcon } from '../statusIcon';
 import { formTone, latestForms } from '../formDisplay';
 import { editedAtFormatter, groupRecordsByForm, recordTitle } from '../recordList';
 import { Icon } from '../components/Icon';
+import { listTypingBuffers } from '../db/typingBuffer';
+import { unsavedNewRecords } from '../typingBuffer';
 
 export function HomePage() {
   const db = useCurrentProjectDb();
@@ -48,7 +50,8 @@ function ProjectHome({ db }: { db: ProjectDb }) {
   // Sửa form chỉ cho giám sát viên và Owner (ui.md màn hình 2); server cũng chặn (403 forbidden)
   const canManage = project ? canManageProject(project.role) : false;
   const forms = useLiveQuery(async () => db.forms.toArray(), [db]) ?? [];
-  const records = useLiveQuery(async () => db.records.orderBy('updatedAt').reverse().toArray(), [db]) ?? [];
+  const loadedRecords = useLiveQuery(async () => db.records.orderBy('updatedAt').reverse().toArray(), [db]);
+  const records = loadedRecords ?? [];
   // Ảnh theo phiếu để tính nhãn "Đang tải ảnh (n)" / "Lỗi ảnh" (design §5.6)
   const attachments = useLiveQuery(async () => db.attachments.toArray(), [db]) ?? [];
   const photosByRecord = new Map<string, LocalAttachment[]>();
@@ -72,6 +75,11 @@ function ProjectHome({ db }: { db: ProjectDb }) {
   // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
   const warnings = useLiveQuery(async () => staleWarnings(await db.outbox.toArray(), Date.now()), [db]);
   const shownForms = latestForms(forms);
+  // Phiếu mới gõ dở chưa Lưu lần nào (design §4.8, tự lưu ở §4.1): app bị tắt rồi mở lại vẫn tìm được đường về
+  // Chỉ tính khi đã đọc xong cả phiếu lẫn bộ đệm: phiếu chưa đọc xong thì bộ đệm của phiếu đã có sẽ lóe lên dải
+  const typingBuffers = useLiveQuery(() => listTypingBuffers(db), [db]);
+  const unsaved =
+    loadedRecords && typingBuffers ? unsavedNewRecords(typingBuffers, new Set(loadedRecords.map((r) => r.id)), forms) : [];
 
   return (
     <>
@@ -84,6 +92,27 @@ function ProjectHome({ db }: { db: ProjectDb }) {
         <p className="warning" role="status">
           ⚠ Máy chủ đang lỗi, sẽ thử lại
         </p>
+      )}
+      {unsaved.length > 0 && (
+        <section className="unsaved" aria-labelledby="unsaved-title" data-testid="typing-unsaved">
+          <h2 id="unsaved-title">Phiếu đang nhập dở, chưa lưu</h2>
+          <ul>
+            {unsaved.map((u) => (
+              <li key={u.id}>
+                {/* Mở phiếu thì màn hình 4 hỏi Khôi phục / Bỏ; không có Bỏ ở đây để tránh mất nhầm */}
+                <a href={`#/fill/${u.formId}/${u.id}`}>
+                  <span className="t">{u.title}</span>
+                  <span className="m">
+                    {u.formTitle}
+                    <span aria-hidden="true"> · </span>
+                    {editedAt(u.savedAt)}
+                  </span>
+                  <Icon name="right" className="go" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
       <section>
         <div className="sec">

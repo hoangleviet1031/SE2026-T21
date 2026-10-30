@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.62 (2026-10-30)
+- **Phiên bản:** 0.5.63 (2026-10-30)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -96,6 +96,7 @@
 | 0.5.60 | 2026-10-30 | Trả tech-debt N22 (không ticket, TV1-12 (b), Dương chốt 2026-10-30): ngăn kéo menu mở thì dải cập nhật, header, nội dung có `inert` (`App.tsx`); đóng bằng Esc, nền mờ, chọn mục thì bỏ inert trước rồi con trỏ về nút Menu; rộng lên ≥ 1024px thì ngăn kéo đóng (`useNavMenu`, `matchMedia`); §14 ghi thêm |
 | 0.5.61 | 2026-10-30 | [Tải lại] ở dải cập nhật (§4.3) cao 44px thay 40px (không ticket, không số nợ, TV1-12 (b), Dương chốt 2026-10-30; phát hiện ở #110); §11.3 ghi vào danh sách "Đạt" |
 | 0.5.62 | 2026-10-30 | Tự lưu chữ đang gõ ở màn hình 4 (Could, ngoài MVP, Dương chốt 2026-10-30), phần 1: §1 thêm dòng MoSCoW; §4.1 "Bộ đệm đang nhập" (meta `typing:<recordId>`, không tạo op, hỏi khôi phục, gộp theo trường khi phiếu bị đổi); §4.2 ghi khoá meta mới; §4.3 hộp hỏi Tải lại đổi chữ, ghi bộ đệm trước khi tải lại; §5.1 bộ đệm không phải trạng thái |
+| 0.5.63 | 2026-10-30 | Tự lưu chữ đang gõ phần 2 (Could, Dương chốt 2026-10-30): §4.8 dải "Phiếu đang nhập dở, chưa lưu" ở trang chủ cho phiếu mới chưa Lưu lần nào; §4.1 trỏ tới |
 
 ## Mục lục
 
@@ -410,6 +411,7 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
   - Chỉ ghi khi chữ khác bản đã nạp vào form; ô rỗng (`''`, `[]`, `null`, thiếu) coi như nhau, xoá một giá trị cũ vẫn là thay đổi. Phiếu đang `conflict` (chỉ đọc) không ghi thêm; phần đã gõ trước lúc phiếu thành chỉ đọc (đồng bộ chạy nền) vẫn được ghi khi ẩn hay rời trang.
   - Mở lại phiếu có bộ đệm thì hỏi [Khôi phục] / [Bỏ], form khoá tới khi chọn; không tự điền. Bộ đệm trùng phiếu (máy tắt giữa lúc Lưu và lúc xoá bộ đệm) thì bỏ, không hỏi. Phiếu đã bị xoá thì chỉ có [Bỏ].
   - Phiếu bị đổi trong lúc chưa Lưu (pull bản của máy khác): [Khôi phục] gộp theo trường bằng `threeWayMerge` với gốc là bản đã nạp lúc gõ (ADR 0001 quy tắc 5). Trường cả hai cùng sửa giữ bản mới và hiện chữ đã gõ để người dùng nhập lại nếu cần, không tự chọn hộ (bất biến 1).
+  - Phiếu mới chưa Lưu lần nào không có trong danh sách: trang chủ có dải dẫn về (§4.8), để app bị tắt rồi mở lại vẫn tìm được.
   - Lưu (cả nháp) hay Xoá phiếu thì xoá bộ đệm; "← Quay lại" giữ. Ảnh đã chọn nằm sẵn trong `attachments` (§5.6) nên bộ đệm chỉ giữ id ảnh. Bấm [Tải lại] ở dải cập nhật (§4.3) thì ghi nốt bộ đệm rồi mới tải lại.
 
 **Tiêu chí chấp nhận**
@@ -554,6 +556,7 @@ Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), kh
 - **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định, **trừ khi đang `conflict`** (vd. xoá ở máy này, sửa ở máy kia): người dùng phải thấy để xử lý.
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).
+- **Phiếu đang nhập dở** (Could, Dương chốt 2026-10-30; `unsavedNewRecords` ở `client/src/typingBuffer.ts`): phiếu mới có bộ đệm đang nhập (§4.1) mà chưa Lưu lần nào thì không có trong danh sách; trang chủ có dải "Phiếu đang nhập dở, chưa lưu" (dưới banner dự án đã rời và cảnh báo, trên mục Biểu mẫu), mỗi phiếu một dòng dẫn tới màn hình 4, ở đó hỏi Khôi phục / Bỏ. Phiếu đã có trên máy thì mở từ danh sách như thường, không lên dải. Tiêu đề theo luật ở trên với bản form của bộ đệm; bộ đệm có form không còn trên máy thì ẩn. Sắp bộ đệm mới gõ lên trên theo giờ máy, chỉ để hiển thị. Không có nút Bỏ ở trang chủ.
 - **Chưa có phiếu nào** (kể cả phiếu đã xoá đang ẩn): "Chưa có phiếu nào." và ẩn bộ lọc (TV1-12 b2). Có phiếu mà bộ lọc ra rỗng: giữ bộ lọc, báo "Không có phiếu nào ở trạng thái này."
 
 ### 4.9 Trang quản trị (ADR 0003 §8; có code)

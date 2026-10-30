@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FormSchema } from '@field-survey/shared';
-import { keptFieldLine, needsBuffer, restorePlan, type TypingBuffer } from './typingBuffer';
+import { keptFieldLine, needsBuffer, restorePlan, unsavedNewRecords, type TypingBuffer } from './typingBuffer';
 
 const buffer = (data: TypingBuffer['data'], base: TypingBuffer['base'] = {}): TypingBuffer => ({
   formId: 'household-survey',
@@ -95,5 +95,46 @@ describe('keptFieldLine', () => {
     expect(keptFieldLine(form, { field: 'photo', typed: ['a'] })).toBe('Ảnh nhà: bạn đã chọn ảnh khác');
     expect(keptFieldLine(form, { field: 'gps', typed: { lat: 1, lng: 2 } })).toBe('Vị trí: bạn đã lấy vị trí khác');
     expect(keptFieldLine(form, { field: 'name', typed: undefined })).toBe('Tên hộ: bạn đã để trống');
+  });
+});
+
+describe('unsavedNewRecords', () => {
+  const v1: FormSchema = { id: 'hh', version: 1, title: 'Hộ gia đình', fields: [{ id: 'name', type: 'text', label: 'Tên' }] };
+  // Bản 2 ẩn trường tên và đổi tên form: tiêu đề vẫn theo bản của bộ đệm, tên form theo bản mới nhất
+  const v2: FormSchema = {
+    id: 'hh',
+    version: 2,
+    title: 'Hộ gia đình (2)',
+    fields: [
+      { id: 'name', type: 'text', label: 'Tên', hidden: true },
+      { id: 'note', type: 'text', label: 'Ghi chú' },
+    ],
+  };
+  const typed = (data: TypingBuffer['data'], savedAt: string, formId = 'hh', formVersion = 1) => ({
+    ...buffer(data),
+    formId,
+    formVersion,
+    savedAt,
+  });
+
+  it('chỉ phiếu mới chưa có trên máy, form còn trên máy; mới gõ lên trên', () => {
+    const rows = unsavedNewRecords(
+      [
+        { recordId: 'a', buffer: typed({ name: 'An' }, '2026-10-30T07:00:00.000Z') },
+        { recordId: 'b', buffer: typed({}, '2026-10-30T08:00:00.000Z') },
+        { recordId: 'saved', buffer: typed({ name: 'Đã lưu' }, '2026-10-30T09:00:00.000Z') },
+        { recordId: 'orphan', buffer: typed({ name: 'Mất form' }, '2026-10-30T09:30:00.000Z', 'gone') },
+      ],
+      new Set(['saved']),
+      [v1, v2],
+    );
+    expect(rows).toEqual([
+      { id: 'b', formId: 'hh', title: 'Phiếu chưa có tên', formTitle: 'Hộ gia đình (2)', savedAt: '2026-10-30T08:00:00.000Z' },
+      { id: 'a', formId: 'hh', title: 'An', formTitle: 'Hộ gia đình (2)', savedAt: '2026-10-30T07:00:00.000Z' },
+    ]);
+  });
+
+  it('không có bộ đệm nào thì rỗng', () => {
+    expect(unsavedNewRecords([], new Set(), [v1])).toEqual([]);
   });
 });
