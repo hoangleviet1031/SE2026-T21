@@ -150,6 +150,37 @@ test('máy tính 1280px: thanh bên luôn hiện, không có nút Menu', async (
   await expect(nav(page).getByRole('link', { name: 'Thành viên' })).toHaveAttribute('aria-current', 'page');
 });
 
+// Tech-debt N20 (design §11.3 "không chỉ bằng màu"): mục đang ở có vạch trái và chữ đậm, không chỉ nền vàng
+test('mục đang ở có vạch trái và chữ đậm hơn mục khác, ở cả ngăn kéo 360px và thanh bên 1280px', async ({ page }) => {
+  const look = (name: string) =>
+    nav(page)
+      .getByRole('link', { name })
+      .evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { shadow: style.boxShadow, weight: Number(style.fontWeight) };
+      });
+  const expectMarked = async () => {
+    await expect(nav(page).getByRole('link', { name: 'Phiếu' })).toHaveAttribute('aria-current', 'page');
+    const current = await look('Phiếu');
+    const other = await look('Tổ chức');
+    expect(current.shadow).toContain('inset');
+    expect(other.shadow).not.toContain('inset');
+    expect(current.weight).toBeGreaterThan(other.weight);
+  };
+
+  await page.setViewportSize({ width: 360, height: 740 });
+  await login(page);
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();
+  await menuButton(page).click();
+  await expect(nav(page)).toBeVisible();
+  await expectMarked();
+
+  await page.keyboard.press('Escape');
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(nav(page)).toBeVisible();
+  await expectMarked();
+});
+
 test('máy tính 1280px: màn hình điền phiếu không có thanh bên, thanh đầu cùng bề rộng với trang chủ', async ({
   page,
   request,
