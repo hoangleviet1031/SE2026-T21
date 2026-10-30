@@ -50,7 +50,8 @@ function ProjectHome({ db }: { db: ProjectDb }) {
   // Sửa form chỉ cho giám sát viên và Owner (ui.md màn hình 2); server cũng chặn (403 forbidden)
   const canManage = project ? canManageProject(project.role) : false;
   const forms = useLiveQuery(async () => db.forms.toArray(), [db]) ?? [];
-  const records = useLiveQuery(async () => db.records.orderBy('updatedAt').reverse().toArray(), [db]) ?? [];
+  const loadedRecords = useLiveQuery(async () => db.records.orderBy('updatedAt').reverse().toArray(), [db]);
+  const records = loadedRecords ?? [];
   // Ảnh theo phiếu để tính nhãn "Đang tải ảnh (n)" / "Lỗi ảnh" (design §5.6)
   const attachments = useLiveQuery(async () => db.attachments.toArray(), [db]) ?? [];
   const photosByRecord = new Map<string, LocalAttachment[]>();
@@ -75,8 +76,10 @@ function ProjectHome({ db }: { db: ProjectDb }) {
   const warnings = useLiveQuery(async () => staleWarnings(await db.outbox.toArray(), Date.now()), [db]);
   const shownForms = latestForms(forms);
   // Phiếu mới gõ dở chưa Lưu lần nào (design §4.8, tự lưu ở §4.1): app bị tắt rồi mở lại vẫn tìm được đường về
-  const typingBuffers = useLiveQuery(() => listTypingBuffers(db), [db]) ?? [];
-  const unsaved = unsavedNewRecords(typingBuffers, new Set(records.map((r) => r.id)), forms);
+  // Chỉ tính khi đã đọc xong cả phiếu lẫn bộ đệm: phiếu chưa đọc xong thì bộ đệm của phiếu đã có sẽ lóe lên dải
+  const typingBuffers = useLiveQuery(() => listTypingBuffers(db), [db]);
+  const unsaved =
+    loadedRecords && typingBuffers ? unsavedNewRecords(typingBuffers, new Set(loadedRecords.map((r) => r.id)), forms) : [];
 
   return (
     <>
