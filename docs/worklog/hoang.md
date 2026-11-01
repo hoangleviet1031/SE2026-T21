@@ -12,6 +12,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-01 | TV2-19 | fix | JSON sai cú pháp trả `400 invalid_body`; log request có cấu trúc, không ghi token/thân; integration test và typecheck xanh | `feat/tv2-19-request-logging` | chờ review |
 | 2026-10-25 | TV2-11 | test | Merge `main` (gỡ xung đột playwright.config, design, worklog; design lên 0.5.48); sửa bộ đo theo bộ chọn dự án mới; đo lại §11.2 trên giao diện mới: 2,3 s / 211 ms / 246 ms (CPU ×4: 9,6 s / 880 ms / 559 ms), danh sách CPU ×4 sát ngưỡng, ghi cho TV2-18 | nhánh `feat/tv2-11-perf`, `docs/perf.md` | chờ review |
 | 2026-10-18 | TV2-11 | test | Đo §11.2: pull 5.000 phiếu 2,3 s, danh sách 2.000 phiếu 123 ms, đổi dự án 128 ms (CPU ×4: 9,1 s / 498 ms / 316 ms); `seed:perf`, `npm run test:perf`, test EXPLAIN QUERY PLAN | nhánh `feat/tv2-11-perf`, `docs/perf.md` | chờ review |
 | 2026-10-18 | TV2-17 | feat | `GET /admin/users?q=`, `POST /admin/users/:id/disable | reset-password | revoke-sessions` dùng chung hàm `repo/users.ts` với CLI; `409 self_action`; kiểu `AdminUser`; test 3 thao tác, 403, mật khẩu tạm chỉ trả một lần | nhánh `feat/tv2-17-admin-users` | chờ review |

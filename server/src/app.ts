@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type ErrorRequestHandler, type RequestHandler } from 'express';
 import cors from 'cors';
 import type { Db } from './db';
 import { createAuth } from './auth';
@@ -13,8 +13,42 @@ import { attachmentsRouter } from './routes/attachments';
 import { membersRouter, settingsRouter } from './routes/members';
 import { createUploadStore } from './uploads';
 import { exportRouter } from './routes/export';
-import { faultInjector, faultsRouter, requestLogger } from './routes/faults';
+import { faultInjector, faultsRouter, requestLogger as testRequestLogger } from './routes/faults';
 import { testMembershipsRouter } from './routes/testMemberships';
+
+const requestLogger: RequestHandler = (req, res, next) => {
+  const startedAt = process.hrtime.bigint();
+  const method = req.method;
+  const path = req.originalUrl.split('?')[0] ?? req.originalUrl;
+  let logged = false;
+
+  const logRequest = (status: number) => {
+    if (logged) return;
+    logged = true;
+    const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+    console.log(
+      JSON.stringify({
+        method,
+        path,
+        status,
+        durationMs: Math.round(durationMs * 100) / 100,
+        userId: req.user?.id ?? null,
+      }),
+    );
+  };
+
+  res.once('finish', () => logRequest(res.statusCode));
+  // Kết nối bị ngắt không có mã HTTP cuối cùng, nhưng vẫn cần một dòng log.
+  res.once('close', () => logRequest(res.writableFinished ? res.statusCode : 0));
+  next();
+};
+
+const jsonParseErrorHandler: ErrorRequestHandler = (error: unknown, _req, res, next) => {
+  if (typeof error === 'object' && error !== null && 'type' in error && error.type === 'entity.parse.failed') {
+    return void res.status(400).json({ error: 'invalid_body' });
+  }
+  next(error);
+};
 
 // Bật chủ động: quên cấu hình thì route tiêm lỗi tắt, kể cả khi quên đặt NODE_ENV. Xem docs/design.md §9.
 export function testRoutesEnabled(env: NodeJS.ProcessEnv): boolean {
@@ -30,6 +64,7 @@ export function createApp(
   // tần suất theo IP đếm đúng người dùng (ADR 0003 §1). Request đến thẳng cổng 3001 từ máy khác
   // thì header này bị bỏ qua.
   app.set('trust proxy', 'loopback');
+  app.use(requestLogger);
   app.use(cors());
   app.use(express.json({ limit: '2mb' }));
 
@@ -41,7 +76,7 @@ export function createApp(
     app.use('/api/__test', faultsRouter());
     app.use('/api/__test', testMembershipsRouter(db));
     // Nhật ký trước bộ tiêm lỗi để ghi được cả request bị cắt kết nối (design §10.1).
-    app.use('/api/projects', requestLogger);
+    app.use('/api/projects', testRequestLogger);
     app.use('/api/projects/:projectId', faultInjector);
   }
 
@@ -73,5 +108,6 @@ export function createApp(
     requireMember('supervisor'),
     exportRouter(db, opts.publicBaseUrl ?? 'http://localhost:3001'),
   );
+  app.use(jsonParseErrorHandler);
   return app;
 }

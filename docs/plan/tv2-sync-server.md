@@ -342,7 +342,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-m
 
 ## TV2-19 · Thân JSON hỏng trả `invalid_body`; log request
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ Integration test và typecheck xanh; chờ review/staging
 - **Mức:** Should (`invalid_body`); Could (log request, **cắt được**)
 - **Tuần:** 4–5 (`invalid_body`), 5–6 (log, trễ thì cắt) · **Phụ thuộc:** không
 - **Spec:** design §7.1, §8, §12 (log và theo dõi); [tech-debt](../tech-debt.md) N1

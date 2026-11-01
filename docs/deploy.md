@@ -478,6 +478,13 @@ Kiểm như mục "Kiểm tra sau khi triển khai", rồi mở một phiếu c�
 
 ## Xem log, xử lý sự cố
 
+Mỗi request API có một dòng JSON trong stdout của `survey-api`, được systemd lưu trong journal. Dòng log có `method`, `path` (không gồm query string), `status`, `durationMs` và `userId` (`null` nếu chưa xác thực); không ghi `Authorization` hay thân request. Xem request gần đây hoặc lỗi 5xx:
+
+```bash
+journalctl -u survey-api -o cat --since "15 min ago" --no-pager | grep '"path"' | tail -50
+journalctl -u survey-api -o cat --since "15 min ago" --no-pager | grep '"status":5[0-9][0-9]'
+```
+
 | Triệu chứng | Lệnh xem |
 |---|---|
 | API lỗi, trang báo mất kết nối | `journalctl -u survey-api -n 50 --no-pager` |
