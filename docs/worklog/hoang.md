@@ -12,6 +12,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-01 | TV2-12 | docs | Rà ADR 0001–0003 với luồng đang chạy; viết sơ đồ lifecycle một op và hướng dẫn thêm route dự án an toàn; không phát hiện quyết định mới cần sửa ADR | PR #119, `docs/sync-internals.md` | chờ review |
 | 2026-11-01 | TV2-19 | fix | JSON sai cú pháp trả `400 invalid_body`; log request có cấu trúc, không ghi token/thân; integration test và typecheck xanh | `feat/tv2-19-request-logging` | chờ review |
 | 2026-10-25 | TV2-11 | test | Merge `main` (gỡ xung đột playwright.config, design, worklog; design lên 0.5.48); sửa bộ đo theo bộ chọn dự án mới; đo lại §11.2 trên giao diện mới: 2,3 s / 211 ms / 246 ms (CPU ×4: 9,6 s / 880 ms / 559 ms), danh sách CPU ×4 sát ngưỡng, ghi cho TV2-18 | nhánh `feat/tv2-11-perf`, `docs/perf.md` | chờ review |
 | 2026-10-18 | TV2-11 | test | Đo §11.2: pull 5.000 phiếu 2,3 s, danh sách 2.000 phiếu 123 ms, đổi dự án 128 ms (CPU ×4: 9,1 s / 498 ms / 316 ms); `seed:perf`, `npm run test:perf`, test EXPLAIN QUERY PLAN | nhánh `feat/tv2-11-perf`, `docs/perf.md` | chờ review |
