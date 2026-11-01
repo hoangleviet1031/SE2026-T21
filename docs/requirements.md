@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.13 (2026-10-30)
+- **Phiên bản:** 0.14 (2026-11-01)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -200,7 +200,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-09 | Đổi tổ chức offline ≤ 1 s, không lẫn | T6, T10 `projects.spec.ts`; `project-switcher.spec.ts` | TV1-06 (#23), TV1-11 (#43) |
 | US-09 | Người ngoài không gọi được route nào | T1–T5 `server/test/isolation.test.ts` | TV3-04 (#29) |
 | US-09 | Bị rút còn phiếu chưa gửi | T7, T8, T9 `membership.spec.ts` | TV2-07 (#14), TV1-06 (#23) |
-| US-10 | Tạo tài khoản, tải lại vẫn đăng nhập | U1 `accounts.test.ts`; U7 `login.spec.ts` (cả mất mạng nền vàng, lỗi nhập chữ đỏ, tab công tắc); `settings.spec.ts` (thanh dung lượng, TV1-12 sau audit UI; phần Đăng xuất ở US-01); unit `usagePercent` (`formatBytes.test.ts`); `headings.spec.ts` (tiêu đề trang màn 8 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV2-14 (#36), TV1-14 (#53); giao diện TV1-12 (b2 p6) |
+| US-10 | Tạo tài khoản, tải lại vẫn đăng nhập | U1 `accounts.test.ts`; U7 `login.spec.ts` (cả mất mạng nền vàng, lỗi nhập chữ đỏ, tab công tắc; phím ←/→/Home/End giữa hai tab và câu lỗi gắn ô, design §11.3), unit `tabForKey`, `registerProblem`, `accountErrorFields` (`loginForm.test.ts`); `settings.spec.ts` (thanh dung lượng, TV1-12 sau audit UI; phần Đăng xuất ở US-01); unit `usagePercent` (`formatBytes.test.ts`); `headings.spec.ts` (tiêu đề trang màn 8 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV2-14 (#36), TV1-14 (#53); giao diện TV1-12 (b2 p6); tab và lỗi gắn ô TV1-12 (#PR) |
 | US-10 | Trùng tên → `409 username_taken` | U2 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Sai 11 lần → `429` | U4 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Phiên bị thu hồi → về Đăng nhập, báo hết phiên, giữ dữ liệu | `api-errors.spec.ts` (cả hết phiên + mất mạng chỉ một dải) | TV1-12 (#62, b2) |
@@ -243,3 +243,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.11 | 2026-10-29 | Trả tech-debt N18: dòng truy vết US-06 (Huỷ/Esc ở hộp Xoá phiếu) và US-12 (A2 Khoá) thêm ca con trỏ về nút đã mở hộp |
 | 0.12 | 2026-10-30 | Tự lưu chữ đang gõ (Could, Dương chốt 2026-10-30): US-01 thêm tiêu chí và dòng truy vết; câu hỏi Tải lại ở màn hình 4 đổi chữ |
 | 0.13 | 2026-10-30 | Tự lưu phần 2 (Could): US-01 thêm tiêu chí dải "Phiếu đang nhập dở" ở trang chủ và dòng truy vết |
+| 0.14 | 2026-11-01 | US-10 dòng truy vết thêm ca bàn phím hai tab và câu lỗi gắn ô ở màn hình 1 (TV1-12, design §11.3) |

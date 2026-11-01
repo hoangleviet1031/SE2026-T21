@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { accountErrorMessage, blockedMessage, exportResultText, loginReady, registerError } from './loginForm';
+import {
+  accountErrorFields,
+  accountErrorMessage,
+  blockedMessage,
+  exportResultText,
+  loginReady,
+  registerError,
+  registerProblem,
+  tabForKey,
+} from './loginForm';
 
 const ok = { username: 'minh.nguyen_2', name: 'Minh', password: '12345678', password2: '12345678' };
 
@@ -49,6 +58,54 @@ describe('registerError', () => {
 
   it('nhập lại không khớp', () => {
     expect(registerError({ ...ok, password2: '12345679' })).toBe('Mật khẩu nhập lại không khớp');
+  });
+});
+
+// Ô gắn với câu lỗi để trình đọc màn hình đọc khi tới ô (design §11.3)
+describe('registerProblem', () => {
+  it('gắn lỗi vào đúng ô, cùng câu với registerError', () => {
+    expect(registerProblem(ok)).toBeNull();
+    expect(registerProblem({ ...ok, username: 'ab' })).toEqual({
+      text: 'Tên đăng nhập chỉ gồm chữ thường, số, dấu . và _ (3–32 ký tự)',
+      fields: ['username'],
+    });
+    expect(registerProblem({ ...ok, name: ' ' })).toEqual({ text: 'Nhập tên hiển thị', fields: ['name'] });
+    expect(registerProblem({ ...ok, name: 'a'.repeat(101) })?.fields).toEqual(['name']);
+    expect(registerProblem({ ...ok, password: '1234567', password2: '1234567' })?.fields).toEqual(['password']);
+    expect(registerProblem({ ...ok, password2: '12345679' })).toEqual({
+      text: 'Mật khẩu nhập lại không khớp',
+      fields: ['password2'],
+    });
+  });
+
+  it('nhiều ô sai thì chỉ báo ô đầu tiên, theo thứ tự trên màn hình', () => {
+    expect(registerProblem({ username: 'ab', name: '', password: '1', password2: '2' })?.fields).toEqual(['username']);
+  });
+});
+
+describe('accountErrorFields', () => {
+  it('sai tên hoặc mật khẩu gắn cả hai ô; lỗi không thuộc ô nào thì không gắn', () => {
+    expect(accountErrorFields('invalid_credentials')).toEqual(['username', 'password']);
+    expect(accountErrorFields('username_taken')).toEqual(['username']);
+    expect(accountErrorFields('too_many_requests')).toEqual([]);
+    expect(accountErrorFields('invalid_body')).toEqual([]);
+  });
+});
+
+describe('tabForKey', () => {
+  it('mũi tên sang tab kia (vòng lại), Home tab đầu, End tab cuối', () => {
+    expect(tabForKey('login', 'ArrowRight')).toBe('register');
+    expect(tabForKey('register', 'ArrowRight')).toBe('login');
+    expect(tabForKey('login', 'ArrowLeft')).toBe('register');
+    expect(tabForKey('register', 'ArrowLeft')).toBe('login');
+    expect(tabForKey('register', 'Home')).toBe('login');
+    expect(tabForKey('login', 'End')).toBe('register');
+  });
+
+  it('phím khác không đổi tab', () => {
+    expect(tabForKey('login', 'Tab')).toBeNull();
+    expect(tabForKey('login', 'ArrowDown')).toBeNull();
+    expect(tabForKey('login', 'Enter')).toBeNull();
   });
 });
 
