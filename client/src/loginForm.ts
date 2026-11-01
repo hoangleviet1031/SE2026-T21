@@ -11,6 +11,8 @@ import type { AccountErrorCode } from './sync/api';
 
 export const OFFLINE_MSG = 'Cần kết nối mạng';
 
+export type LoginTab = 'login' | 'register';
+
 export interface LoginInput {
   username: string;
   password: string;
@@ -31,18 +33,64 @@ export function loginReady({ username, password }: LoginInput): boolean {
   return username.trim() !== '' && password !== '';
 }
 
-/** Lỗi đầu tiên của form Tạo tài khoản, hoặc null nếu gửi được. */
-export function registerError({ username, name, password, password2 }: RegisterInput): string | null {
+/** Ô của màn hình 1 mà một lỗi gắn vào, để trình đọc màn hình đọc câu lỗi khi tới ô (design §11.3). */
+export type LoginField = 'username' | 'name' | 'password' | 'password2';
+
+export interface FieldProblem {
+  text: string;
+  fields: LoginField[];
+}
+
+/** Lỗi đầu tiên của form Tạo tài khoản kèm ô bị lỗi, hoặc null nếu gửi được. */
+export function registerProblem({ username, name, password, password2 }: RegisterInput): FieldProblem | null {
   if (!USERNAME_PATTERN.test(username.trim().toLowerCase())) {
-    return 'Tên đăng nhập chỉ gồm chữ thường, số, dấu . và _ (3–32 ký tự)';
+    return { text: 'Tên đăng nhập chỉ gồm chữ thường, số, dấu . và _ (3–32 ký tự)', fields: ['username'] };
   }
-  if (name.trim() === '') return 'Nhập tên hiển thị';
-  if (name.trim().length > DISPLAY_NAME_MAX_LENGTH) return `Tên hiển thị tối đa ${DISPLAY_NAME_MAX_LENGTH} ký tự`;
+  if (name.trim() === '') return { text: 'Nhập tên hiển thị', fields: ['name'] };
+  if (name.trim().length > DISPLAY_NAME_MAX_LENGTH) {
+    return { text: `Tên hiển thị tối đa ${DISPLAY_NAME_MAX_LENGTH} ký tự`, fields: ['name'] };
+  }
   if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
-    return `Mật khẩu cần từ ${PASSWORD_MIN_LENGTH} đến ${PASSWORD_MAX_LENGTH} ký tự`;
+    return { text: `Mật khẩu cần từ ${PASSWORD_MIN_LENGTH} đến ${PASSWORD_MAX_LENGTH} ký tự`, fields: ['password'] };
   }
-  if (password !== password2) return 'Mật khẩu nhập lại không khớp';
+  if (password !== password2) return { text: 'Mật khẩu nhập lại không khớp', fields: ['password2'] };
   return null;
+}
+
+/** Lỗi đầu tiên của form Tạo tài khoản, hoặc null nếu gửi được. */
+export function registerError(input: RegisterInput): string | null {
+  return registerProblem(input)?.text ?? null;
+}
+
+/**
+ * Ô gắn với lỗi của server. Sai tên hoặc mật khẩu thì gắn cả hai ô vì server không nói ô nào sai;
+ * quá số lần và invalid_body không phải lỗi của một ô.
+ */
+export function accountErrorFields(code: AccountErrorCode): LoginField[] {
+  switch (code) {
+    case 'invalid_credentials':
+      return ['username', 'password'];
+    case 'username_taken':
+      return ['username'];
+    case 'too_many_requests':
+    case 'invalid_body':
+      return [];
+  }
+}
+
+/** Tab ứng với phím trong hàng tab (←/→ đổi sang tab kia vì chỉ có hai tab), null nếu không phải phím đổi tab. */
+export function tabForKey(current: LoginTab, key: string): LoginTab | null {
+  switch (key) {
+    case 'ArrowLeft':
+    case 'ArrowRight':
+      return current === 'login' ? 'register' : 'login';
+    case 'Home':
+      return 'login';
+    case 'End':
+      return 'register';
+    default:
+      return null;
+  }
 }
 
 /** Câu báo theo mã lỗi của server (design §7.1). */
