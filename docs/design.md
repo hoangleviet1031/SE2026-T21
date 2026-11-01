@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.50 (2026-10-25)
+- **Phiên bản:** 0.5.51 (2026-11-01)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -84,6 +84,7 @@
 | 0.5.48 | 2026-10-25 | TV2-11: đo hiệu năng pull có code (§11.2, [perf.md](perf.md)): pull lần đầu 5.000 phiếu 2,3 s, danh sách 2.000 phiếu 211 ms, đổi dự án 246 ms (CPU ×4: 9,6 s / 880 ms / 559 ms; danh sách sát ngưỡng 1 s, ghi cho TV2-18), đều đạt; đo trên giao diện mới (TV1-12 b2); `EXPLAIN QUERY PLAN` của pull đi theo index có test; bộ đo `npm run test:perf` chạy riêng; lệnh `seed:perf` (§12) và route kiểm thử `POST /api/__test/seed-perf` (§10.1) |
 | 0.5.49 | 2026-10-25 | TV1-16 A3 (Could): màn hình Tài khoản `/admin/#/users` có code (§4.9): mở là tải danh sách, ô tìm theo tên đăng nhập + [Tìm], nhận đủ 50 thì nhắc gõ thêm; bảng như A1/A2; [Khoá] và [Cấp lại mật khẩu] hỏi lại, [Thu hồi phiên] không hỏi; tài khoản đã khoá chỉ hiện trạng thái; mật khẩu tạm ở hàng ngay dưới dòng, mất khi thao tác hay tìm tiếp; `409 self_action` hiện lỗi. Bỏ nhãn 🆕 cuối cùng. Q10 thêm phần A3 (§10.1) |
 | 0.5.50 | 2026-10-25 | TV1-12 sau critique UI (K5), chỉ đổi chữ: nút A2 "Đổi Owner…" thành "Thêm Owner…" (§4.9, §10.1 Q10) vì API chỉ thêm hoặc nâng, Owner cũ vẫn giữ quyền; chữ Dương duyệt 2026-10-24. Không đổi API |
+| 0.5.51 | 2026-11-01 | TV2-19: JSON sai cú pháp trả `400 { error: 'invalid_body' }`; middleware ghi mỗi request một dòng JSON ra stdout (method, path không query, status, thời gian, userId hoặc null), không ghi token hay thân request (§7.1, §12) |
 
 ## Mục lục
 
@@ -1214,7 +1215,7 @@ Người dùng thường tự tạo tài khoản trên app; CLI để tạo admi
 | `npm run seed:perf -w server -- --project <id> --user <username> [--count 5000]` | Thêm phiếu mẫu vào một dự án có sẵn để đo hiệu năng ([perf.md](perf.md)); ghi như `PUT` thật trong một transaction. Từ chối khi `NODE_ENV=production` |
 | ~~`user:rotate-token`~~ | Đã bỏ (không còn token theo người dùng) |
 
-- **Log và theo dõi:** server ghi ra stdout, systemd giữ trong `journalctl -u survey-api`; có `GET /api/health` cho `deploy.sh` và kiểm tra sau deploy. Chưa có log theo request (method, đường dẫn, mã trả về, thời gian, `userId`, không ghi token) và chưa có số liệu lỗi sau deploy ([tech-debt.md](tech-debt.md) N1). Khi làm: một dòng JSON mỗi request bằng middleware trong `app.ts`, không thêm thư viện.
+- **Log và theo dõi:** server ghi ra stdout, systemd giữ trong `journalctl -u survey-api`; middleware trong `app.ts` ghi mỗi request một dòng JSON gồm method, path không có query string, status, `durationMs` và `userId` (hoặc `null` nếu chưa xác thực). Không ghi token hay thân request. Có `GET /api/health` cho `deploy.sh` và kiểm tra sau deploy; chưa có hệ thống tổng hợp số liệu lỗi sau deploy.
 - **Sao lưu:** mỗi ngày `scripts/backup-daily.mjs` (systemd timer) tạo `backup/daily/<ngày giờ>/` gồm `survey.db` và `uploads/`; giữ 7 bản. CSDL chép trước bằng `VACUUM INTO`, ảnh đã ghép chép sau (bỏ chunk `.part`): server ghi file ảnh trước khi ghi dòng `attachments`, nên thứ tự này bảo đảm mọi ảnh bản sao CSDL nhắc tới đều có trong bản sao. Script kiểm từng ảnh đúng cỡ và SHA-256; không qua thì không tạo bản, bản cũ giữ nguyên. `deploy.sh` vẫn sao lưu riêng CSDL trước mỗi lần khởi động lại. Bản sao lưu nằm cùng ổ đĩa, bản ngoài máy là bản kéo tay hằng tuần ([tech-debt.md](tech-debt.md) N9). Cài và khôi phục: [deploy.md](deploy.md) "Sao lưu và khôi phục".
 - **Migration CSDL server:** đánh số trong `db.ts` (`PRAGMA user_version`), chỉ thêm cột/bảng, không sửa câu lệnh cũ. Ngoại lệ đã được nhóm chấp nhận: migration 2 (tạo lại bảng dữ liệu, ADR 0002) và migration 4 (tạo lại `memberships` có chép dữ liệu, ADR 0003 §5).
 - **Trang quản trị** `/admin/` được build cùng `client/dist` (`dist/admin/index.html`); Caddy phục vụ như file tĩnh qua khối `handle /admin/*` riêng (không `try_files`) cùng `redir /admin /admin/ 308`, đặt trước khối PWA: kiểm trên staging (Caddy 2.11.7) cho thấy `try_files {path} /index.html` đưa cả `/admin/` về `/index.html` của PWA dù `admin/index.html` có sẵn. Caddyfile ở [deploy.md](deploy.md) §7. Sau mỗi lần deploy kiểm theo [deploy.md](deploy.md) "Kiểm tra sau khi triển khai".
