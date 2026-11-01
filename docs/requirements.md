@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.14 (2026-11-01)
+- **Phiên bản:** 0.15 (2026-11-01)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -187,7 +187,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-06 | Xoá phiếu đã đồng bộ → tombstone | O8 `delete.spec.ts` | TV2-13 (#35) |
 | US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts`; unit `autoMergedNote` (`client/src/conflictView.test.ts`) | TV3-08 (#47); bỏ câu "đã được gộp" TV1-12 (b2 p3) |
 | US-06 | Điều tra viên không xoá phiếu người khác | `record-owner.spec.ts` | TV1-17 (#44, #45) |
-| US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8; đổi thẳng địa chỉ giữa hai builder hiện đúng form, lưu form mới không thêm version form cũ, TV1-04; chọn/thêm trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu" + ô Mã viền đỏ, câu danh sách trường rỗng, TV1-12 sau audit UI; nền trang trắng, theme-color trắng, gợi ý và mã khoá nền ô chìm, TV1-12 nền trắng); unit `moveFieldTo`, `selectionAfterMove`, `formIdInvalid` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`; điều tra viên thấy form sau vòng đồng bộ ở máy khác: `form-sync.spec.ts`; `headings.spec.ts` (tiêu đề trang màn 5 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-03 (#19), TV1-04 (#24); TV3-14 |
+| US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8; đổi thẳng địa chỉ giữa hai builder hiện đúng form, lưu form mới không thêm version form cũ, TV1-04; chọn/thêm trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu" + ô Mã viền đỏ, câu danh sách trường rỗng, TV1-12 sau audit UI; nền trang trắng, theme-color trắng, gợi ý và mã khoá nền ô chìm, TV1-12 nền trắng; nút ▲▼ có tên kèm nhãn trường, design §11.3); unit `moveFieldTo`, `selectionAfterMove`, `formIdInvalid` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`; điều tra viên thấy form sau vòng đồng bộ ở máy khác: `form-sync.spec.ts`; `headings.spec.ts` (tiêu đề trang màn 5 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-03 (#19), TV1-04 (#24); TV3-14; tên nút ▲▼ TV1-12 (#117) |
 | US-07 | Sửa form lên version mới, phiếu cũ mở bằng version cũ | `builder.spec.ts`, `form-version.spec.ts` | TV1-04 (#24), TV1-10 (#32) |
 | US-07 | Đổi `type`/bỏ trường → `400 invalid_form` | `server/test/forms.test.ts`; unit `formValidation.test.ts` | TV1-03 (#19) |
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |
@@ -212,7 +212,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-11 | Máy chủ lỗi ở Thành viên | `api-errors.spec.ts` (cả Tổ chức, builder lưu form, Xuất) | TV1-12 (#62, #68, b2 p5: Thử lại ngoài vùng alert, Tổ chức ẩn khối công khai) |
 | US-12 | Admin không đọc được dữ liệu | Q7 `projectRequests.test.ts`; T4 `isolation.test.ts`, `admin.test.ts` | TV2-15 (#49) |
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
-| US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Thêm Owner (chữ "Thêm Owner…" TV1-12 sau critique K5), focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại, A1/A2/A3 tải lần đầu lỗi không kẹt "Đang tải…", A2 Khoá Huỷ/Esc thì con trỏ về nút Khoá) | TV1-16 (#55, #56, sửa tải lỗi); giao diện TV1-12 (b2 p7, b2); không ticket, N18 (#106) |
+| US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Thêm Owner (chữ "Thêm Owner…" TV1-12 sau critique K5), focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại, A1/A2/A3 tải lần đầu lỗi không kẹt "Đang tải…", A2 Khoá Huỷ/Esc thì con trỏ về nút Khoá; ô tên A1, A2, A3 là header dòng, nhìn như ô thường, design §11.3) | TV1-16 (#55, #56, sửa tải lỗi); giao diện TV1-12 (b2 p7, b2); không ticket, N18 (#106); header dòng TV1-12 (#117) |
 | US-12 | Từ chối thiếu lý do | Q3 `projectRequests.test.ts` | TV2-15 (#49) |
 | US-12 | Hỗ trợ tài khoản ở A3 | Q10 `admin.spec.ts` (ca A3: cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`; bấm Tìm lúc lần tải đầu chưa về thì bảng chỉ giữ kết quả tìm, N14); API `server/test/admin.test.ts` | TV2-17 (#51), TV1-16 A3, N14 |
 | US-13 | Đổi đúng: mật khẩu mới dùng được, máy khác đăng nhập lại | U8 `accounts.test.ts`; `change-password.spec.ts` (đổi trên màn 8, mật khẩu cũ bị từ chối, mới dùng được, máy này vẫn đăng nhập; Huỷ xoá chữ; offline khoá nút) | không ticket (Dương chốt 2026-10-26): API #98, giao diện #99 |
@@ -244,3 +244,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.12 | 2026-10-30 | Tự lưu chữ đang gõ (Could, Dương chốt 2026-10-30): US-01 thêm tiêu chí và dòng truy vết; câu hỏi Tải lại ở màn hình 4 đổi chữ |
 | 0.13 | 2026-10-30 | Tự lưu phần 2 (Could): US-01 thêm tiêu chí dải "Phiếu đang nhập dở" ở trang chủ và dòng truy vết |
 | 0.14 | 2026-11-01 | US-10 dòng truy vết thêm ca bàn phím hai tab và câu lỗi gắn ô ở màn hình 1 (TV1-12, design §11.3) |
+| 0.15 | 2026-11-01 | US-07 và US-12 dòng truy vết thêm ca tên nút ▲▼ ở builder và header dòng ở A1–A3 (TV1-12, design §11.3) |

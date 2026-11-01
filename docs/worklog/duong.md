@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-01 | — | fix | Màn hình 5 và trang quản trị cho trình đọc màn hình: nút ▲▼ ở builder có tên kèm nhãn trường; ô tên đầu dòng ở A1, A2, A3 là header dòng, nhìn không đổi | PR #117 | chờ review |
+| 2026-11-01 | — | fix | PR #116 đã merge | PR #116 | xong |
 | 2026-11-01 | — | fix | Màn hình 1 cho bàn phím và trình đọc màn hình: hai tab theo mẫu tab WAI-ARIA (←/→/Home/End, khung tabpanel), câu lỗi gắn ô bị lỗi (aria-invalid, aria-describedby); giao diện không đổi | PR #116 | chờ review |
 | 2026-11-01 | — | feat | PR #115 đã merge | PR #115 | xong |
 | 2026-10-30 | — | feat | Tự lưu chữ đang gõ phần 2 (Could): dải "Phiếu đang nhập dở, chưa lưu" ở trang chủ dẫn về phiếu mới gõ dở | PR #115 | chờ review |

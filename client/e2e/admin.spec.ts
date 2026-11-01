@@ -503,3 +503,43 @@ test('A3: bấm Tìm lúc danh sách lần đầu còn đang tải thì bảng c
   await expect(userRow(page, 'lan')).toHaveCount(0);
   await expect(userRow(page, 'minh')).toBeVisible();
 });
+
+// Design §11.3: ô đầu dòng ở A1, A2, A3 là header dòng (th scope=row) để trình đọc màn hình đọc tên tổ chức /
+// tài khoản kèm từng ô trong dòng; nhìn vẫn như ô thường (ui.md "Trang quản trị").
+test('A1, A2, A3: ô tên là header dòng, nhìn như ô thường; header cột giữ nguyên', async ({ page, request }) => {
+  const id = suffix();
+  const reqName = `Yêu cầu header dòng ${id}`;
+  await sendRequest(request, TOKENS.chu, reqName);
+  const projectId = `h-${id}`;
+  const projectName = `Tổ chức header dòng ${id}`;
+  await createProject(request, projectId, projectName);
+  await openAdmin(page);
+
+  // plain: cột của một ô chữ thường cùng dòng (không phải cột chữ nhạt "Lúc", "Chưa có Owner") để so kiểu
+  const checks = [
+    { link: /^Yêu cầu/, head: 'Tên tổ chức', row: () => requestRow(page, reqName), name: reqName, plain: 1 },
+    { link: 'Tổ chức', head: 'Tên', row: () => page.getByTestId(`project-row-${projectId}`), name: projectName, plain: 2 },
+    { link: 'Tài khoản', head: 'Tên đăng nhập', row: () => page.getByTestId('user-row-minh'), name: 'minh', plain: 2 },
+  ];
+  for (const c of checks) {
+    await page.getByRole('link', { name: c.link }).click();
+    await expect(page.getByRole('columnheader', { name: c.head, exact: true })).toBeVisible();
+    if (c.link === 'Tài khoản') {
+      await page.getByLabel('Tìm theo tên đăng nhập').fill('minh');
+      await page.getByRole('button', { name: 'Tìm' }).click();
+    }
+    const header = c.row().getByRole('rowheader');
+    await expect(header).toHaveCount(1);
+    await expect(header).toContainText(c.name);
+    await expect(header).toHaveAttribute('scope', 'row');
+    const look = await header.evaluate((el, plain) => {
+      const pick = (e: Element) => {
+        const s = getComputedStyle(e);
+        return [s.color, s.backgroundColor, s.fontSize, s.fontWeight, s.textAlign, s.padding, s.whiteSpace, s.borderBottom];
+      };
+      const cell = el.parentElement?.children[plain];
+      return { header: pick(el), cell: cell ? pick(cell) : [] };
+    }, c.plain);
+    expect(look.header).toEqual(look.cell);
+  }
+});

@@ -94,11 +94,11 @@ export function ProjectsPage({ token, onError }: { token: string; onError: (err:
               {projects.map((p) => (
                 <Fragment key={p.id}>
                   <tr className={ownerFor === p.id ? 'open' : undefined} data-testid={`project-row-${p.id}`}>
-                    <td>
+                    <th scope="row">
                       <b>{p.name}</b>
                       <br />
                       <small className="hint">{p.id}</small>
-                    </td>
+                    </th>
                     <td data-testid="project-owners" className={p.ownerUsernames.length === 0 ? 'none' : undefined}>
                       {ownersLabel(p.ownerUsernames)}
                     </td>
