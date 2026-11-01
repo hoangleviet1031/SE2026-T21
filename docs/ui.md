@@ -1,8 +1,8 @@
 # Phác thảo giao diện
 
-- **Phiên bản:** 0.2.29 (2026-10-25): màn hình 4 có nhãn trạng thái đầu trang, phiếu Lỗi có câu lỗi, [Thử lại], [Xuất JSON phiếu này] ngay trên trang (tech-debt N12). 0.2.28 (2026-10-25): tiêu đề trang màn hình 5, 6, 8, 9 cùng kiểu với màn hình 2, 4 (TV1-12, sau audit UI). 0.2.27 (2026-10-25): màn hình 8 câu lỗi lúc Đăng xuất có ⚠, nút Đăng xuất khoá đọc kèm lý do (TV1-12, sau audit UI). 0.2.26 (2026-10-25): trang quản trị A2 nút "Đổi Owner…" đổi thành "Thêm Owner…" vì Owner cũ vẫn giữ quyền (TV1-12, sau critique UI). 0.2.25 (2026-10-25): nền trang trắng thay nền giấy, ô chìm có màu riêng, `theme-color` trắng (TV1-12, Dương chốt; gộp audit C11). 0.2.24 (2026-10-25): trang quản trị A1, A2, A3 tải danh sách lần đầu lỗi thì chỉ còn dòng lỗi, không kẹt "Đang tải…" (TV1-16). 0.2.23 (2026-10-25): màn hình 5 chọn hoặc thêm trường thì cuộn tới khối Thuộc tính, câu khi chưa có trường, bỏ trống mã báo "Nhập mã biểu mẫu" và ô Mã viền đỏ, "← Quay lại" khi không mở được builder (TV1-12, sau audit/critique UI). 0.2.22 (2026-10-25): trang quản trị A3 Tài khoản có code (TV1-16): bảng như A1/A2, ô tìm + [Tìm], Khoá và Cấp lại mật khẩu hỏi lại, mật khẩu tạm ở hàng ngay dưới dòng. 0.2.21 (2026-10-25): màn hình 9 gửi yêu cầu xong có dòng "Đã gửi yêu cầu" dưới nút, khối "Yêu cầu của bạn" lên trên form, "← Quay lại" ở đầu trang thay "← Về danh sách phiếu" ở cuối, [Huỷ] đọc ra kèm tên tổ chức (TV1-12, sau audit/critique UI). 0.2.20 (2026-10-24): màn hình 6 ô "Đổi vai trò…" chỉ để chọn, bấm [Đổi] mới gửi; "← Quay lại" ở đầu trang thay "← Về danh sách phiếu" ở cuối, có cả khi không đủ quyền; câu lỗi có ⚠ (TV1-12, sau audit/critique UI). 0.2.19 (2026-10-24): màn hình 5 báo "Đang xem trước…" cho trình đọc màn hình qua vùng status ẩn luôn có sẵn (TV1-12, sau thử máy #80). 0.2.18 (2026-10-24): mục "Hệ thống thiết kế"; header có logo và biểu tượng; nút đang gửi chỉ có vòng xoay, chữ phụ chỉ cho trình đọc màn hình (trừ Lấy vị trí); nút trong trang mở hộp xác nhận có viền đỏ; dải cập nhật nền tối (TV1-12 b2 p1); màn hình 2 thẻ biểu mẫu, nút [Xuất ▾], ẩn bộ lọc khi chưa có phiếu, cả dòng phiếu bấm được (TV1-12 b2 p2); màn hình 3 thẻ trường và ô lựa chọn lớn, màn hình 4 đầu trang cùng màu thẻ form, hàng nút dính đáy, ô chọn nhiều, ảnh, GPS theo thiết kế (TV1-12 b2 p3); màn hình 5 ba khối, ▲▼ hẹp, hàng nút dính đáy, dải "Đang xem trước…" (TV1-12 b2 p4); màn hình 6, 9 theo thiết kế, tên và vai trò / trạng thái hai dòng bỏ " · " (TV1-12 b2 p5); màn hình 1 tab dạng công tắc, mất mạng và hết phiên nền vàng, khối bị chặn; màn hình 8 bốn khối, thanh dung lượng, dòng "Đã cài" có dấu tích (TV1-12 b2 p6); trang quản trị A0–A2 theo thiết kế, ô từ chối và ô Đổi Owner ở hàng ngay dưới dòng, ghi chú rỗng hiện "—" (TV1-12 b2 p7); màn hình 5 kéo thả bằng tay nắm ⠿ (TV1-12 b2 p8), ▲ ▼ giữ đúng dòng đang chọn (TV1-12 b2); màn hình 1 hết phiên mà mất mạng chỉ hiện một dải, A1/A2 con trỏ về dòng kết quả sau thao tác (TV1-12 b2). 0.2.17 (2026-10-23): trạng thái "đang gửi" dùng chung; màn hình 2 câu rỗng, màn hình 4 câu lỗi GPS, màn hình 5 và 8 có "← Quay lại", màn hình 9 "Đang tải…" (TV1-12 b1). 0.2.16 (2026-10-22): màn hình 1 bỏ câu cũ "màn hình 9 chưa có", ghi cách code đang làm khi chưa thuộc tổ chức nào (TV1-12 a3). 0.2.15 (2026-10-22): bỏ nhãn 🆕/🕘 của phần đã có code (màn hình 5, 7, trang quản trị A1–A2; tech-debt N4); màn hình 1 báo hết phiên khi bị `401`, màn hình 6 câu lỗi máy chủ và nút Thử lại (TV1-12 a2). 0.2.14 (2026-10-19): mọi hộp hỏi xác nhận là hộp trong app, Xuất JSON khi bị từ chối đổi tài khoản báo kết quả (TV1-12 a1). 0.2.13 (2026-10-19): màn hình 9 Tổ chức có code, mục "Tổ chức khác…" ở màn hình 2 (TV1-15). 0.2.12 (2026-10-19): màn hình 1 Đăng nhập / Tạo tài khoản có code, bỏ bản nhập mã (TV1-14). 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
+- **Phiên bản:** 0.2.41 (2026-11-01): màn hình 5 nút ▲▼ có tên kèm nhãn trường cho trình đọc màn hình; A1–A3 ô tên đầu dòng là header dòng, nhìn không đổi (TV1-12, A duyệt thay Dương 2026-11-01). 0.2.40 (2026-11-01): màn hình 1 hai tab theo mẫu tab của WAI-ARIA (phím ←/→/Home/End, chỉ tab đang chọn trong thứ tự Tab) và câu lỗi gắn với ô cho trình đọc màn hình, giao diện không đổi (TV1-12, A duyệt thay Dương 2026-11-01). 0.2.39 (2026-10-30): màn hình 2 có dải "Phiếu đang nhập dở, chưa lưu" dẫn về phiếu mới gõ dở (Could, Dương chốt 2026-10-30). 0.2.38 (2026-10-30): màn hình 4 tự giữ chữ đang gõ, mở lại phiếu hỏi [Khôi phục] / [Bỏ]; dải cập nhật đổi câu hỏi khi đang ở màn hình 4 (Could, Dương chốt 2026-10-30). 0.2.37 (2026-10-30): ngăn kéo menu mở thì phần trang phía sau có `inert`, màn hình rộng lên ≥ 1024px thì ngăn kéo đóng (tech-debt N22, Dương chốt 2026-10-30). 0.2.36 (2026-10-30): mục menu đang ở có thêm vạch trái đậm và chữ đậm, không chỉ nền vàng (tech-debt N20, Dương chốt 2026-10-30). 0.2.35 (2026-10-29): ngăn kéo menu giữ con trỏ có code, bỏ câu "chưa giữ" và cách rời trang "Tab ra nội dung phía sau rồi bấm" (tech-debt N19, Dương chốt 2026-10-29). 0.2.34 (2026-10-29): ô nhập đang có con trỏ viền đen + quầng vàng, ô đang báo lỗi giữ viền đỏ; ô "+ Chụp ảnh" có vòng đen quanh cả ô như ô đánh dấu (tech-debt N16, N17, Dương chốt 2026-10-29). 0.2.33 (2026-10-29): màn hình 2 chia phiếu theo form trong mục "Phiếu đã nhập", nhóm cuối "Biểu mẫu chưa có trên máy", tiêu đề phiếu theo design §4.8 và giờ sửa cuối (tech-debt N10, N11; dạng giờ và chữ nhóm cuối Dương duyệt 2026-10-29). 0.2.32 (2026-10-29): ngăn kéo menu giữ con trỏ khi mở (TV3-15 rà khả năng tiếp cận, design §11.3, §14; chưa có code, tech-debt N19). 0.2.31 (2026-10-26): màn hình 8 thêm khối Đổi mật khẩu, ba ô chỉ mở khi bấm [Đổi mật khẩu…] (design §4.7, Dương chốt 2026-10-26). 0.2.30 (2026-10-26): menu điều hướng (☰ trên điện thoại, thanh bên trên máy tính) ở màn hình 2, 6, 8, 9 thay nút [Cài đặt] trên header và khối Thành viên cuối trang chủ; header rộng hết màn ở mọi màn hình (TV1-12, Dương chốt 2026-10-26). 0.2.29 (2026-10-25): màn hình 4 có nhãn trạng thái đầu trang, phiếu Lỗi có câu lỗi, [Thử lại], [Xuất JSON phiếu này] ngay trên trang (tech-debt N12). 0.2.28 (2026-10-25): tiêu đề trang màn hình 5, 6, 8, 9 cùng kiểu với màn hình 2, 4 (TV1-12, sau audit UI). 0.2.27 (2026-10-25): màn hình 8 câu lỗi lúc Đăng xuất có ⚠, nút Đăng xuất khoá đọc kèm lý do (TV1-12, sau audit UI). 0.2.26 (2026-10-25): trang quản trị A2 nút "Đổi Owner…" đổi thành "Thêm Owner…" vì Owner cũ vẫn giữ quyền (TV1-12, sau critique UI). 0.2.25 (2026-10-25): nền trang trắng thay nền giấy, ô chìm có màu riêng, `theme-color` trắng (TV1-12, Dương chốt; gộp audit C11). 0.2.24 (2026-10-25): trang quản trị A1, A2, A3 tải danh sách lần đầu lỗi thì chỉ còn dòng lỗi, không kẹt "Đang tải…" (TV1-16). 0.2.23 (2026-10-25): màn hình 5 chọn hoặc thêm trường thì cuộn tới khối Thuộc tính, câu khi chưa có trường, bỏ trống mã báo "Nhập mã biểu mẫu" và ô Mã viền đỏ, "← Quay lại" khi không mở được builder (TV1-12, sau audit/critique UI). 0.2.22 (2026-10-25): trang quản trị A3 Tài khoản có code (TV1-16): bảng như A1/A2, ô tìm + [Tìm], Khoá và Cấp lại mật khẩu hỏi lại, mật khẩu tạm ở hàng ngay dưới dòng. 0.2.21 (2026-10-25): màn hình 9 gửi yêu cầu xong có dòng "Đã gửi yêu cầu" dưới nút, khối "Yêu cầu của bạn" lên trên form, "← Quay lại" ở đầu trang thay "← Về danh sách phiếu" ở cuối, [Huỷ] đọc ra kèm tên tổ chức (TV1-12, sau audit/critique UI). 0.2.20 (2026-10-24): màn hình 6 ô "Đổi vai trò…" chỉ để chọn, bấm [Đổi] mới gửi; "← Quay lại" ở đầu trang thay "← Về danh sách phiếu" ở cuối, có cả khi không đủ quyền; câu lỗi có ⚠ (TV1-12, sau audit/critique UI). 0.2.19 (2026-10-24): màn hình 5 báo "Đang xem trước…" cho trình đọc màn hình qua vùng status ẩn luôn có sẵn (TV1-12, sau thử máy #80). 0.2.18 (2026-10-24): mục "Hệ thống thiết kế"; header có logo và biểu tượng; nút đang gửi chỉ có vòng xoay, chữ phụ chỉ cho trình đọc màn hình (trừ Lấy vị trí); nút trong trang mở hộp xác nhận có viền đỏ; dải cập nhật nền tối (TV1-12 b2 p1); màn hình 2 thẻ biểu mẫu, nút [Xuất ▾], ẩn bộ lọc khi chưa có phiếu, cả dòng phiếu bấm được (TV1-12 b2 p2); màn hình 3 thẻ trường và ô lựa chọn lớn, màn hình 4 đầu trang cùng màu thẻ form, hàng nút dính đáy, ô chọn nhiều, ảnh, GPS theo thiết kế (TV1-12 b2 p3); màn hình 5 ba khối, ▲▼ hẹp, hàng nút dính đáy, dải "Đang xem trước…" (TV1-12 b2 p4); màn hình 6, 9 theo thiết kế, tên và vai trò / trạng thái hai dòng bỏ " · " (TV1-12 b2 p5); màn hình 1 tab dạng công tắc, mất mạng và hết phiên nền vàng, khối bị chặn; màn hình 8 bốn khối, thanh dung lượng, dòng "Đã cài" có dấu tích (TV1-12 b2 p6); trang quản trị A0–A2 theo thiết kế, ô từ chối và ô Đổi Owner ở hàng ngay dưới dòng, ghi chú rỗng hiện "—" (TV1-12 b2 p7); màn hình 5 kéo thả bằng tay nắm ⠿ (TV1-12 b2 p8), ▲ ▼ giữ đúng dòng đang chọn (TV1-12 b2); màn hình 1 hết phiên mà mất mạng chỉ hiện một dải, A1/A2 con trỏ về dòng kết quả sau thao tác (TV1-12 b2). 0.2.17 (2026-10-23): trạng thái "đang gửi" dùng chung; màn hình 2 câu rỗng, màn hình 4 câu lỗi GPS, màn hình 5 và 8 có "← Quay lại", màn hình 9 "Đang tải…" (TV1-12 b1). 0.2.16 (2026-10-22): màn hình 1 bỏ câu cũ "màn hình 9 chưa có", ghi cách code đang làm khi chưa thuộc tổ chức nào (TV1-12 a3). 0.2.15 (2026-10-22): bỏ nhãn 🆕/🕘 của phần đã có code (màn hình 5, 7, trang quản trị A1–A2; tech-debt N4); màn hình 1 báo hết phiên khi bị `401`, màn hình 6 câu lỗi máy chủ và nút Thử lại (TV1-12 a2). 0.2.14 (2026-10-19): mọi hộp hỏi xác nhận là hộp trong app, Xuất JSON khi bị từ chối đổi tài khoản báo kết quả (TV1-12 a1). 0.2.13 (2026-10-19): màn hình 9 Tổ chức có code, mục "Tổ chức khác…" ở màn hình 2 (TV1-15). 0.2.12 (2026-10-19): màn hình 1 Đăng nhập / Tạo tài khoản có code, bỏ bản nhập mã (TV1-14). 0.2.11 (2026-10-17): màn hình 3 hiện tên người sửa, màn hình 4 ẩn [Xoá phiếu] với surveyor ở phiếu người khác tạo (TV1-17). 0.2.10 (2026-10-17): màn hình 4 ghi hộp xác nhận xoá phiếu trong app (TV1-13). 0.2.9 (2026-10-17): màn hình 6 Thành viên có code (TV1-08 phần 2), ghi cách code đang làm; nút Thành viên ở màn hình 2 hiện cho cả owner. 0.2.8 (2026-10-16): màn hình 5 ghi chỗ đặt và cách chạy [Xuất form] [Nhập form] (TV1-10 phần 2). 0.2.7 (2026-10-16): màn hình 4 ghi cách hiện trường ẩn và khi máy thiếu bản form của phiếu (TV1-10 phần 1). 0.2.6 (2026-10-14): màn hình 8 thêm mục "Cài lên màn hình chính", Đăng xuất xoá cả cache SW; thêm màn hình "Trình duyệt không được hỗ trợ" (TV1-07 phần 2b). 0.2.5 (2026-10-14): dải "Có phiên bản mới" dùng chung mọi màn hình (TV1-07 phần 2a). 0.2.4 (2026-10-13): gọn giao diện sau khi thử staging (header 360px, nút quay lại màn hình 4, câu hướng dẫn màn hình 8, builder). 0.2.3 (2026-10-13): màn hình 5 ghi cách code đang làm (TV1-04). 0.2.2 (2026-10-13): màn hình 2 ghi chỗ đặt bộ chọn dự án và màn hình chưa có dự án (TV1-06). 0.2.1 (2026-10-12): phác màn hình 8 Cài đặt (TV1-07 phần 1). 0.2 (2026-10-12): theo [ADR 0003](adr/0003-accounts-and-owner-role.md). Nhãn 🆕/🕘 cùng nghĩa với design.md (🆕 bản mới chưa có code, 🕘 bản đang chạy). Nhóm sửa theo thảo luận UI; chỗ nào khác với [design.md](design.md) thì design.md đúng.
 - **Ràng buộc chung:** một cột, chạy tốt ở bề ngang 360px (client/CLAUDE.md; header giữ mỗi phần tử một dòng, tên app tự rút gọn bằng "…"); chữ tiếng Việt đúng nhãn trong design; phần tử test dùng `data-testid` kebab-case. Trang quản trị (A1–A3) là ngoại lệ: bố cục cho máy tính.
-- **Hệ thống thiết kế** (TV1-12 b2, theo bản thiết kế Dương duyệt 2026-10-23): token màu, bo góc, phông ở `:root` trong `client/src/styles.css`, trang quản trị dùng chung. Nền trang trắng `#ffffff` (Dương chốt 2026-10-25, thay nền giấy `#fbfaf7`), khối trắng tách nền nhờ viền `#e6e3dd`; ô chìm `#f5f3ef` (khung gợi ý, mã khoá, toạ độ GPS, bản gốc khi xung đột, dòng menu Xuất khi rê chuột, tiêu đề bảng quản trị); `theme-color` và manifest `theme_color` trắng theo header. Chữ `#262522`, chữ phụ `#625f58` (6,4:1 trên trắng, 5,75:1 trên ô chìm), nút chính `#34322e`, vàng nhấn `#fde59a` (logo, mục đang chọn), đỏ `#c0261a` chỉ cho lỗi và mất dữ liệu; mọi cặp chữ trên nền ≥ 4,9:1. Phông máy, không tải phông; không có chế độ tối. Tiêu đề trang (h2) ở màn hình 2, 4, 5, 6, 8, 9 cùng một kiểu: 22px, đậm 800; màn hình 1 không có tiêu đề. Nút cao ≥ 44px, bo 10px: chính (đen), thường (trắng viền), phụ (xám, vd. Huỷ), nguy hiểm (đỏ đặc, chỉ là nút xác nhận cuối cùng trong hộp), viền đỏ (nút trong trang chỉ mở hộp xác nhận: Xoá phiếu, Rút, Đăng xuất, Xoá khỏi máy, Khoá), khoá (xám, kể cả nút viền đỏ bị khoá). Link không đổi màu, nhận ra nhờ dạng nút hoặc mũi tên ›; chỉ link nằm giữa câu văn mới gạch chân. Biểu tượng là SVG tự vẽ (`components/Icon.tsx`), luôn đi kèm chữ và ẩn khỏi trình đọc màn hình. Header: ô logo vàng, tên app (tự rút gọn bằng "…"), trạng thái mạng dạng chấm dưới tên, [Đồng bộ] [Cài đặt] là biểu tượng + chữ nhỏ. Bộ chọn dự án: ô chữ cái + tên tổ chức.
+- **Hệ thống thiết kế** (TV1-12 b2, theo bản thiết kế Dương duyệt 2026-10-23): token màu, bo góc, phông ở `:root` trong `client/src/styles.css`, trang quản trị dùng chung. Nền trang trắng `#ffffff` (Dương chốt 2026-10-25, thay nền giấy `#fbfaf7`), khối trắng tách nền nhờ viền `#e6e3dd`; ô chìm `#f5f3ef` (khung gợi ý, mã khoá, toạ độ GPS, bản gốc khi xung đột, dòng menu Xuất khi rê chuột, tiêu đề bảng quản trị); `theme-color` và manifest `theme_color` trắng theo header. Chữ `#262522`, chữ phụ `#625f58` (6,4:1 trên trắng, 5,75:1 trên ô chìm), nút chính `#34322e`, vàng nhấn `#fde59a` (logo, mục đang chọn), đỏ `#c0261a` chỉ cho lỗi và mất dữ liệu; mọi cặp chữ trên nền ≥ 4,9:1. Phông máy, không tải phông; không có chế độ tối. Tiêu đề trang (h2) ở màn hình 2, 4, 5, 6, 8, 9 cùng một kiểu: 22px, đậm 800; màn hình 1 không có tiêu đề. Nút cao ≥ 44px, bo 10px: chính (đen), thường (trắng viền), phụ (xám, vd. Huỷ), nguy hiểm (đỏ đặc, chỉ là nút xác nhận cuối cùng trong hộp), viền đỏ (nút trong trang chỉ mở hộp xác nhận: Xoá phiếu, Rút, Đăng xuất, Xoá khỏi máy, Khoá), khoá (xám, kể cả nút viền đỏ bị khoá). Ô nhập đang có con trỏ: viền đen + quầng vàng (ô đang báo lỗi giữ viền đỏ); ô ảnh, ô đánh dấu: vòng đen quanh cả ô. Link không đổi màu, nhận ra nhờ dạng nút hoặc mũi tên ›; chỉ link nằm giữa câu văn mới gạch chân. Biểu tượng là SVG tự vẽ (`components/Icon.tsx`), luôn đi kèm chữ và ẩn khỏi trình đọc màn hình. Header: ([Menu] ở màn hình có menu) ô logo vàng, tên app (tự rút gọn bằng "…"), trạng thái mạng dạng chấm dưới tên, [Menu] [Đồng bộ] là biểu tượng + chữ nhỏ; header rộng hết màn ở mọi màn hình có header (không nhảy bề rộng khi chuyển màn), nội dung tối đa 720px ở giữa (TV1-12). Bộ chọn dự án: ô chữ cái + tên tổ chức.
 - **Số màn hình** được ticket trỏ tới (vd. "UI màn hình 3"), không đổi số đã dùng; thêm màn hình mới thì đánh số tiếp. Trang quản trị đánh số riêng `A1, A2, …`.
 
 **App khảo sát (PWA)**
@@ -39,7 +39,7 @@ Các trạng thái dùng chung, mọi màn hình phải có: **đang tải**, **
 └────────────────────────────────┘
 ```
 
-Nền tối, khác hẳn banner cảnh báo vàng. Không tự ẩn, không tự tải lại. Đang ở màn hình 4 thì bấm [Tải lại] hỏi "Phiếu đang nhập chưa lưu sẽ mất. Tải lại?" [Huỷ] [Tải lại].
+Nền tối, khác hẳn banner cảnh báo vàng. Không tự ẩn, không tự tải lại. Đang ở màn hình 4 thì bấm [Tải lại] hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?" [Huỷ] [Tải lại]; bấm [Tải lại] thì ghi nốt chữ đang gõ rồi mới tải lại.
 
 **Trình duyệt không được hỗ trợ** (design §11.1): thay cho toàn bộ app khi thiếu API bắt buộc, không có màn hình nào khác.
 
@@ -55,6 +55,36 @@ Nền tối, khác hẳn banner cảnh báo vàng. Không tự ẩn, không tự
 │ Thiếu: Web Locks               │  tên API thiếu, chữ nhỏ
 └────────────────────────────────┘
 ```
+
+**Menu điều hướng** (TV1-12, Dương chốt 2026-10-26; `components/NavMenu.tsx`, luật ở `client/src/navMenu.ts`): chỉ ở màn hình 2, 6, 8, 9. Màn hình 1, 3, 4, 5 và trang quản trị không có (3, 4, 5 dùng "← Quay lại").
+
+```
+Điện thoại (< 1024px)
+┌────────────────────────────────┐
+│ ☰    ▣ Khảo sát thực địa    ⟳  │
+│ Menu   ● Trực tuyến      Đồng bộ│
+├──────────────────┬─────────────┤
+│ ▤ Phiếu          │░░ nền mờ ░░░│  mục đang ở nền vàng, vạch trái
+│ ▦ Tổ chức        │░░░░░░░░░░░░░│
+│ 👥 Thành viên    │░░░░░░░░░░░░░│  (supervisor, owner)
+│ ⚙ Cài đặt        │░░░░░░░░░░░░░│
+└──────────────────┴─────────────┘
+
+Máy tính (≥ 1024px)
+┌──────────────────────────────────────────────┐
+│ ▣ Khảo sát thực địa                ⟳ Đồng bộ │  header rộng hết màn
+├──────────────┬───────────────────────────────┤
+│ ▤ Phiếu      │ [bộ chọn dự án]               │
+│ ▦ Tổ chức    │ nội dung (tối đa 720px)       │
+│ 👥 Thành viên │                               │
+│ ⚙ Cài đặt    │                               │
+└──────────────┴───────────────────────────────┘
+```
+
+- Mục: **Phiếu** (`#/`), **Tổ chức** (`#/orgs`), **Thành viên** (`#/members`, chỉ supervisor và owner), **Cài đặt** (`#/settings`). Mỗi dòng biểu tượng nét đơn + chữ, cao ≥ 44px; mục đang ở nền vàng nhấn, vạch trái đậm, chữ đậm (không chỉ phân biệt bằng màu, design §11.3) và có `aria-current="page"`. Chưa thuộc tổ chức nào (trang chủ là màn hình 9) thì không có mục Phiếu, mục Tổ chức đang chọn.
+- Điện thoại: nút **Menu** (☰ + chữ nhỏ) đầu header, có `aria-expanded`; bấm thì ngăn kéo (`<nav>` tên "Menu", rộng 280px, tối đa 85% màn) trượt từ trái, nền mờ phía sau, con trỏ vào mục đầu. Esc, bấm nền mờ hoặc chọn một mục thì đóng, con trỏ về nút Menu. Rời trang bằng cách khác (nút Back) thì ngăn kéo cũng đóng, quay lại không tự mở. Ngăn kéo giữ con trỏ như hộp thoại: lúc mở, Tab ở mục cuối quay về mục đầu, Shift+Tab ngược lại (TV3-15 chốt 2026-10-29, design §14). Lúc ngăn kéo mở, phần trang phía sau (dải cập nhật, header, nội dung) có `inert`: không bấm, không Tab tới, trình đọc màn hình không vuốt ra được. Ngăn kéo đang mở mà màn hình rộng lên ≥ 1024px thì ngăn kéo đóng. Máy bật giảm chuyển động thì không trượt. Safe-area iPhone chưa thử máy thật (tech-debt N13).
+- Máy tính: thanh bên rộng 240px luôn hiện, dính trái dưới header, không có nút Menu. Màn hình 3, 4, 5 không có thanh bên, nội dung 720px ở giữa.
+- Giữ nguyên: [Đồng bộ] và trạng thái mạng trên header, "Tổ chức khác…" trong bộ chọn, "← Quay lại" ở màn hình 6, 8, 9.
 
 ---
 
@@ -85,6 +115,7 @@ Nền tối, khác hẳn banner cảnh báo vàng. Không tự ẩn, không tự
 - Biến thể: đăng nhập tài khoản khác khi máy còn phiếu chưa gửi (design §4.7) hiện thông báo chặn kèm nút "Xuất JSON"; bấm xong hiện ngay dưới nút "Đã tải N file.", hoặc "Máy không còn phiếu chưa gửi. Bấm Tiếp tục để đăng nhập lại.", hoặc "Không xuất được file, thử lại." (`export-note`).
 - Có code (TV1-14, `client/src/pages/LoginPage.tsx`): hai tab có `role="tab"`; nút gửi là "Tiếp tục" (Đăng nhập) hoặc "Tạo tài khoản". Gợi ý "chữ thường, số, . _ (3–32)" chỉ hiện ở tab Tạo tài khoản. Tab Đăng nhập không kiểm mẫu tên (tài khoản cũ tên là `u_xxxxxxxx`). Đổi tab thì xoá thông báo cũ. Câu lỗi phía client và câu từ chối đổi tài khoản: design §4.7.
 - Bố cục theo bản thiết kế khung 1a–1g (TV1-12 b2 p6): hai tab dạng công tắc (vẫn `role="tab"` + `aria-selected`), nút gửi rộng hết hàng. Lỗi do người dùng (nhập sai, "Thử lại sau ít phút", tài khoản quản trị) chữ đỏ ngay dưới nút, link "/admin" gạch chân. "Cần kết nối mạng" (cả khi mạng rớt lúc bấm gửi) và "Phiên đăng nhập hết hạn…" không phải lỗi của người dùng nên nền vàng. Bị chặn: khối vàng có viền, [Xuất JSON] nút thường, dòng kết quả chữ đen ("Không xuất được file, thử lại." chữ đỏ).
+- Bàn phím và trình đọc màn hình (design §11.3): trong hàng tab, ←/→ đổi sang tab kia, Home chọn Đăng nhập, End chọn Tạo tài khoản (chọn luôn, không cần Enter; chữ đã gõ giữ nguyên). Tab chỉ dừng ở tab đang chọn rồi vào thẳng ô Tên đăng nhập. Phần dưới hai tab là khung `tabpanel` mang tên tab đang chọn. Câu lỗi chữ đỏ gắn với ô bị lỗi (`aria-invalid` + `aria-describedby`): lỗi nhập gắn đúng ô đó, "Tên đăng nhập đã có người dùng" gắn ô Tên đăng nhập, "Sai tên đăng nhập hoặc mật khẩu" gắn cả hai ô; "Thử lại sau ít phút", tài khoản quản trị, bị chặn, mất mạng không gắn ô nào. Ô bị lỗi không đổi viền.
 - Chưa thuộc tổ chức nào (có code, TV1-15, `client/src/pages/HomePage.tsx`): trang chủ hiện màn hình 9 tại chỗ, địa chỉ vẫn là `#/`, không chuyển sang `#/orgs`. Yêu cầu mở tổ chức được duyệt hoặc được thêm vào tổ chức thì vòng đồng bộ kế tiếp tự đưa về màn hình 2 của tổ chức đó.
 
 ## 2. Danh sách phiếu (trang chủ)
@@ -110,12 +141,22 @@ Nền tối, khác hẳn banner cảnh báo vàng. Không tự ẩn, không tự
 │ │ Nháp · hôm qua             │ │
 │ └────────────────────────────┘ │
 │ (supervisor) [Sửa form] [Xuất] │
-├────────────────────────────────┤
-│ (supervisor) [Thành viên]  [Cài đặt] │
 └────────────────────────────────┘
 ```
 
-Code (TV1-12 b2 p2, theo bản thiết kế): mỗi form là một thẻ màu (5 màu xoay vòng) gồm tên form, nút [+ Tạo phiếu mới] rộng hết thẻ và (supervisor) [Sửa form] [Xuất ▾]; bấm [Xuất ▾] hiện hai lựa chọn [Xuất CSV] [Xuất JSON], Esc hoặc bấm ra ngoài thì đóng; trình đọc màn hình đọc nút Xuất kèm tên form. "+ Biểu mẫu mới" là dòng riêng dưới các thẻ. "Cần xử lý (n)" là viên thuốc đỏ cạnh tiêu đề "Phiếu đã nhập". Chưa có phiếu nào thì ẩn bộ lọc. Mỗi dòng phiếu: biểu tượng trạng thái, tên, nhãn trạng thái, mũi tên ›; bấm chỗ nào ở phần trên của dòng cũng mở phiếu, "Cần xử lý xung đột" là link riêng sang màn hình 3. Nhóm theo form, giờ sửa, tiêu đề phiếu theo §4.8 chưa có (TV2-18, tech-debt N10–N11). Thành viên là khối có mũi tên ở cuối trang.
+Code (TV1-12 b2 p2, theo bản thiết kế): mỗi form là một thẻ màu (5 màu xoay vòng) gồm tên form, nút [+ Tạo phiếu mới] rộng hết thẻ và (supervisor) [Sửa form] [Xuất ▾]; bấm [Xuất ▾] hiện hai lựa chọn [Xuất CSV] [Xuất JSON], Esc hoặc bấm ra ngoài thì đóng; trình đọc màn hình đọc nút Xuất kèm tên form. "+ Biểu mẫu mới" là dòng riêng dưới các thẻ. "Cần xử lý (n)" là viên thuốc đỏ cạnh tiêu đề "Phiếu đã nhập". Chưa có phiếu nào thì ẩn bộ lọc. Khác hình phác: phiếu không nằm trong thẻ form mà ở mục "Phiếu đã nhập" bên dưới, chia nhóm theo form (tech-debt N10): mỗi nhóm có tiêu đề "Khảo sát hộ gia đình (12)" (heading, vạch trái cùng màu thẻ form), thứ tự nhóm như thứ tự thẻ, form chưa có phiếu thì không có nhóm; phiếu có form không còn trên máy ở nhóm cuối "Biểu mẫu chưa có trên máy (n)" (vạch xám). Khi bộ lọc đang bật, số trong ngoặc đếm theo bộ lọc, nhóm không còn phiếu khớp thì ẩn. Mỗi dòng phiếu: biểu tượng trạng thái, tiêu đề theo §4.8 ("Phiếu chưa có tên" khi rỗng, N11), nhãn trạng thái · giờ sửa cuối, mũi tên ›; bấm chỗ nào ở phần trên của dòng cũng mở phiếu, "Cần xử lý xung đột" là link riêng sang màn hình 3. Giờ sửa: hôm nay "14:32", hôm qua "hôm qua", cũ hơn "24/10", khác năm "24/10/2025". Thành viên, Cài đặt vào từ menu (mục "Menu điều hướng"; TV1-12 bỏ khối Thành viên cuối trang và nút Cài đặt trên header).
+
+Code (tự lưu chữ đang gõ phần 2, Could, Dương chốt 2026-10-30; design §4.8): phiếu mới gõ dở mà chưa Lưu lần nào (app bị tắt, tải lại ở trang khác) thì dưới banner dự án đã rời và các cảnh báo, trên mục "Biểu mẫu", có dải nền vàng nhạt (`typing-unsaved`, tiêu đề là heading):
+
+```
+┌────────────────────────────────┐
+│ Phiếu đang nhập dở, chưa lưu   │
+│ Nguyễn Văn A                 › │
+│ Khảo sát hộ gia đình · 14:32   │
+└────────────────────────────────┘
+```
+
+Mỗi phiếu một dòng trong danh sách, cả dòng là link tới màn hình 4 (ở đó hỏi [Khôi phục] / [Bỏ]): tiêu đề phiếu chữ đậm ("Phiếu chưa có tên" khi rỗng), dưới là tên form · giờ gõ cuối chữ nhạt (giờ như dòng phiếu; dấu " · " ẩn khỏi trình đọc màn hình). Không có nút Bỏ ở trang chủ. Phiếu đã có trong danh sách không lên dải.
 
 ADR 0003: các nút ghi "(supervisor)" hiện cho cả `owner` (có code: Sửa form, Thành viên); bộ chọn có thêm "Tổ chức khác…" mở màn hình 9 (có code, TV1-15: nút dưới danh sách tổ chức; chỉ một tổ chức thì là link cạnh tên); nhãn vai trò có thêm "Owner".
 
@@ -133,9 +174,9 @@ Bộ chọn dự án mở ra (trong hai hình, ▾ và ✓ là biểu tượng S
 
 Banner khi bị rút còn dữ liệu: "Bạn không còn thuộc dự án X. N phiếu chưa gửi được [Xuất JSON] [Xoá khỏi máy]". [Xoá khỏi máy] hỏi bằng hộp trong app "Xoá N phiếu chưa gửi của dự án X khỏi máy? Không khôi phục được." [Huỷ] [Xoá khỏi máy] (nút đỏ).
 
-Code (TV1-06): bộ chọn nằm ở một hàng riêng ngay dưới header (header đã có tên app, trạng thái mạng, Đồng bộ, Cài đặt; không đủ chỗ ở 360px); danh sách mở ra đẩy nội dung xuống. Dòng "Đã rời" không bấm được. Chưa có dự án active: "Đang tải danh sách dự án…" (chưa nhận `/me`) (`data-testid="no-project"`); chưa thuộc tổ chức nào thì trang chủ là màn hình 9 Tổ chức (TV1-15).
+Code (TV1-06): bộ chọn nằm ở một hàng riêng ngay dưới header (header đã có Menu, tên app, trạng thái mạng, Đồng bộ; không đủ chỗ ở 360px); danh sách mở ra đẩy nội dung xuống. Dòng "Đã rời" không bấm được. Chưa có dự án active: "Đang tải danh sách dự án…" (chưa nhận `/me`) (`data-testid="no-project"`); chưa thuộc tổ chức nào thì trang chủ là màn hình 9 Tổ chức (TV1-15).
 
-Code (TV1-12 b1): dự án chưa có phiếu nào thì dưới bộ lọc hiện "Chưa có phiếu nào." (`records-empty`); có phiếu mà bộ lọc ra rỗng thì "Không có phiếu nào ở trạng thái này." (`no-records`). Chưa làm (tech-debt N10, N11): nhóm phiếu theo form, tiêu đề "Phiếu chưa có tên" và giờ sửa cuối như hình.
+Code (TV1-12 b1): dự án chưa có phiếu nào thì dưới bộ lọc hiện "Chưa có phiếu nào." (`records-empty`); có phiếu mà bộ lọc ra rỗng thì "Không có phiếu nào ở trạng thái này." (`no-records`).
 
 ## 3. Xung đột
 
@@ -207,7 +248,7 @@ Code (TV1-12 b2 p3, theo bản thiết kế khung 3a–3c): câu giải thích l
 
 Nhãn trạng thái ở đầu trang dùng cùng hàm `displayState` với danh sách. Phiếu lỗi có thêm "Thử lại" và "Xuất JSON phiếu này".
 
-Code: trang điền phiếu có link "← Quay lại" ở đầu trang (về danh sách, phần chưa bấm Lưu không được giữ); nút "Lưu" rộng hết hàng trên điện thoại.
+Code: trang điền phiếu có link "← Quay lại" ở đầu trang (về danh sách; phần chưa bấm Lưu nằm trong bộ đệm, mở lại phiếu thì hỏi khôi phục); nút "Lưu" rộng hết hàng trên điện thoại.
 
 Code (TV1-10): trường ẩn không hiện ở phiếu mới; phiếu đã có giá trị ở trường ẩn thì trường hiện với ô bị khoá, nhãn kèm "(đã ẩn)"; giá trị sai định dạng (phiếu nháp báo lỗi ở trường đó) thì ô mở cho sửa. Máy chưa có bản form của phiếu: "Đang tải biểu mẫu…" rồi mở phiếu; offline hoặc tải không được: "Cần kết nối để mở phiếu này" kèm "← Quay lại".
 
@@ -218,6 +259,20 @@ Code (TV1-12 b2 p3, theo bản thiết kế khung 4a–4g): đầu trang là kh�
 Code (tech-debt N12): phiếu đã có trên máy có nhãn trạng thái ngay dưới khối tên biểu mẫu (`record-state`, trên dải xung đột hay câu nháp), biểu tượng và màu như dòng phiếu ở màn hình 2, ở mọi trạng thái; phiếu mới chưa lưu thì không có. Phiếu Lỗi: dưới nhãn là câu lỗi (`sync-error`) + [Thử lại] + [Xuất JSON phiếu này], cùng khối với màn hình 2 (`components/RecordErrorBox.tsx`); bấm [Thử lại] thì ở lại trang, nhãn tự đổi. Ảnh lỗi không có nút ở màn hình này (nhãn "Lỗi" ở từng ảnh, nút ở màn hình 2).
 
 Code (TV1-13): bấm [Xoá phiếu] mở hộp xác nhận trong app (không dùng hộp của trình duyệt) "Xoá phiếu này? Không hoàn tác được trên máy." với hai nút [Huỷ] (nhận focus đầu tiên) và [Xoá] màu đỏ; Esc hoặc Huỷ thì đóng hộp, không đổi gì. Phiếu đang xung đột: ẩn cả Lưu và Xoá (§4.5). Code (TV1-17): surveyor không thấy [Xoá phiếu] ở phiếu người khác tạo; phiếu chưa biết người tạo (mới tạo trên máy, hoặc tải về trước bản này) vẫn hiện nút.
+
+Code (tự lưu chữ đang gõ, Could, Dương chốt 2026-10-30; design §4.1 "Bộ đệm đang nhập"): chữ chưa bấm Lưu được tự giữ trên máy. Mở lại phiếu có chữ đang gõ (tải lại, "← Quay lại" rồi mở lại, app bị tắt) thì dưới nhãn trạng thái có dải nền vàng nhạt như câu nháp (`typing-restore`, `role="status"`), form khoá tới khi chọn:
+
+```
+┌────────────────────────────────┐
+│ Có nội dung đang nhập chưa lưu │
+│ (14:32).                       │
+│ [Khôi phục]  [Bỏ]              │
+└────────────────────────────────┘
+```
+
+- Giờ theo cách của danh sách phiếu (hôm nay "14:32", hôm qua "hôm qua", cũ hơn "24/10"). [Khôi phục] là nút chính, [Bỏ] nút thường.
+- Phiếu đã bị sửa ở nơi khác và có trường cả hai cùng sửa: sau [Khôi phục], dải (`typing-kept`) ghi "Đã khôi phục. Trường sau đã được sửa ở nơi khác nên giữ bản mới, nhập lại nếu cần:" rồi mỗi trường một dòng "Tên chủ hộ: bạn đã nhập "…"" (ảnh: "bạn đã chọn ảnh khác", vị trí: "bạn đã lấy vị trí khác", ô để trống: "bạn đã để trống"), nút [Đóng].
+- Phiếu đã bị xoá: "Phiếu này đã bị xoá nên không khôi phục được nội dung đang nhập." [Bỏ].
 
 ## 5. Form builder
 
@@ -247,7 +302,7 @@ Code (TV1-13): bấm [Xoá phiếu] mở hộp xác nhận trong app (không dù
 
 Code (TV1-12 b1): link "← Quay lại" đầu trang về trang chủ; phần chưa bấm Lưu bản mới không được giữ (giống màn hình 4).
 
-Code (gọn UI 13/10): bấm cả dòng để chọn trường, dòng đang chọn tô nền; nút ▲ ▼ (không dùng ↑ ↓ vì Windows vẽ thành emoji có màu); chưa chọn trường thì có dòng gợi ý "Bấm vào một trường để sửa…".
+Code (gọn UI 13/10): bấm cả dòng để chọn trường, dòng đang chọn tô nền; nút ▲ ▼ (không dùng ↑ ↓ vì Windows vẽ thành emoji có màu); chưa chọn trường thì có dòng gợi ý "Bấm vào một trường để sửa…". Nút ▲ ▼ chỉ có ký hiệu, tên cho trình đọc màn hình là "Lên: <nhãn trường>" / "Xuống: <nhãn trường>"; trường chưa có nhãn đọc "Trường mới" như chữ trên dòng (design §11.3, A duyệt thay Dương 2026-11-01).
 
 Code (TV1-04): mã gợi ý từ nhãn, khoá sau khi lưu ("<mã> (khoá)"); trường chưa lưu có nút "Xoá trường"; lựa chọn nhập mỗi dòng một lựa chọn; chọn loại trường bằng ô "Loại trường" cạnh nút "+ Thêm trường"; "Xem trước" hiện form với ô nhập bị khoá; lỗi hiện ở khung `builder-errors`. Trang chủ: "Sửa form" cạnh mỗi form và "+ Biểu mẫu mới" dưới danh sách, chỉ với giám sát viên. "Xuất form"/"Nhập form" là việc của TV1-10.
 
@@ -282,7 +337,7 @@ Code (TV1-12 sau audit/critique UI, A chốt thay Dương 2026-10-25): bấm ch�
 Supervisor chỉ thấy thao tác với điều tra viên. Rút người và tự hạ vai trò hỏi bằng hộp trong app: [Huỷ] [Rút] (đỏ) / [Huỷ] [Đổi vai trò]. Lỗi `last_owner`: "Tổ chức phải còn ít nhất một Owner".
 
 Code (`client/src/pages/MembersPage.tsx`, luật hiển thị ở `client/src/members.ts`):
-- Vào từ link **Thành viên** cuối trang chủ (supervisor, owner). Link "← Quay lại" ở đầu trang về `#/` như màn hình 5, 8 (TV1-12, thay "← Về danh sách phiếu" ở cuối trang); có cả khi không đủ quyền ("Chỉ giám sát viên và Owner xem được trang này."). Cần mạng: offline hoặc mất mạng giữa chừng hiện "Cần kết nối mạng để quản lý thành viên" kèm nút **Thử lại**.
+- Vào từ mục **Thành viên** trong menu (chỉ supervisor, owner thấy mục này; TV1-12 thay link cuối trang chủ). Link "← Quay lại" ở đầu trang về `#/` như màn hình 5, 8 (TV1-12, thay "← Về danh sách phiếu" ở cuối trang); có cả khi không đủ quyền ("Chỉ giám sát viên và Owner xem được trang này."). Cần mạng: offline hoặc mất mạng giữa chừng hiện "Cần kết nối mạng để quản lý thành viên" kèm nút **Thử lại**.
 - Mỗi dòng (`member-<username>`), Owner trước: vòng chữ cái đầu tên; dòng 1 tên đậm + "(tên đăng nhập)" chữ nhạt, dòng 2 nhãn vai trò mỗi vai một màu (Owner tím, Giám sát viên xanh, Điều tra viên xám; chữ vẫn ghi vai trò). Hai dòng nên bỏ " · " giữa tên và vai trò (TV1-12 b2). Thay cho [⋯]: ô chọn **Đổi vai trò…** (chỉ Owner, các vai trò khác vai trò hiện tại) kèm nút **Đổi**, và nút **Rút**. Ô chọn chỉ để chọn, bấm [Đổi] mới gửi; [Đổi] khoá tới khi đã chọn vai trò, xong thì ô về "Đổi vai trò…" (TV1-12: đổi ngay khi ô đổi giá trị thì bấm mũi tên trên ô đang đóng là đổi luôn). Trình đọc màn hình: ô "Vai trò mới của <tên đăng nhập>", nút "Đổi vai trò <tên đăng nhập>". Supervisor chỉ có nút Rút ở dòng điều tra viên, không có thao tác ở dòng của mình.
 - Ô Vai trò khi thêm: supervisor chỉ có "Điều tra viên". Lỗi hiện dưới form (`member-error`, bắt đầu bằng ⚠ như màn hình 1, 9; câu lỗi khi tải cũng vậy): "Không có tên đăng nhập này" (cả khi tài khoản bị khoá), "Người này đã là thành viên", "Không thêm được tài khoản quản trị", "Tổ chức phải còn ít nhất một Owner", "Máy chủ đang lỗi, thử lại sau". Tải danh sách lỗi thì hiện câu lỗi kèm nút "Thử lại" (TV1-12 b2: nút ở dòng riêng, ngoài vùng `role="alert"`, để trình đọc màn hình không đọc lẫn vào câu lỗi).
 - Rút người khác hỏi "Rút <tên> (<tên đăng nhập>) khỏi tổ chức?". Tự hạ hỏi "Bạn sẽ mất quyền <vai trò> ngay, chỉ còn quyền <vai trò mới>. Tiếp tục?"; tự rút hỏi "Bạn sẽ rời tổ chức này ngay…". Xong thì đồng bộ để vai trò mới có hiệu lực rồi về trang chủ.
@@ -297,7 +352,7 @@ Bỏ. Admin dùng trang quản trị riêng, xem A1–A3 dưới đây.
 
 Theo ADR 0003 (TV1-07): hiện **tên đăng nhập** thay mã người dùng; Đăng xuất gọi thêm `POST /api/auth/logout` khi online (TV2-16). Máy lưu thông tin tài khoản từ bản cũ (chưa có tên đăng nhập) thì hiện mã người dùng tới lần đồng bộ kế tiếp; tài khoản cũ có tên đăng nhập trùng mã.
 
-Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng được khi offline. Có code (TV1-12 b1): link "← Quay lại" đầu trang về `#/` (chưa thuộc tổ chức nào thì về màn hình 9).
+Mở từ mục "Cài đặt" trong menu (TV1-12 thay nút trên header). Đọc từ IndexedDB, dùng được khi offline (trừ Đổi mật khẩu, cần mạng). Có code (TV1-12 b1): link "← Quay lại" đầu trang về `#/` (chưa thuộc tổ chức nào thì về màn hình 9).
 
 ```
 ┌────────────────────────────────┐
@@ -311,6 +366,16 @@ Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng 
 │ (Giám sát viên hoặc Owner cần  │  đã thuộc tổ chức
 │  tên này nếu muốn thêm bạn vào │
 │  tổ chức khác.)                │
+├────────────────────────────────┤
+│ Đổi mật khẩu                   │
+│ [     Đổi mật khẩu…          ] │  aria-expanded; bấm thì mở:
+│ Mật khẩu hiện tại [          ] │
+│ Mật khẩu mới [               ] │
+│ Nhập lại mật khẩu mới [      ] │
+│ [Đổi mật khẩu] [Huỷ]           │
+│ ⚠ Mật khẩu hiện tại không đúng │  change-password-error
+│ ✓ Đã đổi mật khẩu. Các máy khác│  change-password-done (khối đã đóng)
+│   cần đăng nhập lại.           │
 ├────────────────────────────────┤
 │ Dung lượng                     │
 │ Đã dùng 1,2 MB / 2,0 GB        │  settings-storage
@@ -335,12 +400,15 @@ Mở bằng nút "Cài đặt" trên thanh đầu. Đọc từ IndexedDB, dùng 
 ```
 
 - Chưa có `userId` (chưa gọi được `/me` lần nào): hiện "Chưa có, cần kết nối mạng một lần".
+- **Đổi mật khẩu** (design §4.7, US-13; Dương chốt 2026-10-26): chỉ hiện khi đã có thông tin tài khoản. Khối ngay dưới Tài khoản chỉ có nút [Đổi mật khẩu…] (`aria-expanded`) để trang gọn và trình duyệt không tự điền mật khẩu mỗi lần mở Cài đặt. Bấm thì mở ba ô "Mật khẩu hiện tại", "Mật khẩu mới", "Nhập lại mật khẩu mới" (`autocomplete` `current-password` / `new-password`) kèm [Đổi mật khẩu] [Huỷ], con trỏ vào ô đầu. [Huỷ] hoặc bấm lại [Đổi mật khẩu…] thì đóng khối, xoá chữ đã gõ, con trỏ về nút. Kiểm trước khi gửi, theo thứ tự: "Nhập mật khẩu hiện tại", "Mật khẩu cần từ 8 đến 128 ký tự", "Mật khẩu nhập lại không khớp". Đang gửi: vòng xoay trên nút, chữ phụ "Đang đổi mật khẩu…". Lỗi (`change-password-error`, ⚠, `role="alert"`, khối giữ mở): `wrong_password` "Mật khẩu hiện tại không đúng", `too_many_requests` "Thử lại sau ít phút", máy chủ lỗi "Máy chủ đang lỗi, thử lại sau", mất mạng giữa chừng "Cần kết nối mạng để đổi mật khẩu". Offline: [Đổi mật khẩu] khoá, dưới nút có câu "Cần kết nối mạng để đổi mật khẩu" (`change-password-offline`, gắn vào nút bằng `aria-describedby`). Đổi xong: đóng khối, xoá chữ, con trỏ về [Đổi mật khẩu…], dòng xanh có dấu tích "Đã đổi mật khẩu. Các máy khác cần đăng nhập lại." (`change-password-done`, báo cho trình đọc màn hình qua vùng `role="status"` ẩn luôn có sẵn); mở lại khối thì dòng này mất. Máy đang dùng vẫn đăng nhập.
 - Trình duyệt không có `storage.estimate`: ẩn dòng dung lượng.
 - **Đăng xuất** chỉ bật khi mọi dự án không còn dữ liệu chưa gửi (`hasUnsentData`). Bấm → hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." [Huỷ] [Đăng xuất]. Đồng ý → xoá mọi CSDL dự án, cache `me`/`forms` của SW và token, về màn hình 1. Nút khoá thì dòng `logout-blocked` gắn vào nút (`aria-describedby`), trình đọc màn hình đọc lý do khi tới nút. Lúc bấm [Đăng xuất] trong hộp mới thấy còn dữ liệu chưa gửi (vd. vừa lưu ở tab khác) thì không xoá gì, báo "⚠ Còn dữ liệu chưa gửi ở dự án …" (`role="alert"`, dưới nút).
 - Đang mở từ app đã cài (design §4.3): mục cài chỉ ghi "Đã cài lên màn hình chính." (dòng chữ xanh có dấu tích).
 - Bố cục theo bản thiết kế khung 8a–8c (TV1-12 b2 p6): bốn khối Tài khoản, Dung lượng, Cài lên màn hình chính, Đăng xuất. Tên hiển thị chữ to, tên đăng nhập phông đều nền vàng nhạt, câu hướng dẫn chữ nhạt. Dưới dòng dung lượng có thanh tiến độ (`aria-hidden`, chữ đã nói con số); trình duyệt không báo hạn mức thì không vẽ thanh (`usagePercent`). [Đăng xuất] viền đỏ rộng hết hàng; bị khoá thì xám như mọi nút khoá, dòng giải thích nền vàng ngay dưới nút.
 
 ## 9. Tổ chức (TV1-15)
+
+Vào từ mục **Tổ chức** trong menu (TV1-12) hoặc "Tổ chức khác…" ở bộ chọn dự án.
 
 ```
 ┌────────────────────────────────┐
@@ -382,6 +450,8 @@ Code (TV1-12 b2 p5, theo bản thiết kế khung 9a–9e): là trang chủ thì
 Tách khỏi PWA (design §4.9): bố cục cho máy tính, luôn online, không lưu gì trên máy ngoài token phiên trong `sessionStorage`. Thanh trên: "Quản trị · Yêu cầu (n) · Tổ chức · Tài khoản · [tên admin] Đăng xuất". Đường dẫn: A1 `/admin/#/`, A2 `/admin/#/projects`, A3 `/admin/#/users`. Kết quả thao tác hiện một dòng trên bảng ("Đã duyệt: … (mã p-…)", lỗi bắt đầu bằng ⚠); phiên bị thu hồi thì về form đăng nhập với "Phiên đăng nhập hết hạn, đăng nhập lại". Tải danh sách lần đầu bị lỗi (lỗi có mã, máy chủ lỗi, mất mạng) thì chỉ có dòng lỗi, không còn "Đang tải…"; không có nút Thử lại: A3 bấm [Tìm], A1/A2 chuyển mục trên thanh trên rồi quay lại hoặc tải lại trang.
 
 Bố cục theo bản thiết kế khung A0–A2b (TV1-12 b2 p7): đăng nhập là thẻ giữa màn hình (logo + "Quản trị", nút rộng hết hàng); "Cần kết nối mạng" và "Phiên đăng nhập hết hạn…" nền vàng (không phải lỗi của người dùng), lỗi khác chữ đỏ. Thanh trên: logo, "Quản trị", hai mục dạng viên (mục đang xem nền vàng nhạt, gạch vàng dưới), tên admin chữ nhạt, [Đăng xuất] nút thường nhỏ. Dòng kết quả: thành công nền xanh nhạt có dấu tích (`role="status"`), lỗi nền đỏ nhạt bắt đầu bằng ⚠ (`role="alert"`); cả hai `admin-notice`. Thao tác xong mà con trỏ bàn phím mất chỗ (dòng vừa duyệt/từ chối biến mất, hàng Thêm Owner đóng, [Mở] thành [Khoá]) thì con trỏ về dòng kết quả, không phải Tab lại từ đầu trang. Bảng trong khối bo góc, tên đậm, cột Lúc chữ nhạt, nút căn phải. Ở 360 px bảng cuộn ngang trong khung.
+
+Bảng A1, A2, A3: ô đầu mỗi dòng (tên tổ chức, tên đăng nhập) là header dòng (`th scope="row"`) để trình đọc màn hình đọc kèm khi đi qua từng ô trong dòng; nhìn như ô thường (design §11.3). Hàng mở rộng ngay dưới dòng vẫn là ô thường.
 
 ## A1. Yêu cầu mở tổ chức
 

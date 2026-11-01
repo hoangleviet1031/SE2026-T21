@@ -60,7 +60,7 @@ test('tạo phiếu ở v1, ẩn một trường tạo v2: phiếu cũ vẫn th�
   await expect(recordLink(page, 'Phiếu bản 1')).toBeVisible();
 
   await form.getByRole('link', { name: 'Sửa form' }).click();
-  await page.getByTestId('builder-fields').getByRole('button', { name: /Ghi chú/ }).click();
+  await page.getByTestId('builder-fields').getByRole('button', { name: /^Ghi chú \(/ }).click();
   await page.getByTestId('field-editor').getByLabel('Ẩn').check();
   await page.getByRole('button', { name: 'Lưu bản mới' }).click();
   await expect(form).toBeVisible();

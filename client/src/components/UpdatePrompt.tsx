@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ConfirmDialog } from './ConfirmDialog';
+import { flushTyping } from '../db/typingBuffer';
 
 // Dải "Có phiên bản mới" (design §4.3). SW mới chỉ thay bản cũ khi người dùng bấm Tải lại, để
 // không tự reload lúc đang nhập phiếu.
@@ -8,7 +9,8 @@ import { ConfirmDialog } from './ConfirmDialog';
 // App đã cài thường mở cả ngày, trình duyệt chỉ tự kiểm bản mới khi điều hướng
 const CHECK_INTERVAL_MS = 60 * 60 * 1000;
 
-export function UpdatePrompt() {
+/** `inert`: ngăn kéo menu đang mở, dải nằm sau nền mờ (tech-debt N22) */
+export function UpdatePrompt({ inert = false }: { inert?: boolean }) {
   const [confirming, setConfirming] = useState(false);
   const {
     needRefresh: [needRefresh],
@@ -36,16 +38,21 @@ export function UpdatePrompt() {
 
   // Nền tối, nằm trên header: khác hẳn banner cảnh báo vàng, không tự ẩn (ui.md "Dải cập nhật app")
   return (
-    <div className="update-prompt" role="status" data-testid="update-prompt">
+    <div className="update-prompt" role="status" data-testid="update-prompt" inert={inert}>
       <span>Có phiên bản mới</span>
-      {/* Nội dung đang gõ ở trang nhập phiếu chỉ nằm trong state React, tải lại là mất: hỏi trước */}
+      {/* Trang nhập phiếu: chữ đang gõ được giữ ở bộ đệm, mở lại phiếu thì hỏi khôi phục (design §4.1); vẫn hỏi
+          trước để người dùng biết, và ghi nốt phần chưa kịp tự lưu rồi mới tải lại */}
       <button onClick={() => (location.hash.startsWith('#/fill/') ? setConfirming(true) : reload())}>Tải lại</button>
       {confirming && (
         <ConfirmDialog
-          message="Phiếu đang nhập chưa lưu sẽ mất. Tải lại?"
+          message="Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?"
           confirmLabel="Tải lại"
           danger={false}
-          onConfirm={reload}
+          onConfirm={() =>
+            void flushTyping()
+              .catch((e) => console.warn('không ghi được bộ đệm đang nhập', e))
+              .then(reload)
+          }
           onCancel={() => setConfirming(false)}
         />
       )}

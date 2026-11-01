@@ -69,6 +69,8 @@ test('tạo form đủ 7 loại trường, lưu, thấy ngay ở trang chủ và
   // Xem trước chỉ để nhìn, ô nhập bị khoá
   await page.getByRole('button', { name: 'Xem trước' }).click();
   await expect(page.getByTestId('builder-preview').getByLabel('Tên chủ hộ *')).toBeDisabled();
+  // Ô ảnh cũng khoá nên không nhận con trỏ, không cần vòng focus (tech-debt N17)
+  await expect(page.getByTestId('builder-preview').getByTestId('photo-input-anhNha')).toBeDisabled();
 
   await page.getByRole('button', { name: 'Lưu bản mới' }).click();
   await expect(formRow(page, title)).toBeVisible();
@@ -102,7 +104,7 @@ test('sửa form tạo version mới; phiếu cũ vẫn mở bằng version cũ;
   await expect(page.getByTestId('records').getByText('Phiếu bản 1')).toBeVisible();
 
   await formRow(page, 'Hộ dân').getByRole('link', { name: 'Sửa form' }).click();
-  await page.getByTestId('builder-fields').getByRole('button', { name: /Tên/ }).click();
+  await page.getByTestId('builder-fields').getByRole('button', { name: /^Tên \(/ }).click();
   await expect(page.getByTestId('field-editor')).toContainText('ten (khoá)');
   await expect(page.getByRole('button', { name: 'Xoá trường' })).toHaveCount(0);
   await addField(page, 'Số', 'Số người');
@@ -159,7 +161,7 @@ test('lỗi kiểm ở máy không gửi request; offline thì báo cần kết 
 test('điều tra viên không thấy nút sửa form và không mở được builder', async ({ page }) => {
   // minh là điều tra viên ở demo-yte và không thuộc dự án của test này
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Sửa form' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toHaveCount(0);
   await page.goto('/#/builder/new');
@@ -519,4 +521,27 @@ test('nền trang trắng, theme-color trắng; gợi ý và mã khoá trong bui
   expect(await page.getByTestId('builder-form-id-locked').getByText('nen', { exact: true }).evaluate(bg)).toBe(
     'rgb(245, 243, 239)',
   );
+});
+
+// Design §11.3: nút ▲▼ chỉ có ký hiệu, tên đọc kèm nhãn trường (ui.md màn hình 5) để trình đọc màn hình biết
+// đang dời trường nào. Trường chưa có nhãn đọc "Trường mới" như chữ trên dòng.
+test('nút ▲▼ có tên kèm nhãn trường; chưa có nhãn thì "Trường mới"; đổi nhãn thì tên đổi theo', async ({ page }) => {
+  await login(page, 'lan');
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  await addField(page, 'Chữ', 'Họ tên');
+  await page.getByRole('button', { name: '+ Thêm trường' }).click();
+  const list = page.getByTestId('builder-fields');
+  const button = (name: string) => list.getByRole('button', { name, exact: true });
+
+  await expect(button('Lên: Họ tên')).toBeDisabled();
+  await expect(button('Xuống: Họ tên')).toBeEnabled();
+  await expect(button('Lên: Trường mới')).toBeEnabled();
+  await expect(button('Xuống: Trường mới')).toBeDisabled();
+
+  await page.getByTestId('field-editor').getByLabel('Nhãn').fill('Địa chỉ');
+  await expect(button('Lên: Địa chỉ')).toBeVisible();
+  await expect(button('Lên: Trường mới')).toHaveCount(0);
+  await button('Lên: Địa chỉ').click();
+  await expect(list.getByRole('listitem').first()).toContainText('Địa chỉ');
+  await expect(button('Lên: Địa chỉ')).toBeDisabled();
 });

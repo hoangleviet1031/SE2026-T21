@@ -26,7 +26,7 @@ async function createSynced(page: Page, name: string): Promise<string> {
 
 test('surveyor: phiếu mình tạo có nút Xoá, phiếu người khác tạo thì không', async ({ page }) => {
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   const mine = uniq('Hộ của minh');
   const mineId = await createSynced(page, mine);
   // Đồng bộ xong thì phiếu nhớ người tạo theo response của server
@@ -62,7 +62,7 @@ test('surveyor: phiếu mình tạo có nút Xoá, phiếu người khác tạo 
 
 test('giám sát viên: phiếu người khác tạo vẫn có nút Xoá', async ({ page, browser }) => {
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   const name = uniq('Hộ minh cho lan xem');
   await createSynced(page, name);
 

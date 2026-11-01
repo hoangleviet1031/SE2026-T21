@@ -10,10 +10,10 @@ function recordRow(page: Page, name: string) {
 test('O6: hai tab cùng mở, mỗi op chỉ được gửi từ một tab', async ({ context }) => {
   const tab1 = await context.newPage();
   await login(tab1);
-  await expect(tab1.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(tab1.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   const tab2 = await context.newPage();
   await tab2.goto('/');
-  await expect(tab2.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(tab2.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   // Tên riêng mỗi lần chạy: server E2E dùng chung nên phiếu của lần chạy trước cũng được pull về
   const name = `Hộ hai tab ${crypto.randomUUID().slice(0, 8)}`;
@@ -45,7 +45,7 @@ test('O6: hai tab cùng mở, mỗi op chỉ được gửi từ một tab', asy
 test('một vòng đồng bộ tải mọi dự án của người dùng vào đúng CSDL của từng dự án', async ({ page }) => {
   // lan: supervisor ở demo-yte, surveyor ở demo-nongnghiep (server/src/seedDemo.ts)
   await login(page, 'lan');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   await expect
     .poll(async () => {

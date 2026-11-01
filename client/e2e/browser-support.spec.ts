@@ -29,7 +29,7 @@ test('lưu phiếu thì xin trình duyệt giữ bộ nhớ, kể cả khi phi�
   const persistCalls = () => page.evaluate(() => Reflect.get(window, '__persistCalls'));
 
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   expect(await persistCalls()).toBe(0);
 
   // Thiếu trường bắt buộc: phiếu lưu thành nháp, vẫn là dữ liệu chỉ nằm trên máy

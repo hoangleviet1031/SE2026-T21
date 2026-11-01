@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { login, readStore, setMembership } from './helpers';
+import { expectTapTarget, login, readStore, setMembership } from './helpers';
 
 // Bộ chọn dự án (TV1-06; design §4.7, §11.2, ui.md màn hình 2). Dự án demo (server/src/seedDemo.ts):
 // lan là giám sát viên ở "Y tế xã (demo)", điều tra viên ở "Nông nghiệp (demo)"; minh chỉ ở Y tế xã.
@@ -65,7 +65,7 @@ test('đổi dự án khi offline trong 1 s, mỗi dự án chỉ hiện phiếu
   // design §11.2: đổi dự án đã tải ≤ 1 s, kể cả offline
   await choose(page, YTE);
   await expect(switcher(page).getByRole('button', { expanded: false })).toHaveAccessibleName(YTE, { timeout: 1000 });
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible({ timeout: 1000 });
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible({ timeout: 1000 });
   await expect(record).toHaveCount(0);
 
   await choose(page, NONGNGHIEP);
@@ -86,6 +86,13 @@ test('chỉ một dự án: chỉ hiện tên và link Tổ chức khác…, kh�
   await expect(switcher(page).getByRole('button')).toHaveCount(0);
   await switcher(page).getByRole('link', { name: 'Tổ chức khác…' }).click();
   await expect(page.getByTestId('orgs')).toBeVisible();
+});
+
+// Tech-debt N21 (design §11.3 "nút khoảng 44×44 px")
+test('chỉ một dự án, 360px: link Tổ chức khác… cao ≥ 44px', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await login(page, 'minh');
+  await expectTapTarget(switcher(page).getByRole('link', { name: 'Tổ chức khác…' }));
 });
 
 test.describe('chưa thuộc dự án nào', () => {

@@ -11,7 +11,7 @@ const LEGACY_DB = 'field-survey';
 
 test('đăng nhập xong có CSDL account và CSDL của dự án, không có CSDL cũ', async ({ page }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   const names = await databaseNames(page);
   expect(names).toContain(ACCOUNT_DB);
@@ -46,7 +46,7 @@ test('CSDL field-survey của khung cũ bị xoá khi mở app', async ({ page }
 
 test('phiếu và op được ghi vào CSDL của dự án đang chọn', async ({ page, context }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   // Offline để op còn nằm trong outbox khi đọc
   await context.setOffline(true);

@@ -58,7 +58,7 @@ async function choose(page: Page, name: string) {
 
 /** Trang chủ đang hiện đúng form và phiếu của `shown`, không có gì của `hidden`. */
 async function expectOnly(page: Page, shown: Seeded, hidden: Seeded) {
-  await expect(page.getByText(shown.formTitle)).toBeVisible();
+  await expect(page.getByText(shown.formTitle, { exact: true })).toBeVisible();
   const list = page.getByTestId('records');
   for (const n of shown.recordNames) await expect(list.getByText(n)).toBeVisible();
   await expect(page.getByText(hidden.formTitle)).toHaveCount(0);
@@ -73,7 +73,7 @@ test('T6: được thêm vào dự án mới khi đang có dữ liệu dự án 
 
   // minh đang có phiếu đã đồng bộ ở demo-yte
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   const mine = `Hộ T6 ${crypto.randomUUID().slice(0, 8)}`;
   await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
   await page.locator('input[name=householdName]').fill(mine);
@@ -93,7 +93,7 @@ test('T6: được thêm vào dự án mới khi đang có dữ liệu dự án 
   }).toPass({ timeout: 15_000 });
 
   await choose(page, b.name);
-  await expect(page.getByText(b.formTitle)).toBeVisible();
+  await expect(page.getByText(b.formTitle, { exact: true })).toBeVisible();
   for (const n of b.recordNames) await expect(page.getByTestId('records').getByText(n)).toBeVisible();
   await expect(page.getByTestId('records').getByText(mine)).toHaveCount(0);
 

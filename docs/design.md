@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.51 (2026-11-01)
+- **Phiên bản:** 0.5.65 (2026-11-01)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -84,7 +84,21 @@
 | 0.5.48 | 2026-10-25 | TV2-11: đo hiệu năng pull có code (§11.2, [perf.md](perf.md)): pull lần đầu 5.000 phiếu 2,3 s, danh sách 2.000 phiếu 211 ms, đổi dự án 246 ms (CPU ×4: 9,6 s / 880 ms / 559 ms; danh sách sát ngưỡng 1 s, ghi cho TV2-18), đều đạt; đo trên giao diện mới (TV1-12 b2); `EXPLAIN QUERY PLAN` của pull đi theo index có test; bộ đo `npm run test:perf` chạy riêng; lệnh `seed:perf` (§12) và route kiểm thử `POST /api/__test/seed-perf` (§10.1) |
 | 0.5.49 | 2026-10-25 | TV1-16 A3 (Could): màn hình Tài khoản `/admin/#/users` có code (§4.9): mở là tải danh sách, ô tìm theo tên đăng nhập + [Tìm], nhận đủ 50 thì nhắc gõ thêm; bảng như A1/A2; [Khoá] và [Cấp lại mật khẩu] hỏi lại, [Thu hồi phiên] không hỏi; tài khoản đã khoá chỉ hiện trạng thái; mật khẩu tạm ở hàng ngay dưới dòng, mất khi thao tác hay tìm tiếp; `409 self_action` hiện lỗi. Bỏ nhãn 🆕 cuối cùng. Q10 thêm phần A3 (§10.1) |
 | 0.5.50 | 2026-10-25 | TV1-12 sau critique UI (K5), chỉ đổi chữ: nút A2 "Đổi Owner…" thành "Thêm Owner…" (§4.9, §10.1 Q10) vì API chỉ thêm hoặc nâng, Owner cũ vẫn giữ quyền; chữ Dương duyệt 2026-10-24. Không đổi API |
-| 0.5.51 | 2026-11-01 | TV2-19: JSON sai cú pháp trả `400 { error: 'invalid_body' }`; middleware ghi mỗi request một dòng JSON ra stdout (method, path không query, status, thời gian, userId hoặc null), không ghi token hay thân request (§7.1, §12) |
+| 0.5.51 | 2026-10-26 | Tự đổi mật khẩu (Could, Dương chốt 2026-10-26, mở rộng ADR 0003 §1; không sửa ADR), phần API có code: `POST /auth/change-password` (§7): mật khẩu mới theo luật đăng ký, sai mật khẩu hiện tại → mã mới `403 wrong_password` (§7.1; không dùng 401 vì app coi 401 là hết phiên), dùng chung giới hạn đăng nhập sai, đổi xong thu hồi mọi phiên khác và giữ phiên máy đang đổi; kiểu `ChangePasswordRequest` và `parseChangePasswordRequest` (§6.2, `shared/`); §1 thêm mức Could; §4.7 đoạn Đổi mật khẩu (giao diện màn hình 8 🆕); U8–U10 (§10.1) |
+| 0.5.52 | 2026-10-26 | Tự đổi mật khẩu phần giao diện có code (§4.7): khối Đổi mật khẩu ở trang Cài đặt (ui.md màn hình 8), `changePassword` ở `client/src/sync/api.ts`, kiểm form và câu lỗi ở `client/src/changePasswordForm.ts`; bỏ nhãn 🆕 |
+| 0.5.53 | 2026-10-29 | TV3-15: rà khả năng tiếp cận theo bốn điểm §11.3, kết quả theo màn hình ghi ở §11.3, chỗ chưa đạt tách thành nợ N16–N21 cho TV1-12 (b); trả nợ N8. Ngăn kéo menu giữ con trỏ khi mở (ui.md, §14; Đại chốt). Không đổi hành vi |
+| 0.5.54 | 2026-10-29 | Danh sách phiếu nhóm theo form và tiêu đề phiếu có code (§4.8, tech-debt N10, N11; không ticket, Dương chốt 2026-10-26): mục theo thứ tự thẻ form, phiếu có form không còn trên máy gom vào mục cuối "Biểu mẫu chưa có trên máy" (chữ mới, Dương duyệt 2026-10-29); khi lọc, số phiếu đếm theo bộ lọc và mục rỗng ẩn; tiêu đề lấy theo `hidden` của bản form của phiếu; giờ sửa cuối. Tên người tạo, lọc theo người tạo, ô tìm kiếm vẫn là TV2-18; §11.3 ghi nợ N11 đã trả |
+| 0.5.55 | 2026-10-29 | Trả tech-debt N18 (không ticket, TV1-12 (b), Dương chốt 2026-10-29): §4.7 hộp xác nhận Huỷ hoặc Esc thì con trỏ về lại nút đã mở hộp, bấm xác nhận thì theo luật từng màn (`ConfirmDialog`); §11.3 ghi N18 đã trả |
+| 0.5.56 | 2026-10-29 | Trả tech-debt N16, N17 (không ticket, TV1-12 (b), Dương chốt 2026-10-29): ô nhập đang có con trỏ viền đen + quầng vàng, ô đang báo lỗi giữ viền đỏ; ô "+ Chụp ảnh" có vòng focus quanh cả ô (ui.md "Hệ thống thiết kế" 0.2.34); §11.3 ghi N16, N17 đã trả. Chỉ đổi CSS |
+| 0.5.57 | 2026-10-29 | Trả tech-debt N19 (không ticket, TV1-12 (b), Dương chốt 2026-10-29): ngăn kéo menu giữ con trỏ có code (`NavMenu.tsx`: Tab ở mục cuối về mục đầu, Shift+Tab ngược lại, con trỏ ở ngoài thì Tab về mục đầu); §14 bỏ "chưa có code", §11.3 ghi N19 đã trả |
+| 0.5.58 | 2026-10-30 | Trả tech-debt N20 (không ticket, TV1-12 (b), Dương chốt 2026-10-30): mục menu đang ở có vạch trái đậm và chữ đậm ngoài nền vàng (`styles.css`); §11.3 ghi N20 đã trả ở màn hình 2, 6, 8, 9 |
+| 0.5.59 | 2026-10-30 | Trả tech-debt N21 (không ticket, TV1-12 (b), Dương chốt 2026-10-30): "← Quay lại", "Tổ chức khác…", [Xử lý] cao 44px; link tên app ở header và "Cần xử lý xung đột" nới vùng bấm lên 44px mà nhìn không đổi (`styles.css`); ▲▼ ở builder giữ 34px; §11.3 ghi N21 đã trả ở màn hình 2–9 |
+| 0.5.60 | 2026-10-30 | Trả tech-debt N22 (không ticket, TV1-12 (b), Dương chốt 2026-10-30): ngăn kéo menu mở thì dải cập nhật, header, nội dung có `inert` (`App.tsx`); đóng bằng Esc, nền mờ, chọn mục thì bỏ inert trước rồi con trỏ về nút Menu; rộng lên ≥ 1024px thì ngăn kéo đóng (`useNavMenu`, `matchMedia`); §14 ghi thêm |
+| 0.5.61 | 2026-10-30 | [Tải lại] ở dải cập nhật (§4.3) cao 44px thay 40px (không ticket, không số nợ, TV1-12 (b), Dương chốt 2026-10-30; phát hiện ở #110); §11.3 ghi vào danh sách "Đạt" |
+| 0.5.62 | 2026-10-30 | Tự lưu chữ đang gõ ở màn hình 4 (Could, ngoài MVP, Dương chốt 2026-10-30), phần 1: §1 thêm dòng MoSCoW; §4.1 "Bộ đệm đang nhập" (meta `typing:<recordId>`, không tạo op, hỏi khôi phục, gộp theo trường khi phiếu bị đổi); §4.2 ghi khoá meta mới; §4.3 hộp hỏi Tải lại đổi chữ, ghi bộ đệm trước khi tải lại; §5.1 bộ đệm không phải trạng thái |
+| 0.5.63 | 2026-10-30 | Tự lưu chữ đang gõ phần 2 (Could, Dương chốt 2026-10-30): §4.8 dải "Phiếu đang nhập dở, chưa lưu" ở trang chủ cho phiếu mới chưa Lưu lần nào; §4.1 trỏ tới |
+| 0.5.64 | 2026-11-01 | Màn hình 1 (không ticket, TV1-12, Could, A duyệt thay Dương 2026-11-01): hai tab Đăng nhập / Tạo tài khoản theo mẫu tab của WAI-ARIA (khung `tabpanel`, `aria-controls`, phím ←/→/Home/End, chỉ tab đang chọn nằm trong thứ tự Tab); câu lỗi gắn với ô bị lỗi (`aria-invalid`, `aria-describedby`), giao diện không đổi. §11.3 ghi vào "Đạt" |
+| 0.5.65 | 2026-11-01 | Màn hình 5 và trang quản trị (không ticket, TV1-12, Could, A duyệt thay Dương 2026-11-01): nút ▲▼ ở builder có tên kèm nhãn trường ("Lên: <nhãn>", chưa có nhãn thì "Trường mới"); ô tên đầu mỗi dòng ở A1, A2, A3 là header dòng (`th scope="row"`), nhìn không đổi. §11.3 ghi vào "Đạt" |
 
 ## Mục lục
 
@@ -134,7 +148,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Nhóm chức năng | Nội dung | Mức |
 |---|---|---|
 | Dự án và thành viên | Mỗi nhóm là một dự án (tổ chức) có form, phiếu, ảnh và thành viên riêng. Một người thuộc được nhiều dự án với vai trò khác nhau; đổi dự án ngay trong app, kể cả khi offline. | Must |
-| Tài khoản và tổ chức | Tự tạo tài khoản (tên + mật khẩu); gửi yêu cầu mở tổ chức, admin duyệt, người gửi thành Owner; tổ chức công khai hiện tên trong danh sách; trang quản trị riêng cho admin (ADR 0003). | Must; màn hình A3 Tài khoản: Could (CLI làm thay) |
+| Tài khoản và tổ chức | Tự tạo tài khoản (tên + mật khẩu); gửi yêu cầu mở tổ chức, admin duyệt, người gửi thành Owner; tổ chức công khai hiện tên trong danh sách; trang quản trị riêng cho admin (ADR 0003). | Must; màn hình A3 Tài khoản: Could (CLI làm thay); tự đổi mật khẩu: Could |
 | Form builder | Tạo/sửa form với 7 loại trường: text, number, select, multiselect, date, photo, gps. Form có phiên bản, thuộc một dự án. | Must; xuất/nhập form JSON: Could |
 | Offline storage | Form, phiếu, ảnh, hàng đợi đồng bộ trong IndexedDB (Dexie). App shell được service worker precache. | Must |
 | Sync queue | Outbox bền vững, retry với exponential backoff, idempotency key. | Must |
@@ -145,6 +159,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Danh sách phiếu (§4.8) | Nhóm theo form, nhãn trạng thái, lọc theo trạng thái; tìm theo tiêu đề, lọc theo người tạo, 2.000 phiếu cuộn mượt. | Must (lọc theo trạng thái); tìm kiếm, lọc người tạo, 2.000 phiếu: Could (TV2-18) |
 | Khả năng tiếp cận (§11.3) | Rà nhãn ô nhập, trạng thái không chỉ bằng màu, tương phản, bàn phím. | Could (TV3-15) |
 | Log và theo dõi (§12) | Một dòng log mỗi request, không ghi token. | Could (TV2-19) |
+| Tự lưu chữ đang gõ (§4.1) | Chữ chưa bấm Lưu ở màn hình 4 được giữ trên máy; tải lại hay app bị tắt thì mở lại phiếu hỏi khôi phục. | Could (Dương chốt 2026-10-30, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
 **Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
@@ -394,6 +409,12 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
 
   Với `photo` bắt buộc: chỉ cần ảnh đã lưu trên máy là hợp lệ; ảnh chưa upload xong **không** làm phiếu thành nháp (việc upload là của §5.6). Option bị bỏ khỏi form ở phiên bản mới không làm phiếu cũ thành lỗi, vì phiếu luôn validate theo `formVersion` của chính nó.
 - Phiếu đã từng lên server mà bị sửa thành không hợp lệ cũng thành `draft`: bản trên server giữ nguyên, thay đổi cục bộ được giữ và không bị pull ghi đè (ADR quy tắc 8).
+- **Bộ đệm đang nhập** (Could, Dương chốt 2026-10-30; `client/src/typingBuffer.ts`, `client/src/db/typingBuffer.ts`): chữ đang gõ ở màn hình 4 mà chưa bấm Lưu được tự ghi vào `meta` `typing:<recordId>` (§4.2) sau 1 s ngừng gõ và ngay khi trang bị ẩn. Bộ đệm không phải phiếu: không đổi `syncState`, không tạo, sửa hay xoá op, không lên server, không chặn Đăng xuất (Đăng xuất xoá CSDL dự án thì mất theo).
+  - Chỉ ghi khi chữ khác bản đã nạp vào form; ô rỗng (`''`, `[]`, `null`, thiếu) coi như nhau, xoá một giá trị cũ vẫn là thay đổi. Phiếu đang `conflict` (chỉ đọc) không ghi thêm; phần đã gõ trước lúc phiếu thành chỉ đọc (đồng bộ chạy nền) vẫn được ghi khi ẩn hay rời trang.
+  - Mở lại phiếu có bộ đệm thì hỏi [Khôi phục] / [Bỏ], form khoá tới khi chọn; không tự điền. Bộ đệm trùng phiếu (máy tắt giữa lúc Lưu và lúc xoá bộ đệm) thì bỏ, không hỏi. Phiếu đã bị xoá thì chỉ có [Bỏ].
+  - Phiếu bị đổi trong lúc chưa Lưu (pull bản của máy khác): [Khôi phục] gộp theo trường bằng `threeWayMerge` với gốc là bản đã nạp lúc gõ (ADR 0001 quy tắc 5). Trường cả hai cùng sửa giữ bản mới và hiện chữ đã gõ để người dùng nhập lại nếu cần, không tự chọn hộ (bất biến 1).
+  - Phiếu mới chưa Lưu lần nào không có trong danh sách: trang chủ có dải dẫn về (§4.8), để app bị tắt rồi mở lại vẫn tìm được.
+  - Lưu (cả nháp) hay Xoá phiếu thì xoá bộ đệm; "← Quay lại" giữ. Ảnh đã chọn nằm sẵn trong `attachments` (§5.6) nên bộ đệm chỉ giữ id ảnh. Bấm [Tải lại] ở dải cập nhật (§4.3) thì ghi nốt bộ đệm rồi mới tải lại.
 
 **Tiêu chí chấp nhận**
 - Giám sát viên tạo form 7 loại trường, lưu, điều tra viên thấy form sau lần đồng bộ kế tiếp.
@@ -421,7 +442,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 | `outbox` | `++seq`, unique `opId`, index `recordId`, `nextAttemptAt` | Thao tác chờ gửi (§5.2) |
 | `conflicts` | `recordId` | Bản server, lịch sử, kết quả merge chờ người dùng |
 | `attachments` | `id`, index `recordId`, `uploadState`, `nextAttemptAt` | Blob ảnh, chunk đã upload, trạng thái retry (§5.6) |
-| `meta` | `key` | `pull: { cursor, scope }` (§5.5), ... |
+| `meta` | `key` | `pull: { cursor, scope }` (§5.5); `typing:<recordId>: { formId, formVersion, data, base, savedAt }` bộ đệm đang nhập (§4.1, `savedAt` giờ thiết bị chỉ để hiển thị) |
 
 - **Dự án đang chọn:** lưu trong `account` (`currentProjectId`). Chưa chọn lần nào, hoặc dự án đã chọn không còn active (đã rời), thì dùng dự án active đầu tiên trong `projects` (thứ tự `/me`); không có dự án active nào thì không mở CSDL dự án nào (`client/src/projects.ts`, `resolveCurrentProjectId`).
 - **Đổi dự án:** UI đóng CSDL cũ, mở CSDL của dự án mới; mọi `liveQuery` chỉ chạy trên CSDL đang mở, nên không thể hiển thị lẫn dữ liệu hai dự án.
@@ -438,7 +459,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - **Precache** toàn bộ app shell (HTML, JS, CSS, icon). Điều hướng bất kỳ (trừ `/api/`) trả `index.html` khi offline.
 - **Runtime cache** `GET /api/projects/*/forms` và `GET /api/me` theo NetworkFirst (timeout 3s). Dữ liệu phiếu **không** cache qua SW vì nguồn là IndexedDB.
 - **Không đụng tới trang quản trị:** `/admin/` nằm trong `navigateFallbackDenylist` (regex `/^\/admin(\/|$)/`, khớp cả `/admin` không có `/`; thiếu thì SW trả `index.html` của PWA trước khi request tới Caddy) và không có trong precache, để trang quản trị luôn lấy bản mới từ server và không chạy offline (§4.9). Có code (TV1-16): `globIgnores` loại `admin/**` và entry `assets/admin-*`; chunk dùng chung cho cả hai trang (`assets/shared-*`: React, `shared/`…) vẫn precache vì app khảo sát cần. vite-plugin-pwa chèn `<link rel="manifest">` vào mọi trang nên `vite.config.ts` có plugin nhỏ bỏ thẻ này khỏi `admin/index.html`.
-- **Cập nhật phiên bản app:** dùng `registerType: 'prompt'`: khi có SW mới, hiện dải "Có phiên bản mới" với nút [Tải lại] (`client/src/components/UpdatePrompt.tsx`); không tự reload. Đang ở trang nhập phiếu thì hỏi "Phiếu đang nhập chưa lưu sẽ mất. Tải lại?" trước. Trình duyệt kiểm bản mới khi mở trang; app kiểm thêm mỗi 60 phút vì app đã cài thường mở cả ngày.
+- **Cập nhật phiên bản app:** dùng `registerType: 'prompt'`: khi có SW mới, hiện dải "Có phiên bản mới" với nút [Tải lại] (`client/src/components/UpdatePrompt.tsx`); không tự reload. Đang ở trang nhập phiếu thì hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?" trước, ghi nốt bộ đệm đang nhập (§4.1) rồi mới tải lại. Trình duyệt kiểm bản mới khi mở trang; app kiểm thêm mỗi 60 phút vì app đã cài thường mở cả ngày.
 - **Lần cài đầu:** `clientsClaim` để SW nắm luôn trang đang mở (rời mạng ngay sau lần mở đầu vẫn tải lại được). Không có `skipWaiting`, nên bản cập nhật vẫn chờ người dùng bấm Tải lại. Lần deploy đầu tiên sau khi đổi từ `autoUpdate` thì SW cũ vẫn tự thay như trước.
 - **Đồng bộ nền:** sync engine chạy trong trang (§5.3). Background Sync API chỉ có trên Chromium nên là tuỳ chọn nâng cao, không phải yêu cầu.
 - **Hướng dẫn cài:** trang Cài đặt có mục "Cài lên màn hình chính" cho Android (Chrome) và iPhone (Safari); app đang chạy ở chế độ đã cài (`display-mode: standalone` hoặc `navigator.standalone` trên iOS) thì chỉ ghi "Đã cài lên màn hình chính." (ui.md màn hình 8).
@@ -518,8 +539,9 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003. Mọi mục dư�
   - Khác người và máy **còn** dữ liệu chưa gửi: từ chối kèm nút "Xuất JSON" (câu chữ dưới đây; xong báo "Đã tải N file.", không còn phiếu nào thì "Máy không còn phiếu chưa gửi. Bấm Tiếp tục để đăng nhập lại.", lỗi thì "Không xuất được file, thử lại."; TV1-12). Không có nút xoá ở bước này. Lý do: phiếu chưa gửi phải lên server dưới tên người tạo (bất biến 6), mà token người mới không gửi hộ được.
   - Có code (TV2-16, `client/src/signIn.ts`, quyết định ở hàm thuần `decideSignIn`): chạy trong Web Lock `field-survey-sync`; khác người mà máy trống thì xoá như Đăng xuất (cache runtime, mọi CSDL dự án, `projects`, `user`, `currentProjectId`); bị từ chối thì không lưu token và huỷ phiên vừa cấp. Câu từ chối (TV1-14): "Máy này còn N phiếu chưa gửi của <tên người cũ>. Đăng nhập lại bằng tài khoản của người đó để gửi, hoặc xuất JSON trước."; N đếm phiếu nháp, chờ đồng bộ, lỗi, xung đột, N = 0 (chỉ còn ảnh hoặc op) thì câu là "còn dữ liệu chưa gửi". Nút "Xuất JSON" kèm câu này tải mỗi dự án còn phiếu chưa gửi một file `chua-gui-<projectId>.json`, cùng định dạng với Xuất JSON của dự án đã rời (`downloadUnsentOnDevice` trong `signIn.ts`).
 - **Trang Cài đặt** (ui.md màn hình 8): tên hiển thị và **tên đăng nhập** (`settings-username`) để gửi cho giám sát viên hoặc Owner. Chưa thuộc tổ chức nào: "Gửi tên này cho giám sát viên của tổ chức để được thêm vào."; đã thuộc: "Giám sát viên hoặc Owner cần tên này nếu muốn thêm bạn vào tổ chức khác." `account.user` lưu từ trước TV2-14 chưa có `username` tới vòng `/me` kế tiếp: hiện `userId` (tài khoản cũ có username = id, migration 4), không bao giờ rỗng; luật này dùng chung với màn hình Tổ chức (`client/src/accountDisplay.ts`). Có code (TV1-07).
-- **Hộp hỏi xác nhận** trong PWA đều là hộp xác nhận trong app (`ConfirmDialog`, không dùng hộp của trình duyệt; Esc = Huỷ); nút xác nhận màu đỏ cho việc mất dữ liệu hoặc mất quyền (Đăng xuất, Rút, Xoá khỏi máy, Xoá phiếu), màu thường cho Tải lại, Đổi vai trò (TV1-12). Nút trong trang chỉ mở hộp (Xoá phiếu, Rút, Đăng xuất, Xoá khỏi máy, Khoá ở trang quản trị) có viền đỏ, không đỏ đặc (TV1-12 b2, ui.md "Hệ thống thiết kế").
+- **Hộp hỏi xác nhận** trong PWA đều là hộp xác nhận trong app (`ConfirmDialog`, không dùng hộp của trình duyệt; Esc = Huỷ); nút xác nhận màu đỏ cho việc mất dữ liệu hoặc mất quyền (Đăng xuất, Rút, Xoá khỏi máy, Xoá phiếu), màu thường cho Tải lại, Đổi vai trò (TV1-12). Nút trong trang chỉ mở hộp (Xoá phiếu, Rút, Đăng xuất, Xoá khỏi máy, Khoá ở trang quản trị) có viền đỏ, không đỏ đặc (TV1-12 b2, ui.md "Hệ thống thiết kế"). Huỷ hoặc Esc thì con trỏ về lại nút đã mở hộp (nếu nút còn trên trang); bấm nút xác nhận thì con trỏ theo luật của từng màn (vd. trang quản trị về dòng kết quả, ui.md A1–A3), hộp không đưa đi đâu (tech-debt N18).
 - **Đăng xuất** (trang Cài đặt, ui.md màn hình 8) chỉ bật khi không còn dữ liệu chưa gửi ở mọi dự án; đăng xuất xoá token và mọi CSDL dự án. Có hộp xác nhận "Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng." Việc kiểm tra và xoá chạy trong Web Lock `field-survey-sync` (chờ vòng đồng bộ đang chạy xong) và kiểm lại ngay trước khi xoá (`client/src/logout.ts`). Đăng xuất xoá cả cache runtime `me` và `forms` của SW (§4.3; tên ở `client/src/swCaches.ts`) để dữ liệu của người cũ không nằm lại trên máy dùng chung, nhưng giữ precache để app vẫn mở được offline. Đang online thì gọi thêm `POST /api/auth/logout` để huỷ phiên của máy này: gọi sau khi đã xoá dữ liệu trên máy, trước khi xoá token; lỗi mạng thì vẫn đăng xuất trên máy (phiên còn trên server, admin thu hồi được bằng `user:revoke-sessions`). Có code (TV2-16).
+- **Đổi mật khẩu** (Could, Dương chốt 2026-10-26; mở rộng ADR 0003 §1, ADR không đổi): người dùng tự đổi mật khẩu, không phải giữ mãi mật khẩu tạm admin đã thấy khi cấp lại. `POST /api/auth/change-password` với mật khẩu hiện tại và mật khẩu mới (luật như lúc tạo tài khoản, 8–128 ký tự); trùng mật khẩu cũ vẫn được. Sai mật khẩu hiện tại → `403 wrong_password` "Mật khẩu hiện tại không đúng" (không dùng `401`: app coi `401` là hết phiên và đưa về màn hình Đăng nhập); lần sai tính chung giới hạn đăng nhập sai (10 lần / 15 phút theo tên hoặc IP, `429`). Đổi xong thu hồi mọi phiên khác của người này trong cùng transaction, giữ phiên máy đang đổi: máy khác gặp `401` như phiên bị thu hồi (dữ liệu trên máy giữ nguyên, đăng nhập lại bằng mật khẩu mới rồi gửi tiếp). Mọi tài khoản đã đăng nhập gọi được, kể cả admin, nhưng admin không có giao diện (PWA chặn admin, trang `/admin/` không có): admin đổi bằng CLI `user:reset-password`. Có code: API (`server/src/routes/auth.ts`, `changeUserPassword` ở `server/src/repo/users.ts`); khối "Đổi mật khẩu" ở trang Cài đặt (ui.md màn hình 8, cần mạng; `client/src/pages/SettingsPage.tsx`, kiểm form ở hàm thuần `client/src/changePasswordForm.ts` dùng luật của `shared/accountValidation.ts`).
 - **Tạo tài khoản admin và hỗ trợ** (cấp lại mật khẩu, thu hồi phiên) không có UI trong PWA: chạy CLI ở server (§12), hoặc trang quản trị (§4.9).
 
 **Tiêu chí chấp nhận:** đủ các ca T1–T10 ở ADR 0002; thêm U1–U7, Q1–Q9, Q11, D1–D2, M1–M3, A5–A8 ở ADR 0003 (§10.1).
@@ -528,13 +550,15 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003. Mọi mục dư�
 
 Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), không gọi API.
 
-- **Nhóm theo form**, mỗi form một mục có số phiếu; trong mục, phiếu sắp theo `updatedAt` cục bộ mới nhất trước.
+- **Nhóm theo form**, mỗi form một mục có số phiếu; trong mục, phiếu sắp theo `updatedAt` cục bộ mới nhất trước. Mục theo thứ tự thẻ form; phiếu có form không còn trên máy gom vào mục cuối "Biểu mẫu chưa có trên máy". Khi bộ lọc đang bật, số phiếu đếm theo bộ lọc và mục không còn phiếu khớp thì ẩn.
 - **Mỗi dòng:** tiêu đề phiếu (giá trị trường `text` đầu tiên không ẩn, rỗng thì "Phiếu chưa có tên"), nhãn trạng thái hiển thị (§5.1, §5.6), giờ sửa cuối. Với `supervisor` thêm tên người tạo (`createdByName`, kèm "(đã rời dự án)" nếu cần).
+  - Có code (tech-debt N10, N11; `client/src/recordList.ts`): "không ẩn" theo `hidden` của đúng bản form của phiếu (§4.1), máy thiếu bản đó thì theo bản mới nhất cùng form (id trường không đổi giữa các bản); không có form thì "Phiếu chưa có tên". Giờ sửa theo giờ máy, chỉ để hiển thị (dạng chữ ở ui.md màn hình 2). Tên người tạo: chưa có code (TV2-18).
 - **Bộ lọc:** trạng thái ("Tất cả", "Cần xử lý", "Chưa đồng bộ", "Nháp", "Lỗi"); với `supervisor` thêm lọc theo người tạo (cần `createdBy`, §6.2). Ô tìm kiếm theo tiêu đề phiếu. Bộ lọc chạy trên index `syncState` và lọc trong bộ nhớ, đủ cho 2.000 phiếu (§11.2).
   - Có code (TV3-07, `client/src/recordFilter.ts`): lọc theo nhãn hiển thị (§5.6) chứ không theo `syncState` thô. "Cần xử lý" = xung đột, lỗi, lỗi ảnh; "Chưa đồng bộ" = chờ đồng bộ, đang tải ảnh; "Nháp"; "Lỗi" = lỗi, lỗi ảnh. Số "Cần xử lý (n)" đầu danh sách, bấm vào thì bật bộ lọc đó. Lọc theo người tạo và ô tìm kiếm: chưa có code (TV2-18).
 - **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định, **trừ khi đang `conflict`** (vd. xoá ở máy này, sửa ở máy kia): người dùng phải thấy để xử lý.
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).
+- **Phiếu đang nhập dở** (Could, Dương chốt 2026-10-30; `unsavedNewRecords` ở `client/src/typingBuffer.ts`): phiếu mới có bộ đệm đang nhập (§4.1) mà chưa Lưu lần nào thì không có trong danh sách; trang chủ có dải "Phiếu đang nhập dở, chưa lưu" (dưới banner dự án đã rời và cảnh báo, trên mục Biểu mẫu), mỗi phiếu một dòng dẫn tới màn hình 4, ở đó hỏi Khôi phục / Bỏ. Phiếu đã có trên máy thì mở từ danh sách như thường, không lên dải. Tiêu đề theo luật ở trên với bản form của bộ đệm; bộ đệm có form không còn trên máy thì ẩn. Sắp bộ đệm mới gõ lên trên theo giờ máy, chỉ để hiển thị. Không có nút Bỏ ở trang chủ.
 - **Chưa có phiếu nào** (kể cả phiếu đã xoá đang ẩn): "Chưa có phiếu nào." và ẩn bộ lọc (TV1-12 b2). Có phiếu mà bộ lọc ra rỗng: giữ bộ lọc, báo "Không có phiếu nào ở trạng thái này."
 
 ### 4.9 Trang quản trị (ADR 0003 §8; có code)
@@ -587,6 +611,7 @@ stateDiagram-v2
 - `conflict`: phiếu chỉ đọc cho tới khi giải quyết (§4.5).
 - `error`: op ở trạng thái `failed` (lần bị `4xx` tính là một lần gửi, `attempts + 1`). Sửa phiếu thì op `failed` bị bỏ và dữ liệu mới đi trong một op mới với `opId` mới, không dùng lại key cho dữ liệu khác (CLAUDE.md bất biến 3; an toàn vì server không lưu key cho response lỗi). Bấm "Thử lại" thì gửi lại đúng op đó (cùng `opId`, cùng dữ liệu, giữ `attempts`).
 - Nhãn hiển thị tách khỏi `syncState`: phiếu `synced` nhưng còn ảnh chưa lên hiện "Đang tải ảnh (n)" (§5.6).
+- Bộ đệm đang nhập (§4.1) không phải một trạng thái: phiếu giữ nguyên `syncState` cho tới khi người dùng bấm Lưu.
 
 ### 5.2 Outbox
 
@@ -747,10 +772,11 @@ interface MeResponse {
 
 interface RegisterRequest { username: string; name: string; password: string }
 interface LoginRequest { username: string; password: string }
+interface ChangePasswordRequest { currentPassword: string; newPassword: string }  // §4.7 Đổi mật khẩu
 interface AuthResponse { token: string; user: MeResponse['user'] }
 ```
 
-Luật thân request nằm ở `shared/src/accountValidation.ts` để client báo lỗi giống server: `parseRegisterRequest` chuyển `username` về chữ thường rồi kiểm `^[a-z0-9._]{3,32}$`, cắt khoảng trắng hai đầu `name` (1–100 ký tự), `password` 8–128 ký tự, không cắt; `parseLoginRequest` chỉ kiểm kiểu và chuyển `username` về chữ thường.
+Luật thân request nằm ở `shared/src/accountValidation.ts` để client báo lỗi giống server: `parseRegisterRequest` chuyển `username` về chữ thường rồi kiểm `^[a-z0-9._]{3,32}$`, cắt khoảng trắng hai đầu `name` (1–100 ký tự), `password` 8–128 ký tự, không cắt; `parseLoginRequest` chỉ kiểm kiểu và chuyển `username` về chữ thường; `parseChangePasswordRequest` kiểm `newPassword` 8–128 ký tự như lúc đăng ký, `currentPassword` chỉ kiểm kiểu (sai thì là `wrong_password`).
 
 **Theo ADR 0003** (có code: `Member`, `ProjectSettings` ở TV1-08; còn lại ở TV2-15):
 
@@ -819,6 +845,7 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | POST | `/auth/register` | Tạo tài khoản, đăng nhập luôn (ADR 0003 §1) | không cần token | Có |
 | POST | `/auth/login` | Đăng nhập, cấp phiên cho máy này | không cần token | Có |
 | POST | `/auth/logout` | Huỷ phiên hiện tại | mọi | Có |
+| POST | `/auth/change-password` | Tự đổi mật khẩu, thu hồi các phiên khác (§4.7) | mọi | Có |
 | GET | `/me` | Người dùng hiện tại và danh sách dự án kèm vai trò (`owner`, `supervisor`, `surveyor`) | mọi | Có |
 | GET | `/directory` | Tên các tổ chức công khai mình chưa thuộc | mọi | Có |
 | GET/POST | `/project-requests` | Yêu cầu mở tổ chức của mình / gửi yêu cầu mới | mọi | Có |
@@ -900,6 +927,7 @@ Content-Type: application/json
 | `POST /auth/register` | `{ username, name, password }` | `201 AuthResponse`; `409 username_taken`; `400 invalid_body`; `429 too_many_requests` (đã có 5 tài khoản tạo thành công trong 60 phút gần nhất từ IP này; đăng ký hỏng không tính) |
 | `POST /auth/login` | `{ username, password }` | `200 AuthResponse`; sai tên, sai mật khẩu, tài khoản chưa có mật khẩu hay bị khoá đều `401 invalid_credentials`; `429 too_many_requests` khi đã sai 10 lần trong 15 phút gần nhất theo tên hoặc theo IP (cửa sổ trượt; đăng nhập đúng không xoá bộ đếm; đang bị chặn thì mật khẩu đúng cũng `429`) |
 | `POST /auth/logout` | – | `204`, xoá phiên của token đang gửi; phiên khác của cùng người giữ nguyên |
+| `POST /auth/change-password` | `{ currentPassword, newPassword }` | `204`, đổi mật khẩu và xoá mọi phiên khác của người này (một transaction), phiên đang gửi giữ nguyên; `400 invalid_body` (sai kiểu, mật khẩu mới ngoài 8–128 ký tự); `429 too_many_requests` (chung bộ đếm với `/auth/login`, theo tên và IP; đang bị chặn thì mật khẩu đúng cũng `429`); `403 wrong_password` (sai mật khẩu hiện tại, kể cả tài khoản chưa có mật khẩu); `401` khi không có phiên. Kiểm theo thứ tự đó |
 | `GET /directory` | – | `200 DirectoryEntry[]`: tổ chức `public`, chưa lưu trữ, mình chưa là thành viên |
 | `POST /project-requests` | `{ name, note? }` | `201 ProjectRequest`; `409 project_limit_reached` (đang có 1 yêu cầu chờ, hoặc đã là Owner của 3 tổ chức chưa lưu trữ) |
 | `GET /project-requests` | – | `200 ProjectRequest[]` của chính mình |
@@ -948,6 +976,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | 401 | `unauthorized` | Thiếu hoặc sai token, phiên đã bị huỷ hoặc tài khoản bị khoá | dừng đồng bộ, yêu cầu đăng nhập lại |
 | 401 | `invalid_credentials` | Sai tên đăng nhập hoặc mật khẩu (không phân biệt) | "Sai tên đăng nhập hoặc mật khẩu" |
 | 403 | `not_member` | Không (còn) là thành viên dự án, hoặc dự án đã lưu trữ | dừng dự án, xử lý như bị rút (ADR 0002 §6) |
+| 403 | `wrong_password` | Sai mật khẩu hiện tại khi tự đổi mật khẩu (`/auth/change-password`) | "Mật khẩu hiện tại không đúng", ở lại trang |
 | 403 | `forbidden` | Là thành viên nhưng sai vai trò (vd. surveyor gọi export) | hiện lỗi; ẩn nút tương ứng |
 | 404 | `not_found` | Không có tài nguyên, ngoài phạm vi, hoặc thuộc dự án khác (không phân biệt để không lộ thông tin) | op `failed` |
 | 409 | `last_owner` | Rút hoặc hạ Owner cuối cùng của tổ chức | hiện lỗi ở màn hình Thành viên / A2 |
@@ -1079,6 +1108,9 @@ Phạm vi đồ án giữ đơn giản:
 | U5 | Integration | Hai phiên (hai máy) cùng gửi phiếu; đăng xuất một máy | Cả hai gửi được; máy kia không ảnh hưởng | Có (`server/test/accounts.test.ts`) |
 | U6 | Integration | DB chỉ chứa hash | Không có mật khẩu/token gốc trong `users`, `sessions` | Có (`server/test/accounts.test.ts`) |
 | U7 | E2E | Tạo tài khoản trên app, tải lại trang; offline lần đầu | Vẫn đăng nhập; báo cần mạng | Có (`client/e2e/login.spec.ts`) |
+| U8 | Integration | Tự đổi mật khẩu đúng (cả tài khoản admin, cả trùng mật khẩu cũ) | `204`; mật khẩu mới đăng nhập được, cũ `401`; phiên đang dùng còn, phiên khác của người này `401`, phiên người khác không đổi; DB không có mật khẩu gốc | Có (`server/test/accounts.test.ts`) |
+| U9 | Integration | Đổi mật khẩu sai mật khẩu hiện tại (cả tài khoản chưa có mật khẩu); không có phiên; thân sai | `403 wrong_password` không đổi gì; `401`; `400 invalid_body` | Có (`server/test/accounts.test.ts`) |
+| U10 | Integration | Đổi mật khẩu sai 10 lần; sai đăng nhập 10 lần rồi đổi mật khẩu | Lần 11 `429` kể cả mật khẩu đúng, `/login` cùng tên cũng `429`; ngược lại cũng `429`; đổi đúng không chiếm lượt sai | Có (`server/test/accounts.test.ts`) |
 | MG1 | Integration | DB `user_version = 3` có admin là thành viên tổ chức → `openDb` | Lỗi liệt kê tài khoản và tổ chức; `user_version` vẫn 3, dữ liệu không đổi | Có (`server/test/db.test.ts`) |
 | MG2 | Integration | DB `user_version = 3` không có admin là thành viên → `openDb` | Lên 4; membership giữ nguyên; token cũ dùng được; supervisor vẫn dùng `P/...` khi tổ chức chưa có Owner | Có (`server/test/db.test.ts`) |
 | Q1 | Integration | Gửi yêu cầu mở tổ chức | `201 pending`, chưa có tổ chức, `/me` rỗng | Có (`server/test/projectRequests.test.ts`) |
@@ -1171,7 +1203,24 @@ Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chi
 - Chữ và nền đạt độ tương phản tối thiểu 4,5:1 (WCAG 2.1 AA); nút đủ lớn để bấm bằng ngón tay (khoảng 44×44 px).
 - Dùng được bằng bàn phím trên máy tính: hộp xác nhận nhận Esc = Huỷ (§4.7), thứ tự Tab theo thứ tự trên màn hình.
 
-Chưa rà hết theo các điểm trên ([tech-debt.md](tech-debt.md) N8).
+**Kết quả rà** (TV3-15, 2026-10-29, bản `main` 90f0546). Chỗ chưa đạt là nợ N16–N21 ở [tech-debt.md](tech-debt.md), Dương sửa trong TV1-12 (b).
+
+| Màn hình | Nhãn ô nhập | Không chỉ bằng màu | Tương phản chữ | Cỡ nút | Bàn phím |
+|---|---|---|---|---|---|
+| 1 Đăng nhập / Tạo tài khoản | Đạt | Đạt | Đạt | Đạt | Chưa: N16 (đã trả, #107) |
+| 2 Danh sách phiếu | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Xoá khỏi máy), N19 (đã trả, #108) |
+| 3 Xung đột | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #110) | Đạt |
+| 4 Điền / xem phiếu | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N17 (đã trả, #107), N18 (đã trả, #106) (Xoá phiếu) |
+| 5 Form builder | Đạt | Đạt | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N17 (đã trả, #107) (xem trước) |
+| 6 Thành viên | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Rút, đổi vai trò), N19 (đã trả, #108) |
+| 8 Cài đặt | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (Đăng xuất), N19 (đã trả, #108) |
+| 9 Tổ chức | Đạt | Chưa: N20 (đã trả, #109) | Đạt | Chưa: N21 (đã trả, #110) | Chưa: N16 (đã trả, #107), N19 (đã trả, #108) |
+| Dải cập nhật, Trình duyệt không được hỗ trợ | – | Đạt | Đạt | Đạt | Chưa: N18 (đã trả, #106) (Tải lại) |
+| A0–A3 trang quản trị | Đạt | Đạt | Đạt | Không xét | Chưa: N16 (đã trả, #107), N18 (đã trả, #106) (A2 Khoá; A3 Khoá, Cấp lại mật khẩu) |
+
+- **Cách rà:** script Playwright chạy một lần (không commit) trên bản build và server in-memory, Chromium ở bề ngang 360px và 1280px, đi qua từng màn hình ở các trạng thái chính (rỗng, có phiếu, nháp, xung đột, offline, hộp xác nhận mở, builder xem trước). Script đo tên truy cập của mọi ô nhập, tỉ lệ tương phản của mọi đoạn chữ đang hiện (màu lấy từ style thật, trộn các lớp nền bán trong suốt), kích thước mọi phần tử bấm được, thứ tự Tab, viền focus, Esc ở hộp thoại. Chỗ nghi ngờ xem lại bằng ảnh chụp. Chưa thử trình đọc màn hình thật (TalkBack; VoiceOver ở N13).
+- **Đạt, ghi để khỏi rà lại:** mọi ô nhập có `<label>`. Nhãn trạng thái phiếu có chữ và biểu tượng, bộ lọc đang chọn có dấu tích, trạng thái mạng có chữ và chấm đặc/rỗng, dự án đang chọn có dấu tích, trường đang chọn ở builder và mục menu đang ở có vạch trái và chữ đậm (mục menu từ #109, N20). Mọi chữ trên nút và nội dung đang dùng được ≥ 4,5:1; viền ô nhập `--field` 3,6:1 (đủ 3:1 cho viền điều khiển). Dòng phiếu cao khoảng 46px nhờ link tên phủ cả dòng. Thứ tự Tab theo thứ tự trên màn hình (máy tính: thanh bên rồi mới tới nội dung). Hộp xác nhận nhận Esc = Huỷ, focus đầu vào [Huỷ], Tab chỉ đi trong hộp. Ngăn kéo menu đóng bằng Esc thì con trỏ về nút Menu. [Tải lại] ở dải cập nhật cao 44px từ #112 (lúc rà TV3-15 cao 40px, ngoài danh sách N21; phát hiện ở #110). Màn hình 1 từ #116 (ngoài danh sách rà TV3-15, thấy khi rà UI 2026-10-25): hai tab theo mẫu tab của WAI-ARIA (khung `tabpanel` mang tên tab đang chọn, phím ←/→/Home/End đổi tab, chỉ tab đang chọn nằm trong thứ tự Tab); câu lỗi gắn với ô bị lỗi (`aria-invalid` + `aria-describedby`; "Sai tên đăng nhập hoặc mật khẩu" gắn cả hai ô, lỗi không thuộc ô nào thì không gắn). Từ #117 (cùng nguồn): nút ▲▼ ở builder có tên kèm nhãn trường ("Lên: Họ tên", trường chưa có nhãn "Trường mới" như chữ trên dòng); ô tên đầu mỗi dòng ở A1, A2, A3 là header dòng (`th scope="row"`) nên trình đọc màn hình đọc tên tổ chức / tài khoản khi đi qua từng ô, nhìn vẫn như ô thường.
+- **Không tính là chưa đạt:** chữ trên nút đang khoá (`--disabled-ink` trên `--chip` 3,96:1; ▲▼ khoá ở builder 2,03:1; [Đồng bộ] lúc offline 3,58:1), vì WCAG 1.4.3 không áp cho thành phần đang khoá và nút khoá có lý do đọc kèm (ui.md). Trang quản trị không xét cỡ nút 44px vì bố cục cho máy tính (ui.md); nút trong bảng cao 40px. ▲▼ ở builder giữ rộng 34px (cao 44px) theo ui.md "▲▼ hẹp" (Dương chốt 2026-10-30, N21): đã có tay nắm ⠿ 44×44 để đổi thứ tự, và 34px vẫn trên mức AA 24px của WCAG 2.2. Phiếu chưa có tên đọc ra mã phiếu là nợ N11 (đã trả, #105) (luật tiêu đề §4.8), không tính lại ở đây.
 
 ### 11.4 Kịch bản chất lượng
 
@@ -1263,6 +1312,7 @@ Rủi ro của sản phẩm và cách giảm. Chỗ spec đã chốt mà code ho
 | Xoá phiếu (P6)? | Xoá hẳn nếu chưa thể tới server, tombstone nếu có thể đã tới (§5.7). Phân công: TV2-13 (logic và đồng bộ, Hoàng), TV1-13 (nút xoá và hộp xác nhận, Dương) (nhóm, 2026-10-10) |
 | API kiểm thử chung (P8)? | Một API dùng chung gồm `match`, `chunkIndex`, `400`, `stats` (§10.1); không ticket nào tự thêm mode riêng vào `faults.ts` (TV2 và TV3, 2026-10-10) |
 | Tài khoản, Owner, trang quản trị (P9)? | Theo [ADR 0003](adr/0003-accounts-and-owner-role.md), chấp nhận 2026-10-12 (PR #21). Spec đã cập nhật với nhãn 🆕/🕘; ticket nhóm "Theo ADR 0003" ở [plan/](plan/README.md) |
+| Ngăn kéo menu có giữ con trỏ không? | Có: lúc ngăn kéo mở, Tab và Shift+Tab chỉ đi trong ngăn kéo như hộp thoại, vì con trỏ ra nội dung sau nền mờ thì người dùng bàn phím và trình đọc màn hình lạc chỗ (ui.md menu điều hướng; Đại, TV3-15, 2026-10-29; có code từ #108, tech-debt N19). Phần trang phía sau nền mờ có `inert` để trình đọc màn hình cũng không ra được; rộng lên ≥ 1024px thì ngăn kéo đóng (#111, tech-debt N22) |
 
 **Đề xuất đã chốt (lưu lại nội dung gốc)**
 

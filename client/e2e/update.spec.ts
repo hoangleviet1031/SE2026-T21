@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
-import { answerConfirm, login } from './helpers';
+import { answerConfirm, expectTapTarget, login } from './helpers';
 
 // Cập nhật phiên bản app và icon cài đặt (TV1-07 phần 2a; design §4.3).
 // Giả lập "vừa deploy bản mới": thêm một dòng vào dist/sw.js mà vite preview đang phục vụ, để trình
@@ -17,7 +17,7 @@ test.afterEach(async () => {
 
 async function loginControlledBySw(page: Page) {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   // Lần cài đầu SW nắm trang bằng clientsClaim; chờ tới lúc đó rồi mới giả lập bản mới
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
@@ -44,10 +44,23 @@ test('có bản mới thì hiện dải, bấm Tải lại thì chạy bản m�
   await expect(page.getByTestId('update-prompt')).toContainText('Có phiên bản mới', { timeout: 15_000 });
 
   await page.getByRole('button', { name: 'Tải lại' }).click();
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await expect(page.getByTestId('update-prompt')).toHaveCount(0);
   // Không còn SW nào chờ: bản mới đã thay bản cũ
   expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.waiting ?? null)).toBeNull();
+});
+
+// Ngoài danh sách N21 của TV3-15, thấy ở #110 (design §11.3 "nút khoảng 44×44 px")
+test('360px: nút Tải lại cao ≥ 44px, dải nằm trên header không đè', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await loginControlledBySw(page);
+  await deployNewVersion(page);
+  const prompt = page.getByTestId('update-prompt');
+  await expect(prompt).toBeVisible({ timeout: 15_000 });
+  await expectTapTarget(prompt.getByRole('button', { name: 'Tải lại' }));
+  const promptBox = await prompt.boundingBox();
+  const headerBox = await page.getByRole('banner').boundingBox();
+  expect((promptBox?.y ?? 0) + (promptBox?.height ?? 0)).toBeLessThanOrEqual(headerBox?.y ?? 0);
 });
 
 test('đang nhập phiếu thì hỏi trước khi tải lại; Huỷ thì giữ nguyên chỗ đang nhập', async ({ page }) => {
@@ -62,16 +75,57 @@ test('đang nhập phiếu thì hỏi trước khi tải lại; Huỷ thì giữ
 
   // Huỷ (hoặc Esc) thì giữ nguyên phần đang gõ
   await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
-  await answerConfirm(page, 'Phiếu đang nhập chưa lưu sẽ mất. Tải lại?', 'Huỷ');
+  await answerConfirm(page, 'Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?', 'Huỷ');
   await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
-  await answerConfirm(page, 'Phiếu đang nhập chưa lưu sẽ mất. Tải lại?', 'Esc');
+  await answerConfirm(page, 'Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?', 'Esc');
   await expect(page.locator('input[name=householdName]')).toHaveValue('Đang gõ dở');
   await expect(page.getByTestId('update-prompt')).toBeVisible();
 
   await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
-  await answerConfirm(page, 'Phiếu đang nhập chưa lưu sẽ mất. Tải lại?', 'Tải lại');
+  await answerConfirm(page, 'Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?', 'Tải lại');
   await expect(page.getByTestId('update-prompt')).toHaveCount(0);
   await expect(page.locator('input[name=householdName]')).toHaveValue('');
+});
+
+// Tự lưu chờ 1 s ngừng gõ (design §4.1): bấm Tải lại ngay sau khi gõ thì app phải ghi nốt bộ đệm rồi mới tải lại
+test('gõ xong bấm Tải lại ngay: tải lại xong vẫn khôi phục được đúng chữ vừa gõ', async ({ page }) => {
+  await loginControlledBySw(page);
+  await page.reload();
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await deployNewVersion(page);
+  await expect(page.getByTestId('update-prompt')).toBeVisible({ timeout: 15_000 });
+
+  // SW mới mất hơn 1 s mới nắm trang, lúc đó tự lưu cũng đã kịp ghi: nên ghi lại bộ đệm đã có chưa ngay lúc
+  // app gửi SKIP_WAITING cho SW mới (bước đầu của tải lại), cất ở localStorage để đọc sau khi trang tải lại
+  const id = page.url().split('/').pop() ?? '';
+  await page.evaluate((recordId) => {
+    const send = ServiceWorker.prototype.postMessage;
+    ServiceWorker.prototype.postMessage = function (
+      this: ServiceWorker,
+      ...args: [unknown, (Transferable[] | StructuredSerializeOptions)?]
+    ) {
+      const open = indexedDB.open('field-survey-p-demo-yte');
+      open.onsuccess = () => {
+        const read = open.result.transaction('meta').objectStore('meta').get(`typing:${recordId}`);
+        read.onsuccess = () => {
+          localStorage.setItem('e2e-typing-at-skip', String(read.result !== undefined));
+          open.result.close();
+          Reflect.apply(send, this, args);
+        };
+      };
+    };
+  }, id);
+
+  await page.locator('input[name=householdName]').fill('Vừa gõ xong');
+  await page.getByTestId('update-prompt').getByRole('button', { name: 'Tải lại' }).click();
+  await answerConfirm(page, 'Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?', 'Tải lại');
+  await expect(page.getByTestId('update-prompt')).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('e2e-typing-at-skip'))).toBe('true');
+
+  const restore = page.getByTestId('typing-restore');
+  await expect(restore).toBeVisible();
+  await restore.getByRole('button', { name: 'Khôi phục' }).click();
+  await expect(page.locator('input[name=householdName]')).toHaveValue('Vừa gõ xong');
 });
 
 test('manifest có icon PNG 192 và 512, trang có apple-touch-icon', async ({ page }) => {

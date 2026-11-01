@@ -125,6 +125,12 @@ export interface LoginRequest {
   password: string;
 }
 
+/** Thân request `POST /api/auth/change-password` (design §4.7, mở rộng ADR 0003 §1) */
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 /** Response của register và login: token phiên của máy này */
 export interface AuthResponse {
   token: string;

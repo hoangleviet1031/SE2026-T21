@@ -1,6 +1,7 @@
 import type {
   AddMemberRequest,
   AuthResponse,
+  ChangePasswordRequest,
   CreateProjectRequestBody,
   DirectoryEntry,
   FormSchema,
@@ -19,6 +20,7 @@ import type {
 import { MEMBER_ERROR_CODES, type MemberErrorCode } from '../members';
 import { ORG_ERROR_CODES, type OrgErrorCode } from '../orgs';
 import type { ApiFailure } from '../apiErrors';
+import { CHANGE_PASSWORD_ERROR_CODES, type ChangePasswordErrorCode } from '../changePasswordForm';
 
 import { expireSession, getToken } from '../auth';
 
@@ -171,6 +173,21 @@ export async function logoutSession(token: string): Promise<void> {
   const res = await timedFetch('/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
   if (res.status === 204 || res.status === 401) return;
   throw new Error(`POST /api/auth/logout ${res.status}`);
+}
+
+export type ChangePasswordResult = { ok: true } | { ok: false; error: ChangePasswordErrorCode };
+
+/**
+ * Tự đổi mật khẩu (design §4.7). Dùng token đã lưu như các màn hình cần online: 401 là phiên của máy này
+ * đã mất, đi luồng hết phiên. Sai mật khẩu hiện tại là 403 `wrong_password`, không phải 401.
+ */
+export async function changePassword(body: ChangePasswordRequest): Promise<ChangePasswordResult> {
+  const res = await request('/api/auth/change-password', json('POST', body));
+  if (res.ok) return { ok: true };
+  const code = await errorCode(res);
+  const known = CHANGE_PASSWORD_ERROR_CODES.find((c) => c === code);
+  if (known) return { ok: false, error: known };
+  throw new ServerError(`POST /api/auth/change-password ${res.status}`);
 }
 
 export async function fetchForms(projectId: string): Promise<FormSchema[]> {

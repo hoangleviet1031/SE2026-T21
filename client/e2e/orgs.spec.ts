@@ -130,7 +130,7 @@ test('M3: Owner thêm người bằng tên đăng nhập → sau một vòng đ�
 
   // minh đang dùng app ở demo-yte, chưa thuộc tổ chức mới
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   // chu (Owner) thêm minh ở màn hình Thành viên, trên máy khác
   const owner = await browser.newContext();
@@ -150,7 +150,7 @@ test('M3: Owner thêm người bằng tên đăng nhập → sau một vòng đ�
   const switcher = page.getByTestId('project-switcher');
   await switcher.getByRole('button', { expanded: false }).click();
   await switcher.getByRole('listitem').getByRole('button').filter({ hasText: projectName }).click({ timeout: 15_000 });
-  await expect(page.getByText(formTitle)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(formTitle, { exact: true })).toBeVisible({ timeout: 15_000 });
 
   const ten = `Phiếu M3 ${project}`;
   await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();

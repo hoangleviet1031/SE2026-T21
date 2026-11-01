@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type BrowserContext, type Page } from '@playwright/test';
-import { API, TOKENS, authHeaders, login, makeImage, readStore } from './helpers';
+import { API, TOKENS, authHeaders, expectTapTarget, login, makeImage, readStore } from './helpers';
 
 test('cùng trường bị sửa ở hai nơi: hiện màn hình conflict, người dùng chọn rồi đồng bộ', async ({
   page,
@@ -403,4 +403,27 @@ test('phiếu có ảnh đang xung đột: ảnh vẫn hiện, không có nút b
   await expect(page.getByTestId('record-in-conflict')).toBeVisible();
   await expect(page.getByTestId('photo-thumb')).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Bỏ ảnh 1' })).toHaveCount(0);
+});
+
+// Tech-debt N21 (design §11.3 "nút khoảng 44×44 px"): đích bấm quanh phiếu xung đột ở điện thoại 360px
+test('360px: Quay lại, Cần xử lý xung đột, tên app, Xử lý đều cao ≥ 44px và bấm sát mép vẫn trúng', async ({
+  page,
+  context,
+  request,
+}) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await login(page);
+  const id = await openConflict(page, context, request, 'Hộ đích bấm');
+  // Màn hình 3
+  await expectTapTarget(page.getByRole('link', { name: '← Quay lại' }));
+
+  // Màn hình 2: viên "Cần xử lý xung đột" vẫn nhìn cao 32px nhưng vùng bấm 44px; link tên app trên header
+  await page.goto('/#/');
+  await expectTapTarget(recordRow(page, 'Hộ đích bấm').getByRole('link', { name: 'Cần xử lý xung đột' }));
+  await expectTapTarget(page.getByRole('banner').getByRole('link', { name: 'Khảo sát thực địa' }));
+
+  // Màn hình 4
+  await page.goto(`/#/fill/household-survey/${id}`);
+  await expectTapTarget(page.getByTestId('record-in-conflict').getByRole('link', { name: 'Xử lý' }));
+  await expectTapTarget(page.getByRole('link', { name: '← Quay lại' }));
 });

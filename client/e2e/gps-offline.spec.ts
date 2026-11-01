@@ -14,7 +14,7 @@ test('offline bấm "Lấy vị trí", lưu phiếu; có mạng thì server nh�
   await context.grantPermissions(['geolocation']);
   await context.setGeolocation({ latitude: 10.7769, longitude: 106.7009, accuracy: 12 });
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   await context.setOffline(true);
   await expect(page.getByTestId('network-status')).toHaveText('Ngoại tuyến');

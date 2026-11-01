@@ -238,7 +238,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-m
 
 ## TV3-15 · Rà khả năng tiếp cận · **Cắt được**
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `docs/tv3-15-a11y-audit`: bảng theo màn hình ở design §11.3, N8 trả, chỗ chưa đạt thành N16–N21; ngăn kéo menu giữ con trỏ (design §14)
 - **Mức:** Could
 - **Tuần:** 5–6 (trễ thì cắt, không làm qua đóng băng giữa tuần 7) · **Phụ thuộc:** không
 - **Spec:** design §11.3; [tech-debt](../tech-debt.md) N8

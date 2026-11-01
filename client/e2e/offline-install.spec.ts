@@ -50,7 +50,7 @@ test('O2: mở app đã cài khi offline từ đầu, tạo 10 phiếu, có mạ
 }) => {
   await login(page);
   await waitForServiceWorker(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await page.close();
 
   // Tab mới mở khi đã mất mạng: app phải lên từ cache của service worker, không chỉ reload trang cũ
@@ -83,7 +83,7 @@ test('O4: lưu phiếu khi còn op chưa gửi rồi đóng tab, mở lại thì
   request,
 }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   // Offline để op chắc chắn còn nằm trong outbox lúc đóng tab
   await context.setOffline(true);

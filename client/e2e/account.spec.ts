@@ -91,7 +91,7 @@ test('khác người khi máy còn phiếu chưa gửi: từ chối, không xoá
   request,
 }) => {
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   const minhToken = await storedToken(page);
   if (!minhToken) throw new Error('chưa lưu mã của minh');
 
@@ -145,7 +145,7 @@ test('bị từ chối nhưng không còn phiếu chưa gửi (chỉ còn op tro
   request,
 }) => {
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   const minhToken = await storedToken(page);
   if (!minhToken) throw new Error('chưa lưu mã của minh');
 
@@ -198,7 +198,7 @@ test('khác người khi máy không còn gì chưa gửi: xoá dữ liệu ngư
 
   await signInOnScreen(page, 'minh');
   await expect(page.getByTestId('login-username')).toHaveCount(0);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await expect.poll(() => projectDbs(page)).not.toContain('field-survey-p-demo-nongnghiep');
   const projects = (await readStore(page, ACCOUNT_DB, 'projects')) as { id: string }[];
   expect(projects.map((p) => p.id)).toEqual(['demo-yte']);
@@ -206,7 +206,7 @@ test('khác người khi máy không còn gì chưa gửi: xoá dữ liệu ngư
 
 test('Đăng xuất khi online huỷ phiên của máy này trên server', async ({ page, request }) => {
   await login(page, 'minh');
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   const token = await storedToken(page);
   if (!token) throw new Error('chưa lưu mã của minh');
   expect(await meStatus(request, token)).toBe(200);

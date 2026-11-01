@@ -58,7 +58,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV1-09 | ~~Màn hình Dự án cho admin~~ | ❌ Bỏ, thay bởi TV1-16 |
 | TV1-10 | `formVersion`, `hidden`, xuất/nhập form | ✅ PR #32 (phần 1), PR #33 (phần 2) |
 | TV1-11 | E2E O2, O4, T6, T10 | ✅ PR #43 |
-| TV1-12 | Hoàn thiện UI (tài liệu người dùng → TV3-16, rà khả năng tiếp cận → TV3-15) | ⏳ a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ); a2 ✅ PR #62 (lỗi API, hết phiên); a3 ✅ PR #68 (lỗi lẻ); (b) chia: b1 ✅ PR #69 (trạng thái, chữ còn thiếu); b2 giao diện theo thiết kế, chia p1–p8: p1 ✅ PR #70 (nền, khung chung); p2 ✅ PR #71 (trang chủ); p3 ✅ PR #72 (điền phiếu, xung đột); p4 ✅ PR #73 (builder); p5 ✅ PR #74 (thành viên, tổ chức); p6 ✅ PR #75 (đăng nhập, cài đặt); p7 ✅ PR #76 (trang quản trị); p8 ✅ PR #77 (kéo thả trường); sửa ▲▼ giữ dòng chọn ✅ PR #78; kiểm cuối (2 dải vàng Đăng nhập, focus admin) ✅ PR #79; nhánh gom → main ✅ PR #80; vùng status Xem trước ✅ PR #81; sửa UI sau audit/critique: màn 6 ✅ PR #85 (ô chọn + [Đổi], ← Quay lại đầu trang); màn 9 ✅ PR #87 (gửi xong có "Đã gửi yêu cầu", yêu cầu lên trên form, ← Quay lại đầu trang); màn 5 ✅ PR #89 (chọn trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu", câu danh sách rỗng); nền trang trắng ✅ PR #91 (ô chìm màu riêng, theme-color trắng, gộp C11); A2 "Thêm Owner…" ✅ PR #92 (critique K5); màn 8 ✅ PR #93 (lỗi Đăng xuất có ⚠, nút khoá đọc kèm lý do); tiêu đề trang ⏳ PR #94 (màn 5, 6, 8, 9 cùng kiểu màn 2, 4); còn: sửa UI theo rà TV3-15 |
+| TV1-12 | Hoàn thiện UI (tài liệu người dùng → TV3-16, rà khả năng tiếp cận → TV3-15) | ⏳ a1 ✅ PR #58 (hộp xác nhận trong app, lỗi nhỏ); a2 ✅ PR #62 (lỗi API, hết phiên); a3 ✅ PR #68 (lỗi lẻ); (b) chia: b1 ✅ PR #69 (trạng thái, chữ còn thiếu); b2 giao diện theo thiết kế, chia p1–p8: p1 ✅ PR #70 (nền, khung chung); p2 ✅ PR #71 (trang chủ); p3 ✅ PR #72 (điền phiếu, xung đột); p4 ✅ PR #73 (builder); p5 ✅ PR #74 (thành viên, tổ chức); p6 ✅ PR #75 (đăng nhập, cài đặt); p7 ✅ PR #76 (trang quản trị); p8 ✅ PR #77 (kéo thả trường); sửa ▲▼ giữ dòng chọn ✅ PR #78; kiểm cuối (2 dải vàng Đăng nhập, focus admin) ✅ PR #79; nhánh gom → main ✅ PR #80; vùng status Xem trước ✅ PR #81; sửa UI sau audit/critique: màn 6 ✅ PR #85 (ô chọn + [Đổi], ← Quay lại đầu trang); màn 9 ✅ PR #87 (gửi xong có "Đã gửi yêu cầu", yêu cầu lên trên form, ← Quay lại đầu trang); màn 5 ✅ PR #89 (chọn trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu", câu danh sách rỗng); nền trang trắng ✅ PR #91 (ô chìm màu riêng, theme-color trắng, gộp C11); A2 "Thêm Owner…" ✅ PR #92 (critique K5); màn 8 ✅ PR #93 (lỗi Đăng xuất có ⚠, nút khoá đọc kèm lý do); tiêu đề trang ✅ PR #94 (màn 5, 6, 8, 9 cùng kiểu màn 2, 4); menu điều hướng ✅ PR #97 (☰ điện thoại, thanh bên máy tính, màn 2, 6, 8, 9); trang chủ nhóm theo form N10, N11 ✅ PR #105; sửa UI theo rà TV3-15: hộp xác nhận trả con trỏ N18 ✅ PR #106; focus ô nhập, ô Chụp ảnh N16, N17 ✅ PR #107; ngăn kéo giữ con trỏ N19 ✅ PR #108; mục menu đang ở N20 ✅ PR #109; đích bấm 44px N21 ✅ PR #110; ngăn kéo inert N22 (thấy khi review #108) ✅ PR #111; [Tải lại] 44px (ngoài danh sách rà, thấy ở #110) ✅ PR #112; tiếp cận màn 1: tab bàn phím, câu lỗi gắn ô (ngoài danh sách rà, thấy khi rà UI 2026-10-25) ✅ PR #116; tiếp cận màn 5, A1–A3: tên nút ▲▼ kèm nhãn trường, ô tên là header dòng (cùng nguồn) ⏳ PR #117; còn: N13 thử iPhone thật (Dương, trước báo cáo cuối kỳ) |
 | TV1-13 | Nút xoá phiếu + hộp xác nhận | ✅ PR #42 · chưa ẩn nút theo người tạo (thiếu `createdBy`) |
 | TV2-01 | Migration + schema multi-tenancy | ✅ PR #8 (chung với TV2-02, TV2-03, TV3-02) |
 | TV2-02 | Xác thực, `requireMember`, lớp `ctx` | ✅ PR #8 · `requireAuth` đã đổi sang `sessions` ở TV2-14 |
@@ -95,7 +95,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-17 | API quản lý tài khoản cho màn hình A3 · **Cắt được** | CLI `user:*` | ⏳ PR #51 |
 | TV1-14 | Màn hình Đăng nhập / Tạo tài khoản | TV1-02 | ✅ PR #53 |
 | TV1-15 | Màn hình Tổ chức (danh bạ, mở tổ chức mới) | – | ✅ PR #54 |
-| TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | ✅ PR #55 (khung), PR #56 (A1, A2); sửa E2E chập chờn ✅ PR #82; A3 Tài khoản (Could) ✅ PR #88; sửa tải lần đầu lỗi kẹt "Đang tải…" ⏳ PR #90 |
+| TV1-16 | Trang quản trị `/admin/` (A1, A2; A3 cắt được) | TV1-09 | ✅ PR #55 (khung), PR #56 (A1, A2); sửa E2E chập chờn ✅ PR #82; A3 Tài khoản (Could) ✅ PR #88; sửa tải lần đầu lỗi kẹt "Đang tải…" ✅ PR #90 |
 | TV1-17 | Tên người tạo/sửa trong `ServerRecord`; ẩn Xoá với surveyor theo người tạo | Phần bỏ của TV1-13 | ✅ PR #44 (phần 1: shared + server), PR #45 (phần 2: client) |
 | TV3-12 | CLI, fixture, helper E2E theo tài khoản mới | Phần CLI/helper của TV3-02 | ✅ PR #36 |
 
@@ -110,8 +110,9 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | TV2-19 | Thân JSON hỏng trả `invalid_body`; log request | Should; log: Could | N1 | ⏳ Typecheck và test xanh; chờ review/staging |
 | TV3-13 | Sao lưu hằng ngày, `UPLOAD_DIR` ngoài repo | Must | N2 | ✅ PR #66 |
 | TV3-14 | E2E lấy GPS (US-03), điều tra viên thấy form sau đồng bộ (US-07) | Must | – | ⏳ chờ PR |
-| TV3-15 | Rà khả năng tiếp cận · **Cắt được** | Could | N8 | — |
+| TV3-15 | Rà khả năng tiếp cận · **Cắt được** | Could | N8 | ✅ `docs/tv3-15-a11y-audit` (chỗ cần sửa: N16–N21 cho TV1-12) |
 | TV3-16 | Tài liệu người dùng (chuyển từ TV1-12) | Must | – | — |
+| — | Tự đổi mật khẩu (không ticket, Dương chốt 2026-10-26) · **Cắt được** | Could | – | ✅ PR #98 (API), PR #99 (giao diện màn 8) |
 
 ## Phụ thuộc quan trọng
 

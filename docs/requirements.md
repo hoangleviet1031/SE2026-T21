@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.5 (2026-10-25)
+- **Phiên bản:** 0.15 (2026-11-01)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -14,9 +14,9 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 | Mã | Kết quả | Story phục vụ |
 |---|---|---|
 | K1 | Không mất phiếu: mọi phiếu đã lưu trên máy lên server đúng một lần | US-01, US-02, US-03, US-04, US-06 |
-| K2 | Không ghi đè âm thầm: hai nơi cùng sửa thì người dùng thấy và tự chọn | US-05, US-06 |
+| K2 | Không ghi đè âm thầm: hai nơi cùng sửa thì người dùng thấy và tự chọn | US-05, US-06, US-14 |
 | K3 | Không phải nhập lại: giám sát viên có dữ liệu dạng bảng ngay từ app | US-07, US-08 |
-| K4 | Không lẫn dữ liệu giữa các tổ chức, kể cả với người vận hành | US-09, US-10, US-11, US-12 |
+| K4 | Không lẫn dữ liệu giữa các tổ chức, kể cả với người vận hành | US-09, US-10, US-11, US-12, US-13 |
 
 ## User story
 
@@ -27,6 +27,11 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** app đã cài và đã mở một lần khi có mạng, **when** tôi mở app lúc không có mạng, **then** app mở được và tôi tạo được phiếu mới.
 - **Given** tôi đã lưu 10 phiếu khi offline, **when** có mạng trở lại, **then** server có đủ 10 phiếu, mỗi phiếu version 1, và nhãn đổi thành "Đã đồng bộ".
 - **Given** còn phiếu chưa gửi, **when** tôi đóng tab rồi mở lại, **then** phiếu vẫn còn và tự đồng bộ khi có mạng.
+- **Given** còn dữ liệu chưa gửi ở bất kỳ dự án nào, **when** tôi mở Cài đặt, **then** nút Đăng xuất bị khoá và đọc kèm lý do; lúc bấm [Đăng xuất] trong hộp xác nhận mới thấy còn dữ liệu chưa gửi (vd. tab khác vừa lưu) thì báo "⚠ Còn dữ liệu chưa gửi ở dự án …", không xoá phiếu, CSDL dự án hay cache `me`/`forms`.
+- **Given** đang ở trang nhập phiếu, **when** có phiên bản mới và tôi bấm [Tải lại], **then** app hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?"; Huỷ thì giữ nguyên chỗ đang nhập.
+- (Could) **Given** tôi đang gõ phiếu mà chưa bấm Lưu, **when** trang bị tải lại hoặc tôi bấm "← Quay lại" rồi mở lại phiếu, **then** app hỏi [Khôi phục] / [Bỏ]; Khôi phục thì có lại chữ đã gõ (cả ảnh đã chọn), trong lúc đó phiếu không đổi trạng thái và không có op nào; phiếu đã bị sửa ở nơi khác thì trường cả hai cùng sửa giữ bản mới và hiện chữ tôi đã gõ.
+- (Could) **Given** tôi đang gõ một phiếu mới chưa Lưu lần nào, **when** app bị tắt rồi tôi mở lại (vào trang chủ), **then** trang chủ có dải "Phiếu đang nhập dở, chưa lưu" dẫn về phiếu đó để khôi phục; Lưu xong thì dải mất.
+- **Given** tôi lưu phiếu (kể cả nháp), **when** lưu xong, **then** app xin trình duyệt giữ bộ nhớ (`storage.persist()`); **given** trình duyệt thiếu API bắt buộc (vd. Web Locks), **when** mở app, **then** hiện "Trình duyệt không được hỗ trợ" thay cho app.
 
 ### US-02 · Lưu nháp khi phiếu chưa đủ · Must
 
@@ -80,6 +85,8 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** form đã có phiếu, **when** tôi thêm trường hoặc ẩn trường, **then** form lên version mới và phiếu cũ vẫn mở bằng version cũ.
 - **Given** bản sửa đổi `type` hoặc bỏ trường cũ, **when** lưu, **then** server từ chối `400 invalid_form`.
 - **Given** tôi là điều tra viên, **when** gọi lưu form, **then** `403 forbidden`.
+- **Given** form đã lưu, **when** tôi bấm "Xuất form" (chạy được khi offline), **then** tải file `<id>-v<version>.json`; nhập file đó ở "Biểu mẫu mới" của dự án khác thì builder nạp thành form mới chưa lưu, bấm "Lưu bản mới" thì thành form mới ở dự án đó.
+- **Given** file không phải JSON, sai định dạng hoặc sai luật lưu form, **when** nhập form, **then** báo "File không phải JSON", "File không đúng định dạng biểu mẫu" hoặc lỗi luật, builder giữ nguyên; **given** form mới có mã trùng form đã có trong dự án, **when** bấm "Lưu bản mới", **then** báo "Mã biểu mẫu đã có trong dự án", không gửi.
 
 ### US-08 · Xuất dữ liệu · Must (CSV), Should (JSON)
 
@@ -88,6 +95,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** dự án có phiếu tạo bằng form v1 và v2, **when** xuất CSV, **then** cùng nằm trong một file, cột khớp đúng, tiếng Việt không lỗi font.
 - **Given** ô chữ bắt đầu bằng `=`, `+`, `-`, `@`, **when** xuất CSV, **then** ô được thêm tiền tố để Excel không chạy công thức.
 - **Given** tôi là điều tra viên, **when** gọi xuất, **then** `403 forbidden`.
+- **Given** tôi là supervisor hoặc Owner, **when** xuất JSON một form, **then** file có `forms` (mọi phiên bản form đã dùng) và `records` của form đó.
 
 ### US-09 · Một người, nhiều tổ chức, không lẫn dữ liệu · Must
 
@@ -127,6 +135,26 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** admin, **when** từ chối yêu cầu mà không ghi lý do, **then** `400 invalid_body`.
 - **Given** admin ở màn hình Tài khoản (A3, Could), **when** cấp lại mật khẩu / thu hồi phiên / khoá một tài khoản, **then** mật khẩu cũ hết dùng / token cũ nhận `401` / tài khoản không đăng nhập được nữa; tự khoá hay tự thu hồi phiên của mình thì báo lỗi, không mất phiên.
 
+### US-13 · Tự đổi mật khẩu · Could
+
+*Là người dùng vừa được admin cấp mật khẩu tạm, tôi muốn tự đổi sang mật khẩu của riêng mình, để không ai khác (kể cả người vận hành) còn biết mật khẩu đang dùng.*
+
+- **Given** đúng mật khẩu hiện tại và mật khẩu mới hợp lệ, **when** tôi đổi mật khẩu, **then** đăng nhập bằng mật khẩu mới được, mật khẩu cũ bị từ chối; máy đang dùng vẫn đăng nhập, các máy khác phải đăng nhập lại (dữ liệu trên máy đó giữ nguyên).
+- **Given** sai mật khẩu hiện tại, **when** đổi mật khẩu, **then** `403 wrong_password`, báo "Mật khẩu hiện tại không đúng", không đổi gì và không bị đưa về màn hình Đăng nhập.
+- **Given** đã sai 10 lần trong 15 phút (đổi mật khẩu hoặc đăng nhập), **when** đổi mật khẩu, **then** `429` kể cả mật khẩu đúng.
+
+### US-14 · Danh sách phiếu · Must
+
+*Là điều tra viên hay giám sát viên, tôi muốn trang chủ chia phiếu theo biểu mẫu, mỗi phiếu có tên dễ đọc và giờ sửa, lọc được theo trạng thái, để tìm nhanh phiếu cần làm tiếp mà không phải mở từng phiếu.*
+
+- **Given** dự án có phiếu của nhiều form, **when** mở trang chủ, **then** phiếu chia thành nhóm theo form (cùng thứ tự thẻ form), tiêu đề nhóm có tên form và số phiếu; trong nhóm, phiếu sửa sau nằm trên; phiếu có form chưa có trên máy nằm ở nhóm cuối "Biểu mẫu chưa có trên máy".
+- **Given** một phiếu, **when** xem dòng của nó, **then** tiêu đề là giá trị trường `text` đầu tiên không ẩn ("Phiếu chưa có tên" nếu rỗng), kèm nhãn trạng thái và giờ sửa cuối.
+- **Given** có phiếu cần xử lý, **when** chọn bộ lọc trạng thái (hoặc bấm "Cần xử lý (n)"), **then** chỉ còn phiếu khớp, số trong tiêu đề nhóm đếm theo bộ lọc, nhóm không còn phiếu khớp thì ẩn.
+- **Given** dự án chưa có phiếu nào, **when** mở trang chủ, **then** báo "Chưa có phiếu nào." và ẩn bộ lọc; có phiếu mà lọc ra rỗng thì giữ bộ lọc, báo "Không có phiếu nào ở trạng thái này."
+- **Given** phiếu đã xoá, **when** mở trang chủ, **then** phiếu không hiện, trừ khi đang xung đột (xoá ở máy này, sửa ở máy kia).
+
+Lọc theo người tạo, tên người tạo cho giám sát viên và ô tìm kiếm (design §4.8) là TV2-18, chưa có code nên chưa có tiêu chí.
+
 ## Truy vết
 
 Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → test chứng minh → ticket và PR. Chỗ **chưa có test** in đậm; thêm test thì sửa dòng đó.
@@ -136,6 +164,11 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Mở và nhập khi offline | O1 `offline.spec.ts` | khung ban đầu |
 | US-01 | 10 phiếu offline lên đủ, version 1 | O2 `offline-install.spec.ts` | TV1-11 (#43) |
 | US-01 | Đóng tab vẫn đồng bộ | O4 `offline-install.spec.ts` | TV1-11 (#43) |
+| US-01 | Còn dữ liệu chưa gửi → Đăng xuất bị khoá/bị chặn, không xoá gì | `settings.spec.ts` (Đăng xuất bị khoá, đồng bộ xong tự mở; nút khoá đọc kèm lý do; đang hỏi Đăng xuất mà tab khác lưu phiếu thì báo ⚠, không xoá CSDL và cache; bị chặn thì cache `me`/`forms` còn nguyên) | TV1-07 (#20, #28); TV1-12 (sau audit UI); không ticket (#102) |
+| US-01 | Có bản mới khi đang nhập → hỏi trước khi tải lại | `update.spec.ts` | TV1-07 (#27); câu hỏi đổi khi có bộ đệm (#114) |
+| US-01 | Chữ đang gõ được giữ, mở lại hỏi khôi phục, không tạo op; gộp theo trường khi phiếu bị đổi (Could) | `typing-buffer.spec.ts`; unit `needsBuffer`, `restorePlan`, `keptFieldLine` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p1 (#114) |
+| US-01 | Phiếu mới gõ dở có dải ở trang chủ dẫn về; phiếu đã có không lên dải (Could) | `typing-buffer.spec.ts` (ca "mở lại app vào trang chủ", "không lên dải"); unit `unsavedNewRecords` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p2 (#115) |
+| US-01 | Lưu phiếu thì xin giữ bộ nhớ; thiếu Web Locks → "Trình duyệt không được hỗ trợ" | `browser-support.spec.ts`; unit `browserSupport.test.ts` | TV1-07 (#28) |
 | US-02 | Nháp không lên server; sửa đủ thì đồng bộ | O5 `draft.spec.ts`; unit `shared/src/recordValidation.test.ts` | TV1-05 (#7, #17) |
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
@@ -150,21 +183,24 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-05 | Cùng trường → màn hình xung đột, không chọn sẵn | C2 `conflict.spec.ts` (cả ca bấm chỗ trống trong ô lựa chọn) | TV3-07 (#41); ô lựa chọn TV1-12 (b2 p3) |
 | US-05 | Phiếu xung đột chỉ đọc | C7 `conflict.spec.ts` (cả ca không có hàng nút, ô chụp ảnh) | TV2-10 (#34), TV3-07 (#41), TV1-12 (b2 p3) |
 | US-05 | Server đổi tiếp lúc đang chọn | C8 `conflict.spec.ts`; C6 sửa 3 lần một op | TV2-10 (#34) |
-| US-06 | Xoá phiếu chưa gửi, Huỷ/Esc | O7 `delete.spec.ts` | TV2-13 (#35), TV1-13 (#42), TV1-12 (#58) |
+| US-06 | Xoá phiếu chưa gửi, Huỷ/Esc | O7 `delete.spec.ts`; Huỷ/Esc thì con trỏ về nút Xoá phiếu `delete.spec.ts` (ca N18) | TV2-13 (#35), TV1-13 (#42), TV1-12 (#58); không ticket, N18 (#106) |
 | US-06 | Xoá phiếu đã đồng bộ → tombstone | O8 `delete.spec.ts` | TV2-13 (#35) |
 | US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts`; unit `autoMergedNote` (`client/src/conflictView.test.ts`) | TV3-08 (#47); bỏ câu "đã được gộp" TV1-12 (b2 p3) |
 | US-06 | Điều tra viên không xoá phiếu người khác | `record-owner.spec.ts` | TV1-17 (#44, #45) |
-| US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8; đổi thẳng địa chỉ giữa hai builder hiện đúng form, lưu form mới không thêm version form cũ, TV1-04; chọn/thêm trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu" + ô Mã viền đỏ, câu danh sách trường rỗng, TV1-12 sau audit UI; nền trang trắng, theme-color trắng, gợi ý và mã khoá nền ô chìm, TV1-12 nền trắng); unit `moveFieldTo`, `selectionAfterMove`, `formIdInvalid` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`; điều tra viên thấy form sau vòng đồng bộ ở máy khác: `form-sync.spec.ts`; `headings.spec.ts` (tiêu đề trang màn 5 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-03 (#19), TV1-04 (#24); TV3-14 |
+| US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8; đổi thẳng địa chỉ giữa hai builder hiện đúng form, lưu form mới không thêm version form cũ, TV1-04; chọn/thêm trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu" + ô Mã viền đỏ, câu danh sách trường rỗng, TV1-12 sau audit UI; nền trang trắng, theme-color trắng, gợi ý và mã khoá nền ô chìm, TV1-12 nền trắng; nút ▲▼ có tên kèm nhãn trường, design §11.3); unit `moveFieldTo`, `selectionAfterMove`, `formIdInvalid` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`; điều tra viên thấy form sau vòng đồng bộ ở máy khác: `form-sync.spec.ts`; `headings.spec.ts` (tiêu đề trang màn 5 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-03 (#19), TV1-04 (#24); TV3-14; tên nút ▲▼ TV1-12 (#117) |
 | US-07 | Sửa form lên version mới, phiếu cũ mở bằng version cũ | `builder.spec.ts`, `form-version.spec.ts` | TV1-04 (#24), TV1-10 (#32) |
 | US-07 | Đổi `type`/bỏ trường → `400 invalid_form` | `server/test/forms.test.ts`; unit `formValidation.test.ts` | TV1-03 (#19) |
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |
+| US-07 | Xuất form, nhập sang dự án khác thành form mới | `form-import-export.spec.ts`; unit `formFile.test.ts` (describe "xuất form") | TV1-10 (#33) |
+| US-07 | File nhập hỏng/sai luật; mã form trùng → báo lỗi, không gửi | `form-import-export.spec.ts` (cả ca mã trùng); unit `formFile.test.ts` (describe `parseFormFile`) | TV1-10 (#33) |
 | US-08 | v1 và v2 cùng file, cột đúng, BOM | `export.spec.ts`; `server/test/export.test.ts` | TV3-09 (#48); nút [Xuất ▾] TV1-12 (b2 p2 #71, mất mạng thì đóng b2 p3) |
 | US-08 | Chống CSV injection | `server/test/csv.test.ts` | TV3-09 (#48) |
 | US-08 | Điều tra viên xuất → `403` | A3 `export.test.ts` | TV3-09 (#48) |
+| US-08 | Xuất JSON có `forms` và `records` | `export.spec.ts` (ca "Xuất JSON"); `server/test/export.test.ts` (describe `JSON`) | TV3-09 (#48) |
 | US-09 | Đổi tổ chức offline ≤ 1 s, không lẫn | T6, T10 `projects.spec.ts`; `project-switcher.spec.ts` | TV1-06 (#23), TV1-11 (#43) |
 | US-09 | Người ngoài không gọi được route nào | T1–T5 `server/test/isolation.test.ts` | TV3-04 (#29) |
 | US-09 | Bị rút còn phiếu chưa gửi | T7, T8, T9 `membership.spec.ts` | TV2-07 (#14), TV1-06 (#23) |
-| US-10 | Tạo tài khoản, tải lại vẫn đăng nhập | U1 `accounts.test.ts`; U7 `login.spec.ts` (cả mất mạng nền vàng, lỗi nhập chữ đỏ, tab công tắc); `settings.spec.ts` (thanh dung lượng, Đăng xuất bị khoá, nút khoá đọc kèm lý do, đang hỏi Đăng xuất mà tab khác lưu phiếu thì báo ⚠ không xoá, TV1-12 sau audit UI); unit `usagePercent` (`formatBytes.test.ts`); `headings.spec.ts` (tiêu đề trang màn 8 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV2-14 (#36), TV1-14 (#53); giao diện TV1-12 (b2 p6) |
+| US-10 | Tạo tài khoản, tải lại vẫn đăng nhập | U1 `accounts.test.ts`; U7 `login.spec.ts` (cả mất mạng nền vàng, lỗi nhập chữ đỏ, tab công tắc; phím ←/→/Home/End giữa hai tab và câu lỗi gắn ô, design §11.3), unit `tabForKey`, `registerProblem`, `accountErrorFields` (`loginForm.test.ts`); `settings.spec.ts` (thanh dung lượng, TV1-12 sau audit UI; phần Đăng xuất ở US-01); unit `usagePercent` (`formatBytes.test.ts`); `headings.spec.ts` (tiêu đề trang màn 8 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV2-14 (#36), TV1-14 (#53); giao diện TV1-12 (b2 p6); tab và lỗi gắn ô TV1-12 (#116) |
 | US-10 | Trùng tên → `409 username_taken` | U2 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Sai 11 lần → `429` | U4 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Phiên bị thu hồi → về Đăng nhập, báo hết phiên, giữ dữ liệu | `api-errors.spec.ts` (cả hết phiên + mất mạng chỉ một dải) | TV1-12 (#62, b2) |
@@ -176,9 +212,17 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-11 | Máy chủ lỗi ở Thành viên | `api-errors.spec.ts` (cả Tổ chức, builder lưu form, Xuất) | TV1-12 (#62, #68, b2 p5: Thử lại ngoài vùng alert, Tổ chức ẩn khối công khai) |
 | US-12 | Admin không đọc được dữ liệu | Q7 `projectRequests.test.ts`; T4 `isolation.test.ts`, `admin.test.ts` | TV2-15 (#49) |
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
-| US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Thêm Owner (chữ "Thêm Owner…" TV1-12 sau critique K5), focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại, A1/A2/A3 tải lần đầu lỗi không kẹt "Đang tải…") | TV1-16 (#55, #56, sửa tải lỗi); giao diện TV1-12 (b2 p7, b2) |
+| US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Thêm Owner (chữ "Thêm Owner…" TV1-12 sau critique K5), focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại, A1/A2/A3 tải lần đầu lỗi không kẹt "Đang tải…", A2 Khoá Huỷ/Esc thì con trỏ về nút Khoá; ô tên A1, A2, A3 là header dòng, nhìn như ô thường, design §11.3) | TV1-16 (#55, #56, sửa tải lỗi); giao diện TV1-12 (b2 p7, b2); không ticket, N18 (#106); header dòng TV1-12 (#117) |
 | US-12 | Từ chối thiếu lý do | Q3 `projectRequests.test.ts` | TV2-15 (#49) |
-| US-12 | Hỗ trợ tài khoản ở A3 | Q10 `admin.spec.ts` (ca A3: cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`); API `server/test/admin.test.ts` | TV2-17 (#51), TV1-16 A3 |
+| US-12 | Hỗ trợ tài khoản ở A3 | Q10 `admin.spec.ts` (ca A3: cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`; bấm Tìm lúc lần tải đầu chưa về thì bảng chỉ giữ kết quả tìm, N14); API `server/test/admin.test.ts` | TV2-17 (#51), TV1-16 A3, N14 |
+| US-13 | Đổi đúng: mật khẩu mới dùng được, máy khác đăng nhập lại | U8 `accounts.test.ts`; `change-password.spec.ts` (đổi trên màn 8, mật khẩu cũ bị từ chối, mới dùng được, máy này vẫn đăng nhập; Huỷ xoá chữ; offline khoá nút) | không ticket (Dương chốt 2026-10-26): API #98, giao diện #99 |
+| US-13 | Sai mật khẩu hiện tại → `403 wrong_password` | U9 `accounts.test.ts`; unit `parseChangePasswordRequest` (`shared/src/accountValidation.test.ts`); `change-password.spec.ts` (báo lỗi, ở lại trang); unit `changePasswordForm.test.ts` | không ticket: API #98, giao diện #99 |
+| US-13 | Sai 10 lần → `429` | U10 `accounts.test.ts`; câu "Thử lại sau ít phút" unit `changePasswordForm.test.ts` | không ticket: API #98, giao diện #99 |
+| US-14 | Nhóm theo form, số phiếu, phiếu sửa sau lên trên; nhóm "Biểu mẫu chưa có trên máy" | `home.spec.ts` (ca N10); unit `groupRecordsByForm` (`client/src/recordList.test.ts`) | không ticket, tech-debt N10 (#105) |
+| US-14 | Tiêu đề phiếu, "Phiếu chưa có tên", giờ sửa cuối | `home.spec.ts` (ca N11); unit `recordTitle`, `formatEditedAt` (`recordList.test.ts`) | không ticket, tech-debt N11 (#105) |
+| US-14 | Lọc trạng thái, "Cần xử lý (n)", nhóm rỗng ẩn | `conflict.spec.ts` (ca số "Cần xử lý" và bộ lọc); `home.spec.ts` (ca N10: lọc "Chưa đồng bộ" đếm theo lọc, ẩn nhóm rỗng); unit `recordFilter.test.ts` | TV3-07 (#41); không ticket, N10 (#105) |
+| US-14 | "Chưa có phiếu nào." ẩn bộ lọc; lọc rỗng giữ bộ lọc | `ui-states.spec.ts` (ca chưa có phiếu); `home.spec.ts` (ca lọc ra rỗng) | TV1-12 (b1, b2 p2) |
+| US-14 | Phiếu đã xoá không hiện, trừ khi đang xung đột | `delete.spec.ts` (O7, O8, xoá mềm); `conflict.spec.ts` (ca xoá vs sửa hiện ở "Cần xử lý") | TV2-13 (#35), TV1-13 (#42), TV3-08 (#47) |
 
 Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --json commits`).
 
@@ -191,3 +235,13 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.3 | 2026-10-23 | TV1-12 b1: US-03 thêm tiêu chí không lấy được vị trí |
 | 0.4 | 2026-10-24 | TV3-14: US-03 thêm tiêu chí lấy vị trí khi offline (câu story có ý này, bảng truy vết có dòng nhưng chưa có tiêu chí); E2E `gps-offline.spec.ts` (US-03) và `form-sync.spec.ts` (US-07) thay hai chỗ "Chưa có E2E…" |
 | 0.5 | 2026-10-25 | TV1-16 A3 (Could): US-12 thêm tiêu chí hỗ trợ tài khoản ở A3 (cấp lại mật khẩu, thu hồi phiên, khoá, `self_action`) và dòng truy vết |
+| 0.6 | 2026-10-26 | Tự đổi mật khẩu (Could, không ticket, Dương chốt 2026-10-26): thêm US-13 và dòng truy vết phần API (U8–U10); giao diện màn 8 làm ở phần 2 |
+| 0.7 | 2026-10-26 | Tự đổi mật khẩu phần 2: dòng truy vết US-13 có E2E `change-password.spec.ts` và unit `changePasswordForm.test.ts` |
+| 0.8 | 2026-10-27 | Trả tech-debt N14: dòng truy vết US-12 (A3) có ca E2E bấm Tìm lúc lần tải đầu chưa về |
+| 0.9 | 2026-10-28 | Rà truy vết (không ticket, Dương chốt 2026-10-28), chỉ thêm tiêu chí cho hành vi đã có code và test: US-07 thêm tiêu chí xuất/nhập form (Could, TV1-10); US-08 thêm tiêu chí xuất JSON (Should, TV3-09); US-01 thêm tiêu chí Đăng xuất bị khoá/bị chặn khi còn dữ liệu chưa gửi, hỏi trước khi tải lại bản mới, xin giữ bộ nhớ và trình duyệt không hỗ trợ (TV1-07); phần Đăng xuất của `settings.spec.ts` chuyển từ dòng US-10 sang US-01; dòng US-13 ghi PR giao diện #99 |
+| 0.10 | 2026-10-29 | Thêm US-14 "Danh sách phiếu" (Must, không ticket, Dương chốt 2026-10-26) cùng dòng truy vết: nhóm theo form và tiêu đề phiếu, giờ sửa (tech-debt N10, N11), bộ lọc trạng thái (TV3-07), câu khi rỗng (TV1-12), phiếu đã xoá ẩn trừ khi xung đột; K2 thêm US-14 (phiếu xung đột hiện ở "Cần xử lý"). Lọc theo người tạo, ô tìm kiếm (TV2-18) chưa có code nên chưa có tiêu chí |
+| 0.11 | 2026-10-29 | Trả tech-debt N18: dòng truy vết US-06 (Huỷ/Esc ở hộp Xoá phiếu) và US-12 (A2 Khoá) thêm ca con trỏ về nút đã mở hộp |
+| 0.12 | 2026-10-30 | Tự lưu chữ đang gõ (Could, Dương chốt 2026-10-30): US-01 thêm tiêu chí và dòng truy vết; câu hỏi Tải lại ở màn hình 4 đổi chữ |
+| 0.13 | 2026-10-30 | Tự lưu phần 2 (Could): US-01 thêm tiêu chí dải "Phiếu đang nhập dở" ở trang chủ và dòng truy vết |
+| 0.14 | 2026-11-01 | US-10 dòng truy vết thêm ca bàn phím hai tab và câu lỗi gắn ô ở màn hình 1 (TV1-12, design §11.3) |
+| 0.15 | 2026-11-01 | US-07 và US-12 dòng truy vết thêm ca tên nút ▲▼ ở builder và header dòng ở A1–A3 (TV1-12, design §11.3) |

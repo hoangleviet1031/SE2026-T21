@@ -15,7 +15,7 @@ test('O5: lưu thiếu tên chủ hộ thành Nháp, không gửi PUT; điền �
   });
 
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
   const draftId = new URL(page.url()).hash.split('/').pop() ?? '';
@@ -60,7 +60,7 @@ test('O5: lưu thiếu tên chủ hộ thành Nháp, không gửi PUT; điền �
 test('phiếu Lỗi sửa thành nháp giữ op failed; điền đủ thì đồng bộ bản mới', async ({ page, request }) => {
   const name = `Hộ lỗi nháp ${crypto.randomUUID().slice(0, 8)}`;
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await request.post(FAULTS, { data: { mode: '400', count: 1 } });
   await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
   const id = new URL(page.url()).hash.split('/').pop() ?? '';

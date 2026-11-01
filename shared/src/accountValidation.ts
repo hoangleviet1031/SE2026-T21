@@ -1,4 +1,4 @@
-import type { LoginRequest, RegisterRequest } from './types';
+import type { ChangePasswordRequest, LoginRequest, RegisterRequest } from './types';
 
 // Luật tài khoản của ADR 0003 §1. Đặt ở shared để màn hình tạo tài khoản (TV1-14) báo lỗi đúng
 // như server kiểm.
@@ -34,4 +34,17 @@ export function parseLoginRequest(body: unknown): LoginRequest | undefined {
   const b = body as Record<string, unknown>;
   if (typeof b.username !== 'string' || typeof b.password !== 'string') return undefined;
   return { username: b.username.toLowerCase(), password: b.password };
+}
+
+/**
+ * Thân `POST /api/auth/change-password`. Mật khẩu mới theo luật đăng ký; mật khẩu hiện tại chỉ kiểm kiểu,
+ * sai độ dài thì cũng chỉ là "không đúng" (`403 wrong_password`), không lộ luật.
+ */
+export function parseChangePasswordRequest(body: unknown): ChangePasswordRequest | undefined {
+  if (typeof body !== 'object' || body === null) return undefined;
+  const b = body as Record<string, unknown>;
+  if (typeof b.currentPassword !== 'string' || typeof b.newPassword !== 'string') return undefined;
+  const newPassword = b.newPassword;
+  if (newPassword.length < PASSWORD_MIN_LENGTH || newPassword.length > PASSWORD_MAX_LENGTH) return undefined;
+  return { currentPassword: b.currentPassword, newPassword };
 }

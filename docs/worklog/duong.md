@@ -11,6 +11,43 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-01 | — | fix | Màn hình 5 và trang quản trị cho trình đọc màn hình: nút ▲▼ ở builder có tên kèm nhãn trường; ô tên đầu dòng ở A1, A2, A3 là header dòng, nhìn không đổi | PR #117 | chờ review |
+| 2026-11-01 | — | fix | PR #116 đã merge | PR #116 | xong |
+| 2026-11-01 | — | fix | Màn hình 1 cho bàn phím và trình đọc màn hình: hai tab theo mẫu tab WAI-ARIA (←/→/Home/End, khung tabpanel), câu lỗi gắn ô bị lỗi (aria-invalid, aria-describedby); giao diện không đổi | PR #116 | chờ review |
+| 2026-11-01 | — | feat | PR #115 đã merge | PR #115 | xong |
+| 2026-10-30 | — | feat | Tự lưu chữ đang gõ phần 2 (Could): dải "Phiếu đang nhập dở, chưa lưu" ở trang chủ dẫn về phiếu mới gõ dở | PR #115 | chờ review |
+| 2026-10-30 | — | feat | PR #114 đã merge | PR #114 | xong |
+| 2026-10-30 | — | feat | Tự lưu chữ đang gõ ở màn hình 4, phần 1 (Could): bộ đệm meta `typing:<id>`, mở lại hỏi Khôi phục/Bỏ, gộp theo trường khi phiếu bị đổi, không tạo op; hộp Tải lại đổi chữ | PR #114 | chờ review |
+| 2026-10-30 | — | docs | PR #113 đã merge | PR #113 | xong |
+| 2026-10-30 | — | docs | Trạng thái TV1-12 trong plan: nối N10, N11, N16–N22, [Tải lại] kèm PR; còn N13 | PR #113 | chờ review |
+| 2026-10-30 | — | fix | PR #112 đã merge | PR #112 | xong |
+| 2026-10-30 | — | fix | Nút [Tải lại] ở dải "Có phiên bản mới" cao 44px thay 40px (phát hiện ở #110) | PR #112 | chờ review |
+| 2026-10-30 | — | fix | PR #111 đã merge | PR #111 | xong |
+| 2026-10-30 | — | fix | Ngăn kéo menu mở thì phần trang phía sau có inert (TalkBack không vuốt ra được), rộng lên ≥ 1024px thì ngăn kéo đóng (N22) | PR #111 | chờ review |
+| 2026-10-30 | — | fix | PR #110 đã merge | PR #110 | xong |
+| 2026-10-30 | — | fix | Đích bấm ≥ 44px: Quay lại, Tổ chức khác…, Xử lý cao 44px; tên app, Cần xử lý xung đột nới vùng bấm, nhìn không đổi; ▲▼ giữ 34px (N21) | PR #110 | chờ review |
+| 2026-10-30 | — | fix | PR #109 đã merge | PR #109 | xong |
+| 2026-10-30 | — | fix | Mục menu đang ở có vạch trái và chữ đậm, không chỉ nền vàng (N20); ghi nợ N22 (TalkBack ra sau nền mờ, Tab bị giữ khi kéo rộng) | PR #109 | chờ review |
+| 2026-10-30 | — | fix | PR #108 đã merge | PR #108 | xong |
+| 2026-10-29 | — | fix | Ngăn kéo menu giữ con trỏ: Tab, Shift+Tab chỉ quay vòng trong ngăn kéo khi đang mở (N19) | PR #108 | chờ review |
+| 2026-10-29 | — | fix | PR #107 đã merge | PR #107 | xong |
+| 2026-10-29 | — | fix | Ô nhập đang có con trỏ viền đen + quầng vàng, ô báo lỗi giữ viền đỏ (N16); ô "+ Chụp ảnh" có vòng focus (N17); ui.md 0.2.34 ghi luật | PR #107 | chờ review |
+| 2026-10-29 | — | fix | PR #106 đã merge | PR #106 | xong |
+| 2026-10-29 | — | fix | Hộp xác nhận: Huỷ hoặc Esc thì con trỏ về lại nút đã mở hộp, không rơi về đầu trang (tech-debt N18); E2E Xoá phiếu, A2 Khoá | PR #106 | chờ review |
+| 2026-10-29 | — | fix | PR #105 đã merge | PR #105 | xong |
+| 2026-10-29 | — | fix | Trang chủ nhóm phiếu theo form có số phiếu, tiêu đề phiếu theo §4.8 ("Phiếu chưa có tên"), giờ sửa cuối (N10, N11); requirements 0.10 thêm US-14 | PR #105 | chờ review |
+| 2026-10-29 | — | docs | PR #103 đã merge | PR #103 | xong |
+| 2026-10-28 | — | docs | requirements 0.9 vá truy vết: tiêu chí + dòng truy vết cho xuất/nhập form (US-07), xuất JSON (US-08), Đăng xuất bị chặn, hỏi trước khi tải lại, persist, trình duyệt không hỗ trợ (US-01); US-13 ghi #99 | PR #103 | chờ review |
+| 2026-10-28 | — | test | PR #102 đã merge | PR #102 | xong |
+| 2026-10-28 | — | test | E2E settings.spec ca "đang hỏi Đăng xuất thì tab khác lưu phiếu": đổ cache runtime trước, cuối ca kiểm cache me và forms còn nguyên khi bị chặn trong khoá (góp ý review #28); không đổi code | PR #102 | chờ review |
+| 2026-10-28 | N14 | fix | PR #101 đã merge | PR #101 | xong |
+| 2026-10-27 | N14 | fix | A3 Tài khoản: bấm [Tìm] lúc danh sách lần đầu còn đang tải không còn bị kết quả cũ đè (đánh số lần tải); E2E admin.spec ca N14; tech-debt N14 → Đã trả; requirements 0.8 | PR #101 | chờ review |
+| 2026-10-27 | — | docs | PR #100 đã merge | PR #100 | xong |
+| 2026-10-27 | — | docs | Sửa dấu trạng thái còn sót của TV1 trong plan: menu điều hướng (#97), A1–A3 tải lần đầu lỗi (#90) ⏳ → ✅ | PR #100 | chờ review |
+| 2026-10-27 | — | docs | PR #90, #94, #95, #96, #97, #98, #99, #6, #7 và nhánh `docs/worklog-process` (PR #5) đã merge | PR #5, #6, #7, #90, #94–#99 | xong |
+| 2026-10-26 | — | feat | Tự đổi mật khẩu phần 2 (giao diện, Could, không ticket): khối Đổi mật khẩu màn 8 (nút [Đổi mật khẩu…] mở 3 ô, Huỷ xoá chữ, offline khoá nút, đổi xong dòng xanh); `changePassword` ở api.ts, `changePasswordForm.ts` + unit; E2E change-password.spec 3 ca; ui 0.2.31, design 0.5.52, requirements 0.7 | PR #99 | chờ review |
+| 2026-10-26 | — | feat | Tự đổi mật khẩu phần 1 (API, Could, không ticket): `POST /api/auth/change-password` (400 → 429 chung bộ đếm đăng nhập → 403 `wrong_password` → 204, thu hồi phiên khác), `parseChangePasswordRequest` + unit; U8–U10 `accounts.test.ts`; design 0.5.51, requirements US-13 | PR #98 | chờ review |
+| 2026-10-26 | TV1-12 | feat | Menu điều hướng: ☰ + ngăn kéo trên điện thoại, thanh bên ≥1024px ở màn 2, 6, 8, 9 (Phiếu, Tổ chức, Thành viên, Cài đặt); bỏ [Cài đặt] header và khối Thành viên cuối trang chủ; header rộng hết màn; `navMenu.ts` + unit, E2E nav-menu.spec 5 ca; ui 0.2.30, N13 | PR #97 | chờ review |
 | 2026-10-25 | N15 | docs | tech-debt N15: builder cho lưu biểu mẫu không có trường nào (spec không nói, code cho lưu; phát hiện khi thử staging 2885598), mức Vừa, chưa sửa | PR #96 | chờ review |
 | 2026-10-25 | N12 | fix | Màn 4 nhãn trạng thái đầu trang (displayState, mọi trạng thái); phiếu Lỗi có câu lỗi + [Thử lại] + [Xuất JSON phiếu này] trên trang, khối lỗi tách `RecordErrorBox` dùng chung trang chủ; E2E fill-status.spec 3 ca; ui 0.2.29; tech-debt N12 → Đã trả | PR #95 | chờ review |
 | 2026-10-25 | TV1-12 | fix | Tiêu đề trang màn 5, 6, 8, 9 cùng kiểu màn 2, 4 (22px, đậm 800; audit C10, chỉ CSS); E2E headings.spec mới; ui 0.2.28 | PR #94 | chờ review |

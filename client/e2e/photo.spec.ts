@@ -174,3 +174,17 @@ test('nút × bỏ ảnh đủ to để bấm (36 px)', async ({ page }) => {
   expect(box?.width).toBeGreaterThanOrEqual(36);
   expect(box?.height).toBeGreaterThanOrEqual(36);
 });
+
+// Tech-debt N17 (design §11.3): input file ẩn 1px nên vòng focus vẽ quanh cả ô "+ Chụp ảnh" như ô đánh dấu
+test('N17: Tab tới ô Chụp ảnh thì có vòng đen quanh cả ô', async ({ page }) => {
+  await openNewRecord(page, 'Vòng focus ô ảnh');
+  const input = page.getByTestId(PHOTO_INPUT);
+  // Ô bấm là label bọc ngay ngoài input file
+  const box = input.locator('xpath=..');
+  await expect(box).toHaveCSS('outline-style', 'none');
+  // Trường ngay sau ô ảnh là Vị trí: Shift+Tab từ nút Lấy vị trí như người dùng bàn phím
+  await page.getByRole('group', { name: 'Vị trí' }).getByRole('button', { name: 'Lấy vị trí' }).focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(input).toBeFocused();
+  await expect(box).toHaveCSS('outline', 'rgb(38, 37, 34) solid 3px');
+});

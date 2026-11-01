@@ -6,7 +6,7 @@ import { PROJECT, answerConfirm, databaseNames, login, putRow, readStore } from 
 const PROJECT_DB = `field-survey-p-${PROJECT}`;
 
 async function openSettings(page: Page) {
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Cài đặt' }).click();
   await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
 }
@@ -40,12 +40,12 @@ test('Cài đặt hiện tên đăng nhập; Đăng xuất xoá CSDL dự án v�
   expect(await readStore(page, 'field-survey-account', 'projects')).toEqual([]);
 
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 });
 
 test('còn phiếu chưa gửi: nút Đăng xuất bị khoá; đồng bộ xong thì tự mở', async ({ page, context }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
 
   // Phiếu lưu khi offline nằm trong outbox, chưa lên server
   await context.setOffline(true);
@@ -75,9 +75,12 @@ test('còn phiếu chưa gửi: nút Đăng xuất bị khoá; đồng bộ xong
 });
 
 // Hộp xác nhận đang mở thì tab khác lưu phiếu: lúc bấm Đăng xuất mới thấy còn dữ liệu chưa gửi.
-// Câu lỗi có ⚠ như các màn khác (audit C13), không xoá gì
+// Câu lỗi có ⚠ như các màn khác (audit C13), không xoá gì, kể cả cache me và forms: ca này đi qua
+// nhánh kiểm lại trong khoá của logout(), ca nút bị khoá ở dưới thì không
 test('đang hỏi Đăng xuất thì tab khác lưu phiếu: báo lỗi có ⚠, không xoá dữ liệu', async ({ page, context }) => {
   await login(page);
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
+  await fillRuntimeCaches(page);
   await openSettings(page);
   await page.getByTestId('logout-button').click();
   await expect(page.getByText('Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng.')).toBeVisible();
@@ -94,6 +97,7 @@ test('đang hỏi Đăng xuất thì tab khác lưu phiếu: báo lỗi có ⚠,
   await expect(page.getByRole('alert')).toHaveText(/^⚠ Còn dữ liệu chưa gửi ở dự án/);
   await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
   expect(await databaseNames(page)).toContain(PROJECT_DB);
+  expect(await cacheNames(page)).toEqual(expect.arrayContaining(['me', 'forms']));
 });
 
 test('máy lưu thông tin tài khoản từ bản cũ (chưa có username): Cài đặt hiện userId, không hiện rỗng', async ({
@@ -101,7 +105,7 @@ test('máy lưu thông tin tài khoản từ bản cũ (chưa có username): Cà
   context,
 }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   // Offline để vòng đồng bộ không gọi /me ghi đè lại user đầy đủ
   await context.setOffline(true);
   await putRow(page, 'field-survey-account', 'account', { key: 'user', value: { id: 'u_minh', name: 'minh' } });
@@ -140,7 +144,7 @@ async function fillRuntimeCaches(page: Page) {
 
 test('Đăng xuất xoá cache me và forms của SW, giữ precache nên offline vẫn mở được app', async ({ page, context }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await fillRuntimeCaches(page);
   await openSettings(page);
 
@@ -160,7 +164,7 @@ test('Đăng xuất xoá cache me và forms của SW, giữ precache nên offlin
 
 test('Đăng xuất bị chặn vì còn phiếu chưa gửi thì cache me và forms còn nguyên', async ({ page, context }) => {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await fillRuntimeCaches(page);
 
   await context.setOffline(true);

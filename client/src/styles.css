@@ -30,8 +30,10 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); font-size: 16px; }
-.app { max-width: 720px; margin: 0 auto; padding-bottom: 48px; }
-.app > main { padding: 0 16px; }
+.app { padding-bottom: 48px; }
+/* Thanh đầu rộng hết màn ở mọi màn hình (không nhảy bề rộng khi chuyển màn), nội dung tối đa 720px ở giữa */
+.page { width: 100%; max-width: 720px; margin: 0 auto; min-width: 0; }
+.page > main { padding: 0 16px; }
 /* Link không đổi màu; nhận ra nhờ dạng nút hoặc mũi tên ›, chỉ link giữa câu văn mới gạch chân */
 a, a:visited { color: inherit; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -59,18 +61,41 @@ button.primary[aria-busy="true"]::before { border-color: rgba(255, 255, 255, .4)
 @media (prefers-reduced-motion: reduce) { button[aria-busy="true"]::before { animation-duration: 2.4s; } }
 .busy-note { color: var(--muted); font-size: 14px; font-weight: 600; }
 
-/* Header: logo vàng + tên app (tự rút gọn bằng "…"), trạng thái mạng dưới tên; Đồng bộ, Cài đặt là biểu tượng + chữ nhỏ */
+/* Header: (☰ Menu) logo vàng + tên app (tự rút gọn bằng "…"), trạng thái mạng dưới tên; Menu, Đồng bộ là biểu tượng + chữ nhỏ */
 header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
 .brand { font-weight: 800; }
 .hdr { gap: 2px; padding: 8px 8px 8px 14px; }
 .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--hl); display: grid; place-items: center; flex: none; }
 .hdr .logo { margin-right: 10px; }
 .hdr .brand { flex: 1; min-width: 0; display: grid; gap: 1px; }
-.hdr .brand a { font-size: 17px; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
+/* Chữ cao 24px; padding 11px trên dưới nới vùng bấm lên 44px (design §11.3, tech-debt N21), margin âm bù lại để header không cao thêm.
+   position: relative để link nằm trên dòng trạng thái mạng, không thì phần padding dưới bị dòng đó che */
+.hdr .brand a { position: relative; padding-block: 11px; margin-block: -11px; font-size: 17px; text-decoration: none; white-space: nowrap; overflow: hidden;
+                text-overflow: ellipsis; letter-spacing: -.01em; }
 .hdr .hbtn { display: grid; justify-items: center; gap: 1px; min-width: 56px; min-height: 48px; padding: 4px; border: 0; background: none; box-shadow: none;
              font-size: 12px; font-weight: 600; border-radius: var(--r-btn); text-decoration: none; }
 .hdr .hbtn svg.icon { width: 22px; height: 22px; }
 .hdr .hbtn:disabled { background: none; color: #8a8780; }
+/* Menu điều hướng (ui.md "Menu điều hướng"): điện thoại là ngăn kéo trượt từ trái, đóng thì ẩn hẳn (không nằm trong
+   thứ tự Tab); ≥1024px là thanh bên luôn hiện, không có nút Menu */
+.hdr .menu-btn { margin-left: -10px; margin-right: 4px; }
+.sidenav { display: none; }
+.sidenav.open { display: grid; align-content: start; gap: 4px; position: fixed; top: 0; bottom: 0; left: 0; z-index: 20; width: min(280px, 85vw);
+                padding: 16px 10px calc(16px + env(safe-area-inset-bottom)); overflow-y: auto; background: var(--surface);
+                box-shadow: 0 0 24px rgba(31, 30, 27, .18); animation: nav-in .2s ease-out; }
+.nav-backdrop { position: fixed; inset: 0; z-index: 19; background: rgba(31, 30, 27, .4); }
+.sidenav a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 14px; border-radius: var(--r-btn); font-weight: 600; text-decoration: none; }
+.sidenav a:hover { background: var(--sunken); }
+/* Vạch trái và chữ đậm như dòng đang chọn ở builder, để không chỉ phân biệt bằng màu nền (design §11.3, tech-debt N20) */
+.sidenav a[aria-current="page"] { background: var(--hl); box-shadow: inset 4px 0 0 var(--btn); font-weight: 700; }
+@keyframes nav-in { from { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) { .sidenav.open { animation: none; } }
+@media (min-width: 1024px) {
+  .hdr .menu-btn, .nav-backdrop { display: none; }
+  .shell.with-nav { display: grid; grid-template-columns: 240px minmax(0, 1fr); }
+  .sidenav, .sidenav.open { display: grid; align-content: start; align-self: start; gap: 4px; position: sticky; top: 0; z-index: auto; width: auto; max-height: 100vh;
+                            padding: 16px 12px; overflow-y: auto; box-shadow: none; animation: none; }
+}
 .hdr-simple { gap: 10px; padding: 12px 16px; font-weight: 800; font-size: 17px; }
 .net { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
 .net::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
@@ -80,7 +105,7 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 
 /* Dải "Có phiên bản mới": nằm trên header, nền tối để khác hẳn banner cảnh báo */
 .update-prompt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 16px; background: var(--btn); color: #fff; font-weight: 600; }
-.update-prompt > button { background: #fff; color: var(--ink); border-color: transparent; min-height: 40px; }
+.update-prompt > button { background: #fff; color: var(--ink); border-color: transparent; min-height: 44px; }
 
 /* Bộ chọn tổ chức: ô chữ cái + tên; một tổ chức thì kèm "Tổ chức khác…", nhiều thì danh sách mở ngay dưới */
 .org-one, .org-switcher { margin: 12px 16px 0; background: var(--surface); border: 1px solid var(--edge); border-radius: 12px; }
@@ -88,7 +113,7 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .org-switcher { overflow: hidden; }
 .tile { width: 30px; height: 30px; border-radius: 8px; background: var(--f3); display: grid; place-items: center; flex: none; font-size: 15px; font-weight: 800; }
 .org-one .name, .org-head .name { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
-.org-other { display: inline-flex; align-items: center; gap: 2px; min-height: 40px; padding: 0 8px 0 12px; border-radius: var(--r-btn); background: var(--chip);
+.org-other { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding: 0 8px 0 12px; border-radius: var(--r-btn); background: var(--chip);
              font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .org-other svg.icon { width: 18px; height: 18px; }
 .org-switcher .org-head { width: 100%; min-height: 48px; padding: 0 12px 0 8px; gap: 10px; border: 0; border-radius: 0; box-shadow: none; justify-content: flex-start;
@@ -111,11 +136,25 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 /* Banner, lỗi, chữ phụ */
 .warning { background: var(--warn-bg); color: var(--warn-ink); font-weight: 600; padding: 12px 14px; border-radius: 12px; line-height: 1.4; }
 .draft-notice { padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn-ink); font-weight: 600; }
+/* Bộ đệm đang nhập (design §4.1): hỏi khôi phục hoặc báo trường giữ bản mới, nền như dải nháp */
+.typing-note { display: grid; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn-ink); font-weight: 600; }
+.typing-note ul { margin: 0; padding-left: 20px; font-weight: 500; }
+.typing-note .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Trang chủ: phiếu mới gõ dở chưa Lưu (design §4.8); cả dòng là link, tiêu đề đậm, tên form và giờ chữ nhạt */
+.unsaved { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn-ink); }
+.unsaved h2 { margin: 0 0 6px; font-size: 16px; font-weight: 700; }
+.unsaved ul { list-style: none; margin: 0; padding: 0; }
+.unsaved li + li { border-top: 1px solid rgba(31, 30, 27, .12); }
+.unsaved a { display: grid; grid-template-columns: 1fr 20px; column-gap: 8px; align-items: center; min-height: 48px; padding: 6px 0; color: var(--ink);
+             text-decoration: none; }
+.unsaved .t { font-weight: 700; overflow-wrap: anywhere; }
+.unsaved .m { grid-column: 1; font-size: 14px; color: var(--muted); }
+.unsaved .go { grid-column: 2; grid-row: 1 / span 2; color: var(--muted); }
 .field-error { color: var(--red); font-size: 15px; font-weight: 500; }
 .hint { color: var(--muted); font-size: 14px; margin: 0; }
 .banner-removed { flex-direction: column; display: flex; gap: 10px; margin-top: 12px; }
 .banner-removed div { display: flex; flex-wrap: wrap; gap: 8px; }
-.back { display: inline-flex; justify-self: start; align-items: center; min-height: 40px; margin-top: 12px; padding: 0 14px; border-radius: var(--r-pill); background: var(--chip);
+.back { display: inline-flex; justify-self: start; align-items: center; min-height: 44px; margin-top: 12px; padding: 0 14px; border-radius: var(--r-pill); background: var(--chip);
         font-size: 15px; font-weight: 600; text-decoration: none; }
 
 /* Ô nhập: nhãn đậm phía trên, ô trắng viền rõ; đang nhập = viền đen + quầng vàng */
@@ -127,6 +166,9 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
   font: inherit; font-weight: 400; }
 .field textarea, .builder textarea, .row-form textarea { min-height: 96px; padding: 12px 14px; resize: vertical; }
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--hl); outline-offset: 0; border-color: var(--ink); }
+/* Luật viền ô ở trên cụ thể hơn luật focus nên phải nhắc lại viền đen (tech-debt N16); ô đang báo lỗi (.field.bad, phía dưới) vẫn giữ viền đỏ */
+.field input:not([type=checkbox]):not([type=radio]):focus-visible, .field select:focus-visible, .field textarea:focus-visible,
+.builder textarea:focus-visible, .builder select:focus-visible, .row-form textarea:focus-visible { border-color: var(--ink); }
 button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 .field input:disabled, .field select:disabled, .field textarea:disabled { background: var(--chip); border-color: var(--chip); color: var(--disabled-ink); }
 .checks { display: flex; flex-wrap: wrap; gap: 12px; font-weight: 500; }
@@ -192,6 +234,12 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 .st-uploading { --c: #1a5ea8; }
 .st-synced { --c: var(--ok); }
 .st-conflict, .st-error, .st-photo-error { --c: var(--red); }
+/* Nhóm phiếu theo form (design §4.8): vạch màu cùng tông thẻ form; mục form không có trên máy vạch xám */
+.rgroup + .rgroup { margin-top: 18px; }
+.rgroup h3 { margin: 0 0 8px; padding-left: 10px; border-left: 4px solid var(--dk, var(--line)); font-size: 16px; font-weight: 700;
+  line-height: 1.3; overflow-wrap: anywhere; }
+.rec-top .meta { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.rec-top .meta time, .rec-top .meta .sep { color: var(--muted); font-size: 14px; }
 .records { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; }
 .records > li { padding: 12px 14px; }
 .records > li + li { border-top: 1px solid var(--line); }
@@ -203,7 +251,11 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 .rec-top .go { grid-column: 3; grid-row: 1 / span 2; color: var(--muted); }
 .rec-top .st { grid-column: 2; justify-self: start; display: inline-flex; align-items: center; gap: 6px; color: var(--c); font-size: 14px; font-weight: 600; }
 /* "Cần xử lý xung đột" là link riêng: viên thuốc đỏ nhạt có mũi tên, nằm trên lớp link tên */
-.rec-top .st-link { position: relative; z-index: 1; min-height: 32px; padding: 4px 8px 4px 10px; border-radius: var(--r-pill); background: var(--red-soft); text-decoration: none; }
+/* Viên nhìn cao 32px; viền trong suốt 6px trên dưới nới vùng bấm lên 44px (design §11.3, tech-debt N21), margin âm bù lại
+   để dòng không cao thêm; vòng focus thụt vào cho ôm sát viên */
+.rec-top .st-link { position: relative; z-index: 1; min-height: 44px; margin-block: -6px; padding: 4px 8px 4px 10px; border-block: 6px solid transparent;
+                    border-radius: var(--r-pill); background: var(--red-soft); background-clip: padding-box; text-decoration: none; }
+.rec-top .st-link:focus-visible { outline-offset: -4px; }
 .rec-top .st-link svg.icon { width: 16px; height: 16px; }
 .record-error { position: relative; z-index: 1; display: grid; gap: 8px; margin-top: 10px; font-size: 15px; font-weight: 500; color: var(--red); }
 .record-error .acts { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -211,10 +263,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 .record-state { margin: 0 0 14px; }
 .record-state .st { display: inline-flex; align-items: center; gap: 6px; color: var(--c); font-size: 15px; font-weight: 600; }
 .record-state .st svg.icon { width: 20px; height: 20px; }
-.members-link { display: flex; align-items: center; gap: 10px; min-height: 52px; margin-top: 16px; padding: 0 14px; background: var(--surface);
-                border: 1px solid var(--line); border-radius: var(--r-card); font-weight: 600; text-decoration: none; }
-.members-link span { flex: 1; }
-.members-link .go { color: var(--muted); }
 
 /* Hộp xác nhận: [Huỷ] đứng trước và nhận focus đầu tiên; mất dữ liệu/quyền thì nút đỏ, không mất gì thì nút chính */
 .confirm-dialog { max-width: min(400px, calc(100vw - 32px)); border: none; border-radius: var(--r-card); padding: 20px; background: var(--surface); color: var(--ink);
@@ -282,6 +330,8 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
              border-radius: 12px; background: var(--surface); font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
 .photo-add svg.icon { width: 26px; height: 26px; }
 .field .photo-add input { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0; }
+/* Input file ẩn nên vẽ vòng focus quanh cả ô chụp, như ô đánh dấu (tech-debt N17) */
+.photo-add:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
 /* Chỉ đọc (đang xung đột, trường đã ẩn): ô khoá nhưng chữ vẫn đậm, đọc rõ; không có nút bỏ ảnh, ô chụp */
 .form-fieldset:disabled .field :is(input, select), fieldset.readonly :is(input, select), fieldset.preview:disabled .field :is(input, select) {
   background-color: #f1efea; border-color: #e0ddd6; color: var(--ink); -webkit-text-fill-color: var(--ink); opacity: 1; }
@@ -290,7 +340,7 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
 .form-fieldset:disabled :is(.photo-thumb button, .photo-add), fieldset.readonly :is(.photo-thumb button, .photo-add) { display: none; }
 .ro-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--red-soft);
              color: var(--red); font-weight: 600; line-height: 1.4; }
-.ro-banner a { flex: none; display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: var(--r-btn); background: var(--red); color: #fff;
+.ro-banner a { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: var(--r-btn); background: var(--red); color: #fff;
                text-decoration: none; white-space: nowrap; }
 /* Hàng nút dính đáy màn hình; nằm trong luồng trang nên cuộn hết cỡ thì trường cuối vẫn ở trên hàng nút */
 .actionbar { position: sticky; bottom: 0; z-index: 1; display: flex; gap: 8px; margin: 20px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
@@ -434,7 +484,9 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--chip); border-radius: 14px; }
 .seg button { min-height: 44px; border: 0; border-radius: var(--r-btn); background: none; box-shadow: none; font-weight: 600; color: var(--muted); }
 .seg button[aria-selected=true] { background: var(--surface); color: var(--ink); font-weight: 700; box-shadow: 0 1px 3px rgba(31, 30, 27, .12); }
-.login > .field-error, .login > .warning { margin: 0; font-weight: 600; }
+/* Khung tab bọc mọi thứ dưới hai tab (design §11.3), cùng khoảng cách như khi còn nằm thẳng trong .login */
+.login-panel { display: grid; gap: 16px; }
+.login-panel > .field-error, .login-panel > .warning { margin: 0; font-weight: 600; }
 /* Link giữa câu thì gạch chân để thấy bấm được */
 .login .field-error a { color: inherit; text-decoration: underline; }
 /* Khối bị chặn nổi hơn lỗi thường: nhạt hơn banner một bậc vì nhiều chữ (chữ 8,1:1) */

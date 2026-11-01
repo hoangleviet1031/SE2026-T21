@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseLoginRequest, parseRegisterRequest } from './accountValidation';
+import { parseChangePasswordRequest, parseLoginRequest, parseRegisterRequest } from './accountValidation';
 
 describe('parseRegisterRequest (ADR 0003 §1)', () => {
   const ok = { username: 'lan.nguyen_1', name: 'Lan', password: '12345678' };
@@ -68,4 +68,32 @@ describe('parseLoginRequest', () => {
   it.each([null, {}, { username: 'lan' }, { username: 1, password: 'x' }])('sai kiểu %j: undefined', (body) => {
     expect(parseLoginRequest(body)).toBeUndefined();
   });
+});
+
+describe('parseChangePasswordRequest', () => {
+  it('mật khẩu mới 8 và 128 ký tự hợp lệ, giữ nguyên khoảng trắng', () => {
+    expect(parseChangePasswordRequest({ currentPassword: 'cu', newPassword: ' 1234567' })).toEqual({
+      currentPassword: 'cu',
+      newPassword: ' 1234567',
+    });
+    expect(
+      parseChangePasswordRequest({ currentPassword: 'cu', newPassword: 'x'.repeat(128) })?.newPassword,
+    ).toHaveLength(128);
+  });
+
+  it('mật khẩu mới 7 hoặc 129 ký tự: undefined', () => {
+    expect(parseChangePasswordRequest({ currentPassword: 'cu', newPassword: '1234567' })).toBeUndefined();
+    expect(parseChangePasswordRequest({ currentPassword: 'cu', newPassword: 'x'.repeat(129) })).toBeUndefined();
+  });
+
+  it('mật khẩu hiện tại không kiểm độ dài (sai thì server trả wrong_password)', () => {
+    expect(parseChangePasswordRequest({ currentPassword: '', newPassword: '12345678' })?.currentPassword).toBe('');
+  });
+
+  it.each([null, {}, { currentPassword: 'cu' }, { currentPassword: 1, newPassword: '12345678' }])(
+    'sai kiểu %j: undefined',
+    (body) => {
+      expect(parseChangePasswordRequest(body)).toBeUndefined();
+    },
+  );
 });

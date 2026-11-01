@@ -18,7 +18,7 @@ function row(page: Page, name: string) {
 /** Đăng nhập, tiêm một lỗi 400, lưu phiếu và chờ phiếu thành "Lỗi". */
 async function saveFailingRecord(page: Page, request: APIRequestContext, name: string) {
   await login(page);
-  await expect(page.getByText('Khảo sát hộ gia đình')).toBeVisible();
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await request.post(FAULTS, { data: { mode: '400', count: 1 } });
   await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
   await page.locator('input[name=householdName]').fill(name);
