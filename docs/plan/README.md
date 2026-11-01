@@ -71,7 +71,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV2-09 | Op `failed`, thử lại, cảnh báo tồn lâu | ✅ PR #16 |
 | TV2-10 | Engine: khoá khi conflict, 409 lặp, bỏ qua nháp | ✅ PR #34 |
 | TV2-11 | Hiệu năng pull | ✅ `feat/tv2-11-perf` |
-| TV2-12 | Sửa lỗi, tài liệu kỹ thuật | ⏳ `feat/tv2-12-sync-docs` |
+| TV2-12 | Sửa lỗi, tài liệu kỹ thuật | ⏳ PR #119 |
 | TV2-13 | Xoá phiếu: logic client + đồng bộ | ✅ PR #35 |
 | TV3-01 | CI, `ENABLE_TEST_ROUTES`, unit test client | ✅ PR #2 |
 | TV3-02 | CLI quản trị, fixture, sửa test theo API mới | ✅ PR #8 · ⚠ CLI token và helper `login(token)` là bản cũ, TV3-12 thay |
