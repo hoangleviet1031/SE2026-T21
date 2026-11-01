@@ -242,32 +242,41 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
           </p>
         )}
         <ul className={drag ? 'frows dragging' : 'frows'} data-testid="builder-fields" ref={fieldsRef}>
-          {state.fields.map((f, i) => (
-            <li
-              key={f.uid}
-              data-row
-              className={['frow', i === selected && 'sel', f.hidden && 'hid', drag?.from === i && 'drag']
-                .filter(Boolean)
-                .join(' ')}
-              style={rowStyle(i)}
-            >
-              {/* Tay nắm chỉ cho chạm và chuột; bàn phím, trình đọc màn hình dùng ▲ ▼ nên ẩn đi */}
-              <span className="grip" aria-hidden="true" data-testid="field-grip" {...gripProps(i)}>
-                <Icon name="grip" />
-              </span>
-              <button className="field-name" aria-pressed={i === selected} onClick={() => select(i)}>
-                {f.label || 'Trường mới'} ({FIELD_TYPE_LABEL[f.type]}
-                {f.hidden ? ', ẩn' : ''}){f.required ? ' *' : ''}
-              </button>
-              {/* ▲▼ thay ↑↓: Windows vẽ ↑↓ bằng phông emoji có màu */}
-              <button className="mv" aria-label="Lên" disabled={i === 0} onClick={() => move(i, -1)}>
-                ▲
-              </button>
-              <button className="mv" aria-label="Xuống" disabled={i === state.fields.length - 1} onClick={() => move(i, 1)}>
-                ▼
-              </button>
-            </li>
-          ))}
+          {state.fields.map((f, i) => {
+            // Tên trên dòng cũng là tên đọc kèm nút ▲▼, để trình đọc màn hình biết đang dời trường nào
+            const name = f.label || 'Trường mới';
+            return (
+              <li
+                key={f.uid}
+                data-row
+                className={['frow', i === selected && 'sel', f.hidden && 'hid', drag?.from === i && 'drag']
+                  .filter(Boolean)
+                  .join(' ')}
+                style={rowStyle(i)}
+              >
+                {/* Tay nắm chỉ cho chạm và chuột; bàn phím, trình đọc màn hình dùng ▲ ▼ nên ẩn đi */}
+                <span className="grip" aria-hidden="true" data-testid="field-grip" {...gripProps(i)}>
+                  <Icon name="grip" />
+                </span>
+                <button className="field-name" aria-pressed={i === selected} onClick={() => select(i)}>
+                  {name} ({FIELD_TYPE_LABEL[f.type]}
+                  {f.hidden ? ', ẩn' : ''}){f.required ? ' *' : ''}
+                </button>
+                {/* ▲▼ thay ↑↓: Windows vẽ ↑↓ bằng phông emoji có màu */}
+                <button className="mv" aria-label={`Lên: ${name}`} disabled={i === 0} onClick={() => move(i, -1)}>
+                  ▲
+                </button>
+                <button
+                  className="mv"
+                  aria-label={`Xuống: ${name}`}
+                  disabled={i === state.fields.length - 1}
+                  onClick={() => move(i, 1)}
+                >
+                  ▼
+                </button>
+              </li>
+            );
+          })}
           {slotStyle && <li className="slot" aria-hidden="true" data-testid="builder-drop-slot" style={slotStyle} />}
         </ul>
         <div className="addrow">

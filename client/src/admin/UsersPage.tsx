@@ -165,11 +165,11 @@ export function UsersPage({ token, onError }: { token: string; onError: (err: un
                 return (
                   <Fragment key={u.id}>
                     <tr className={shown ? 'open' : undefined} data-testid={`user-row-${u.username}`}>
-                      <td>
+                      <th scope="row">
                         <b>{u.username}</b>
                         <br />
                         <small className="hint">{u.name}</small>
-                      </td>
+                      </th>
                       <td className="when">{formatShortTime(u.createdAt)}</td>
                       <td>{u.projectCount}</td>
                       <td>

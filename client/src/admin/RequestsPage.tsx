@@ -138,9 +138,9 @@ export function RequestsPage({
               {requests.map((req) => (
                 <Fragment key={req.id}>
                   <tr className={rejecting === req.id ? 'open' : undefined}>
-                    <td>
+                    <th scope="row">
                       <b>{req.name}</b>
-                    </td>
+                    </th>
                     <td>
                       {req.user.name} ({req.user.username})
                     </td>
