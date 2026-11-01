@@ -207,7 +207,7 @@ Phần lớn ticket của TV2 là **Lõi**: viết test trước, hai người d
 
 ## TV2-12 · Sửa lỗi, tài liệu kỹ thuật
 
-- **Trạng thái:** —
+- **Trạng thái:** ⏳ `feat/tv2-12-sync-docs`; đã rà ADR và viết `docs/sync-internals.md`, chờ review
 - **Tuần:** 7–8
 - **File:** `docs/sync-internals.md` (mới), `docs/adr/*`
 
