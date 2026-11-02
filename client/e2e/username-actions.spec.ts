@@ -159,6 +159,10 @@ test('360px: hai nút ở màn hình 8 và 9 cao ≥ 44px, giữ hai câu hướ
   await expectTapTarget(page.getByRole('button', { name: COPY }));
   await expectTapTarget(page.getByRole('button', { name: SHARE }));
   await expect(page.getByTestId('orgs')).toContainText('Gửi tên này cho giám sát viên của tổ chức để được thêm vào.');
+
+  // Khối trắng ở màn hình 9 không có luật p như màn hình 8 và khối chào: dòng báo không được giữ lề mặc định
+  await page.getByRole('button', { name: COPY }).click();
+  await expect(page.getByTestId('username-copied')).toHaveCSS('margin-top', '0px');
 });
 
 test.describe('chưa thuộc tổ chức nào', () => {

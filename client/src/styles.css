@@ -466,6 +466,7 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
          border-radius: 8px; padding: 2px 8px; overflow-wrap: anywhere; }
 .ucode.big { display: inline-block; font-size: 20px; padding: 6px 12px; }
 .uname-actions { display: grid; gap: 8px; }
+.uname-actions p { margin: 0; }
 .uname-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 .orgs > .field-error { margin: 12px 0 0; }
 .orows, .reqs { list-style: none; margin: -4px 0; padding: 0; }
