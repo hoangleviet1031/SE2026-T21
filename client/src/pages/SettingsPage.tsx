@@ -13,6 +13,7 @@ import {
 import { BusyNote } from '../components/BusyNote';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
+import { UsernameActions } from '../components/UsernameActions';
 import { getAccountValue } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
 import { formatBytes, usagePercent } from '../formatBytes';
@@ -91,6 +92,7 @@ export function SettingsPage() {
                 {accountUsername(user)}
               </code>
             </p>
+            <UsernameActions username={accountUsername(user)} />
             <p className="hint">
               {project === null
                 ? 'Gửi tên này cho giám sát viên của tổ chức để được thêm vào.'

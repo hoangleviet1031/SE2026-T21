@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-02 | — | feat | Nút [Sao chép], [Chia sẻ] dưới tên đăng nhập ở màn hình 8, 9; vai trò ở hàng tổ chức đang chọn (Could, ngoài MVP) | PR #120 | chờ review |
+| 2026-11-02 | — | fix | PR #117 đã merge | PR #117 | xong |
 | 2026-11-01 | — | fix | Màn hình 5 và trang quản trị cho trình đọc màn hình: nút ▲▼ ở builder có tên kèm nhãn trường; ô tên đầu dòng ở A1, A2, A3 là header dòng, nhìn không đổi | PR #117 | chờ review |
 | 2026-11-01 | — | fix | PR #116 đã merge | PR #116 | xong |
 | 2026-11-01 | — | fix | Màn hình 1 cho bàn phím và trình đọc màn hình: hai tab theo mẫu tab WAI-ARIA (←/→/Home/End, khung tabpanel), câu lỗi gắn ô bị lỗi (aria-invalid, aria-describedby); giao diện không đổi | PR #116 | chờ review |

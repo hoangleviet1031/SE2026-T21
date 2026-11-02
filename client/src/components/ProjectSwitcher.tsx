@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { accountDb } from '../db/accountDb';
 import { getCurrentProjectId, setCurrentProject } from '../db/current';
 import { initialOf } from '../accountDisplay';
-import { projectSubtitle } from '../projects';
+import { ROLE_LABEL, projectSubtitle } from '../projects';
 import { navigate } from '../useHashRoute';
 import { Icon } from './Icon';
 
@@ -14,6 +14,8 @@ export function ProjectSwitcher() {
   const projects = useLiveQuery(() => accountDb.projects.toArray(), []);
   const currentId = useLiveQuery(getCurrentProjectId, []);
   const [open, setOpen] = useState(false);
+  const nameId = useId();
+  const roleId = useId();
 
   const current = projects?.find((p) => p.id === currentId);
   if (!projects || !current) return null;
@@ -25,12 +27,24 @@ export function ProjectSwitcher() {
     </span>
   );
 
-  // Chỉ một dự án thì không có gì để chọn, chỉ hiện tên
+  // Hai dòng: tên dài vẫn không chen với vai trò hay "Tổ chức khác…". Không có số đếm, số đếm ở danh sách mở
+  const identity = (
+    <span className="org-id">
+      <strong className="name" id={nameId}>
+        {current.name}
+      </strong>
+      <small id={roleId} data-testid="project-role">
+        {ROLE_LABEL[current.role]}
+      </small>
+    </span>
+  );
+
+  // Chỉ một dự án thì không có gì để chọn, chỉ hiện tên và vai trò
   if (projects.length === 1) {
     return (
       <div className="org-one" data-testid="project-switcher">
         {tile}
-        <strong className="name">{current.name}</strong>
+        {identity}
         <a className="org-other" href="#/orgs">
           Tổ chức khác…
           <Icon name="right" />
@@ -49,9 +63,16 @@ export function ProjectSwitcher() {
   // Danh sách mở ngay dưới, đẩy nội dung xuống thay vì phủ lên (ui.md màn hình 2)
   return (
     <div className="org-switcher" data-testid="project-switcher">
-      <button className="org-head" aria-expanded={open} onClick={() => setOpen(!open)}>
+      {/* Tên nút vẫn là tên tổ chức, vai trò là mô tả: đọc đủ cả hai mà tên nút không đổi theo vai trò */}
+      <button
+        className="org-head"
+        aria-expanded={open}
+        aria-labelledby={nameId}
+        aria-describedby={roleId}
+        onClick={() => setOpen(!open)}
+      >
         {tile}
-        <strong className="name">{current.name}</strong>
+        {identity}
         <Icon name="down" className={open ? 'up' : undefined} />
       </button>
       {open && (

@@ -4,6 +4,7 @@ import type { DirectoryEntry, MeResponse, ProjectRequest } from '@field-survey/s
 import { accountUsername, initialOf } from '../accountDisplay';
 import { BusyNote } from '../components/BusyNote';
 import { Icon } from '../components/Icon';
+import { UsernameActions } from '../components/UsernameActions';
 import { getAccountValue } from '../db/accountDb';
 import {
   ORG_ERROR_TEXT,
@@ -129,6 +130,7 @@ export function OrgsPage({ home = false }: { home?: boolean }) {
             {username}
           </code>
         </p>
+        {username && <UsernameActions username={username} />}
         <p className={home ? undefined : 'hint'}>Gửi tên này cho giám sát viên của tổ chức để được thêm vào.</p>
       </div>
 

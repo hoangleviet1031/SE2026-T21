@@ -8,6 +8,11 @@ export function accountUsername(user: { id: string; username?: string }): string
   return user.username || user.id;
 }
 
+/** Chữ gửi qua hộp chia sẻ của máy; kèm một câu để người nhận biết đây là gì (design §4.7). */
+export function shareUsernameText(username: string): string {
+  return `Tên đăng nhập của tôi: ${username}`;
+}
+
 /**
  * Chữ cái trong ô vuông trước tên tổ chức, tên người (ui.md "Hệ thống thiết kế"). `Array.from` để không
  * cắt đôi ký tự ngoài BMP; tên rỗng thì không hiện gì.

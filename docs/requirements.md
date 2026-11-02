@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.15 (2026-11-01)
+- **Phiên bản:** 0.16 (2026-11-02)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -104,6 +104,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tôi thuộc tổ chức A và B, **when** đổi tổ chức khi offline, **then** đổi trong ≤ 1 s, mỗi bên chỉ thấy form và phiếu của mình.
 - **Given** tôi không thuộc tổ chức B, **when** gọi bất kỳ API nào của B, **then** không route nào trả `2xx`; id thuộc tổ chức khác trả `404`.
 - **Given** tôi bị rút khỏi tổ chức khi còn phiếu chưa gửi, **when** đồng bộ, **then** phiếu không bị xoá, có banner kèm "Xuất JSON" và "Xoá khỏi máy" (hỏi xác nhận).
+- **Given** tôi có vai trò khác nhau ở hai tổ chức, **when** đổi tổ chức, **then** hàng tổ chức đang chọn hiện đúng vai trò của tôi ở tổ chức đó (Could).
 
 ### US-10 · Tự tạo tài khoản và mở tổ chức · Must
 
@@ -114,6 +115,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** sai mật khẩu 11 lần trong 15 phút, **when** đăng nhập lần nữa, **then** `429` kể cả mật khẩu đúng.
 - **Given** phiên của máy bị thu hồi, **when** app gọi server, **then** về màn hình Đăng nhập với "Phiên đăng nhập hết hạn, đăng nhập lại", dữ liệu trên máy giữ nguyên.
 - **Given** tôi gửi yêu cầu mở tổ chức và admin duyệt, **when** vòng đồng bộ kế tiếp, **then** tôi thấy tổ chức với vai trò Owner và tạo được form.
+- **Given** tôi đã có tên đăng nhập, **when** bấm [Sao chép] ở màn hình Cài đặt hoặc Tổ chức, **then** chép đúng tên và có phản hồi, không chép được thì báo; trình duyệt có hộp chia sẻ thì có thêm [Chia sẻ], huỷ không báo lỗi (Could).
 
 ### US-11 · Quản lý thành viên · Must
 
@@ -200,11 +202,13 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-09 | Đổi tổ chức offline ≤ 1 s, không lẫn | T6, T10 `projects.spec.ts`; `project-switcher.spec.ts` | TV1-06 (#23), TV1-11 (#43) |
 | US-09 | Người ngoài không gọi được route nào | T1–T5 `server/test/isolation.test.ts` | TV3-04 (#29) |
 | US-09 | Bị rút còn phiếu chưa gửi | T7, T8, T9 `membership.spec.ts` | TV2-07 (#14), TV1-06 (#23) |
+| US-09 | Hàng tổ chức đang chọn hiện vai trò | `project-switcher.spec.ts` (nhiều tổ chức, một tổ chức, 360px tên dài) | không ticket (#120) |
 | US-10 | Tạo tài khoản, tải lại vẫn đăng nhập | U1 `accounts.test.ts`; U7 `login.spec.ts` (cả mất mạng nền vàng, lỗi nhập chữ đỏ, tab công tắc; phím ←/→/Home/End giữa hai tab và câu lỗi gắn ô, design §11.3), unit `tabForKey`, `registerProblem`, `accountErrorFields` (`loginForm.test.ts`); `settings.spec.ts` (thanh dung lượng, TV1-12 sau audit UI; phần Đăng xuất ở US-01); unit `usagePercent` (`formatBytes.test.ts`); `headings.spec.ts` (tiêu đề trang màn 8 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV2-14 (#36), TV1-14 (#53); giao diện TV1-12 (b2 p6); tab và lỗi gắn ô TV1-12 (#116) |
 | US-10 | Trùng tên → `409 username_taken` | U2 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Sai 11 lần → `429` | U4 `accounts.test.ts` | TV2-14 (#36) |
 | US-10 | Phiên bị thu hồi → về Đăng nhập, báo hết phiên, giữ dữ liệu | `api-errors.spec.ts` (cả hết phiên + mất mạng chỉ một dải) | TV1-12 (#62, b2) |
 | US-10 | Gửi yêu cầu, được duyệt, thành Owner | Q1, Q2 `projectRequests.test.ts`; Q8 `orgs.spec.ts` (cả dòng yêu cầu hai dòng, ngoại tuyến không có khối công khai; gửi xong có "Đã gửi yêu cầu", khối yêu cầu trên form, ← Quay lại đầu trang, [Huỷ] kèm tên); unit `requestStatusKind` (`orgs.test.ts`); `headings.spec.ts` (tiêu đề trang màn 9 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV2-15 (#49), TV1-15 (#54); giao diện TV1-12 (b2 p5, màn 9 sau audit UI) |
+| US-10 | [Sao chép], [Chia sẻ] tên đăng nhập | `username-actions.spec.ts`; unit `shareUsernameText` (`client/src/accountDisplay.test.ts`) | không ticket (#120) |
 | US-11 | Supervisor thêm surveyor; không thêm supervisor | M1 `members.test.ts` | TV1-08 (#38) |
 | US-11 | Đã là thành viên / tên không có / tài khoản bị khoá | M2 và ca tài khoản bị khoá `members.test.ts` | TV1-08 (#38), TV1-12 (#62) |
 | US-11 | Owner cuối cùng | A7 `members.test.ts`; `members.spec.ts` (cả dòng thành viên hai dòng; chọn vai trò rồi bấm [Đổi], ← Quay lại khi không đủ quyền); `headings.spec.ts` (tiêu đề trang màn 6 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-08 (#38, #39); giao diện TV1-12 (b2 p5, màn 6 sau audit UI) |
@@ -245,3 +249,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.13 | 2026-10-30 | Tự lưu phần 2 (Could): US-01 thêm tiêu chí dải "Phiếu đang nhập dở" ở trang chủ và dòng truy vết |
 | 0.14 | 2026-11-01 | US-10 dòng truy vết thêm ca bàn phím hai tab và câu lỗi gắn ô ở màn hình 1 (TV1-12, design §11.3) |
 | 0.15 | 2026-11-01 | US-07 và US-12 dòng truy vết thêm ca tên nút ▲▼ ở builder và header dòng ở A1–A3 (TV1-12, design §11.3) |
+| 0.16 | 2026-11-02 | US-09 thêm tiêu chí vai trò ở hàng tổ chức đang chọn, US-10 thêm tiêu chí [Sao chép], [Chia sẻ] tên đăng nhập, kèm dòng truy vết (Could, không ticket) |

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectTapTarget, login, readStore, setMembership } from './helpers';
+import { expectTapTarget, login, putRow, readStore, setMembership } from './helpers';
 
 // Bộ chọn dự án (TV1-06; design §4.7, §11.2, ui.md màn hình 2). Dự án demo (server/src/seedDemo.ts):
 // lan là giám sát viên ở "Y tế xã (demo)", điều tra viên ở "Nông nghiệp (demo)"; minh chỉ ở Y tế xã.
@@ -94,6 +94,54 @@ test('chỉ một dự án, 360px: link Tổ chức khác… cao ≥ 44px', asyn
   await login(page, 'minh');
   await expectTapTarget(switcher(page).getByRole('link', { name: 'Tổ chức khác…' }));
 });
+
+test('nhiều dự án: hàng đang chọn hiện vai trò theo dự án, tên nút vẫn là tên tổ chức', async ({ page }) => {
+  await login(page, 'lan');
+  const head = switcher(page).getByRole('button', { expanded: false });
+  await expect(head).toHaveAccessibleName(NONGNGHIEP);
+  await expect(head).toHaveAccessibleDescription('Điều tra viên');
+  // Không kèm số đếm, không " · " (ui.md màn hình 2)
+  await expect(switcher(page).getByTestId('project-role')).toHaveText('Điều tra viên');
+
+  await choose(page, YTE);
+  await expect(head).toHaveAccessibleName(YTE);
+  await expect(head).toHaveAccessibleDescription('Giám sát viên');
+  await expect(switcher(page).getByTestId('project-role')).toHaveText('Giám sát viên');
+});
+
+test('chỉ một dự án: hiện vai trò cạnh tên', async ({ page }) => {
+  await login(page, 'minh');
+  await expect(switcher(page).getByTestId('project-role')).toHaveText('Điều tra viên');
+});
+
+// Tên tổ chức dài nhất được phép: 100 ký tự
+const LONG_NAME = 'Hợp tác xã nông nghiệp '.repeat(4) + 'X'.repeat(8);
+
+for (const username of ['minh', 'lan']) {
+  test(`360px, tên tổ chức dài (${username}): vai trò vẫn đủ, trang không tràn ngang`, async ({ page, context }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await login(page, username);
+    await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
+    // Offline để vòng đồng bộ không gọi /me ghi đè lại tên. Ghi thẳng IndexedDB thì Dexie không biết nên phải
+    // tải lại trang, tải lại offline thì cần service worker đã nắm trang.
+    await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+    await context.setOffline(true);
+    await putRow(page, 'field-survey-account', 'projects', {
+      id: username === 'minh' ? 'demo-yte' : 'demo-nongnghiep',
+      name: LONG_NAME,
+      role: 'surveyor',
+      status: 'active',
+      needsAttention: 0,
+      unsynced: 0,
+    });
+    await page.reload();
+    await expect(switcher(page).getByText(LONG_NAME)).toBeVisible();
+    await expect(switcher(page).getByTestId('project-role')).toHaveText('Điều tra viên');
+    if (username === 'minh') await expectTapTarget(switcher(page).getByRole('link', { name: 'Tổ chức khác…' }));
+    else await expectTapTarget(switcher(page).getByRole('button', { expanded: false }));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+}
 
 test.describe('chưa thuộc dự án nào', () => {
   test.afterEach(async ({ request }) => {
