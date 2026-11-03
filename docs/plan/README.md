@@ -113,7 +113,8 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | TV3-15 | Rà khả năng tiếp cận · **Cắt được** | Could | N8 | ✅ `docs/tv3-15-a11y-audit` (chỗ cần sửa: N16–N21 cho TV1-12) |
 | TV3-16 | Tài liệu người dùng (chuyển từ TV1-12) | Must | – | — |
 | — | Tự đổi mật khẩu (không ticket, Dương chốt 2026-10-26) · **Cắt được** | Could | – | ✅ PR #98 (API), PR #99 (giao diện màn 8) |
-| — | Nút Sao chép, Chia sẻ tên đăng nhập; vai trò ở hàng tổ chức đang chọn (không ticket, Dương chọn 2026-11-02) · **Cắt được** | Could | – | ⏳ PR #120 |
+| — | Nút Sao chép, Chia sẻ tên đăng nhập; vai trò ở hàng tổ chức đang chọn (không ticket, Dương chọn 2026-11-02) · **Cắt được** | Could | – | ✅ PR #120 |
+| — | Thêm nhiều thành viên một lần ở màn 6 (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #121 |
 
 ## Phụ thuộc quan trọng
 

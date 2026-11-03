@@ -1,12 +1,27 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse, Member, ProjectSettings, Role } from '@field-survey/shared';
 import { initialOf } from '../accountDisplay';
 import { BusyNote } from '../components/BusyNote';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Icon } from '../components/Icon';
 import { getAccountValue, type AccountProject } from '../db/accountDb';
 import { useCurrentProject } from '../db/current';
-import { MEMBER_ERROR_TEXT, assignableRoles, confirmText, memberActions } from '../members';
+import {
+  MAX_ADD_NAMES,
+  MEMBER_ERROR_TEXT,
+  addInOrder,
+  addLineText,
+  addManyConfirmText,
+  addSummaryText,
+  assignableRoles,
+  confirmText,
+  memberActions,
+  namesToKeep,
+  parseUsernameList,
+  tooManyNamesText,
+  type AddLine,
+} from '../members';
 import { ROLE_LABEL, canManageProject } from '../projects';
 import { apiFailureText } from '../apiErrors';
 import {
@@ -66,9 +81,14 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // Thao tác đang chờ người dùng xác nhận trong hộp thoại (đổi vai trò, rút)
-  const [pending, setPending] = useState<{ text: string; label: string; danger: boolean; act: () => void } | null>(
-    null,
-  );
+  const [pending, setPending] = useState<{
+    text: string;
+    label: string;
+    danger: boolean;
+    act: () => void;
+    cancel?: () => void;
+  } | null>(null);
+  const [addResults, setAddResults] = useState<{ lines: AddLine[]; duplicates: number } | null>(null);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -97,6 +117,7 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
   async function run<T>(action: () => Promise<MemberResult<T>>, opts: { self?: boolean } = {}): Promise<T | undefined> {
     setBusy(true);
     setError(null);
+    setAddResults(null);
     try {
       const result = await action();
       if (!result.ok) {
@@ -117,6 +138,49 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
       setBusy(false);
     }
   }
+
+  /** Trước khi gửi nhiều tên: quá giới hạn thì báo, Owner thì hỏi lại. Trả false nghĩa là không gửi. */
+  const prepareAddMany = (count: number, role: Role): Promise<boolean> => {
+    if (count > MAX_ADD_NAMES) {
+      setAddResults(null);
+      setError(tooManyNamesText(count));
+      return Promise.resolve(false);
+    }
+    const text = addManyConfirmText(count, role);
+    if (!text) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      setPending({ text, label: 'Thêm', danger: false, act: () => resolve(true), cancel: () => resolve(false) });
+    });
+  };
+
+  /**
+   * Thêm lần lượt, xong thì trả các tên còn để lại trong ô. Không dùng `load()`: tải lỗi thì `loadError` gỡ
+   * cả form, mất luôn bảng kết quả và các tên chưa gửi.
+   */
+  const addMany = async (names: string[], duplicates: number, role: Role): Promise<string[]> => {
+    setBusy(true);
+    setError(null);
+    setAddResults(null);
+    try {
+      const { lines, stopReason } = await addInOrder(
+        names,
+        (username) => addMember(project.id, { username, role }),
+        failureText,
+      );
+      setAddResults({ lines, duplicates });
+      setError(stopReason);
+      try {
+        const list = await fetchMembers(project.id);
+        if (list.ok) setMembers(list.value);
+      } catch (err) {
+        // Làm mới hỏng thì giữ danh sách cũ, không báo gì thêm: bảng kết quả đã nói đúng từng tên
+        if (!apiFailure(err)) throw err;
+      }
+      return namesToKeep(lines);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const onChangeRole = (m: Member, role: Role) => {
     const act = () => void run(() => changeMemberRole(project.id, m.userId, role), { self: m.userId === myUserId });
@@ -144,7 +208,10 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
             setPending(null);
             pending.act();
           }}
-          onCancel={() => setPending(null)}
+          onCancel={() => {
+            setPending(null);
+            pending.cancel?.();
+          }}
         />
       )}
       {loadError ? (
@@ -165,12 +232,15 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
               roles={assignableRoles(project.role)}
               busy={busy}
               onAdd={(username, role) => run(() => addMember(project.id, { username, role }))}
+              prepareAddMany={prepareAddMany}
+              onAddMany={addMany}
             />
             {error && (
               <p className="field-error" role="alert" data-testid="member-error">
                 ⚠ {error}
               </p>
             )}
+            <AddResults results={addResults} />
           </div>
           <ul className="card mlist" data-testid="members">
             {members.map((m) => (
@@ -209,22 +279,37 @@ function AddMemberForm({
   roles,
   busy,
   onAdd,
+  prepareAddMany,
+  onAddMany,
 }: {
   roles: Role[];
   busy: boolean;
   onAdd: (username: string, role: Role) => Promise<Member | undefined>;
+  prepareAddMany: (count: number, role: Role) => Promise<boolean>;
+  onAddMany: (names: string[], duplicates: number, role: Role) => Promise<string[]>;
 }) {
   const [username, setUsername] = useState('');
   const [role, setRole] = useState<Role>('surveyor');
   // `busy` chung cho mọi thao tác trên trang; chữ "Đang thêm…" chỉ hiện khi chính nút Thêm đang chạy
   const [adding, setAdding] = useState(false);
+  const hintId = useId();
+  const { names, duplicates } = parseUsernameList(username);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) return;
+    const [first, ...rest] = names;
+    if (first === undefined) return;
+    const single = rest.length === 0;
+    // Chờ hộp hỏi lại xong mới bật "Đang thêm…": lúc đang hỏi chưa gửi gì
+    if (!single && !(await prepareAddMany(names.length, role))) return;
     setAdding(true);
     try {
-      if (await onAdd(username, role)) setUsername('');
+      // Một tên đi đường cũ: lỗi hiện một câu, chữ người dùng nhập giữ nguyên trong ô
+      if (single) {
+        if (await onAdd(first, role)) setUsername('');
+      } else {
+        setUsername((await onAddMany(names, duplicates, role)).join('\n'));
+      }
     } finally {
       setAdding(false);
     }
@@ -234,14 +319,22 @@ function AddMemberForm({
     <form className="form" onSubmit={(e) => void submit(e)}>
       <label className="field">
         Thêm theo tên đăng nhập
-        <input
+        {/* Tắt tự sửa chữ: bàn phím điện thoại đổi tên thành một tên khác là thêm nhầm người */}
+        <textarea
           data-testid="member-username"
           value={username}
+          disabled={busy}
           autoCapitalize="none"
           autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          aria-describedby={hintId}
           onChange={(e) => setUsername(e.target.value)}
         />
       </label>
+      <p className="hint" id={hintId}>
+        Mỗi dòng một tên, hoặc cách nhau bằng dấu phẩy. Tối đa {MAX_ADD_NAMES} tên mỗi lần.
+      </p>
       <label className="field">
         Vai trò
         {/* aria-label: nhãn bọc select thì tên đọc được gồm cả chữ các lựa chọn */}
@@ -257,11 +350,41 @@ function AddMemberForm({
           ))}
         </select>
       </label>
-      <button type="submit" className="primary wide" disabled={busy || !username.trim()} aria-busy={adding}>
+      <button type="submit" className="primary wide" disabled={busy || names.length === 0} aria-busy={adding}>
         Thêm
       </button>
       <BusyNote busy={adding} text="Đang thêm…" />
     </form>
+  );
+}
+
+/** Kết quả từng tên sau khi thêm nhiều người (ui.md màn hình 6). */
+function AddResults({ results }: { results: { lines: AddLine[]; duplicates: number } | null }) {
+  const summary = results ? addSummaryText(results.lines, results.duplicates) : '';
+  return (
+    <>
+      {/* Vùng status luôn có, chỉ đổi chữ: vùng chèn vào cùng lúc với chữ thì có máy bỏ qua (như màn hình 9) */}
+      <p className="visually-hidden" role="status" data-testid="member-result-status">
+        {summary}
+      </p>
+      {results && (
+        <div className="add-results">
+          <p data-testid="member-result-summary">{summary}</p>
+          <ul data-testid="member-results">
+            {results.lines.map((line) => (
+              <li key={line.username} className={line.kind} data-testid={`member-result-${line.username}`}>
+                {line.kind === 'added' && <Icon name="synced" />}
+                <b>{line.username}</b>
+                <span>
+                  {line.kind === 'failed' && '⚠ '}
+                  {addLineText(line)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
   );
 }
 

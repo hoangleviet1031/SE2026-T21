@@ -11,6 +11,9 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-03 | — | feat | PR #121 đã merge | PR #121 | xong |
+| 2026-11-03 | — | feat | Thêm nhiều thành viên một lần ở màn 6 (Could, ngoài MVP): dán danh sách, kết quả từng tên, dừng khi lỗi chung, tên thử lại được nằm lại trong ô, hỏi lại khi thêm nhiều Owner; chỉ sửa client; E2E members.spec, unit members.test; design 0.5.67, ui 0.2.43, requirements 0.17 | PR #121 | chờ review |
+| 2026-11-03 | — | feat | PR #120 đã merge | PR #120 | xong |
 | 2026-11-02 | — | feat | Nút [Sao chép], [Chia sẻ] dưới tên đăng nhập ở màn hình 8, 9; vai trò ở hàng tổ chức đang chọn (Could, ngoài MVP) | PR #120 | chờ review |
 | 2026-11-02 | — | fix | PR #117 đã merge | PR #117 | xong |
 | 2026-11-01 | — | fix | Màn hình 5 và trang quản trị cho trình đọc màn hình: nút ▲▼ ở builder có tên kèm nhãn trường; ô tên đầu dòng ở A1, A2, A3 là header dòng, nhìn không đổi | PR #117 | chờ review |

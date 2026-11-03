@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.66 (2026-11-02)
+- **Phiên bản:** 0.5.67 (2026-11-03)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -100,6 +100,7 @@
 | 0.5.64 | 2026-11-01 | Màn hình 1 (không ticket, TV1-12, Could, A duyệt thay Dương 2026-11-01): hai tab Đăng nhập / Tạo tài khoản theo mẫu tab của WAI-ARIA (khung `tabpanel`, `aria-controls`, phím ←/→/Home/End, chỉ tab đang chọn nằm trong thứ tự Tab); câu lỗi gắn với ô bị lỗi (`aria-invalid`, `aria-describedby`), giao diện không đổi. §11.3 ghi vào "Đạt" |
 | 0.5.65 | 2026-11-01 | Màn hình 5 và trang quản trị (không ticket, TV1-12, Could, A duyệt thay Dương 2026-11-01): nút ▲▼ ở builder có tên kèm nhãn trường ("Lên: <nhãn>", chưa có nhãn thì "Trường mới"); ô tên đầu mỗi dòng ở A1, A2, A3 là header dòng (`th scope="row"`), nhìn không đổi. §11.3 ghi vào "Đạt" |
 | 0.5.66 | 2026-11-02 | Nút [Sao chép], [Chia sẻ] dưới tên đăng nhập ở màn hình Cài đặt, Tổ chức và vai trò ở hàng tổ chức đang chọn (Could, ngoài MVP, không ticket, phiên review AI chốt câu chữ thay Dương theo uỷ quyền 2026-11-02): §1 thêm dòng MoSCoW; §4.7 ghi hành vi và câu chữ |
+| 0.5.67 | 2026-11-03 | Thêm nhiều thành viên một lần ở màn hình Thành viên (Could, ngoài MVP, không ticket, Dương duyệt, phiên review AI chốt câu chữ thay Dương theo uỷ quyền 2026-11-02): §1 thêm dòng MoSCoW; §4.7 ghi cách tách danh sách, dừng khi lỗi chung, giữ tên trong ô, hỏi lại khi thêm nhiều Owner. Không đổi API, mã lỗi |
 
 ## Mục lục
 
@@ -162,6 +163,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Log và theo dõi (§12) | Một dòng log mỗi request, không ghi token. | Could (TV2-19) |
 | Tự lưu chữ đang gõ (§4.1) | Chữ chưa bấm Lưu ở màn hình 4 được giữ trên máy; tải lại hay app bị tắt thì mở lại phiếu hỏi khôi phục. | Could (Dương chốt 2026-10-30, ngoài MVP, cắt được) |
 | Gửi tên đăng nhập, hiện vai trò (§4.7) | Nút [Sao chép], [Chia sẻ] dưới tên đăng nhập; hàng tổ chức đang chọn hiện vai trò của mình. | Could (Dương chọn 2026-11-02, ngoài MVP, cắt được) |
+| Thêm nhiều thành viên một lần (§4.7) | Dán danh sách tên đăng nhập ở màn hình Thành viên, xem kết quả từng tên. | Could (Dương duyệt 2026-11-03, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
 **Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
@@ -533,6 +535,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003. Mọi mục dư�
 - **Màn hình Thành viên** (`supervisor`, `owner`; cần mạng):
   - Thêm người **bằng tên đăng nhập** và chọn vai trò. Supervisor chỉ thêm/rút được `surveyor`; Owner thêm, đổi, rút được mọi vai trò. Rút có hỏi xác nhận.
   - Không rút/hạ được Owner cuối cùng (`409 last_owner`). Không thêm được tài khoản admin (`409 admin_account`).
+  - **Thêm nhiều người một lần** (Could, chỉ ở client, hàm thuần `client/src/members.ts`): ô thêm nhận danh sách, tách theo xuống dòng, dấu phẩy, chấm phẩy, tab, **không** tách theo khoảng trắng (dán họ tên đầy đủ mà tách ra có thể thêm nhầm tài khoản có thật, và người đó xem được dữ liệu tổ chức). Từng mục được chuẩn hoá như server, bỏ câu "Tên đăng nhập của tôi:" của tin chia sẻ; tên trùng gửi một lần. Không kiểm mẫu tên ở client vì tài khoản cũ có thể ngoài mẫu; server trả `404`. Tối đa 50 tên mỗi lần (chặn dán nhầm, không phải giới hạn server), vượt thì không gửi gì. Một vai trò cho cả danh sách; vai trò Owner và từ 2 tên trở lên thì hỏi lại vì ô Vai trò giữ giá trị từ lần thêm trước. Gọi `POST P/members` lần lượt, một tên một request; nút Đổi, Rút, Thêm khoá suốt loạt. `not_found`, `already_member`, `admin_account` là lỗi riêng một tên, đi tiếp. `forbidden`, mất mạng hoặc timeout, `5xx`, `403 not_member`, `401` thì dừng, không gửi tiếp, không tự thử lại (§8). Timeout có thể server đã ghi; thử lại thì báo "Người này đã là thành viên", không tạo trùng. Hết loạt tải lại danh sách một lần; tải lỗi thì giữ danh sách cũ, form và bảng kết quả, không báo thêm. Trong ô chỉ còn tên thử lại có ích (`not_found` và tên chưa gửi). Đúng một tên thì như thêm một người trước đây: lỗi hiện một câu, chữ giữ nguyên. Câu chữ ở ui.md màn hình 6.
   - Owner có thêm: đổi tên tổ chức, ô "Công khai tên tổ chức" (mặc định tắt).
   - Có code (TV1-08): API `P/members`, `P/settings` (§7), màn hình `client/src/pages/MembersPage.tsx` (ui.md màn hình 6). Tự hạ hoặc tự rút hỏi xác nhận nói rõ mất quyền ngay; xong thì chạy một vòng đồng bộ mới (chờ vòng đang chạy, vì vòng đó có thể đã đọc `/me` cũ) rồi về trang chủ.
 - **Admin** không dùng app khảo sát: đăng nhập bằng tài khoản admin thì hiện "Tài khoản quản trị dùng trang /admin" và không tạo CSDL nào. Việc của admin ở trang quản trị (§4.9). Có code (TV2-16): `signIn.ts` ném `AdminAccountError` trước khi lưu token và huỷ phiên vừa cấp; token admin đã lưu từ bản cũ thì vòng đồng bộ thấy `isAdmin` trong `/me`, xoá token và dừng trước khi mở CSDL dự án nào.

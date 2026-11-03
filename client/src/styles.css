@@ -465,6 +465,16 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 .ucode { font-family: ui-monospace, Consolas, "Roboto Mono", monospace; font-size: 16px; font-weight: 600; background: var(--hl-soft); border: 1px solid #f0dfa2;
          border-radius: 8px; padding: 2px 8px; overflow-wrap: anywhere; }
 .ucode.big { display: inline-block; font-size: 20px; padding: 6px 12px; }
+/* Kết quả thêm nhiều người (màn hình 6): tên dán vào có thể dài bất kỳ, phải ngắt dòng để không tràn 360px */
+.add-results { display: grid; gap: 8px; }
+.add-results p { margin: 0; font-weight: 600; }
+.add-results ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.add-results li { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; overflow-wrap: anywhere; }
+.add-results li b { min-width: 0; }
+.add-results li svg.icon { width: 20px; height: 20px; flex: none; }
+.add-results li.added span { color: #17773f; }
+.add-results li.failed span { color: var(--red); }
+.add-results li.unsent span { color: var(--muted); }
 .uname-actions { display: grid; gap: 8px; }
 .uname-actions p { margin: 0; }
 .uname-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
