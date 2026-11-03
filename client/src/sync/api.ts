@@ -23,6 +23,7 @@ import type { ApiFailure } from '../apiErrors';
 import { CHANGE_PASSWORD_ERROR_CODES, type ChangePasswordErrorCode } from '../changePasswordForm';
 
 import { expireSession, getToken } from '../auth';
+import { PHOTO_BODY_TIMEOUT_MS, blobWithin } from './photoDownloadRules';
 
 const TIMEOUT_MS = 10_000;
 
@@ -358,6 +359,20 @@ export async function completeAttachment(
   const out: AttachmentResult = { status: res.status };
   if (!res.ok) out.code = await errorCode(res);
   return out;
+}
+
+/**
+ * `GET P/attachments/:id`: file ảnh để xem ở máy không có blob (design §5.6). Thân bị cắt hoặc treo cũng là
+ * NetworkError. `no-store`: ảnh của người khác chỉ nằm trong IndexedDB, đăng xuất là hết (design §4.7).
+ */
+export async function fetchAttachmentFile(projectId: string, id: string): Promise<{ status: number; blob?: Blob }> {
+  const res = await request(attachmentPath(projectId, id), { cache: 'no-store' }, projectId);
+  if (!res.ok) return { status: res.status };
+  try {
+    return { status: res.status, blob: await blobWithin(res, PHOTO_BODY_TIMEOUT_MS) };
+  } catch (err) {
+    throw new NetworkError(err instanceof Error ? err.message : String(err));
+  }
 }
 
 /** Định dạng xuất của `GET P/export/:formId` (design §4.6). */
