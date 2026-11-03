@@ -68,3 +68,4 @@ npx tsx test/perf/putCost.ts
 | [evidence/35-mutations-all-after-defaults.json](evidence/35-mutations-all-after-defaults.json) | Cả 13 mutation sau khi thêm 3 test |
 | [evidence/36-flaky-after-defaults.txt](evidence/36-flaky-after-defaults.txt) | Kiểm flaky lại với 44 test |
 | [evidence/37-green-after-defaults.txt](evidence/37-green-after-defaults.txt) | `tsc` và 462/462 test server |
+| [evidence/33-ci.txt](evidence/33-ci.txt) | CI của PR #123 trên Node 22 |

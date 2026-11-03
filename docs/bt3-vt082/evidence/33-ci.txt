@@ -1,0 +1,12 @@
+# CI của draft PR #123. Lệnh: gh pr checks 123; gh run view 41666087392 --log
+PR: https://github.com/hoangleviet1031/SE2026-T21/pull/123
+Run: https://github.com/hoangleviet1031/SE2026-T21/actions/runs/41666087392
+Commit: eac9b358fcad8123f8c6d2d9de96b6fb68559b14
+Job test: pass, 4m7s, ubuntu-latest, 2026-11-03 15:39:12Z đến 15:43:19Z
+node: v22.23.4
+npm run typecheck: success
+npm test shared: Test Files 6 passed (6), Tests 137 passed (137)
+npm test server: Test Files 29 passed (29), Tests 462 passed (462)
+npm test client: Test Files 30 passed (30), Tests 291 passed (291)
+E2E (npm run test:e2e): 260 passed (3.2m)
+PR: draft, chưa merge. Lúc ghi: 0 comment, 0 review.
