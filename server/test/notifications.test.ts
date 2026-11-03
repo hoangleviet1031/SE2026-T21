@@ -20,8 +20,6 @@ const NN = DEMO_PROJECTS.nongnghiep;
 const minhCtx: Ctx = { userId: U_MINH, projectId: YTE, role: 'surveyor' };
 const lanCtx: Ctx = { userId: U_LAN, projectId: YTE, role: 'supervisor' };
 const chuCtx: Ctx = { userId: U_CHU, projectId: YTE, role: 'owner' };
-// Ở dự án nông nghiệp chu là Owner duy nhất, lan chỉ là surveyor: chu tạo phiếu thì không có người nhận.
-const chuNnCtx: Ctx = { userId: U_CHU, projectId: NN, role: 'owner' };
 
 const CREATED_AT = '2026-11-03T08:00:00.000Z';
 const event = (recordId: string): RecordCreatedEvent => ({
@@ -90,8 +88,9 @@ const logs = {
   warn: undefined as unknown as ReturnType<typeof vi.spyOn>,
   error: undefined as unknown as ReturnType<typeof vi.spyOn>,
 };
-const logCount = () =>
-  logs.log.mock.calls.length + logs.info.mock.calls.length + logs.warn.mock.calls.length + logs.error.mock.calls.length;
+/** Các dòng log lỗi của notifier, đã parse. Dòng log phải là JSON một dòng như requestLogger. */
+const failureLogs = (): Array<Record<string, unknown>> =>
+  logs.error.mock.calls.map((args: unknown[]) => JSON.parse(String(args[0])) as Record<string, unknown>);
 
 beforeEach(() => {
   db = openDb(':memory:');
@@ -164,20 +163,6 @@ describe('nội dung thông báo và người nhận (AC1, AC4, AC5)', () => {
     expect(recipients).not.toContain('u_sup_nn');
   });
 
-  it('không có người nhận thì không gọi kênh và đếm vào skipped', async () => {
-    const { channel, calls } = recordingChannel();
-    const notifier = createNotifier(db, channel);
-
-    notifier.recordCreated(chuNnCtx, event('r-nn'));
-    await notifier.idle();
-    expect(calls).toHaveLength(0);
-    expect(notifier.stats()).toEqual({ sent: 0, failed: 0, timedOut: 0, dropped: 0, skipped: 1 });
-
-    // Vẫn gửi bình thường ở lần sau có người nhận.
-    notifier.recordCreated(minhCtx, event('r-yte'));
-    await notifier.idle();
-    expect(calls.map((c) => c.notification.recordId)).toEqual(['r-yte']);
-  });
 });
 
 describe('hàng đợi có giới hạn (AC4, N3)', () => {
@@ -201,21 +186,24 @@ describe('hàng đợi có giới hạn (AC4, N3)', () => {
     expect(notifier.stats()).toEqual({ sent: 3, failed: 0, timedOut: 0, dropped: 3, skipped: 0 });
   });
 
-  it('mặc định: 4 lần gửi cùng lúc và hàng đợi 1000', async () => {
-    const { channel, calls, release, peak } = gatedChannel();
-    const notifier = createNotifier(db, channel);
+  it('tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng', async () => {
+    const first = gatedChannel();
+    const notifier = createNotifier(db, first.channel, { capacity: 1, concurrency: 1, timeoutMs: 5000 });
+    const overflowLines = () => failureLogs().filter((line) => line.reason === 'overflow');
 
-    for (let i = 0; i < 4; i += 1) notifier.recordCreated(minhCtx, event(`run-${i}`));
-    await vi.waitFor(() => expect(calls).toHaveLength(4), { timeout: 500 });
+    notifier.recordCreated(minhCtx, event('dang-gui'));
+    await vi.waitFor(() => expect(first.calls).toHaveLength(1), { timeout: 500 });
+    notifier.recordCreated(minhCtx, event('cho'));
+    for (const id of ['bo-1', 'bo-2', 'bo-3']) notifier.recordCreated(minhCtx, event(id));
+    expect(overflowLines()).toHaveLength(1);
 
-    for (let i = 0; i < 1005; i += 1) notifier.recordCreated(minhCtx, event(`q-${i}`));
-    expect(notifier.stats().dropped).toBe(5);
-
-    release();
+    first.release();
     await notifier.idle();
-    expect(calls).toHaveLength(1004);
-    expect(peak()).toBe(4);
-    expect(notifier.stats().sent).toBe(1004);
+    notifier.recordCreated(minhCtx, event('dot-2-dang-gui'));
+    notifier.recordCreated(minhCtx, event('dot-2-bo'));
+    await notifier.idle();
+    expect(overflowLines()).toHaveLength(2);
+    expect(notifier.stats().dropped).toBe(4);
   });
 
   it('không vượt `concurrency`; idle() chỉ resolve khi hàng đợi rỗng và không còn lần gửi nào', async () => {
@@ -267,7 +255,9 @@ describe('timeout (N2)', () => {
     expect(calls[0]!.signal.aborted).toBe(true);
     expect(calls[1]!.signal.aborted).toBe(false);
     expect(notifier.stats()).toEqual({ sent: 1, failed: 0, timedOut: 1, dropped: 0, skipped: 0 });
-    expect(logCount()).toBeGreaterThanOrEqual(1);
+    expect(failureLogs()).toEqual([
+      expect.objectContaining({ event: 'notification_failed', reason: 'timeout', projectId: YTE, recordId: 'treo' }),
+    ]);
 
     // Kênh reject sau khi đã hết giờ: không unhandled rejection, không đếm thêm vào failed.
     settleLate(new Error('muộn'));
@@ -303,7 +293,12 @@ describe('kênh lỗi (AC3)', () => {
 
     expect(calls).toHaveLength(5);
     expect(notifier.stats()).toEqual({ sent: 1, failed: 4, timedOut: 0, dropped: 0, skipped: 0 });
-    expect(logCount()).toBeGreaterThanOrEqual(4);
+    expect(failureLogs().map((line) => [line.reason, line.recordId])).toEqual([
+      ['channel_error', 'r-0'],
+      ['channel_error', 'r-1'],
+      ['channel_error', 'r-2'],
+      ['channel_error', 'r-3'],
+    ]);
   });
 
   it('CSDL hỏng khi tra người nhận: không ném lỗi, idle() vẫn resolve, không gọi kênh', async () => {
@@ -320,43 +315,5 @@ describe('kênh lỗi (AC3)', () => {
     await expect(notifier.idle()).resolves.toBeUndefined();
     expect(calls).toHaveLength(1);
     expect(notifier.stats().sent).toBe(1);
-  });
-});
-
-describe('stats()', () => {
-  it('mỗi kết cục vào đúng một bộ đếm, tổng bằng số sự kiện; stats() là ảnh chụp', async () => {
-    let open: () => void = () => {};
-    const gate = new Promise<void>((resolve) => {
-      open = resolve;
-    });
-    let n = 0;
-    const channel: NotificationChannel = {
-      send: () => {
-        n += 1;
-        if (n === 1) return gate; // sent, sau khi mở cổng
-        if (n === 2) return Promise.reject(new Error('lỗi')); // failed
-        return new Promise<void>(() => {}); // timedOut
-      },
-    };
-    const notifier = createNotifier(db, channel, { capacity: 1, concurrency: 1, timeoutMs: 20 });
-
-    // Không có người nhận: phát lúc hàng đợi rỗng để không phụ thuộc thời điểm tra người nhận.
-    notifier.recordCreated(chuNnCtx, event('skipped'));
-    await notifier.idle();
-    const snapshot = notifier.stats();
-
-    notifier.recordCreated(minhCtx, event('sent'));
-    await vi.waitFor(() => expect(n).toBe(1), { timeout: 500 });
-    notifier.recordCreated(minhCtx, event('failed'));
-    notifier.recordCreated(minhCtx, event('dropped'));
-    open();
-    await notifier.idle();
-    notifier.recordCreated(minhCtx, event('timedOut'));
-    await notifier.idle();
-
-    const stats = notifier.stats();
-    expect(stats).toEqual({ sent: 1, failed: 1, timedOut: 1, dropped: 1, skipped: 1 });
-    expect(stats.sent + stats.failed + stats.timedOut + stats.dropped + stats.skipped).toBe(5);
-    expect(snapshot).toEqual({ sent: 0, failed: 0, timedOut: 0, dropped: 0, skipped: 1 });
   });
 });

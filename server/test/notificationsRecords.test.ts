@@ -331,7 +331,7 @@ describe('AC1: đúng người, một lần', () => {
     expect(call!.ctx).toEqual({ userId: DEMO_USER_IDS.minh, projectId: server.projects.yte, role: 'surveyor' });
     expect(Object.keys(call!.event).sort()).toEqual(['createdAt', 'formId', 'formVersion', 'recordId']);
     expect(call!.event).toMatchObject({ recordId: 'ac1-spy', formId: 'household-survey', formVersion: 1 });
-    expect(Math.abs(Date.parse(call!.event.createdAt) - Date.parse(body.updatedAt))).toBeLessThan(5000);
+    expect(call!.event.createdAt).toBe(body.updatedAt);
     expect(call!.inTransaction).toBe(false);
     expect(call!.committed).toBe(true);
     expect(JSON.stringify(call!.event)).not.toContain(MARKER);
@@ -595,27 +595,39 @@ describe('AC3: lỗi kênh không ảnh hưởng giao dịch', () => {
     }
   });
 
-  it('lỗi kênh được ghi log, không dòng log nào kèm dữ liệu phiếu', async () => {
-    const methods = ['log', 'info', 'warn', 'error'] as const;
+  it('lỗi kênh được ghi log có recordId; message của kênh có thể chứa dữ liệu phiếu nên không được vào log', async () => {
     const lines: string[] = [];
-    for (const method of methods) {
+    for (const method of ['log', 'info', 'warn', 'error'] as const) {
       vi.spyOn(console, method).mockImplementation((...args: unknown[]) => {
-        lines.push(args.map((a) => (a instanceof Error ? `${a.message} ${a.stack}` : typeof a === 'string' ? a : JSON.stringify(a))).join(' '));
+        lines.push(args.map(String).join(' '));
       });
     }
-    const h = await harness('failing');
+    let notifier: Notifier | undefined;
+    const t = await createTestServer({
+      notifier: (db) => {
+        // Nhà cung cấp hay echo lại payload trong message lỗi: đây là đường duy nhất dữ liệu lọt được vào log.
+        const leaky: NotificationChannel = { send: () => Promise.reject(new RangeError(`provider echo: ${MARKER}`)) };
+        notifier = createNotifier(db, leaky);
+        return notifier;
+      },
+    });
     try {
-      const res = await put(h.t, h.t.projects.yte, h.t.tokens.minh, 'log-1', { baseVersion: 0, data: small() }, 'log-1');
+      const res = await put(t, t.projects.yte, t.tokens.minh, 'log-1', { baseVersion: 0, data: small() }, 'log-1');
       expect(res.status).toBe(201);
-      await h.idle();
-      expect(h.stats().failed).toBe(1);
+      await notifier!.idle();
+      expect(notifier!.stats().failed).toBe(1);
 
-      // requestLogger của app ghi một dòng cho mỗi request; lỗi kênh phải là dòng khác.
-      const isRequestLine = (line: string) => line.startsWith('{"method":');
-      expect(lines.filter((line) => !isRequestLine(line)).length).toBeGreaterThanOrEqual(1);
+      const failure = lines.map((line) => JSON.parse(line) as Record<string, unknown>).find((line) => line.event === 'notification_failed');
+      expect(failure).toEqual({
+        event: 'notification_failed',
+        reason: 'channel_error',
+        errorName: 'RangeError',
+        projectId: t.projects.yte,
+        recordId: 'log-1',
+      });
       expect(lines.join('\n')).not.toContain(MARKER);
     } finally {
-      h.t.close();
+      t.close();
       vi.restoreAllMocks();
     }
   });
@@ -643,6 +655,51 @@ describe('AC4, N2: không chờ kênh, hàng đợi không chặn request', () =
       expect(countRows(t.db, `SELECT COUNT(*) AS n FROM records WHERE id LIKE 'q-%'`)).toBe(5);
     } finally {
       t.close();
+    }
+  });
+});
+
+describe('AC4: id quá dài (review plan R4)', () => {
+  it('formId cỡ 1 MB: phiếu vẫn 201, thông báo bị bỏ qua và đếm skipped, không giữ chuỗi trong hàng đợi', async () => {
+    const h = await harness('good');
+    try {
+      const res = await put(
+        h.t,
+        h.t.projects.yte,
+        h.t.tokens.minh,
+        'long-form',
+        { baseVersion: 0, data: small(), formId: 'f'.repeat(1024 * 1024) },
+        'long-form',
+      );
+      expect(res.status).toBe(201);
+      await h.idle();
+      expect(h.calls).toEqual([]);
+      expect(h.stats().skipped).toBe(1);
+      await expectPipelineAlive(h, 'long-alive');
+    } finally {
+      h.t.close();
+    }
+  });
+});
+
+describe('nối dây mặc định (review plan R2)', () => {
+  it('createApp không truyền notifier: phiếu mới vẫn ra log kênh mặc định', async () => {
+    const lines: string[] = [];
+    vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
+      lines.push(args.map(String).join(' '));
+    });
+    const t = await createTestServer();
+    try {
+      const res = await put(t, t.projects.yte, t.tokens.minh, 'wired', { baseVersion: 0, data: small() }, 'wired');
+      expect(res.status).toBe(201);
+      await vi.waitFor(() => {
+        const sent = lines.map((line) => JSON.parse(line) as Record<string, unknown>).find((line) => line.type === 'record.created');
+        expect(sent).toMatchObject({ recordId: 'wired', projectId: t.projects.yte, createdBy: DEMO_USER_IDS.minh });
+      });
+      expect(lines.join('\n')).not.toContain(MARKER);
+    } finally {
+      t.close();
+      vi.restoreAllMocks();
     }
   });
 });
