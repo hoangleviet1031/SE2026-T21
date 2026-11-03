@@ -1,0 +1,6 @@
+# sau khi thêm test biên id. Lệnh: npx vitest run --reporter=dot (toàn server), npx tsc -p .
+tsc: exit 0
+ Test Files  29 passed (29)
+      Tests  459 passed (459)
+   Start at  16:14:51
+   Duration  15.54s (tests 73%, import 19%, transform 8%, worker 1%)

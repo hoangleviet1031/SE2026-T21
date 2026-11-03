@@ -1,0 +1,56 @@
+# nhánh mutation/vt082-boundary-gte, commit 1875b30: queue.length + 1 > capacity thành >=. Lệnh: npx vitest run test/notifications.test.ts test/notificationsRecords.test.ts
+ RUN  v5.0.3 D:/School/BT3_VT-082/repo/server
+ ❯ test/notifications.test.ts (9 tests | 2 failed) 817ms
+   ❯ hàng đợi có giới hạn (AC4, N3) (3)
+     × quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào 70ms
+     × tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng 506ms
+ ❯ test/notificationsRecords.test.ts (28 tests | 1 failed) 6576ms
+   ❯ AC4, N2: không chờ kênh, hàng đợi không chặn request (1)
+     × kênh treo và hàng đợi đầy: mọi PUT vẫn 201 ngay, dư thì đếm dropped 1219ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào
+AssertionError: expected 4 to be 3 // Object.is equality
+- Expected
++ Received
+- 3
++ 4
+ ❯ test/notifications.test.ts:180:38
+    178|       expect(notifier.recordCreated(minhCtx, event(id))).toBeUndefined…
+    179|     }
+    180|     expect(notifier.stats().dropped).toBe(3);
+       |                                      ^
+    181|     expect(notifier.stats().sent).toBe(0);
+    182|
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+ FAIL  test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ vi.waitFor.timeout test/notifications.test.ts:195:48
+    193|
+    194|     notifier.recordCreated(minhCtx, event('dang-gui'));
+    195|     await vi.waitFor(() => expect(first.calls).toHaveLength(1), { time…
+       |                                                ^
+    196|     notifier.recordCreated(minhCtx, event('cho'));
+    197|     for (const id of ['bo-1', 'bo-2', 'bo-3']) notifier.recordCreated(…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+ FAIL  test/notificationsRecords.test.ts > AC4, N2: không chờ kênh, hàng đợi không chặn request > kênh treo và hàng đợi đầy: mọi PUT vẫn 201 ngay, dư thì đếm dropped
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ vi.waitFor.timeout test/notificationsRecords.test.ts:677:46
+    675|       const first = await put(t, yte, minh, 'q-0', { baseVersion: 0, d…
+    676|       expect(first.status).toBe(201);
+    677|       await vi.waitFor(() => expect(h.calls).toHaveLength(1), { timeou…
+       |                                              ^
+    678|
+    679|       for (let i = 1; i <= 4; i += 1) {
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+ Test Files  2 failed (2)
+      Tests  3 failed | 34 passed (37)
+   Start at  16:10:02
+   Duration  7.36s (tests 90%, transform 7%, import 4%)

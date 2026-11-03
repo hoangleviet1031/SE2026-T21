@@ -165,6 +165,25 @@ describe('nội dung thông báo và người nhận (AC1, AC4, AC5)', () => {
 
 });
 
+describe('biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót)', () => {
+  // Giá trị ngay tại biên và ngay trên biên: test chuỗi 1 MB không phân biệt được `>` với `>=`.
+  it.each([
+    ['formId', 256, 1],
+    ['formId', 257, 0],
+    ['recordId', 256, 1],
+    ['recordId', 257, 0],
+  ] as const)('%s dài %i ký tự: %i thông báo', async (field, length, expected) => {
+    const { channel, calls } = recordingChannel();
+    const notifier = createNotifier(db, channel);
+
+    notifier.recordCreated(minhCtx, { ...event('r-1'), [field]: 'x'.repeat(length) });
+    await notifier.idle();
+
+    expect(calls).toHaveLength(expected);
+    expect(notifier.stats()).toEqual({ sent: expected, failed: 0, timedOut: 0, dropped: 0, skipped: 1 - expected });
+  });
+});
+
 describe('hàng đợi có giới hạn (AC4, N3)', () => {
   it('quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào', async () => {
     const { channel, calls, release } = gatedChannel();
