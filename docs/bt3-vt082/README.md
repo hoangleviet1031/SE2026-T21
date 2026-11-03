@@ -42,6 +42,7 @@ npm i --no-save @vitest/coverage-v8@5.0.3
 git worktree add .baseline ef92b35
 cd server
 npx tsx test/perf/notifyLoad.ts --sizes small,medium,large --rounds 3 --baseline-root ../.baseline
+npx tsx test/perf/notifyLoad.ts --sizes s500k --modes good,baseline,baseline,good,good,baseline,baseline,good,good,baseline,baseline,good --rounds 3 --baseline-root ../.baseline   # ABBA, evidence/32
 npx tsx test/perf/putCost.ts
 ```
 
@@ -54,3 +55,9 @@ npx tsx test/perf/putCost.ts
 | [TEST-REVIEW.md](TEST-REVIEW.md) | Test AI sinh: đã xoá, đã sửa, đã thêm |
 | [ai-log/](ai-log/) | Prompt và output nguyên văn |
 | [evidence/](evidence/) | Log đỏ, xanh, mutation, coverage, flaky, tải |
+| [TRACEABILITY.md](TRACEABILITY.md) | TC → tên test → AC/Risk → mutation |
+| [evidence/28-coverage-before-tc15.txt](evidence/28-coverage-before-tc15.txt) | Coverage trước khi có test biên id |
+| [evidence/29-flaky-order-proof.txt](evidence/29-flaky-order-proof.txt) | Shuffle có đổi thứ tự test |
+| [evidence/30-coverage-function-gap.txt](evidence/30-coverage-function-gap.txt) | Hàm làm coverage function còn 93,33% |
+| [evidence/31-put-cost-recheck.jsonl](evidence/31-put-cost-recheck.jsonl) | Đo lại chi phí từng bước của PUT |
+| [evidence/32-load-abba-500k.jsonl](evidence/32-load-abba-500k.jsonl), [cmd](evidence/32-load-abba-500k.cmd.txt) | 500 KB thứ tự ABBA, kèm điều kiện đo |
