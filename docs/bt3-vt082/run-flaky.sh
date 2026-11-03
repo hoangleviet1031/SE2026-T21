@@ -7,7 +7,12 @@ TESTS="test/notifications.test.ts test/notificationsRecords.test.ts"
 
 once() { # nhãn, biến môi trường, tham số vitest
   label=$1; shift
-  if NO_COLOR=1 env "$@" 2>&1 | grep -E 'Tests  ' | grep -q 'failed'; then echo "$label FAIL"; else echo "$label pass"; fi
+  # Không thấy dòng tổng kết cũng tính FAIL: vitest lỗi cờ hay crash không được coi là pass.
+  line=$(NO_COLOR=1 env "$@" 2>&1 | grep -E 'Tests  ')
+  case "$line" in
+    *failed*|"") echo "$label FAIL $line" ;;
+    *) echo "$label pass $line" ;;
+  esac
 }
 
 echo "== A. thứ tự ngẫu nhiên, $N seed"

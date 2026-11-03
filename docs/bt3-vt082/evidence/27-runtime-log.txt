@@ -1,0 +1,10 @@
+# Server thật (src/index.ts, không tiêm notifier). Gửi cùng một request 2 lần, cùng Idempotency-Key.
+PUT l?n 1: 201 replay=
+PUT l?n 2: 201 replay=true
+--- stdout server:
+API chạy tại http://localhost:3901
+{"method":"GET","path":"/api/health","status":200,"durationMs":6.55,"userId":null}
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":52.96,"userId":null}
+{"method":"PUT","path":"/api/projects/demo-yte/records/demo-1","status":201,"durationMs":3.57,"userId":"u_minh"}
+{"type":"record.created","projectId":"demo-yte","recordId":"demo-1","formId":"household-survey","formVersion":1,"createdBy":"u_minh","createdAt":"2026-11-03T09:32:14.262Z","recipients":["u_chu","u_lan"]}
+{"method":"PUT","path":"/api/projects/demo-yte/records/demo-1","status":201,"durationMs":1.19,"userId":"u_minh"}

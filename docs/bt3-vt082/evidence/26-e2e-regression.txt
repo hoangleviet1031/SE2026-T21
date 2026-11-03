@@ -1,0 +1,41 @@
+# Regression E2E, không thêm spec mới. Lệnh: npm run test:e2e -w client -- offline.spec.ts errors.spec.ts conflict.spec.ts fill.spec.ts
+  ok  8 e2e\api-errors.spec.ts:181:1 › đang gửi: Tiếp tục (đăng nhập) hiện "Đang đăng nhập…", tên nút giữ nguyên (355ms)
+  ok  9 e2e\api-errors.spec.ts:190:1 › đang gửi: Tạo tài khoản hiện "Đang tạo tài khoản…" (379ms)
+  ok 10 e2e\api-errors.spec.ts:205:1 › đang gửi: Thêm thành viên, Lưu bản mới, Xuất hiện chữ phụ rồi hết khi xong (1.1s)
+  ok 11 e2e\api-errors.spec.ts:242:1 › đang gửi: Gửi yêu cầu mở tổ chức hiện chữ phụ (479ms)
+  ok 12 e2e\conflict.spec.ts:4:1 › cùng trường bị sửa ở hai nơi: hiện màn hình conflict, người dùng chọn rồi đồng bộ (1.
+  ok 13 e2e\conflict.spec.ts:137:1 › C1: hai nơi sửa khác trường thì tự gộp, không hiện xung đột (819ms)
+  ok 14 e2e\conflict.spec.ts:155:1 › C6: sửa ba lần liên tiếp khi offline thì chỉ một op, version server tăng 1 (1.1s)
+  ok 15 e2e\conflict.spec.ts:175:1 › C8: server đổi trường khác trong lúc đang chọn ở màn hình xung đột thì tự gộp khi áp d�
+  ok 16 e2e\conflict.spec.ts:205:1 › C8: server đổi cùng trường trong lúc đang chọn thì hiện xung đột mới, giữ lựa chọn đ�
+  ok 17 e2e\conflict.spec.ts:232:1 › C7: phiếu đang xung đột mở ra chỉ đọc: có banner, không có Lưu/Xoá, không tạo op (1.0s)
+  ok 18 e2e\conflict.spec.ts:258:1 › pull không ghi đè phiếu nháp (ADR 0001 quy tắc 8) (903ms)
+  ok 19 e2e\conflict.spec.ts:284:1 › multiselect hai bên thêm khác nhau: "Gộp cả hai" thì server có hợp hai tập (1.6s)
+  ok 20 e2e\conflict.spec.ts:312:1 › số "Cần xử lý" đầu trang và bộ lọc chỉ hiện phiếu cần xử lý (1.3s)
+  ok 21 e2e\conflict.spec.ts:329:1 › xoá vs sửa: phiếu hiện ở "Cần xử lý", hỏi giữ hay xoá, Áp dụng khoá tới khi trả lờ
+  ok 22 e2e\conflict.spec.ts:358:1 › lựa chọn xung đột: bấm chỗ trống bên phải ô cũng chọn (989ms)
+  ok 23 e2e\conflict.spec.ts:371:1 › phiếu đang xung đột: không có hàng nút, không có ô chụp ảnh để Tab tới (923ms)
+  ok 24 e2e\conflict.spec.ts:381:1 › phiếu có ảnh đang xung đột: ảnh vẫn hiện, không có nút bỏ ảnh (1.2s)
+  ok 25 e2e\conflict.spec.ts:409:1 › 360px: Quay lại, Cần xử lý xung đột, tên app, Xử lý đều cao ≥ 44px và bấm sát mép vẫn
+  ok 26 e2e\delete-conflict.spec.ts:90:1 › C4: máy xoá, server sửa; chọn "Giữ phiếu" thì server có phiếu chưa xoá với bản của 
+  ok 27 e2e\delete-conflict.spec.ts:108:1 › C4: máy xoá, server sửa; chọn "Vẫn xoá" thì server deleted: true, phiếu biến khỏi máy (
+  ok 28 e2e\delete-conflict.spec.ts:126:1 › C5: máy sửa, server xoá; chọn "Khôi phục" thì server có phiếu chưa xoá với bản của 
+  ok 29 e2e\delete-conflict.spec.ts:143:1 › C5: máy sửa, server xoá; chọn "Bỏ" thì phiếu vẫn bị xoá, biến khỏi máy (1.1s)
+  ok 30 e2e\errors.spec.ts:49:1 › R5: server trả 400: phiếu "Lỗi", không retry; bấm Thử lại thì đồng bộ được (1.1s)
+  ok 31 e2e\errors.spec.ts:73:1 › sửa phiếu đang "Lỗi": gửi dữ liệu mới, đồng bộ được (879ms)
+  ok 32 e2e\errors.spec.ts:87:1 › "Xuất JSON phiếu này" tải về đúng phiếu đang lỗi (1.3s)
+  ok 33 e2e\fill.spec.ts:6:1 › ← Quay lại về trang chủ và không tạo phiếu (564ms)
+  ok 34 e2e\fill.spec.ts:16:1 › màn 360 px: [Lưu] trong khung nhìn khi chưa cuộn; cuộn tới cuối thì trường cuối nằm trên hàng 
+  ok 35 e2e\fill.spec.ts:41:1 › chọn nhiều: bấm chỗ trống bên phải ô cũng đánh dấu (476ms)
+  ok 36 e2e\fill.spec.ts:54:1 › chọn nhiều: là nhóm mang tên trường, mỗi ô tên đúng lựa chọn, bấm tên trường không đánh
+  ok 37 e2e\fill.spec.ts:69:1 › N16: ô thiếu trường bắt buộc, Tab về lại thì vẫn viền đỏ + quầng vàng (541ms)
+  ok 38 e2e\gps-errors.spec.ts:39:1 › chưa cấp quyền vị trí: báo cách bật quyền; cấp quyền rồi bấm lại thì hết câu, có 
+  ok 39 e2e\gps-errors.spec.ts:54:1 › đang lấy: nút khoá, có "Đang lấy vị trí…", chờ tối đa 30 s; không lấy được hoặc qu
+  ok 40 e2e\gps-errors.spec.ts:81:1 › vị trí về sau khi đã sửa ô khác: giữ phần vừa sửa (1.3s)
+  ok 41 e2e\gps-errors.spec.ts:93:1 › trình duyệt không có geolocation: báo không lấy được vị trí (496ms)
+  ok 42 e2e\gps-errors.spec.ts:102:1 › bấm vào tên trường Vị trí không tự lấy vị trí (480ms)
+  ok 43 e2e\gps-offline.spec.ts:8:1 › offline bấm "Lấy vị trí", lưu phiếu; có mạng thì server nhận đúng toạ độ (762ms)
+  ok 44 e2e\offline.spec.ts:15:1 › điền phiếu khi offline, có mạng lại thì tự đồng bộ (773ms)
+  ok 45 e2e\offline.spec.ts:41:1 › server lỗi 500 hai lần: retry và vẫn đồng bộ đúng một bản ghi (1.9s)
+
+  45 passed (56.1s)

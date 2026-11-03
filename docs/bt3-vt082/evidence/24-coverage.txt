@@ -1,0 +1,17 @@
+# Lệnh: npm i --no-save @vitest/coverage-v8@5.0.3 (không đổi package.json); npx vitest run test/notifications.test.ts test/notificationsRecords.test.ts --coverage --coverage.include=src/notifications.ts --coverage.include=src/routes/records.ts --coverage.include=src/repo/memberships.ts --coverage.reporter=text
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   70.25 |    62.96 |   62.16 |   73.49 |                   
+ src               |     100 |      100 |   93.33 |     100 |                   
+  notifications.ts |     100 |      100 |   93.33 |     100 |                   
+ src/repo          |   17.54 |    13.63 |   26.66 |    18.6 |                   
+  memberships.ts   |   17.54 |    13.63 |   26.66 |    18.6 | 25,40,54-147      
+ src/routes        |    80.7 |    77.77 |   71.42 |   81.25 |                   
+  records.ts       |    80.7 |    77.77 |   71.42 |   81.25 | 71-76,80-82       
+-------------------|---------|----------|---------|---------|-------------------
+=============================== Coverage summary ===============================
+Statements   : 70.25% ( 137/195 )
+Branches     : 62.96% ( 85/135 )
+Functions    : 62.16% ( 23/37 )
+Lines        : 73.49% ( 122/166 )
+================================================================================
