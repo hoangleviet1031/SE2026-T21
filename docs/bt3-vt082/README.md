@@ -1,8 +1,10 @@
 # BT3 VT-082: thông báo phiếu mới
 
-Bài tập cá nhân 3, Đỗ Tùng Dương, 23001858. Nhánh `bt3/vt082-notify-new-record`, baseline `ef92b35`. **Không merge khi nhóm chưa review.**
+Bài tập cá nhân 3, Đỗ Tùng Dương, 23001858. Nhánh `bt3/do-tung-duong-vt082-notify-new-record`, baseline `ef92b35`. **Không merge khi nhóm chưa review.**
 
 Slice: server gửi thông báo `record.created` tới supervisor và Owner khi có phiếu mới, sau khi commit, qua hàng đợi có giới hạn. Kênh trong slice này ghi log (`logChannel`), chưa có nhà cung cấp thật hay UI. Xem [SPEC.md](SPEC.md).
+
+Nhánh được đổi tên trước khi push để dễ phân biệt trong nhóm. Prompt và log tạo trước đó vẫn ghi tên cũ `bt3/vt082-notify-new-record` và `mutation/vt082-boundary-gte` (nay là `mutation/do-tung-duong-vt082-boundary-gte`); giữ nguyên vì đó là bản ghi lúc chạy.
 
 ## Chạy test
 
