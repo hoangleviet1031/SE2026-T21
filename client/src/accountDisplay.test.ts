@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { accountUsername, initialOf, shareUsernameText } from './accountDisplay';
+import { parseUsernameList } from './members';
 
 describe('accountUsername', () => {
   it('có tên đăng nhập thì dùng tên đó', () => {
@@ -18,6 +19,10 @@ describe('accountUsername', () => {
 describe('shareUsernameText', () => {
   it('kèm một câu ngắn và đúng tên đăng nhập', () => {
     expect(shareUsernameText('minh')).toBe('Tên đăng nhập của tôi: minh');
+  });
+
+  it('dán đúng tin chia sẻ vào ô thêm thành viên thì ra đúng tên', () => {
+    expect(parseUsernameList(shareUsernameText('Minh')).names).toEqual(['minh']);
   });
 });
 

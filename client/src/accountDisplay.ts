@@ -8,9 +8,12 @@ export function accountUsername(user: { id: string; username?: string }): string
   return user.username || user.id;
 }
 
+/** Câu đứng trước tên trong tin chia sẻ. Màn hình Thành viên bóc câu này khi dán, nên hai bên dùng chung. */
+export const USERNAME_SHARE_LABEL = 'Tên đăng nhập của tôi:';
+
 /** Chữ gửi qua hộp chia sẻ của máy; kèm một câu để người nhận biết đây là gì (design §4.7). */
 export function shareUsernameText(username: string): string {
-  return `Tên đăng nhập của tôi: ${username}`;
+  return `${USERNAME_SHARE_LABEL} ${username}`;
 }
 
 /**

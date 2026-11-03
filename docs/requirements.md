@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.16 (2026-11-02)
+- **Phiên bản:** 0.17 (2026-11-03)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -117,7 +117,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tôi gửi yêu cầu mở tổ chức và admin duyệt, **when** vòng đồng bộ kế tiếp, **then** tôi thấy tổ chức với vai trò Owner và tạo được form.
 - **Given** tôi đã có tên đăng nhập, **when** bấm [Sao chép] ở màn hình Cài đặt hoặc Tổ chức, **then** chép đúng tên và có phản hồi, không chép được thì báo; trình duyệt có hộp chia sẻ thì có thêm [Chia sẻ], huỷ không báo lỗi (Could).
 
-### US-11 · Quản lý thành viên · Must
+### US-11 · Quản lý thành viên · Must (thêm nhiều người một lần: Could)
 
 *Là Owner hoặc giám sát viên, tôi muốn thêm người vào tổ chức bằng tên đăng nhập và đổi vai trò, mà không để tổ chức mất người quản lý.*
 
@@ -126,6 +126,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tổ chức chỉ còn một Owner, **when** rút hoặc hạ Owner đó, **then** `409 last_owner`.
 - **Given** tôi vừa được thêm, **when** vòng đồng bộ kế tiếp, **then** tôi thấy tổ chức và gửi được phiếu.
 - **Given** máy chủ lỗi (`5xx`), **when** tôi mở hoặc thao tác ở Thành viên, **then** báo "Máy chủ đang lỗi, thử lại sau" (khi tải có nút "Thử lại"), không kẹt ở "Đang tải…".
+- **Given** tôi dán một danh sách tên đăng nhập, **when** bấm [Thêm], **then** tôi thấy kết quả từng tên, tên thử lại còn có ích nằm lại trong ô; mất mạng, máy chủ lỗi hoặc hết quyền giữa chừng thì dừng, không mất các tên chưa gửi; thêm nhiều người làm Owner thì được hỏi lại.
 
 ### US-12 · Admin duyệt tổ chức mà không xem dữ liệu · Must (màn hình Tài khoản A3: Could)
 
@@ -214,6 +215,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-11 | Owner cuối cùng | A7 `members.test.ts`; `members.spec.ts` (cả dòng thành viên hai dòng; chọn vai trò rồi bấm [Đổi], ← Quay lại khi không đủ quyền); `headings.spec.ts` (tiêu đề trang màn 6 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-08 (#38, #39); giao diện TV1-12 (b2 p5, màn 6 sau audit UI) |
 | US-11 | Người mới thêm thấy tổ chức, gửi được phiếu | M3 `orgs.spec.ts` | TV1-08 (#39), TV1-15 (#54) |
 | US-11 | Máy chủ lỗi ở Thành viên | `api-errors.spec.ts` (cả Tổ chức, builder lưu form, Xuất) | TV1-12 (#62, #68, b2 p5: Thử lại ngoài vùng alert, Tổ chức ẩn khối công khai) |
+| US-11 | Thêm nhiều người một lần | `members.spec.ts` (ca "thêm nhiều": hết được, một phần, tin chia sẻ, supervisor, Owner hỏi lại, mất mạng, 5xx và `forbidden`, làm mới danh sách lỗi, khoá trong lúc chạy, quá 50 tên; bàn phím, 360px); unit `parseUsernameList`, `addInOrder`, `namesToKeep` (`client/src/members.test.ts`) | không ticket (PR chờ số) |
 | US-12 | Admin không đọc được dữ liệu | Q7 `projectRequests.test.ts`; T4 `isolation.test.ts`, `admin.test.ts` | TV2-15 (#49) |
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
 | US-12 | Tài khoản thường vào `/admin/` | Q10 `admin.spec.ts` (cả hàng mở rộng từ chối/Thêm Owner (chữ "Thêm Owner…" TV1-12 sau critique K5), focus, focus về dòng kết quả sau thao tác, màu lỗi theo loại, A1/A2/A3 tải lần đầu lỗi không kẹt "Đang tải…", A2 Khoá Huỷ/Esc thì con trỏ về nút Khoá; ô tên A1, A2, A3 là header dòng, nhìn như ô thường, design §11.3) | TV1-16 (#55, #56, sửa tải lỗi); giao diện TV1-12 (b2 p7, b2); không ticket, N18 (#106); header dòng TV1-12 (#117) |
@@ -250,3 +252,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.14 | 2026-11-01 | US-10 dòng truy vết thêm ca bàn phím hai tab và câu lỗi gắn ô ở màn hình 1 (TV1-12, design §11.3) |
 | 0.15 | 2026-11-01 | US-07 và US-12 dòng truy vết thêm ca tên nút ▲▼ ở builder và header dòng ở A1–A3 (TV1-12, design §11.3) |
 | 0.16 | 2026-11-02 | US-09 thêm tiêu chí vai trò ở hàng tổ chức đang chọn, US-10 thêm tiêu chí [Sao chép], [Chia sẻ] tên đăng nhập, kèm dòng truy vết (Could, không ticket) |
+| 0.17 | 2026-11-03 | US-11 thêm tiêu chí thêm nhiều người một lần, kèm dòng truy vết (Could, không ticket) |

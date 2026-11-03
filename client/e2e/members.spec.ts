@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Page, type Route } from '@playwright/test';
 import { TOKENS, answerConfirm, authHeaders, createProject, login, setMembership } from './helpers';
 
 // Màn hình Thành viên (TV1-08 phần 2; ui.md màn hình 6, design §4.7). Server E2E dùng chung một CSDL,
@@ -212,6 +212,289 @@ test('đổi vai trò người khác: chọn ở ô chưa gửi gì, [Đổi] kh
   await expect(page.getByRole('link', { name: '← Về danh sách phiếu' })).toHaveCount(0);
   await page.getByRole('link', { name: '← Quay lại' }).click();
   await expect(page.getByRole('heading', { name: 'Phiếu đã nhập' })).toBeVisible();
+});
+
+// Thêm nhiều người một lần (Could, ui.md màn hình 6, design §4.7)
+const box = (page: Page) => page.getByTestId('member-username');
+const results = (page: Page) => page.getByTestId('member-result-summary');
+const line = (page: Page, username: string) => page.getByTestId(`member-result-${username}`);
+const addButton = (page: Page) => page.getByRole('button', { name: 'Thêm', exact: true });
+
+async function addMany(page: Page, text: string, roleLabel = 'Điều tra viên') {
+  await box(page).fill(text);
+  await page.getByRole('combobox', { name: 'Vai trò', exact: true }).selectOption({ label: roleLabel });
+  await addButton(page).click();
+}
+
+/** Cho POST thứ `nth` trở đi đi theo `handle`, các POST trước và mọi GET đi thật. Trả về hàm đếm số POST đã gửi. */
+async function failPostFrom(page: Page, nth: number, handle: (route: Route) => Promise<void>) {
+  let posts = 0;
+  await page.route('**/api/projects/*/members', async (route) => {
+    if (route.request().method() !== 'POST') return route.continue();
+    posts += 1;
+    if (posts >= nth) return handle(route);
+    return route.continue();
+  });
+  return () => posts;
+}
+
+test('thêm nhiều: hết được thì ô rỗng, danh sách và server khớp', async ({ page, request }) => {
+  await openMembers(page, 'chu');
+  await addMany(page, 'lan\nMinh\n');
+
+  await expect(results(page)).toHaveText('Đã thêm 2/2 tên.');
+  await expect(page.getByTestId('member-result-status')).toHaveText('Đã thêm 2/2 tên.');
+  await expect(line(page, 'lan')).toContainText('Đã thêm');
+  await expect(box(page)).toHaveValue('');
+  await expect(roleLabel(page, 'lan')).toHaveText('Điều tra viên');
+  await expect(roleLabel(page, 'minh')).toHaveText('Điều tra viên');
+  expect((await serverMembers(request)).map((m) => m.username)).toEqual(['chu', 'lan', 'minh']);
+  await expect(addButton(page)).toBeDisabled();
+});
+
+test('thêm nhiều: thêm được một phần, báo từng dòng, trong ô chỉ còn tên thử lại có ích', async ({ page, request }) => {
+  await openMembers(page, 'chu');
+  await addMany(page, 'lan, khong.co.ai; chu\nadmin\tLAN\nNguyen Van An');
+
+  await expect(results(page)).toHaveText('Đã thêm 1/5 tên. Bỏ 1 tên trùng.');
+  await expect(line(page, 'lan')).toContainText('Đã thêm');
+  await expect(line(page, 'khong.co.ai')).toContainText('⚠ Không có tên đăng nhập này');
+  await expect(line(page, 'chu')).toContainText('⚠ Người này đã là thành viên');
+  await expect(line(page, 'admin')).toContainText('⚠ Không thêm được tài khoản quản trị');
+  await expect(line(page, 'nguyen van an')).toContainText('⚠ Không có tên đăng nhập này');
+  await expect(box(page)).toHaveValue('khong.co.ai\nnguyen van an');
+  await expect(error(page)).toHaveCount(0);
+  await expect(row(page, 'lan')).toBeVisible();
+  expect((await serverMembers(request)).map((m) => m.username)).toEqual(['chu', 'lan']);
+
+  // Thao tác khác làm phản hồi cũ mất
+  await page.getByRole('button', { name: 'Rút lan' }).click();
+  await answerConfirm(page, 'Rút lan (lan) khỏi tổ chức?', 'Rút');
+  await expect(results(page)).toHaveCount(0);
+});
+
+test('thêm nhiều: dán tin chia sẻ ra đúng tên, một tên đi đường cũ', async ({ page }) => {
+  await openMembers(page, 'chu');
+  await addMany(page, 'Tên đăng nhập của tôi: lan\nTên đăng nhập của tôi: minh');
+  await expect(results(page)).toHaveText('Đã thêm 2/2 tên.');
+
+  // Một tên: lỗi hiện một câu, không có bảng kết quả, chữ người dùng nhập giữ nguyên trong ô
+  await addMany(page, 'Tên đăng nhập của tôi: khong.co.ai');
+  await expect(error(page)).toHaveText('⚠ Không có tên đăng nhập này');
+  await expect(results(page)).toHaveCount(0);
+  await expect(box(page)).toHaveValue('Tên đăng nhập của tôi: khong.co.ai');
+});
+
+test('thêm nhiều: chỉ có dấu phân cách hoặc câu chia sẻ thì [Thêm] khoá', async ({ page }) => {
+  await openMembers(page, 'chu');
+  await expect(addButton(page)).toBeDisabled();
+  await box(page).fill(' ,;\n ');
+  await expect(addButton(page)).toBeDisabled();
+  await box(page).fill('Tên đăng nhập của tôi: ');
+  await expect(addButton(page)).toBeDisabled();
+  await box(page).fill('lan');
+  await expect(addButton(page)).toBeEnabled();
+});
+
+test('thêm nhiều: supervisor chỉ thêm được điều tra viên', async ({ page, request }) => {
+  await setMembership(request, project, 'u_lan', 'supervisor');
+  await openMembers(page, 'lan');
+  await expect(page.getByRole('combobox', { name: 'Vai trò', exact: true }).getByRole('option')).toHaveText(['Điều tra viên']);
+
+  await addMany(page, 'minh\nkhong.co.ai');
+  await expect(results(page)).toHaveText('Đã thêm 1/2 tên.');
+  await expect(roleLabel(page, 'minh')).toHaveText('Điều tra viên');
+});
+
+test('thêm nhiều: Owner chọn Giám sát viên thì không hỏi, cả danh sách cùng vai trò', async ({ page }) => {
+  await openMembers(page, 'chu');
+  await addMany(page, 'lan\nminh', 'Giám sát viên');
+  await expect(results(page)).toHaveText('Đã thêm 2/2 tên.');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(roleLabel(page, 'lan')).toHaveText('Giám sát viên');
+  await expect(roleLabel(page, 'minh')).toHaveText('Giám sát viên');
+});
+
+test('thêm nhiều với vai trò Owner: Huỷ không gửi gì, ô giữ nguyên; xác nhận thì thêm đủ', async ({ page, request }) => {
+  const posts: string[] = [];
+  page.on('request', (r) => {
+    if (r.method() === 'POST' && r.url().endsWith('/members')) posts.push(r.url());
+  });
+  await openMembers(page, 'chu');
+
+  await addMany(page, 'lan\nminh\nLAN', 'Owner');
+  await answerConfirm(page, 'Thêm 2 người với vai trò Owner?', 'Huỷ');
+  await expect(box(page)).toHaveValue('lan\nminh\nLAN');
+  await expect(results(page)).toHaveCount(0);
+  expect(posts).toHaveLength(0);
+
+  await addButton(page).click();
+  await answerConfirm(page, 'Thêm 2 người với vai trò Owner?', 'Thêm');
+  await expect(results(page)).toHaveText('Đã thêm 2/2 tên. Bỏ 1 tên trùng.');
+  expect(posts).toHaveLength(2);
+  expect((await serverMembers(request)).map((m) => [m.username, m.role])).toEqual([
+    ['chu', 'owner'],
+    ['lan', 'owner'],
+    ['minh', 'owner'],
+  ]);
+});
+
+test('thêm một Owner rồi vẫn giữ ô Owner: một tên không hỏi', async ({ page }) => {
+  await openMembers(page, 'chu');
+  await addMany(page, 'lan', 'Owner');
+  await expect(roleLabel(page, 'lan')).toHaveText('Owner');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
+test('thêm nhiều: mất mạng giữa chừng thì dừng, giữ form và tên chưa gửi, có mạng lại thử được', async ({ page }) => {
+  await openMembers(page, 'chu');
+  const posts = await failPostFrom(page, 2, (route) => route.abort());
+
+  await addMany(page, 'lan\nminh\nkhong.co.ai');
+  await expect(error(page)).toHaveText('⚠ Cần kết nối mạng để quản lý thành viên');
+  await expect(results(page)).toHaveText('Đã thêm 1/3 tên.');
+  await expect(line(page, 'minh')).toContainText('Chưa gửi');
+  await expect(line(page, 'khong.co.ai')).toContainText('Chưa gửi');
+  expect(posts()).toBe(2);
+  await expect(box(page)).toHaveValue('minh\nkhong.co.ai');
+  // GET sau loạt vẫn chạy nên người đầu vào danh sách
+  await expect(row(page, 'lan')).toBeVisible();
+
+  await page.unroute('**/api/projects/*/members');
+  await addButton(page).click();
+  await expect(results(page)).toHaveText('Đã thêm 1/2 tên.');
+  await expect(row(page, 'minh')).toBeVisible();
+  await expect(box(page)).toHaveValue('khong.co.ai');
+  await expect(error(page)).toHaveCount(0);
+});
+
+test('thêm nhiều: 5xx và forbidden giữa chừng thì dừng, không gửi tiếp', async ({ page }) => {
+  await openMembers(page, 'chu');
+  const posts = await failPostFrom(page, 2, (route) =>
+    route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'internal_error' }) }),
+  );
+  await addMany(page, 'lan\nminh\nkhong.co.ai');
+  await expect(error(page)).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
+  expect(posts()).toBe(2);
+  await expect(box(page)).toHaveValue('minh\nkhong.co.ai');
+  await page.unroute('**/api/projects/*/members');
+
+  const forbidden = await failPostFrom(page, 1, (route) =>
+    route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'forbidden' }) }),
+  );
+  await addButton(page).click();
+  await expect(error(page)).toHaveText('⚠ Bạn không có quyền làm việc này');
+  expect(forbidden()).toBe(1);
+  await expect(results(page)).toHaveText('Đã thêm 0/2 tên.');
+  await expect(box(page)).toHaveValue('minh\nkhong.co.ai');
+});
+
+test('thêm nhiều: làm mới danh sách lỗi thì giữ form, bảng kết quả, danh sách cũ, không có câu mới', async ({ page }) => {
+  await openMembers(page, 'chu');
+  await page.route('**/api/projects/*/members', (route) =>
+    route.request().method() === 'GET'
+      ? route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'internal_error' }) })
+      : route.continue(),
+  );
+
+  await addMany(page, 'lan\nkhong.co.ai');
+  await expect(results(page)).toHaveText('Đã thêm 1/2 tên.');
+  await expect(addButton(page)).toBeEnabled();
+  await expect(box(page)).toHaveValue('khong.co.ai');
+  await expect(error(page)).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Thử lại' })).toHaveCount(0);
+  await expect(row(page, 'chu')).toBeVisible();
+  await expect(row(page, 'lan')).toHaveCount(0);
+});
+
+test('thêm nhiều: trong lúc chạy Thêm, Rút, ô nhập đều khoá', async ({ page, request }) => {
+  await setMembership(request, project, 'u_minh', 'surveyor');
+  await openMembers(page, 'chu');
+  let release = () => {};
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/projects/*/members', async (route) => {
+    if (route.request().method() === 'POST') await held;
+    await route.continue();
+  });
+
+  await addMany(page, 'lan\nkhong.co.ai');
+  await expect(addButton(page)).toBeDisabled();
+  await expect(box(page)).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Rút minh' })).toBeDisabled();
+  await expect(page.getByTestId('busy-note')).toHaveText('Đang thêm…');
+  release();
+  await expect(results(page)).toHaveText('Đã thêm 1/2 tên.');
+  await expect(page.getByRole('button', { name: 'Rút minh' })).toBeEnabled();
+});
+
+test('thêm nhiều: quá 50 tên thì không gửi gì', async ({ page }) => {
+  const posts: string[] = [];
+  page.on('request', (r) => {
+    if (r.method() === 'POST' && r.url().endsWith('/members')) posts.push(r.url());
+  });
+  await openMembers(page, 'chu');
+  const text = Array.from({ length: 51 }, (_, i) => `ten${i}`).join('\n');
+  await addMany(page, text, 'Owner');
+  await expect(error(page)).toHaveText('⚠ Tối đa 50 tên mỗi lần, danh sách đang có 51 tên');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(box(page)).toHaveValue(text);
+  expect(posts).toHaveLength(0);
+});
+
+test('ô thêm người: bàn phím, nhãn, gợi ý, cỡ chữ, viền focus, tắt tự sửa', async ({ page }) => {
+  await openMembers(page, 'chu');
+  const input = page.getByRole('textbox', { name: 'Thêm theo tên đăng nhập', exact: true });
+  await expect(input).toHaveAccessibleDescription('Mỗi dòng một tên, hoặc cách nhau bằng dấu phẩy. Tối đa 50 tên mỗi lần.');
+  await expect(input).toHaveAttribute('autocapitalize', 'none');
+  await expect(input).toHaveAttribute('autocorrect', 'off');
+  await expect(input).toHaveAttribute('spellcheck', 'false');
+  // iOS tự phóng trang khi ô nhập chữ dưới 16px
+  expect(parseFloat(await input.evaluate((el) => getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
+
+  await input.focus();
+  await page.keyboard.type('lan');
+  // Viền đen của ô đang có con trỏ (tech-debt N16)
+  const ink = await page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.style.color = 'var(--ink)';
+    document.body.append(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+  });
+  await expect(input).toHaveCSS('border-top-color', ink);
+  // Enter xuống dòng, không gửi
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('minh');
+  await expect(input).toHaveValue('lan\nminh');
+  await expect(results(page)).toHaveCount(0);
+
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('combobox', { name: 'Vai trò', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(addButton(page)).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(results(page)).toHaveText('Đã thêm 2/2 tên.');
+  await expect(page.getByTestId('member-result-status')).toHaveText('Đã thêm 2/2 tên.');
+});
+
+test('360px: tên dán vào dài không làm trang cuộn ngang, ô kéo cao không vỡ', async ({ page }) => {
+  await openMembers(page, 'chu');
+  await page.setViewportSize({ width: 360, height: 740 });
+  await addMany(page, `${'a'.repeat(120)}\n${'b'.repeat(120)}`);
+  await expect(results(page)).toHaveText('Đã thêm 0/2 tên.');
+  const noScroll = () => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
+  expect(await noScroll()).toBe(true);
+
+  await expect(box(page)).toHaveCSS('resize', 'vertical');
+  await box(page).evaluate((el) => {
+    el.style.height = '400px';
+  });
+  expect(await noScroll()).toBe(true);
+  const rect = await box(page).boundingBox();
+  expect((rect?.x ?? 0) + (rect?.width ?? 0)).toBeLessThanOrEqual(360);
 });
 
 // Audit C9: không đủ quyền thì vẫn có lối về, không thành ngõ cụt
