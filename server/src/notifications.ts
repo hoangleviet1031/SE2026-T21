@@ -189,7 +189,7 @@ export function createNotifier(db: Db, channel: NotificationChannel, opts: Notif
         createdBy: ctx.userId,
         createdAt: event.createdAt,
       };
-      if (queue.length + 1 > capacity) {
+      if (queue.length + 1 >= capacity) {
         counts.dropped += 1;
         if (!overflowing) logFailure('overflow', draft);
         overflowing = true;
