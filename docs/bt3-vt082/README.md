@@ -61,3 +61,4 @@ npx tsx test/perf/putCost.ts
 | [evidence/30-coverage-function-gap.txt](evidence/30-coverage-function-gap.txt) | Hàm làm coverage function còn 93,33% |
 | [evidence/31-put-cost-recheck.jsonl](evidence/31-put-cost-recheck.jsonl) | Đo lại chi phí từng bước của PUT |
 | [evidence/32-load-abba-500k.jsonl](evidence/32-load-abba-500k.jsonl), [cmd](evidence/32-load-abba-500k.cmd.txt) | 500 KB thứ tự ABBA, kèm điều kiện đo |
+| [evidence/32b-load-abba-500k-idle.jsonl](evidence/32b-load-abba-500k-idle.jsonl), [cmd](evidence/32b-load-abba-500k-idle.cmd.txt) | Đo lại 500 KB trên máy rảnh hơn |

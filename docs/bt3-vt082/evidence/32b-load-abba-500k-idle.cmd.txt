@@ -1,0 +1,12 @@
+Lượt đo lại trên máy rảnh hơn, cùng lệnh và cùng quy tắc với 32-load-abba-500k.cmd.txt. Lý do đo lại: lượt 32 có Brave, Chrome, Zalo thay đổi trong lúc đo, không đạt điều kiện máy rảnh. Quyết định đo lại có sau khi đã thấy số của lượt 32; lượt 32 giữ nguyên, không thay thế.
+Lệnh (trong server/, baseline là worktree tại ef92b35): npx tsx test/perf/notifyLoad.ts --sizes s500k --modes good,baseline,baseline,good,good,baseline,baseline,good,good,baseline,baseline,good --rounds 3 --baseline-root ../.baseline
+Dữ liệu 32b-load-abba-500k-idle.jsonl là stdout của lệnh, chỉ thêm trường pos. 2026-11-03, 20:47:40 đến 20:50:29, Node 24.19, i9-13900H, 16 GB, Windows 11, cắm sạc.
+Điều kiện: đã tắt Brave, Chrome, Zalo trước khi đo và kiểm lại sau khi đo vẫn tắt. Trước khi đo RAM trống 7,5 GB; số CPU lần đọc đó trả về rỗng nên không có. VS Code, Windows Defender và dịch vụ hệ thống vẫn chạy.
+
+Kết luận theo quy tắc: KHÔNG ĐẠT, vì trung vị vượt 3.500 ms.
+good: min 3.060, trung vị 4.179, max 7.355 ms; 3/6 lần vượt.
+baseline: min 3.085, trung vị 4.641, max 6.874 ms; 3/6 lần vượt.
+0 lỗi, 4.320/4.320 lượt 201.
+
+Quan sát, chưa phải nguyên nhân đã chứng minh: p95 tách hai nhóm, khoảng 3,1-3,4 s và khoảng 5,2-7,4 s, ở cả hai chế độ. Lần chậm đi kèm eventLoopP99Ms cao tương ứng. Các lần tốt chỉ dưới mục tiêu khoảng 0,1-0,4 s, nên 500 KB nằm sát ngưỡng.
+n = 6 mỗi chế độ, chưa đủ để kết luận notifier nhanh hay chậm hơn baseline.
