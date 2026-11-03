@@ -1,0 +1,139 @@
+[
+  {
+    "id": "M1",
+    "file": "server/src/notifications.ts",
+    "desc": "Bắt buộc VT-082: biên sức chứa hàng đợi, > thành >=",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "3 failed | 34 passed (37)",
+    "killedBy": [
+      "test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào",
+      "test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng",
+      "test/notificationsRecords.test.ts > AC4, N2: không chờ kênh, hàng đợi không chặn request > kênh treo và hàng đợi đầy: mọi PUT vẫn 201 ngay, dư thì đếm dropped"
+    ],
+    "killedCount": 3
+  },
+  {
+    "id": "M2",
+    "file": "server/src/notifications.ts",
+    "desc": "Bắt buộc VT-082: biên độ dài formId, > thành >=",
+    "status": "SURVIVED",
+    "exit": 0,
+    "summary": "37 passed (37)",
+    "killedBy": [],
+    "killedCount": 0
+  },
+  {
+    "id": "M3",
+    "file": "server/src/notifications.ts",
+    "desc": "Bắt buộc VT-082: biên độ dài recordId, > thành >=",
+    "status": "SURVIVED",
+    "exit": 0,
+    "summary": "37 passed (37)",
+    "killedBy": [],
+    "killedCount": 0
+  },
+  {
+    "id": "M4",
+    "file": "server/src/routes/records.ts",
+    "desc": "Báo cả phiếu tạo đã xoá",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "4 failed | 33 passed (37)",
+    "killedBy": [
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 1: surveyor, create, deleted=true, kênh good, cỡ near2mb -> 201, 0 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 7: surveyor, replay, deleted=true, kênh hanging, cỡ near2mb -> 201, 0 thông báo",
+      "test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > chuỗi đời phiếu: bỏ xoá sau khi tạo đã xoá, replay sau khi sửa, gửi lại lệnh tạo bằng key mới",
+      "test/notificationsRecords.test.ts > AC3: lỗi kênh không ảnh hưởng giao dịch > kênh ném, reject, treo: status, body và dữ liệu đã commit giống hệt kênh tốt"
+    ],
+    "killedCount": 4
+  },
+  {
+    "id": "M5",
+    "file": "server/src/notifications.ts",
+    "desc": "Ghi err.message vào log (S3 phải bắt)",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "2 failed | 35 passed (37)",
+    "killedBy": [
+      "test/notificationsRecords.test.ts > AC3: lỗi kênh không ảnh hưởng giao dịch > lỗi kênh được ghi log có recordId; message của kênh có thể chứa dữ liệu phiếu nên không được vào log",
+      "test/notificationsRecords.test.ts > invariant: notifier vi phạm hợp đồng > recordCreated ném lỗi sau commit: client vẫn 201 đúng body, phiếu đã ghi, có log, không lộ dữ liệu"
+    ],
+    "killedCount": 2
+  },
+  {
+    "id": "M6",
+    "file": "server/src/routes/records.ts",
+    "desc": "Dựa vào status 201: replay báo lại",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "7 failed | 30 passed (37)",
+    "killedBy": [
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 1: surveyor, create, deleted=true, kênh good, cỡ near2mb -> 201, 0 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 7: surveyor, replay, deleted=true, kênh hanging, cỡ near2mb -> 201, 0 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 8: supervisor, replay, deleted=false, kênh good, cỡ near2mb -> 201, 1 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 9: owner, replay, deleted=false, kênh failing, cỡ small -> 201, 1 thông báo",
+      "test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > chuỗi đời phiếu: bỏ xoá sau khi tạo đã xoá, replay sau khi sửa, gửi lại lệnh tạo bằng key mới",
+      "test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > gửi đồng thời cùng id: đúng một thông báo cho dù cùng key hay khác key"
+    ],
+    "killedCount": 7
+  },
+  {
+    "id": "M7",
+    "file": "server/src/repo/memberships.ts",
+    "desc": "Người nhận lấy từ dự án khác (AC5)",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "10 failed | 27 passed (37)",
+    "killedBy": [
+      "test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > gửi đúng một thông báo chỉ metadata tới supervisor và Owner, trừ người tạo, kể cả khi sự kiện lọt `data`",
+      "test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > loại surveyor, tài khoản bị khoá, admin không là thành viên và thành viên dự án khác",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 3: owner, create, deleted=false, kênh hanging, cỡ near2mb -> 201, 1 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 6: owner, edit, deleted=true, kênh good, cỡ small -> 200, 1 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 9: owner, replay, deleted=false, kênh failing, cỡ small -> 201, 1 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 12: owner, conflict, deleted=false, kênh hanging, cỡ small -> 409, 1 thông báo"
+    ],
+    "killedCount": 10
+  },
+  {
+    "id": "M8",
+    "file": "server/src/repo/memberships.ts",
+    "desc": "Gửi cho tài khoản bị khoá",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "1 failed | 36 passed (37)",
+    "killedBy": [
+      "test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > loại surveyor, tài khoản bị khoá, admin không là thành viên và thành viên dự án khác"
+    ],
+    "killedCount": 1
+  },
+  {
+    "id": "M9",
+    "file": "server/src/notifications.ts",
+    "desc": "Bỏ timeout: kênh treo giữ chỗ mãi",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "6 failed | 31 passed (37)",
+    "killedBy": [
+      "test/notifications.test.ts > timeout (N2) > kênh treo bị abort, đếm timedOut, trả chỗ cho lần sau; kết thúc muộn không làm đếm lại",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 3: owner, create, deleted=false, kênh hanging, cỡ near2mb -> 201, 1 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 5: supervisor, edit, deleted=false, kênh hanging, cỡ small -> 200, 1 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 7: surveyor, replay, deleted=true, kênh hanging, cỡ near2mb -> 201, 0 thông báo",
+      "test/notificationsRecords.test.ts > bảng pairwise > ca 12: owner, conflict, deleted=false, kênh hanging, cỡ small -> 409, 1 thông báo",
+      "test/notificationsRecords.test.ts > AC3: lỗi kênh không ảnh hưởng giao dịch > kênh ném, reject, treo: status, body và dữ liệu đã commit giống hệt kênh tốt"
+    ],
+    "killedCount": 6
+  },
+  {
+    "id": "M10",
+    "file": "server/src/routes/records.ts",
+    "desc": "Bỏ chốt chặn ở route",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "1 failed | 36 passed (37)",
+    "killedBy": [
+      "test/notificationsRecords.test.ts > invariant: notifier vi phạm hợp đồng > recordCreated ném lỗi sau commit: client vẫn 201 đúng body, phiếu đã ghi, có log, không lộ dữ liệu"
+    ],
+    "killedCount": 1
+  }
+]

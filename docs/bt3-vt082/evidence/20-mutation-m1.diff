@@ -1,0 +1,13 @@
+diff --git a/server/src/notifications.ts b/server/src/notifications.ts
+index ae5a744..c4b99f4 100644
+--- a/server/src/notifications.ts
++++ b/server/src/notifications.ts
+@@ -189,7 +189,7 @@ export function createNotifier(db: Db, channel: NotificationChannel, opts: Notif
+         createdBy: ctx.userId,
+         createdAt: event.createdAt,
+       };
+-      if (queue.length + 1 > capacity) {
++      if (queue.length + 1 >= capacity) {
+         counts.dropped += 1;
+         if (!overflowing) logFailure('overflow', draft);
+         overflowing = true;

@@ -1,0 +1,468 @@
+# commit a7bbec1 (route chưa gọi notifier, createNotifier chưa có hành vi), lệnh: npx vitest run test/notifications.test.ts test/notificationsRecords.test.ts --reporter=verbose
+ RUN  v5.0.3 D:/School/BT3_VT-082/repo/server
+ × test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > gửi đúng một thông báo chỉ metadata tới supervisor và Owner, trừ người tạo, kể cả khi sự kiện lọt `data` 16ms
+   → expected [] to have a length of 1 but got +0
+ × test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > loại surveyor, tài khoản bị khoá, admin không là thành viên và thành viên dự án khác 7ms
+   → expected [] to have a length of 1 but got +0
+ × test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào 514ms
+   → expected [] to have a length of 1 but got +0
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > bảng phủ đủ mọi cặp giá trị của 5 yếu tố 2ms
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 1: surveyor, create, deleted=true, kênh good, cỡ near2mb -> 201, 0 thông báo 65ms
+   → expected [] to deeply equal [ 'pw-1-alive' ]
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 2: supervisor, create, deleted=false, kênh failing, cỡ small -> 201, 1 thông báo 6ms
+   → expected [] to have a length of 1 but got +0
+ × test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng 519ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 3: owner, create, deleted=false, kênh hanging, cỡ near2mb -> 201, 1 thông báo 68ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 4: surveyor, edit, deleted=true, kênh failing, cỡ near2mb -> 200, 1 thông báo 51ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 5: supervisor, edit, deleted=false, kênh hanging, cỡ small -> 200, 1 thông báo 9ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 6: owner, edit, deleted=true, kênh good, cỡ small -> 200, 1 thông báo 34ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 7: surveyor, replay, deleted=true, kênh hanging, cỡ near2mb -> 201, 0 thông báo 119ms
+   → expected [] to deeply equal [ 'pw-7-alive' ]
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 8: supervisor, replay, deleted=false, kênh good, cỡ near2mb -> 201, 1 thông báo 89ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 9: owner, replay, deleted=false, kênh failing, cỡ small -> 201, 1 thông báo 4ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 10: surveyor, conflict, deleted=false, kênh good, cỡ small -> 409, 1 thông báo 37ms
+   → expected [] to have a length of 1 but got +0
+ × test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > không vượt `concurrency`; idle() chỉ resolve khi hàng đợi rỗng và không còn lần gửi nào 516ms
+   → expected [] to have a length of 2 but got +0
+ × test/notifications.test.ts > timeout (N2) > kênh treo bị abort, đếm timedOut, trả chỗ cho lần sau; kết thúc muộn không làm đếm lại 8ms
+   → expected [] to deeply equal [ 'treo', 'sau-treo' ]
+ × test/notifications.test.ts > kênh lỗi (AC3) > ném đồng bộ, reject Error, reject giá trị lạ: không lọt ra ngoài, đếm failed, ghi log, lần sau vẫn gửi 5ms
+   → expected [] to have a length of 5 but got +0
+ × test/notifications.test.ts > kênh lỗi (AC3) > CSDL hỏng khi tra người nhận: không ném lỗi, idle() vẫn resolve, không gọi kênh 4ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 11: supervisor, conflict, deleted=true, kênh failing, cỡ near2mb -> 409, 1 thông báo 63ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > bảng pairwise > ca 12: owner, conflict, deleted=false, kênh hanging, cỡ small -> 409, 1 thông báo 28ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > AC1: đúng người, một lần > route gọi recordCreated đúng một lần, sau commit, với ctx từ token và sự kiện không có `data` 763ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > AC1: đúng người, một lần > dự án không có người nhận: vẫn 201, không gọi kênh, đếm skipped 265ms
+   → expected +0 to be 1 // Object.is equality
+ × test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > 400, 401, 403, 404: không thông báo, không ghi phiếu 37ms
+   → expected [] to deeply equal [ 'neg-alive' ]
+ × test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > 422: dùng lại key cho nội dung khác hoặc phiếu khác 13ms
+   → expected [] to deeply equal [ 'k422' ]
+ × test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > 413: vượt 2mb thì không ghi, không thông báo 15ms
+   → expected [] to deeply equal [ 'big-alive' ]
+ × test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > chuỗi đời phiếu: bỏ xoá sau khi tạo đã xoá, replay sau khi sửa, gửi lại lệnh tạo bằng key mới 16ms
+   → expected [] to deeply equal [ 'life-alive' ]
+ × test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > gửi đồng thời cùng id: đúng một thông báo cho dù cùng key hay khác key 132ms
+   → expected [] to deeply equal [ 'race-keys', 'race-same' ]
+ × test/notificationsRecords.test.ts > failure path: thông báo chỉ phát sinh sau khi commit > transaction rollback thì không thông báo; client gửi lại sau đó nhận đúng một thông báo 522ms
+   → expected [] to deeply equal [ 'rb' ]
+ × test/notificationsRecords.test.ts > AC3: lỗi kênh không ảnh hưởng giao dịch > kênh ném, reject, treo: status, body và dữ liệu đã commit giống hệt kênh tốt 715ms
+   → expected [] to deeply equal [ 'p-1', 'p-3' ]
+ × test/notificationsRecords.test.ts > AC3: lỗi kênh không ảnh hưởng giao dịch > lỗi kênh được ghi log có recordId; message của kênh có thể chứa dữ liệu phiếu nên không được vào log 543ms
+   → expected +0 to be 1 // Object.is equality
+ × test/notificationsRecords.test.ts > AC4, N2: không chờ kênh, hàng đợi không chặn request > kênh treo và hàng đợi đầy: mọi PUT vẫn 201 ngay, dư thì đếm dropped 1519ms
+   → expected [] to have a length of 1 but got +0
+ × test/notificationsRecords.test.ts > AC4: id quá dài (review plan R4) > formId cỡ 1 MB: phiếu vẫn 201, thông báo bị bỏ qua và đếm skipped, không giữ chuỗi trong hàng đợi 449ms
+   → expected +0 to be 1 // Object.is equality
+ × test/notificationsRecords.test.ts > nối dây mặc định (review plan R2) > createApp không truyền notifier: phiếu mới vẫn ra log kênh mặc định 1419ms
+   → expected undefined to match object { recordId: 'wired', …(2) }
+ × test/notificationsRecords.test.ts > AC5: cách ly dự án > người nhận chỉ lấy từ dự án trong đường dẫn, vai trò tính theo từng dự án 472ms
+   → expected [] to have a length of 2 but got +0
+⎯⎯⎯⎯⎯⎯ Failed Tests 34 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > gửi đúng một thông báo chỉ metadata tới supervisor và Owner, trừ người tạo, kể cả khi sự kiện lọt `data`
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ test/notifications.test.ts:123:19
+    121|     await notifier.idle();
+    122|
+    123|     expect(calls).toHaveLength(1);
+       |                   ^
+    124|     const { notification, signal } = calls[0]!;
+    125|     expect({ ...notification, recipients: sorted(notification.recipien…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/34]⎯
+ FAIL  test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > loại surveyor, tài khoản bị khoá, admin không là thành viên và thành viên dự án khác
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ test/notifications.test.ts:159:19
+    157|     await notifier.idle();
+    158|
+    159|     expect(calls).toHaveLength(1);
+       |                   ^
+    160|     const recipients = calls[0]!.notification.recipients;
+    161|     expect(sorted(recipients)).toEqual(sorted([U_LAN, U_CHU]));
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/34]⎯
+ FAIL  test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ vi.waitFor.timeout test/notifications.test.ts:174:42
+    172|
+    173|     notifier.recordCreated(minhCtx, event('dang-gui'));
+    174|     await vi.waitFor(() => expect(calls).toHaveLength(1), { timeout: 5…
+       |                                          ^
+    175|
+    176|     // `capacity` không tính lần đang gửi: 2 vào hàng đợi, 3 bị bỏ.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/34]⎯
+ FAIL  test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ vi.waitFor.timeout test/notifications.test.ts:195:48
+    193|
+    194|     notifier.recordCreated(minhCtx, event('dang-gui'));
+    195|     await vi.waitFor(() => expect(first.calls).toHaveLength(1), { time…
+       |                                                ^
+    196|     notifier.recordCreated(minhCtx, event('cho'));
+    197|     for (const id of ['bo-1', 'bo-2', 'bo-3']) notifier.recordCreated(…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/34]⎯
+ FAIL  test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > không vượt `concurrency`; idle() chỉ resolve khi hàng đợi rỗng và không còn lần gửi nào
+AssertionError: expected [] to have a length of 2 but got +0
+- Expected
++ Received
+- 2
++ 0
+ ❯ vi.waitFor.timeout test/notifications.test.ts:214:42
+    212|
+    213|     for (let i = 0; i < 5; i += 1) notifier.recordCreated(minhCtx, eve…
+    214|     await vi.waitFor(() => expect(calls).toHaveLength(2), { timeout: 5…
+       |                                          ^
+    215|     await tick();
+    216|     expect(calls).toHaveLength(2);
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/34]⎯
+ FAIL  test/notifications.test.ts > timeout (N2) > kênh treo bị abort, đếm timedOut, trả chỗ cho lần sau; kết thúc muộn không làm đếm lại
+AssertionError: expected [] to deeply equal [ 'treo', 'sau-treo' ]
+- Expected
++ Received
+- [
+-   "treo",
+-   "sau-treo",
+- ]
++ []
+ ❯ test/notifications.test.ts:254:55
+    252|     await notifier.idle();
+    253|
+    254|     expect(calls.map((c) => c.notification.recordId)).toEqual(['treo',…
+       |                                                       ^
+    255|     expect(calls[0]!.signal.aborted).toBe(true);
+    256|     expect(calls[1]!.signal.aborted).toBe(false);
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/34]⎯
+ FAIL  test/notifications.test.ts > kênh lỗi (AC3) > ném đồng bộ, reject Error, reject giá trị lạ: không lọt ra ngoài, đếm failed, ghi log, lần sau vẫn gửi
+AssertionError: expected [] to have a length of 5 but got +0
+- Expected
++ Received
+- 5
++ 0
+ ❯ test/notifications.test.ts:294:19
+    292|     await notifier.idle();
+    293|
+    294|     expect(calls).toHaveLength(5);
+       |                   ^
+    295|     expect(notifier.stats()).toEqual({ sent: 1, failed: 4, timedOut: 0…
+    296|     expect(failureLogs().map((line) => [line.reason, line.recordId])).…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/34]⎯
+ FAIL  test/notifications.test.ts > kênh lỗi (AC3) > CSDL hỏng khi tra người nhận: không ném lỗi, idle() vẫn resolve, không gọi kênh
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ test/notifications.test.ts:311:19
+    309|     notifier.recordCreated(minhCtx, event('truoc'));
+    310|     await notifier.idle();
+    311|     expect(calls).toHaveLength(1);
+       |                   ^
+    312|
+    313|     db.close();
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/34]⎯
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 1: surveyor, create, deleted=true, kênh good, cỡ near2mb -> 201, 0 thông báo
+AssertionError: expected [] to deeply equal [ 'pw-1-alive' ]
+- Expected
++ Received
+- [
+-   "pw-1-alive",
+- ]
++ []
+ ❯ expectPipelineAlive test/notificationsRecords.test.ts:91:56
+     89|   expect(res.status).toBe(201);
+     90|   await h.idle();
+     91|   expect(h.calls.slice(before).map((n) => n.recordId)).toEqual([id]);
+       |                                                        ^
+     92| }
+     93|
+ ❯ test/notificationsRecords.test.ts:281:7
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/34]⎯
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 2: supervisor, create, deleted=false, kênh failing, cỡ small -> 201, 1 thông báo
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 3: owner, create, deleted=false, kênh hanging, cỡ near2mb -> 201, 1 thông báo
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 4: surveyor, edit, deleted=true, kênh failing, cỡ near2mb -> 200, 1 thông báo
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 5: supervisor, edit, deleted=false, kênh hanging, cỡ small -> 200, 1 thông báo
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 6: owner, edit, deleted=true, kênh good, cỡ small -> 200, 1 thông báo
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 8: supervisor, replay, deleted=false, kênh good, cỡ near2mb -> 201, 1 thông báo
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 9: owner, replay, deleted=false, kênh failing, cỡ small -> 201, 1 thông báo
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 10: surveyor, conflict, deleted=false, kênh good, cỡ small -> 409, 1 thông báo
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 11: supervisor, conflict, deleted=true, kênh failing, cỡ near2mb -> 409, 1 thông báo
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 12: owner, conflict, deleted=false, kênh hanging, cỡ small -> 409, 1 thông báo
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ test/notificationsRecords.test.ts:261:20
+    259|       await h.idle();
+    260|       const sent = h.calls.slice(callsBefore);
+    261|       expect(sent).toHaveLength(row.notified);
+       |                    ^
+    262|       for (const notification of sent) {
+    263|         expect(Object.keys(notification).sort()).toEqual(NOTIFICATION_…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/34]⎯
+ FAIL  test/notificationsRecords.test.ts > bảng pairwise > ca 7: surveyor, replay, deleted=true, kênh hanging, cỡ near2mb -> 201, 0 thông báo
+AssertionError: expected [] to deeply equal [ 'pw-7-alive' ]
+- Expected
++ Received
+- [
+-   "pw-7-alive",
+- ]
++ []
+ ❯ expectPipelineAlive test/notificationsRecords.test.ts:91:56
+     89|   expect(res.status).toBe(201);
+     90|   await h.idle();
+     91|   expect(h.calls.slice(before).map((n) => n.recordId)).toEqual([id]);
+       |                                                        ^
+     92| }
+     93|
+ ❯ test/notificationsRecords.test.ts:281:7
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC1: đúng người, một lần > route gọi recordCreated đúng một lần, sau commit, với ctx từ token và sự kiện không có `data`
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ vi.waitFor.timeout test/notificationsRecords.test.ts:329:41
+    327|     const body = await res.json();
+    328|
+    329|     await vi.waitFor(() => expect(seen).toHaveLength(1), { timeout: 50…
+       |                                         ^
+    330|     const [call] = seen;
+    331|     expect(call!.ctx).toEqual({ userId: DEMO_USER_IDS.minh, projectId:…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC1: đúng người, một lần > dự án không có người nhận: vẫn 201, không gọi kênh, đếm skipped
+AssertionError: expected +0 to be 1 // Object.is equality
+- Expected
++ Received
+- 1
++ 0
+ ❯ test/notificationsRecords.test.ts:350:31
+    348|     await h.idle();
+    349|     expect(h.calls).toHaveLength(0);
+    350|     expect(h.stats().skipped).toBe(1);
+       |                               ^
+    351|
+    352|     // Đối chứng: lan tạo trong cùng dự án thì chu nhận.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > 400, 401, 403, 404: không thông báo, không ghi phiếu
+AssertionError: expected [] to deeply equal [ 'neg-alive' ]
+- Expected
++ Received
+- [
+-   "neg-alive",
+- ]
++ []
+ ❯ expectPipelineAlive test/notificationsRecords.test.ts:91:56
+     89|   expect(res.status).toBe(201);
+     90|   await h.idle();
+     91|   expect(h.calls.slice(before).map((n) => n.recordId)).toEqual([id]);
+       |                                                        ^
+     92| }
+     93|
+ ❯ test/notificationsRecords.test.ts:386:5
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > 422: dùng lại key cho nội dung khác hoặc phiếu khác
+AssertionError: expected [] to deeply equal [ 'k422' ]
+- Expected
++ Received
+- [
+-   "k422",
+- ]
++ []
+ ❯ expectPipelineAlive test/notificationsRecords.test.ts:91:56
+     89|   expect(res.status).toBe(201);
+     90|   await h.idle();
+     91|   expect(h.calls.slice(before).map((n) => n.recordId)).toEqual([id]);
+       |                                                        ^
+     92| }
+     93|
+ ❯ test/notificationsRecords.test.ts:438:5
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > 413: vượt 2mb thì không ghi, không thông báo
+AssertionError: expected [] to deeply equal [ 'big-alive' ]
+- Expected
++ Received
+- [
+-   "big-alive",
+- ]
++ []
+ ❯ expectPipelineAlive test/notificationsRecords.test.ts:91:56
+     89|   expect(res.status).toBe(201);
+     90|   await h.idle();
+     91|   expect(h.calls.slice(before).map((n) => n.recordId)).toEqual([id]);
+       |                                                        ^
+     92| }
+     93|
+ ❯ test/notificationsRecords.test.ts:456:5
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > chuỗi đời phiếu: bỏ xoá sau khi tạo đã xoá, replay sau khi sửa, gửi lại lệnh tạo bằng key mới
+AssertionError: expected [] to deeply equal [ 'life-alive' ]
+- Expected
++ Received
+- [
+-   "life-alive",
+- ]
++ []
+ ❯ expectPipelineAlive test/notificationsRecords.test.ts:91:56
+     89|   expect(res.status).toBe(201);
+     90|   await h.idle();
+     91|   expect(h.calls.slice(before).map((n) => n.recordId)).toEqual([id]);
+       |                                                        ^
+     92| }
+     93|
+ ❯ test/notificationsRecords.test.ts:466:5
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > gửi đồng thời cùng id: đúng một thông báo cho dù cùng key hay khác key
+AssertionError: expected [] to deeply equal [ 'race-keys', 'race-same' ]
+- Expected
++ Received
+- [
+-   "race-keys",
+-   "race-same",
+- ]
++ []
+ ❯ test/notificationsRecords.test.ts:503:65
+    501|
+    502|     await h.idle();
+    503|     expect(h.calls.slice(before).map((n) => n.recordId).sort()).toEqua…
+       |                                                                 ^
+    504|   });
+    505| });
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/34]⎯
+ FAIL  test/notificationsRecords.test.ts > failure path: thông báo chỉ phát sinh sau khi commit > transaction rollback thì không thông báo; client gửi lại sau đó nhận đúng một thông báo
+AssertionError: expected [] to deeply equal [ 'rb' ]
+- Expected
++ Received
+- [
+-   "rb",
+- ]
++ []
+ ❯ test/notificationsRecords.test.ts:527:46
+    525|       expect(retried.status).toBe(201);
+    526|       await h.idle();
+    527|       expect(h.calls.map((n) => n.recordId)).toEqual(['rb']);
+       |                                              ^
+    528|     } finally {
+    529|       t.close();
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC3: lỗi kênh không ảnh hưởng giao dịch > kênh ném, reject, treo: status, body và dữ liệu đã commit giống hệt kênh tốt
+AssertionError: expected [] to deeply equal [ 'p-1', 'p-3' ]
+- Expected
++ Received
+- [
+-   "p-1",
+-   "p-3",
+- ]
++ []
+ ❯ test/notificationsRecords.test.ts:574:49
+    572|     try {
+    573|       baseline = await runScript(good);
+    574|       expect(good.calls.map((n) => n.recordId)).toEqual(['p-1', 'p-3']…
+       |                                                 ^
+    575|     } finally {
+    576|       good.t.close();
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC3: lỗi kênh không ảnh hưởng giao dịch > lỗi kênh được ghi log có recordId; message của kênh có thể chứa dữ liệu phiếu nên không được vào log
+AssertionError: expected +0 to be 1 // Object.is equality
+- Expected
++ Received
+- 1
++ 0
+ ❯ test/notificationsRecords.test.ts:618:40
+    616|       expect(res.status).toBe(201);
+    617|       await notifier!.idle();
+    618|       expect(notifier!.stats().failed).toBe(1);
+       |                                        ^
+    619|
+    620|       const failure = lines.map((line) => JSON.parse(line) as Record<s…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC4, N2: không chờ kênh, hàng đợi không chặn request > kênh treo và hàng đợi đầy: mọi PUT vẫn 201 ngay, dư thì đếm dropped
+AssertionError: expected [] to have a length of 1 but got +0
+- Expected
++ Received
+- 1
++ 0
+ ❯ vi.waitFor.timeout test/notificationsRecords.test.ts:646:46
+    644|       const first = await put(t, yte, minh, 'q-0', { baseVersion: 0, d…
+    645|       expect(first.status).toBe(201);
+    646|       await vi.waitFor(() => expect(h.calls).toHaveLength(1), { timeou…
+       |                                              ^
+    647|
+    648|       for (let i = 1; i <= 4; i += 1) {
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC4: id quá dài (review plan R4) > formId cỡ 1 MB: phiếu vẫn 201, thông báo bị bỏ qua và đếm skipped, không giữ chuỗi trong hàng đợi
+AssertionError: expected +0 to be 1 // Object.is equality
+- Expected
++ Received
+- 1
++ 0
+ ❯ test/notificationsRecords.test.ts:677:33
+    675|       await h.idle();
+    676|       expect(h.calls).toEqual([]);
+    677|       expect(h.stats().skipped).toBe(1);
+       |                                 ^
+    678|       await expectPipelineAlive(h, 'long-alive');
+    679|     } finally {
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/34]⎯
+ FAIL  test/notificationsRecords.test.ts > nối dây mặc định (review plan R2) > createApp không truyền notifier: phiếu mới vẫn ra log kênh mặc định
+AssertionError: expected undefined to match object { recordId: 'wired', …(2) }
+- Expected:
+{
+  "createdBy": "u_minh",
+  "projectId": "demo-yte",
+  "recordId": "wired",
+}
++ Received:
+undefined
+ ❯ test/notificationsRecords.test.ts:697:22
+    695|       await vi.waitFor(() => {
+    696|         const sent = lines.map((line) => JSON.parse(line) as Record<st…
+    697|         expect(sent).toMatchObject({ recordId: 'wired', projectId: t.p…
+       |                      ^
+    698|       });
+    699|       expect(lines.join('\n')).not.toContain(MARKER);
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/34]⎯
+ FAIL  test/notificationsRecords.test.ts > AC5: cách ly dự án > người nhận chỉ lấy từ dự án trong đường dẫn, vai trò tính theo từng dự án
+AssertionError: expected [] to have a length of 2 but got +0
+- Expected
++ Received
+- 2
++ 0
+ ❯ test/notificationsRecords.test.ts:727:23
+    725|
+    726|       const byId = new Map(h.calls.map((n) => [n.recordId, n]));
+    727|       expect(h.calls).toHaveLength(2);
+       |                       ^
+    728|       expect(byId.get('iso-yte')!.projectId).toBe(yte);
+    729|       expect([...byId.get('iso-yte')!.recipients].sort()).toEqual([DEM…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/34]⎯
+ Test Files  2 failed (2)
+      Tests  34 failed | 1 passed (35)
+   Start at  15:26:34
+   Duration  9.26s (tests 93%, transform 4%, import 3%)

@@ -1,0 +1,40 @@
+[
+  {
+    "id": "M1",
+    "file": "server/src/notifications.ts",
+    "desc": "Bắt buộc VT-082: biên sức chứa hàng đợi, > thành >=",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "3 failed | 38 passed (41)",
+    "killedBy": [
+      "test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào",
+      "test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng",
+      "test/notificationsRecords.test.ts > AC4, N2: không chờ kênh, hàng đợi không chặn request > kênh treo và hàng đợi đầy: mọi PUT vẫn 201 ngay, dư thì đếm dropped"
+    ],
+    "killedCount": 3
+  },
+  {
+    "id": "M2",
+    "file": "server/src/notifications.ts",
+    "desc": "Bắt buộc VT-082: biên độ dài formId, > thành >=",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "1 failed | 40 passed (41)",
+    "killedBy": [
+      "test/notifications.test.ts > biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót) > formId dài 256 ký tự: 1 thông báo"
+    ],
+    "killedCount": 1
+  },
+  {
+    "id": "M3",
+    "file": "server/src/notifications.ts",
+    "desc": "Bắt buộc VT-082: biên độ dài recordId, > thành >=",
+    "status": "KILLED",
+    "exit": 1,
+    "summary": "1 failed | 40 passed (41)",
+    "killedBy": [
+      "test/notifications.test.ts > biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót) > recordId dài 256 ký tự: 1 thông báo"
+    ],
+    "killedCount": 1
+  }
+]

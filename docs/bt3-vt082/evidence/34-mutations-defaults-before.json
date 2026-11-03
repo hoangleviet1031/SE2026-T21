@@ -1,0 +1,32 @@
+[
+  {
+    "id": "M11",
+    "file": "server/src/notifications.ts",
+    "desc": "Sức chứa mặc định vô hạn (N3)",
+    "status": "SURVIVED",
+    "exit": 0,
+    "summary": "41 passed (41)",
+    "killedBy": [],
+    "killedCount": 0
+  },
+  {
+    "id": "M12",
+    "file": "server/src/notifications.ts",
+    "desc": "Timeout mặc định 24 giờ (N2)",
+    "status": "SURVIVED",
+    "exit": 0,
+    "summary": "41 passed (41)",
+    "killedBy": [],
+    "killedCount": 0
+  },
+  {
+    "id": "M13",
+    "file": "server/src/notifications.ts",
+    "desc": "Số lần gửi cùng lúc mặc định 1000",
+    "status": "SURVIVED",
+    "exit": 0,
+    "summary": "41 passed (41)",
+    "killedBy": [],
+    "killedCount": 0
+  }
+]

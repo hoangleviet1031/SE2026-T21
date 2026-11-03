@@ -1,0 +1,48 @@
+# patch AI, chạy lại độc lập, trước commit. Lệnh: npx tsc -p . && npx vitest run --reporter=verbose (file thông báo) rồi vitest run (toàn server)
+tsc: exit 0
+ RUN  v5.0.3 D:/School/BT3_VT-082/repo/server
+ ✓ test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > gửi đúng một thông báo chỉ metadata tới supervisor và Owner, trừ người tạo, kể cả khi sự kiện lọt `data` 13ms
+ ✓ test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > loại surveyor, tài khoản bị khoá, admin không là thành viên và thành viên dự án khác 4ms
+ ✓ test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào 70ms
+ ✓ test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng 65ms
+ ✓ test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > không vượt `concurrency`; idle() chỉ resolve khi hàng đợi rỗng và không còn lần gửi nào 125ms
+ ✓ test/notifications.test.ts > timeout (N2) > kênh treo bị abort, đếm timedOut, trả chỗ cho lần sau; kết thúc muộn không làm đếm lại 62ms
+ ✓ test/notifications.test.ts > kênh lỗi (AC3) > ném đồng bộ, reject Error, reject giá trị lạ: không lọt ra ngoài, đếm failed, ghi log, lần sau vẫn gửi 7ms
+ ✓ test/notifications.test.ts > kênh lỗi (AC3) > CSDL hỏng khi tra người nhận: không ném lỗi, idle() vẫn resolve, không gọi kênh 4ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > bảng phủ đủ mọi cặp giá trị của 5 yếu tố 2ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 1: surveyor, create, deleted=true, kênh good, cỡ near2mb -> 201, 0 thông báo 58ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 2: supervisor, create, deleted=false, kênh failing, cỡ small -> 201, 1 thông báo 28ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 3: owner, create, deleted=false, kênh hanging, cỡ near2mb -> 201, 1 thông báo 138ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 4: surveyor, edit, deleted=true, kênh failing, cỡ near2mb -> 200, 1 thông báo 111ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 5: supervisor, edit, deleted=false, kênh hanging, cỡ small -> 200, 1 thông báo 104ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 6: owner, edit, deleted=true, kênh good, cỡ small -> 200, 1 thông báo 36ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 7: surveyor, replay, deleted=true, kênh hanging, cỡ near2mb -> 201, 0 thông báo 133ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 8: supervisor, replay, deleted=false, kênh good, cỡ near2mb -> 201, 1 thông báo 117ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 9: owner, replay, deleted=false, kênh failing, cỡ small -> 201, 1 thông báo 23ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 10: surveyor, conflict, deleted=false, kênh good, cỡ small -> 409, 1 thông báo 60ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 11: supervisor, conflict, deleted=true, kênh failing, cỡ near2mb -> 409, 1 thông báo 63ms
+ ✓ test/notificationsRecords.test.ts > bảng pairwise > ca 12: owner, conflict, deleted=false, kênh hanging, cỡ small -> 409, 1 thông báo 121ms
+ ✓ test/notificationsRecords.test.ts > AC1: đúng người, một lần > route gọi recordCreated đúng một lần, sau commit, với ctx từ token và sự kiện không có `data` 188ms
+ ✓ test/notificationsRecords.test.ts > AC1: đúng người, một lần > dự án không có người nhận: vẫn 201, không gọi kênh, đếm skipped 202ms
+ ✓ test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > 400, 401, 403, 404: không thông báo, không ghi phiếu 118ms
+ ✓ test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > 422: dùng lại key cho nội dung khác hoặc phiếu khác 33ms
+ ✓ test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > 413: vượt 2mb thì không ghi, không thông báo 43ms
+ ✓ test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > chuỗi đời phiếu: bỏ xoá sau khi tạo đã xoá, replay sau khi sửa, gửi lại lệnh tạo bằng key mới 129ms
+ ✓ test/notificationsRecords.test.ts > AC2: không báo sai sự kiện > gửi đồng thời cùng id: đúng một thông báo cho dù cùng key hay khác key 83ms
+ ✓ test/notificationsRecords.test.ts > failure path: thông báo chỉ phát sinh sau khi commit > transaction rollback thì không thông báo; client gửi lại sau đó nhận đúng một thông báo 468ms
+ ✓ test/notificationsRecords.test.ts > AC3: lỗi kênh không ảnh hưởng giao dịch > kênh ném, reject, treo: status, body và dữ liệu đã commit giống hệt kênh tốt 2503ms
+ ✓ test/notificationsRecords.test.ts > AC3: lỗi kênh không ảnh hưởng giao dịch > lỗi kênh được ghi log có recordId; message của kênh có thể chứa dữ liệu phiếu nên không được vào log 411ms
+ ✓ test/notificationsRecords.test.ts > AC4, N2: không chờ kênh, hàng đợi không chặn request > kênh treo và hàng đợi đầy: mọi PUT vẫn 201 ngay, dư thì đếm dropped 448ms
+ ✓ test/notificationsRecords.test.ts > AC4: id quá dài (review plan R4) > formId cỡ 1 MB: phiếu vẫn 201, thông báo bị bỏ qua và đếm skipped, không giữ chuỗi trong hàng đợi 529ms
+ ✓ test/notificationsRecords.test.ts > nối dây mặc định (review plan R2) > createApp không truyền notifier: phiếu mới vẫn ra log kênh mặc định 426ms
+ ✓ test/notificationsRecords.test.ts > AC5: cách ly dự án > người nhận chỉ lấy từ dự án trong đường dẫn, vai trò tính theo từng dự án 386ms
+ Test Files  2 passed (2)
+      Tests  35 passed (35)
+   Start at  15:32:08
+   Duration  8.48s (tests 92%, transform 5%, import 3%)
+=== toàn server
+·
+ Test Files  29 passed (29)
+      Tests  453 passed (453)
+   Start at  15:32:18
+   Duration  30.38s (tests 78%, import 15%, transform 7%)
