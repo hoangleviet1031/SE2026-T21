@@ -150,8 +150,14 @@ export function removeMember(ctx: Ctx, db: Db, userId: string): RemoveMemberResu
 
 /**
  * Người nhận thông báo phiếu mới: supervisor và Owner còn hoạt động của dự án trong `ctx`, trừ người tạo
- * (docs/bt3-vt082/SPEC.md AC1, AC5). Khung, chưa có hành vi.
+ * (docs/bt3-vt082/SPEC.md AC1, AC5).
  */
-export function listNotificationRecipients(_ctx: Ctx, _db: Db): string[] {
-  return [];
+export function listNotificationRecipients(ctx: Ctx, db: Db): string[] {
+  const rows = db
+    .prepare(
+      `SELECT m.user_id FROM memberships m JOIN users u ON u.id = m.user_id
+       WHERE m.project_id = ? AND m.role IN ('supervisor', 'owner') AND u.disabled = 0 AND m.user_id <> ?`,
+    )
+    .all(ctx.projectId, ctx.userId) as unknown as Array<{ user_id: string }>;
+  return rows.map((row) => row.user_id);
 }
