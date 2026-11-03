@@ -61,11 +61,15 @@ export const logChannel: NotificationChannel = {
   },
 };
 
-type FailureReason = 'timeout' | 'channel_error' | 'recipients_error' | 'overflow';
+type FailureReason = 'timeout' | 'channel_error' | 'recipients_error' | 'overflow' | 'notifier_error';
 type Draft = Omit<Notification, 'recipients'>;
 
 /** Không bao giờ ghi `err.message`: nhà cung cấp có thể echo dữ liệu phiếu trong đó (AC3). */
-function logFailure(reason: FailureReason, draft: Draft, err?: unknown): void {
+export function logFailure(
+  reason: FailureReason,
+  draft: Pick<Draft, 'projectId' | 'recordId'>,
+  err?: unknown,
+): void {
   try {
     console.error(
       JSON.stringify({
