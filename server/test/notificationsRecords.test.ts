@@ -633,6 +633,37 @@ describe('AC3: lỗi kênh không ảnh hưởng giao dịch', () => {
   });
 });
 
+describe('invariant: notifier vi phạm hợp đồng', () => {
+  it('recordCreated ném lỗi sau commit: client vẫn 201 đúng body, phiếu đã ghi, có log, không lộ dữ liệu', async () => {
+    const lines: string[] = [];
+    vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+      lines.push(args.map(String).join(' '));
+    });
+    const t = await createTestServer({
+      notifier: () => ({
+        recordCreated: () => {
+          throw new RangeError(`notifier hỏng: ${MARKER}`);
+        },
+        idle: async () => {},
+        stats: () => ({ sent: 0, failed: 0, timedOut: 0, dropped: 0, skipped: 0 }),
+      }),
+    });
+    try {
+      const res = await put(t, t.projects.yte, t.tokens.minh, 'guard', { baseVersion: 0, data: small() }, 'guard');
+      expect(res.status).toBe(201);
+      expect((await res.json()).version).toBe(1);
+      expect(countRows(t.db, `SELECT COUNT(*) AS n FROM records WHERE id = 'guard'`)).toBe(1);
+      expect(lines.map((line) => JSON.parse(line))).toEqual([
+        { event: 'notification_failed', reason: 'notifier_error', errorName: 'RangeError', projectId: t.projects.yte, recordId: 'guard' },
+      ]);
+      expect(lines.join('\n')).not.toContain(MARKER);
+    } finally {
+      t.close();
+      vi.restoreAllMocks();
+    }
+  });
+});
+
 describe('AC4, N2: không chờ kênh, hàng đợi không chặn request', () => {
   it('kênh treo và hàng đợi đầy: mọi PUT vẫn 201 ngay, dư thì đếm dropped', async () => {
     // timeoutMs dài hơn timeout của test: nếu route `await` kênh thì fetch đầu tiên không bao giờ trả về.

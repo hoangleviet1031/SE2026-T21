@@ -266,6 +266,24 @@ describe('timeout (N2)', () => {
   });
 });
 
+describe('timeout với kênh tôn trọng signal (N2)', () => {
+  it('kênh reject ngay khi bị abort: tính là timedOut, không phải failed', async () => {
+    const channel: NotificationChannel = {
+      send: (_notification, signal) =>
+        new Promise<void>((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(new Error('aborted')));
+        }),
+    };
+    const notifier = createNotifier(db, channel, { timeoutMs: 20 });
+
+    notifier.recordCreated(minhCtx, event('r-abort'));
+    await notifier.idle();
+
+    expect(notifier.stats()).toEqual({ sent: 0, failed: 0, timedOut: 1, dropped: 0, skipped: 0 });
+    expect(failureLogs().map((line) => line.reason)).toEqual(['timeout']);
+  });
+});
+
 describe('kênh lỗi (AC3)', () => {
   it('ném đồng bộ, reject Error, reject giá trị lạ: không lọt ra ngoài, đếm failed, ghi log, lần sau vẫn gửi', async () => {
     const failures: Array<() => Promise<void>> = [
@@ -314,6 +332,7 @@ describe('kênh lỗi (AC3)', () => {
     expect(() => notifier.recordCreated(minhCtx, event('sau'))).not.toThrow();
     await expect(notifier.idle()).resolves.toBeUndefined();
     expect(calls).toHaveLength(1);
-    expect(notifier.stats().sent).toBe(1);
+    expect(notifier.stats()).toEqual({ sent: 1, failed: 1, timedOut: 0, dropped: 0, skipped: 0 });
+    expect(failureLogs().map((line) => [line.reason, line.recordId])).toEqual([['recipients_error', 'sau']]);
   });
 });
