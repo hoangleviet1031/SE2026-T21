@@ -26,6 +26,10 @@ MUTATIONS = [
     ('M8', REPO, "AND u.disabled = 0 AND m.user_id <> ?", "AND m.user_id <> ?", 'Gửi cho tài khoản bị khoá'),
     ('M9', NOTIFY, 'await Promise.race([channel.send(notification, controller.signal), deadline]);', 'await channel.send(notification, controller.signal);', 'Bỏ timeout: kênh treo giữ chỗ mãi'),
     ('M10', ROUTE, 'logFailure(\'notifier_error\', { projectId: ctx.projectId, recordId: req.params.id }, err);', 'throw err;', 'Bỏ chốt chặn ở route'),
+    # Production gọi createNotifier không truyền opts; sau khi xoá D2 không test nào đi qua giá trị mặc định.
+    ('M11', NOTIFY, 'opts.capacity ?? 1000', 'opts.capacity ?? Infinity', 'Sức chứa mặc định vô hạn (N3)'),
+    ('M12', NOTIFY, 'opts.timeoutMs ?? 5000', 'opts.timeoutMs ?? 86400000', 'Timeout mặc định 24 giờ (N2)'),
+    ('M13', NOTIFY, 'opts.concurrency ?? 4', 'opts.concurrency ?? 1000', 'Số lần gửi cùng lúc mặc định 1000'),
 ]
 
 

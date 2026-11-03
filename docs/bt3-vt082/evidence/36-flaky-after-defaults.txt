@@ -1,0 +1,17 @@
+# Sau khi thêm 3 test cấu hình mặc định. Lệnh: bash docs/bt3-vt082/run-flaky.sh 5 (không retry). Các seed và số lần CPU bận ít hơn lượt 25-flaky.txt.
+== A. thứ tự ngẫu nhiên, 5 seed
+seed=1 pass       Tests  44 passed (44)
+seed=2 pass       Tests  44 passed (44)
+seed=3 pass       Tests  44 passed (44)
+seed=4 pass       Tests  44 passed (44)
+seed=5 pass       Tests  44 passed (44)
+== B. múi giờ
+TZ=UTC pass       Tests  44 passed (44)
+TZ=Asia/Ho_Chi_Minh pass       Tests  44 passed (44)
+TZ=America/Los_Angeles pass       Tests  44 passed (44)
+== C. CPU bận: 20 tiến trình quay vòng, 5 lần
+busy=1 pass       Tests  44 passed (44)
+busy=2 pass       Tests  44 passed (44)
+busy=3 pass       Tests  44 passed (44)
+busy=4 pass       Tests  44 passed (44)
+busy=5 pass       Tests  44 passed (44)

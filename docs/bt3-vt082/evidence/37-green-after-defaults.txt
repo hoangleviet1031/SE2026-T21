@@ -1,0 +1,6 @@
+# sau khi thêm test cấu hình mặc định. Lệnh: npx tsc -p . ; npx vitest run --reporter=dot (toàn server)
+tsc: exit 0
+ Test Files  29 passed (29)
+      Tests  462 passed (462)
+   Start at  21:23:35
+   Duration  17.12s (tests 73%, import 19%, transform 8%, worker 1%)

@@ -355,3 +355,66 @@ describe('kênh lỗi (AC3)', () => {
     expect(failureLogs().map((line) => [line.reason, line.recordId])).toEqual([['recipients_error', 'sau']]);
   });
 });
+
+// Production gọi `createNotifier` không truyền opts (app.ts), mọi test khác đều truyền số riêng. Kiểm hành vi có
+// chặn trên chứ không ghim đúng số mặc định, vì ghim số là lý do đã xoá D2 (TEST-REVIEW.md).
+describe('cấu hình mặc định như production (bổ sung sau khi mutation M11, M12, M13 sống sót)', () => {
+  it('hàng đợi có giới hạn: kênh chặn thì sự kiện dư bị bỏ, không giữ hết trong bộ nhớ (N3)', async () => {
+    const EVENTS = 20_000;
+    const { channel, calls, release } = gatedChannel();
+    const notifier = createNotifier(db, channel);
+
+    notifier.recordCreated(minhCtx, event('dang-gui'));
+    await vi.waitFor(() => expect(calls).toHaveLength(1), { timeout: 500 });
+    for (let i = 0; i < EVENTS; i += 1) notifier.recordCreated(minhCtx, event(`r-${i}`));
+    expect(notifier.stats().dropped).toBeGreaterThan(0);
+
+    release();
+    await notifier.idle();
+    const { sent, dropped } = notifier.stats();
+    expect(sent + dropped).toBe(EVENTS + 1);
+  });
+
+  it('mỗi lần gửi có timeout: kênh treo và bỏ qua signal vẫn hết giờ trong vòng 1 giờ (N2)', async () => {
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    // Chỉ giả setTimeout: worker cần setImmediate thật để chạy.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const signals: AbortSignal[] = [];
+      const channel: NotificationChannel = {
+        send: (_notification, signal) => {
+          signals.push(signal);
+          return new Promise<void>(() => {});
+        },
+      };
+      const notifier = createNotifier(db, channel);
+
+      notifier.recordCreated(minhCtx, event('treo'));
+      await vi.waitFor(() => expect(signals).toHaveLength(1), { timeout: 500 });
+      vi.advanceTimersByTime(ONE_HOUR_MS);
+      await vi.waitFor(() => expect(notifier.stats().timedOut).toBe(1), { timeout: 500 });
+      expect(signals[0]!.aborted).toBe(true);
+      await notifier.idle();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('số lần gửi cùng lúc có chặn trên, sự kiện còn lại vẫn được gửi hết', async () => {
+    const EVENTS = 100;
+    const MAX_SANE_CONCURRENCY = 16;
+    const { channel, calls, release, peak } = gatedChannel();
+    const notifier = createNotifier(db, channel);
+
+    for (let i = 0; i < EVENTS; i += 1) notifier.recordCreated(minhCtx, event(`r-${i}`));
+    await vi.waitFor(() => expect(calls.length).toBeGreaterThan(0), { timeout: 500 });
+    await tick();
+    expect(calls.length).toBeLessThanOrEqual(MAX_SANE_CONCURRENCY);
+
+    release();
+    await notifier.idle();
+    expect(calls).toHaveLength(EVENTS);
+    expect(peak()).toBeLessThanOrEqual(MAX_SANE_CONCURRENCY);
+    expect(notifier.stats().sent).toBe(EVENTS);
+  });
+});

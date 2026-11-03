@@ -43,6 +43,16 @@ Tên test lấy nguyên văn từ lần chạy `npx vitest run test/notification
 | TC17 | N2 | `notifications.test.ts` | kênh lỗi (AC3) > CSDL hỏng khi tra người nhận: không ném lỗi, idle() vẫn resolve, không gọi kênh | – |
 | TC18 | R2 | `notificationsRecords.test.ts` | nối dây mặc định (review plan R2) > createApp không truyền notifier: phiếu mới vẫn ra log kênh mặc định | – |
 
+## Bổ sung sau khi M11, M12, M13 sống sót
+
+Bộ test giờ là 44. Bảng trên giữ tên 41 test tại `ca4b774`; M9 còn bị thêm test timeout mặc định bắt. Kết quả mới nhất của cả 13 mutation: `evidence/35-mutations-all-after-defaults.json`.
+
+| TC | AC/Risk | File | Tên test | Mutation bắt được |
+|---|---|---|---|---|
+| TC21 | N3, risk lớn | `notifications.test.ts` | cấu hình mặc định như production (bổ sung sau khi mutation M11, M12, M13 sống sót) > hàng đợi có giới hạn: kênh chặn thì sự kiện dư bị bỏ, không giữ hết trong bộ nhớ (N3) | M11 |
+| TC21 | N2 | `notifications.test.ts` | cấu hình mặc định như production (bổ sung sau khi mutation M11, M12, M13 sống sót) > mỗi lần gửi có timeout: kênh treo và bỏ qua signal vẫn hết giờ trong vòng 1 giờ (N2) | M9, M12 |
+| TC21 | Risk lớn | `notifications.test.ts` | cấu hình mặc định như production (bổ sung sau khi mutation M11, M12, M13 sống sót) > số lần gửi cùng lúc có chặn trên, sự kiện còn lại vẫn được gửi hết | M13 |
+
 ## TC không phải test trong hai file trên
 
 | TC | AC/Risk | Kiểm chứng | Evidence |

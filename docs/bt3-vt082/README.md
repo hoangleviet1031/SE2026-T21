@@ -62,3 +62,7 @@ npx tsx test/perf/putCost.ts
 | [evidence/31-put-cost-recheck.jsonl](evidence/31-put-cost-recheck.jsonl) | Đo lại chi phí từng bước của PUT |
 | [evidence/32-load-abba-500k.jsonl](evidence/32-load-abba-500k.jsonl), [cmd](evidence/32-load-abba-500k.cmd.txt) | 500 KB thứ tự ABBA, kèm điều kiện đo |
 | [evidence/32b-load-abba-500k-idle.jsonl](evidence/32b-load-abba-500k-idle.jsonl), [cmd](evidence/32b-load-abba-500k-idle.cmd.txt) | Đo lại 500 KB trên máy rảnh hơn |
+| [evidence/34-mutations-defaults-before.json](evidence/34-mutations-defaults-before.json) | M11–M13 sống sót trên 41 test |
+| [evidence/35-mutations-all-after-defaults.json](evidence/35-mutations-all-after-defaults.json) | Cả 13 mutation sau khi thêm 3 test |
+| [evidence/36-flaky-after-defaults.txt](evidence/36-flaky-after-defaults.txt) | Kiểm flaky lại với 44 test |
+| [evidence/37-green-after-defaults.txt](evidence/37-green-after-defaults.txt) | `tsc` và 462/462 test server |

@@ -29,3 +29,11 @@ S3 được chứng minh bằng thực nghiệm ở M5 trong [evidence/](evidenc
 ## Giữ nguyên
 
 Bảng pairwise 12 ca và test tự kiểm phủ cặp: đã đối chiếu tay kết quả mong đợi với SPEC. Đối chứng dương `expectPipelineAlive`: nhờ nó các test "không thông báo" đỏ ở bản chưa có hành vi, thay vì xanh giả.
+
+## Kiểm lại D1–S3 sau review: D2 để lại khoảng trống
+
+Đối chiếu lại `git diff b522ae0 a7bbec1 -- server/test` thấy D2 xoá đúng lý do (ghim hằng số), nhưng đó cũng là test duy nhất chạy `createNotifier` với giá trị mặc định, mà production dùng đúng cấu hình này (`app.ts`). Đổi giá trị mặc định thì 41/41 vẫn xanh: M11 sức chứa vô hạn, M12 timeout 24 giờ, M13 gửi cùng lúc 1000 (`evidence/34-mutations-defaults-before.json`).
+
+Đã thêm 3 test ở `notifications.test.ts`, mục "cấu hình mặc định như production". Các test kiểm hành vi có chặn trên, không ghim đúng số mặc định, nên không lặp lại lỗi của D2. Sau đó cả 13 mutation đều bị bắt, mỗi mutation M11–M13 đúng bởi test tương ứng (`evidence/35-mutations-all-after-defaults.json`).
+
+D3 còn kiểm `stats()` là bản chụp, điều bảng trên không nhắc. Đổi `stats()` thành trả tham chiếu thì 10 test pairwise đỏ khi chạy tay, nên xoá D3 không mất phần kiểm này. Lần chạy tay đó không lưu log riêng.
