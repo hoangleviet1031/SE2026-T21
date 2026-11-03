@@ -15,6 +15,7 @@ import { createUploadStore } from './uploads';
 import { exportRouter } from './routes/export';
 import { faultInjector, faultsRouter, requestLogger as testRequestLogger } from './routes/faults';
 import { testMembershipsRouter } from './routes/testMemberships';
+import { createNotifier, logChannel, type Notifier } from './notifications';
 
 const requestLogger: RequestHandler = (req, res, next) => {
   const startedAt = process.hrtime.bigint();
@@ -57,7 +58,7 @@ export function testRoutesEnabled(env: NodeJS.ProcessEnv): boolean {
 
 export function createApp(
   db: Db,
-  opts: { enableTestRoutes?: boolean; uploadDir?: string; publicBaseUrl?: string } = {},
+  opts: { enableTestRoutes?: boolean; uploadDir?: string; publicBaseUrl?: string; notifier?: Notifier } = {},
 ) {
   const app = express();
   // Sau Caddy (cùng máy) mọi request tới từ loopback: chỉ khi đó mới tin X-Forwarded-For, để giới hạn
@@ -94,7 +95,7 @@ export function createApp(
   // Chặn ở đây vì router con không thấy :projectId mà requireMember cần.
   app.post('/api/projects/:projectId/forms', requireAuth, requireMember('supervisor'));
   app.use('/api/projects/:projectId/forms', ...asMember, formsRouter(db));
-  app.use('/api/projects/:projectId/records', ...asMember, recordsRouter(db));
+  app.use('/api/projects/:projectId/records', ...asMember, recordsRouter(db, opts.notifier ?? createNotifier(db, logChannel)));
   // Thành viên: supervisor trở lên; ai được đụng tới vai trò nào kiểm tiếp trong repo (ADR 0003 §2).
   app.use('/api/projects/:projectId/members', requireAuth, requireMember('supervisor'), membersRouter(db));
   app.use('/api/projects/:projectId/settings', requireAuth, requireMember('owner'), settingsRouter(db));

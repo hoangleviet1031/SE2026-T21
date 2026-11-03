@@ -4,6 +4,7 @@ import { getCtx, type Ctx } from '../auth';
 import { tx, type Db } from '../db';
 import { findResponse, requestHash, saveResponse } from '../repo/idempotency';
 import { getHistory, getRecordAccess, pullRecords, writeRecord } from '../repo/records';
+import type { Notifier } from '../notifications';
 
 // Route theo dự án: chỉ dùng `getCtx(req)`, không đọc projectId/userId từ body hay query.
 // Xem docs/design.md §5.5, §7 và ADR 0002 §3.
@@ -52,7 +53,7 @@ function applyPush(ctx: Ctx, db: Db, id: string, body: unknown): { status: numbe
   return { status: currentVersion === 0 ? 201 : 200, body: saved };
 }
 
-export function recordsRouter(db: Db): Router {
+export function recordsRouter(db: Db, _notifier: Notifier): Router {
   const r = Router();
 
   // Pull: các bản ghi thay đổi sau cursor, trong phạm vi của vai trò (design §5.5)

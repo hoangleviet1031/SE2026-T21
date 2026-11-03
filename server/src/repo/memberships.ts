@@ -147,3 +147,11 @@ export function removeMember(ctx: Ctx, db: Db, userId: string): RemoveMemberResu
     return { ok: true };
   });
 }
+
+/**
+ * Người nhận thông báo phiếu mới: supervisor và Owner còn hoạt động của dự án trong `ctx`, trừ người tạo
+ * (docs/bt3-vt082/SPEC.md AC1, AC5). Khung, chưa có hành vi.
+ */
+export function listNotificationRecipients(_ctx: Ctx, _db: Db): string[] {
+  return [];
+}
