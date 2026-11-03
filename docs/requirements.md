@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.17 (2026-11-03)
+- **Phiên bản:** 0.18 (2026-11-03)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -42,11 +42,12 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 
 ### US-03 · Ảnh kèm phiếu lên đủ · Must
 
-*Là điều tra viên, tôi muốn chụp ảnh và lấy GPS cho phiếu khi offline, và biết chắc ảnh đã lên server.*
+*Là điều tra viên, tôi muốn chụp ảnh và lấy GPS cho phiếu khi offline, và biết chắc ảnh đã lên server. Là giám sát viên, tôi muốn xem được ảnh trong phiếu do máy khác tạo.*
 
 - **Given** phiếu có 2 ảnh lưu khi offline, **when** có mạng, **then** cả 2 ảnh lên server với SHA-256 khớp, và nhãn hiện "Đang tải ảnh (2)" trước khi thành "Đã đồng bộ".
 - **Given** đang tải một ảnh thì mất mạng, **when** có mạng lại, **then** chỉ gửi phần còn thiếu, mỗi phần chỉ ghi một lần.
 - **Given** ảnh chụp 4–6 MB, **when** lưu vào phiếu, **then** ảnh sau nén ≤ 600 KB (trừ ảnh quá nhiều chi tiết, vẫn được lưu).
+- **Given** phiếu do máy khác tạo có ảnh đã lên server, **when** tôi mở phiếu lúc có mạng, **then** ảnh hiện ra, nhãn vẫn "Đã đồng bộ", không có op mới và ảnh không bị gửi lại; mở lại khi offline vẫn thấy. Lần đầu không có mạng thì báo "Cần kết nối để xem ảnh này", có mạng thì tải được; ảnh chưa lên server thì báo "Ảnh chưa được tải lên"; chưa thấy ảnh thì không bỏ được ảnh đó.
 - **Given** đang offline, **when** bấm "Lấy vị trí" rồi Lưu, **then** phiếu có toạ độ; có mạng thì server nhận đúng toạ độ đó.
 - **Given** chưa cho phép quyền vị trí (hoặc máy không lấy được vị trí trong 30 s), **when** bấm "Lấy vị trí", **then** thấy câu hướng dẫn (design §8) và giá trị trường không đổi.
 
@@ -176,6 +177,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
 | US-03 | Ảnh sau nén ≤ 600 KB | `photo.spec.ts`; unit `fitWithin` (`client/src/media/compress.test.ts`) | TV3-03 (#31) |
+| US-03 | Xem ảnh của phiếu máy khác tạo | O9 `photo-download.spec.ts`; unit `client/src/sync/photoDownloadRules.test.ts` | Không ticket (#PR) |
 | US-03 | Lấy GPS khi offline | `gps-offline.spec.ts`; unit luật `gps` trong `recordValidation.test.ts` | TV1-05; TV3-14 |
 | US-03 | Không lấy được vị trí → câu hướng dẫn | `gps-errors.spec.ts`; unit `client/src/gps.test.ts` | TV1-12 (#69, b2 p1 #70) |
 | US-04 | 500 hai lần → một bản ghi | R1 `offline.spec.ts` | TV2-09 (#16) |
@@ -253,3 +255,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.15 | 2026-11-01 | US-07 và US-12 dòng truy vết thêm ca tên nút ▲▼ ở builder và header dòng ở A1–A3 (TV1-12, design §11.3) |
 | 0.16 | 2026-11-02 | US-09 thêm tiêu chí vai trò ở hàng tổ chức đang chọn, US-10 thêm tiêu chí [Sao chép], [Chia sẻ] tên đăng nhập, kèm dòng truy vết (Could, không ticket) |
 | 0.17 | 2026-11-03 | US-11 thêm tiêu chí thêm nhiều người một lần, kèm dòng truy vết (Could, không ticket) |
+| 0.18 | 2026-11-03 | US-03 mở rộng câu story có giám sát viên, thêm tiêu chí xem ảnh của phiếu máy khác tạo, kèm dòng truy vết (Must, không ticket) |

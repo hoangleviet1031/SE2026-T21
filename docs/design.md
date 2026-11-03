@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.67 (2026-11-03)
+- **Phiên bản:** 0.5.68 (2026-11-03)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -101,6 +101,7 @@
 | 0.5.65 | 2026-11-01 | Màn hình 5 và trang quản trị (không ticket, TV1-12, Could, A duyệt thay Dương 2026-11-01): nút ▲▼ ở builder có tên kèm nhãn trường ("Lên: <nhãn>", chưa có nhãn thì "Trường mới"); ô tên đầu mỗi dòng ở A1, A2, A3 là header dòng (`th scope="row"`), nhìn không đổi. §11.3 ghi vào "Đạt" |
 | 0.5.66 | 2026-11-02 | Nút [Sao chép], [Chia sẻ] dưới tên đăng nhập ở màn hình Cài đặt, Tổ chức và vai trò ở hàng tổ chức đang chọn (Could, ngoài MVP, không ticket, phiên review AI chốt câu chữ thay Dương theo uỷ quyền 2026-11-02): §1 thêm dòng MoSCoW; §4.7 ghi hành vi và câu chữ |
 | 0.5.67 | 2026-11-03 | Thêm nhiều thành viên một lần ở màn hình Thành viên (Could, ngoài MVP, không ticket, Dương duyệt, phiên review AI chốt câu chữ thay Dương theo uỷ quyền 2026-11-02): §1 thêm dòng MoSCoW; §4.7 ghi cách tách danh sách, dừng khi lỗi chung, giữ tên trong ô, hỏi lại khi thêm nhiều Owner. Không đổi API, mã lỗi |
+| 0.5.68 | 2026-11-03 | Lấp chỗ hở spec của dòng Attachments (Must, không ticket, Dương duyệt): xem được ảnh do máy khác tạo. §1 ghi thêm; §4.4, §5.6 mục "Tải về để xem" (tải khi mở phiếu, ghi `done`, không tạo op, nút × chỉ có khi đã có blob); §5.6 sửa câu "Ảnh đang tải lên" thành hai ca; §7 dòng `GET P/attachments/:id`; §8 thêm dòng; §10.1 thêm O9. Không đổi server, schema, mã lỗi. Thêm nợ N23 (chưa có cách dọn ảnh) |
 
 ## Mục lục
 
@@ -154,7 +155,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Form builder | Tạo/sửa form với 7 loại trường: text, number, select, multiselect, date, photo, gps. Form có phiên bản, thuộc một dự án. | Must; xuất/nhập form JSON: Could |
 | Offline storage | Form, phiếu, ảnh, hàng đợi đồng bộ trong IndexedDB (Dexie). App shell được service worker precache. | Must |
 | Sync queue | Outbox bền vững, retry với exponential backoff, idempotency key. | Must |
-| Attachments | Nén ảnh ở client, upload theo chunk, tiếp tục khi mất mạng giữa chừng. | Must |
+| Attachments | Nén ảnh ở client, upload theo chunk, tiếp tục khi mất mạng giữa chừng; xem được ảnh do máy khác tạo (tải khi mở phiếu). | Must |
 | Conflict UI | Merge theo trường, hiển thị ai sửa, lúc nào, giá trị gốc/của bạn/trên máy chủ. | Must; "Gộp cả hai" cho multiselect: Could |
 | Export | CSV (UTF-8 có BOM) và JSON theo từng dự án; ảnh xuất dạng URL. | Must (CSV), Should (JSON) |
 | Đo hiệu năng (§11.2) | Đo các chỉ tiêu trên bộ dữ liệu mẫu. | Should (pull 2.000 phiếu); đo đầy đủ: Could |
@@ -484,6 +485,8 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - Thứ tự với bản ghi và cách retry: xem §5.6.
 - Ảnh đã upload xong được giữ lại ở client cho tới khi người dùng dọn bộ nhớ, để xem offline.
 
+**Tải về để xem** (phiếu máy khác tạo): pull chỉ đem về phiếu và mã ảnh, nên mở phiếu ở màn hình 4 mà máy chưa có blob thì tải bằng `GET .../attachments/:id`. Chi tiết ở §5.6.
+
 ### 4.5 Conflict UI
 
 Khi sync engine nhận `409` và merge còn xung đột trường hoặc xung đột xoá/sửa, phiếu chuyển `conflict` và một dòng `conflicts` được lưu với: bản server, lịch sử các phiên bản sau `baseVersion`, kết quả merge.
@@ -681,11 +684,18 @@ Lý do: không tải dữ liệu cá nhân (tên chủ hộ, GPS, ảnh) của n
 
 - **Hàng đợi:** chính bảng `attachments` (không dùng outbox), mỗi ảnh có `uploadState: 'pending' | 'uploading' | 'done' | 'failed'`, `attempts`, `nextAttemptAt`, `uploadedChunks`, `checksumFailures`, `createdAt`. `uploading` bị bỏ dở (đóng tab) thì vòng sau coi như `pending`.
 - **Ảnh nào được upload:** chỉ ảnh **còn trong phiếu chưa xoá** (id nằm trong một trường của `data`). Ảnh đã bỏ khỏi trường, ảnh của phiếu chưa từng lưu hay phiếu đã xoá thì không upload, và cũng **không tính là dữ liệu chưa gửi** khi xét đăng xuất hay bị rút khỏi dự án (`hasUnsentData`): người dùng đã chủ động bỏ, nếu tính thì máy kẹt mãi ở "còn dữ liệu chưa gửi".
-- **Thứ tự:** trong mỗi vòng, push phiếu trước, sau đó upload ảnh của những phiếu đã có trên server (`baseVersion > 0`), cũ trước mới sau, mỗi lần một ảnh. Server cho phép phiếu tham chiếu ảnh chưa xong; trang xem phiếu hiển thị "Ảnh đang tải lên".
+- **Thứ tự:** trong mỗi vòng, push phiếu trước, sau đó upload ảnh của những phiếu đã có trên server (`baseVersion > 0`), cũ trước mới sau, mỗi lần một ảnh. Server cho phép phiếu tham chiếu ảnh chưa xong; ảnh của chính máy này hiện nhãn nhỏ ở "Nhãn phiếu" bên dưới, ảnh máy này không có mà server chưa có thì "Ảnh chưa được tải lên" ("Tải về để xem" bên dưới).
 - **Retry:** lỗi mạng, `5xx`, `408`, `429` dùng cùng `nextRetryDelay` như op; tiếp tục từ chunk thiếu theo `GET /status`.
 - **Thiếu chunk hoặc sai hash:** `409 missing_chunks` thì hỏi lại `status` và gửi bù ngay; `422 checksum_mismatch` lần đầu thì gửi lại từ đầu ngay (server đã xoá chunk). Tối đa 3 lượt trong một vòng, quá thì chờ backoff.
 - **Lỗi không retry được** (`413`, `415`, `422 checksum_mismatch` lần thứ hai, `4xx` khác): ảnh `failed`, phiếu hiện "Lỗi ảnh" kèm nút "Thử lại" và "Bỏ ảnh này". "Bỏ ảnh này" bỏ id khỏi phiếu qua `saveRecordLocally` (tạo op mới); phiếu đang xung đột thì không có nút này.
 - **Nhãn phiếu:** "Đã đồng bộ" chỉ khi `syncState = synced` **và** mọi ảnh còn trong phiếu `done`. Phiếu đã đồng bộ: có ảnh lỗi thì "Lỗi ảnh", còn ảnh chưa lên thì "Đang tải ảnh (n)". Phiếu chưa đồng bộ thì nhãn theo `syncState` (§5.1), nhưng nút của ảnh lỗi vẫn hiện. Hàm thuần `displayState` (`client/src/sync/displayState.ts`). Trang điền phiếu hiện nhãn nhỏ trên từng ảnh: "Chờ tải lên", "Đang tải lên", "Lỗi".
+- **Tải về để xem** (`client/src/sync/photoDownload.ts`, hàm thuần ở `photoDownloadRules.ts`): mở phiếu ở màn hình 4 mà có mã ảnh chưa có blob thì tải ảnh đó về, ghi vào `attachments`; ô ảnh vẫn chỉ đọc IndexedDB (CLAUDE.md bất biến 7). Chỉ tải ảnh của phiếu đang mở, không tải hàng loạt lúc đồng bộ, không đổi pull. Có cả ở phiếu xung đột, chỉ đọc, vì không tạo op.
+  - **Dòng tải về:** `uploadState: 'done'` nên không vào hàng đợi, không đổi nhãn phiếu và không tính là dữ liệu chưa gửi; `uploadedChunks: []`, không có `createdAt`, `nextAttemptAt`. Không đổi `data` phiếu, không tạo op. Mất đi cùng CSDL dự án (đăng xuất, rời dự án, bị hạ vai trò).
+  - **Khi ghi:** kiểm lại trong một transaction. Đã có dòng (ảnh chờ gửi của máy này, tab khác vừa tải) thì giữ nguyên, không đè; phiếu đã xoá thì không ghi. Ảnh vừa bị bỏ khỏi phiếu thì vẫn ghi, như blob của ảnh đã bỏ ở "Xoá ảnh khỏi phiếu".
+  - **Loại file:** chỉ nhận JPEG, PNG, WebP như lúc `complete`; `200` kèm loại khác (vd. trang đăng nhập wifi trả HTML) là lỗi, không lưu, vì lưu rồi sẽ không bao giờ tải lại.
+  - **Thử lại:** mỗi ảnh thử một lần cho mỗi lần mở phiếu. Lỗi mạng thì có mạng trở lại lúc đang mở phiếu sẽ tự thử thêm một lần; `404`, `5xx` chỉ thử lại khi mở lại phiếu (§8). Không có nút Thử lại.
+  - **Thời gian:** timeout 10 s của `api.ts` chỉ canh tới lúc có header; thân response có hạn riêng 60 s, cắt giữa chừng hay quá hạn đều là lỗi mạng. Không lưu vào HTTP cache (`no-store`) để đăng xuất là hết ảnh trên máy.
+  - **Nút ×:** chỉ có khi máy đã có blob. Người dùng chưa thấy ảnh, và với `404` ảnh có thể đang trên đường lên server, nên không được bỏ (bất biến 1). Người tạo vẫn bỏ được trên máy của họ.
 - **Xoá ảnh khỏi phiếu:** chỉ bỏ id khỏi trường photo; blob cục bộ giữ tới khi người dùng dọn bộ nhớ.
 - **Dọn rác ở server:** chunk tạm của ảnh chưa `complete` sau 7 ngày thì xoá. File đã hoàn tất không tự xoá, vì `record_history` có thể còn tham chiếu.
 
@@ -884,7 +894,7 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | GET | `P/attachments/:id/status` | Chunk đã nhận: `{ received: number[] }` (ảnh đã ghép thì đủ mọi chỉ số) | thành viên (trong phạm vi) | Có |
 | PUT | `P/attachments/:id/chunks/:i` | Upload một chunk (`application/octet-stream`, ≤ 256 KB, `i` < 40). Chunk mới `201`, đã có `200` không ghi lại | thành viên | Có |
 | POST | `P/attachments/:id/complete` | `{ recordId, totalChunks, mimeType, sha256 }` → ghép, kiểm SHA-256 và magic bytes, `201 { id, recordId, mimeType, size, sha256 }`; gọi lại cùng hash `200` | thành viên (phiếu trong phạm vi) | Có |
-| GET | `P/attachments/:id` | Tải ảnh | thành viên (trong phạm vi) | Có |
+| GET | `P/attachments/:id` | Tải ảnh; client gọi khi mở phiếu mà máy chưa có blob (§5.6) | thành viên (trong phạm vi) | Có |
 | GET | `P/export/:formId?format=csv\|json&includeDeleted=` | Xuất CSV/JSON (§4.6) | supervisor, owner | Có |
 
 **PUT /api/projects/:projectId/records/:id**
@@ -1019,6 +1029,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | Ảnh lỗi không retry được | Dừng ảnh đó | "Lỗi ảnh", nút "Thử lại" / "Bỏ ảnh này" |
 | IndexedDB đầy (`QuotaExceededError`) | Không lưu ảnh mới | "Bộ nhớ đầy: đồng bộ rồi dọn ảnh đã tải lên" |
 | Trình duyệt không giải mã được ảnh (vd. HEIC trên Chrome Android) | Không lưu ảnh | "Không đọc được ảnh này. Hãy chụp lại hoặc chọn ảnh JPEG/PNG" |
+| Mở phiếu mà máy chưa có blob của ảnh (§5.6) | Tải về một lần; lỗi thì không lưu gì, phiếu không đổi | Đang tải: "Đang tải…" trong ô. Offline, timeout, mất kết nối: "Cần kết nối để xem ảnh này", có mạng lại thì tự thử lại. `404` (chưa lên server hoặc ngoài phạm vi, không phân biệt): "Ảnh chưa được tải lên". `5xx`, `429`, `4xx` khác, `200` không phải ảnh: "Máy chủ đang lỗi, thử lại sau", không tự thử lại. `401`, `403 not_member`, bộ nhớ đầy: như các dòng trên ("Bạn không còn thuộc tổ chức này" ở dưới ô ảnh) |
 | File nhập form không hợp lệ | Không đổi nội dung builder, không gửi | "File không phải JSON" / "File không đúng định dạng biểu mẫu" / lỗi luật lưu form (§4.1) |
 | Phiếu dùng form version chưa có trên máy | Trang điền phiếu gọi `syncNow()`, bước 5 tải form version đó (§5.3) | Đang tải: "Đang tải biểu mẫu…"; offline hoặc tải không được: "Cần kết nối để mở phiếu này", có mạng lại thì tự thử lại |
 | Phiếu chưa đồng bộ quá 24 giờ | Không đổi hành vi | Cảnh báo đầu trang (§5.2) |
@@ -1065,6 +1076,7 @@ Phạm vi đồ án giữ đơn giản:
 | O6 | Hai tab cùng mở: mỗi op chỉ được gửi từ một tab | Có (`tabs.spec.ts`) |
 | O7 | Xoá phiếu chưa từng gửi (tạo khi offline): bấm "Huỷ" thì phiếu còn; xác nhận thì phiếu, op, ảnh biến khỏi máy, online lên không có request nào cho phiếu đó (§5.7) | Có (`delete.spec.ts`; hộp xác nhận trong app, kiểm cả Huỷ và Esc) |
 | O8 | Xoá phiếu đã đồng bộ: phiếu biến khỏi danh sách, server có `deleted: true`, máy khác pull thấy tombstone; phiếu bị xoá khỏi máy sau khi op xoá được xác nhận (§5.7) | Có (`delete.spec.ts`) |
+| O9 | Mở phiếu máy khác tạo: thấy ảnh thật (giải mã được), nhãn vẫn "Đã đồng bộ", không có request upload, không có op, đăng xuất không bị chặn; mở lại khi offline vẫn thấy; lần đầu offline báo cần mạng, có mạng thì tự tải; `404`, `5xx` báo đúng câu, không gọi lặp; ảnh ngoài phạm vi không tải được; ảnh chờ gửi của máy này không bị đè (§5.6) | Có (`photo-download.spec.ts`) |
 
 **Conflict**
 

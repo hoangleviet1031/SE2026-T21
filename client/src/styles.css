@@ -321,7 +321,9 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
 .photos .field-error { grid-column: 1 / -1; }
 .photo-thumb { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--chip); }
 .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.photo-thumb .photo-missing { display: grid; place-items: center; height: 100%; font-size: 14px; color: var(--muted); }
+.photo-thumb .photo-missing { display: grid; place-content: center; justify-items: center; gap: 6px; height: 100%; font-size: 14px; color: var(--muted); }
+.photo-thumb .photo-missing > span { display: contents; }
+.photo-thumb .photo-missing .spin { display: block; width: 20px; height: 20px; border-width: 2.5px; }
 .photo-thumb button { position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; min-height: 0; padding: 0; border: 0; border-radius: 50%;
                       background: rgba(255, 255, 255, .92); color: var(--ink); font-size: 22px; line-height: 1; box-shadow: 0 1px 3px rgba(31, 30, 27, .25); }
 .photo-thumb .photo-state { position: absolute; left: 6px; bottom: 6px; padding: 2px 8px; border-radius: var(--r-pill); background: #fff; color: var(--muted);
