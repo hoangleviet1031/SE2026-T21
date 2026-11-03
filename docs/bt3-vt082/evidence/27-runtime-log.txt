@@ -1,6 +1,6 @@
 # Server thật (src/index.ts, không tiêm notifier). Gửi cùng một request 2 lần, cùng Idempotency-Key.
-PUT l?n 1: 201 replay=
-PUT l?n 2: 201 replay=true
+PUT lan 1: 201 replay=
+PUT lan 2: 201 replay=true
 --- stdout server:
 API chạy tại http://localhost:3901
 {"method":"GET","path":"/api/health","status":200,"durationMs":6.55,"userId":null}
