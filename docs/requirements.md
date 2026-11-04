@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.18 (2026-11-03)
+- **Phiên bản:** 0.19 (2026-11-04)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -126,7 +126,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tôi là Owner, **when** thêm người đã là thành viên hoặc tên không có (kể cả tài khoản bị khoá), **then** `409 already_member` hoặc `404`.
 - **Given** tổ chức chỉ còn một Owner, **when** rút hoặc hạ Owner đó, **then** `409 last_owner`.
 - **Given** tôi vừa được thêm, **when** vòng đồng bộ kế tiếp, **then** tôi thấy tổ chức và gửi được phiếu.
-- **Given** máy chủ lỗi (`5xx`), **when** tôi mở hoặc thao tác ở Thành viên, **then** báo "Máy chủ đang lỗi, thử lại sau" (khi tải có nút "Thử lại"), không kẹt ở "Đang tải…".
+- **Given** máy chủ lỗi (`5xx`), **when** tôi mở hoặc thao tác ở Thành viên, **then** báo "Máy chủ đang lỗi, thử lại sau" (khi tải có nút "Thử lại"), không kẹt ở "Đang tải…"; ghi xong mà tải lại danh sách lỗi thì giữ form và phần đang nhập.
 - **Given** tôi dán một danh sách tên đăng nhập, **when** bấm [Thêm], **then** tôi thấy kết quả từng tên, tên thử lại còn có ích nằm lại trong ô; mất mạng, máy chủ lỗi hoặc hết quyền giữa chừng thì dừng, không mất các tên chưa gửi; thêm nhiều người làm Owner thì được hỏi lại.
 
 ### US-12 · Admin duyệt tổ chức mà không xem dữ liệu · Must (màn hình Tài khoản A3: Could)
@@ -217,6 +217,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-11 | Owner cuối cùng | A7 `members.test.ts`; `members.spec.ts` (cả dòng thành viên hai dòng; chọn vai trò rồi bấm [Đổi], ← Quay lại khi không đủ quyền); `headings.spec.ts` (tiêu đề trang màn 6 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-08 (#38, #39); giao diện TV1-12 (b2 p5, màn 6 sau audit UI) |
 | US-11 | Người mới thêm thấy tổ chức, gửi được phiếu | M3 `orgs.spec.ts` | TV1-08 (#39), TV1-15 (#54) |
 | US-11 | Máy chủ lỗi ở Thành viên | `api-errors.spec.ts` (cả Tổ chức, builder lưu form, Xuất) | TV1-12 (#62, #68, b2 p5: Thử lại ngoài vùng alert, Tổ chức ẩn khối công khai) |
+| US-11 | Ghi xong mà tải lại danh sách lỗi | `members.spec.ts` (thêm một tên, Rút khi còn tên trong ô, bật công khai khi gõ dở tên tổ chức, thêm nhiều xoá câu lỗi cũ, [Thử lại] khoá lúc đang ghi, lần tải đầu lỗi, lần đầu cài đặt lỗi) | không ticket (#124) |
 | US-11 | Thêm nhiều người một lần | `members.spec.ts` (ca "thêm nhiều": hết được, một phần, tin chia sẻ, supervisor, Owner hỏi lại, mất mạng, 5xx và `forbidden`, làm mới danh sách lỗi, khoá trong lúc chạy, quá 50 tên; bàn phím, 360px); unit `parseUsernameList`, `addInOrder`, `namesToKeep` (`client/src/members.test.ts`) | không ticket (#121) |
 | US-12 | Admin không đọc được dữ liệu | Q7 `projectRequests.test.ts`; T4 `isolation.test.ts`, `admin.test.ts` | TV2-15 (#49) |
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
@@ -256,3 +257,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.16 | 2026-11-02 | US-09 thêm tiêu chí vai trò ở hàng tổ chức đang chọn, US-10 thêm tiêu chí [Sao chép], [Chia sẻ] tên đăng nhập, kèm dòng truy vết (Could, không ticket) |
 | 0.17 | 2026-11-03 | US-11 thêm tiêu chí thêm nhiều người một lần, kèm dòng truy vết (Could, không ticket) |
 | 0.18 | 2026-11-03 | US-03 mở rộng câu story có giám sát viên, thêm tiêu chí xem ảnh của phiếu máy khác tạo, kèm dòng truy vết (Must, không ticket) |
+| 0.19 | 2026-11-04 | US-11 thêm tiêu chí ghi xong mà tải lại danh sách lỗi thì giữ form, kèm dòng truy vết (sửa lỗi, không ticket) |

@@ -116,6 +116,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Nút Sao chép, Chia sẻ tên đăng nhập; vai trò ở hàng tổ chức đang chọn (không ticket, Dương chọn 2026-11-02) · **Cắt được** | Could | – | ✅ PR #120 |
 | — | Thêm nhiều thành viên một lần ở màn 6 (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #121 |
 | — | Tải ảnh từ server về để xem phiếu máy khác tạo, lấp chỗ hở dòng Attachments (không ticket, Dương duyệt) | Must | N23 | ✅ PR #122 |
+| — | Màn 6: ghi xong mà tải lại danh sách lỗi thì giữ form (sửa lỗi, không ticket, Dương cho phép) | Must | – | ✅ PR #124 |
 
 ## Phụ thuộc quan trọng
 

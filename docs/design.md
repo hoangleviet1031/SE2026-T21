@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.68 (2026-11-03)
+- **Phiên bản:** 0.5.69 (2026-11-04)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -102,6 +102,7 @@
 | 0.5.66 | 2026-11-02 | Nút [Sao chép], [Chia sẻ] dưới tên đăng nhập ở màn hình Cài đặt, Tổ chức và vai trò ở hàng tổ chức đang chọn (Could, ngoài MVP, không ticket, phiên review AI chốt câu chữ thay Dương theo uỷ quyền 2026-11-02): §1 thêm dòng MoSCoW; §4.7 ghi hành vi và câu chữ |
 | 0.5.67 | 2026-11-03 | Thêm nhiều thành viên một lần ở màn hình Thành viên (Could, ngoài MVP, không ticket, Dương duyệt, phiên review AI chốt câu chữ thay Dương theo uỷ quyền 2026-11-02): §1 thêm dòng MoSCoW; §4.7 ghi cách tách danh sách, dừng khi lỗi chung, giữ tên trong ô, hỏi lại khi thêm nhiều Owner. Không đổi API, mã lỗi |
 | 0.5.68 | 2026-11-03 | Lấp chỗ hở spec của dòng Attachments (Must, không ticket, Dương duyệt): xem được ảnh do máy khác tạo. §1 ghi thêm; §4.4, §5.6 mục "Tải về để xem" (tải khi mở phiếu, ghi `done`, không tạo op, nút × chỉ có khi đã có blob); §5.6 sửa câu "Ảnh đang tải lên" thành hai ca; §7 dòng `GET P/attachments/:id`; §8 thêm dòng; §10.1 thêm O9. Không đổi server, schema, mã lỗi. Thêm nợ N23 (chưa có cách dọn ảnh) |
+| 0.5.69 | 2026-11-04 | Sửa lỗi màn hình Thành viên (không ticket, Dương cho phép): đã có danh sách mà tải lại lỗi thì giữ form, phần đang nhập, danh sách cũ, câu lỗi kèm "Thử lại" (§4.7, §8). Không đổi API, mã lỗi |
 
 ## Mục lục
 
@@ -539,6 +540,7 @@ Theo ADR 0002, phần tài khoản và vai trò theo ADR 0003. Mọi mục dư�
   - Thêm người **bằng tên đăng nhập** và chọn vai trò. Supervisor chỉ thêm/rút được `surveyor`; Owner thêm, đổi, rút được mọi vai trò. Rút có hỏi xác nhận.
   - Không rút/hạ được Owner cuối cùng (`409 last_owner`). Không thêm được tài khoản admin (`409 admin_account`).
   - **Thêm nhiều người một lần** (Could, chỉ ở client, hàm thuần `client/src/members.ts`): ô thêm nhận danh sách, tách theo xuống dòng, dấu phẩy, chấm phẩy, tab, **không** tách theo khoảng trắng (dán họ tên đầy đủ mà tách ra có thể thêm nhầm tài khoản có thật, và người đó xem được dữ liệu tổ chức). Từng mục được chuẩn hoá như server, bỏ câu "Tên đăng nhập của tôi:" của tin chia sẻ; tên trùng gửi một lần. Không kiểm mẫu tên ở client vì tài khoản cũ có thể ngoài mẫu; server trả `404`. Tối đa 50 tên mỗi lần (chặn dán nhầm, không phải giới hạn server), vượt thì không gửi gì. Một vai trò cho cả danh sách; vai trò Owner và từ 2 tên trở lên thì hỏi lại vì ô Vai trò giữ giá trị từ lần thêm trước. Gọi `POST P/members` lần lượt, một tên một request; nút Đổi, Rút, Thêm khoá suốt loạt. `not_found`, `already_member`, `admin_account` là lỗi riêng một tên, đi tiếp. `forbidden`, mất mạng hoặc timeout, `5xx`, `403 not_member`, `401` thì dừng, không gửi tiếp, không tự thử lại (§8). Timeout có thể server đã ghi; thử lại thì báo "Người này đã là thành viên", không tạo trùng. Hết loạt tải lại danh sách một lần; tải lỗi thì giữ danh sách cũ, form và bảng kết quả, không báo thêm. Trong ô chỉ còn tên thử lại có ích (`not_found` và tên chưa gửi). Đúng một tên thì như thêm một người trước đây: lỗi hiện một câu, chữ giữ nguyên. Câu chữ ở ui.md màn hình 6.
+  - Thao tác ghi xong (thêm một tên, đổi vai trò, rút, lưu cài đặt tổ chức) thì tải lại danh sách; tải lỗi mà đã có danh sách thì giữ form, phần đang nhập, danh sách cũ, báo câu lỗi kèm "Thử lại" (§8). Chưa có danh sách thì chỉ có câu lỗi và nút.
   - Owner có thêm: đổi tên tổ chức, ô "Công khai tên tổ chức" (mặc định tắt).
   - Có code (TV1-08): API `P/members`, `P/settings` (§7), màn hình `client/src/pages/MembersPage.tsx` (ui.md màn hình 6). Tự hạ hoặc tự rút hỏi xác nhận nói rõ mất quyền ngay; xong thì chạy một vòng đồng bộ mới (chờ vòng đang chạy, vì vòng đó có thể đã đọc `/me` cũ) rồi về trang chủ.
 - **Admin** không dùng app khảo sát: đăng nhập bằng tài khoản admin thì hiện "Tài khoản quản trị dùng trang /admin" và không tạo CSDL nào. Việc của admin ở trang quản trị (§4.9). Có code (TV2-16): `signIn.ts` ném `AdminAccountError` trước khi lưu token và huỷ phiên vừa cấp; token admin đã lưu từ bản cũ thì vòng đồng bộ thấy `isAdmin` trong `/me`, xoá token và dừng trước khi mở CSDL dự án nào.
@@ -1024,7 +1026,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | `403 not_member` | Dừng dự án đó | "Bạn không còn thuộc dự án X" (§4.7) |
 | `409` gộp được | Tự gộp, gửi lại | Không thấy gì |
 | `409` có xung đột | Chờ người dùng; phiếu chỉ đọc | "Cần xử lý xung đột" |
-| Màn hình cần online (Thành viên, Tổ chức, builder lưu form, Xuất) gặp `5xx` hoặc mã lỗi màn hình không xử lý | Không tự thử lại; giữ nguyên phần đang nhập | "Máy chủ đang lỗi, thử lại sau"; Thành viên khi tải danh sách có nút "Thử lại" (`client/src/apiErrors.ts`) |
+| Màn hình cần online (Thành viên, Tổ chức, builder lưu form, Xuất) gặp `5xx` hoặc mã lỗi màn hình không xử lý | Không tự thử lại; giữ nguyên phần đang nhập | "Máy chủ đang lỗi, thử lại sau"; Thành viên khi tải danh sách có nút "Thử lại", tải lại lỗi mà đã có danh sách thì vẫn giữ form (§4.7) (`client/src/apiErrors.ts`) |
 | `4xx` khác | Dừng op | "Lỗi" kèm chi tiết, nút "Thử lại" và "Xuất JSON phiếu này" |
 | Ảnh lỗi không retry được | Dừng ảnh đó | "Lỗi ảnh", nút "Thử lại" / "Bỏ ảnh này" |
 | IndexedDB đầy (`QuotaExceededError`) | Không lưu ảnh mới | "Bộ nhớ đầy: đồng bộ rồi dọn ảnh đã tải lên" |

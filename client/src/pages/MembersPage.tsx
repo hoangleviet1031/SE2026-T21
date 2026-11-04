@@ -154,12 +154,13 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
   };
 
   /**
-   * Thêm lần lượt, xong thì trả các tên còn để lại trong ô. Không dùng `load()`: tải lỗi thì `loadError` gỡ
-   * cả form, mất luôn bảng kết quả và các tên chưa gửi.
+   * Thêm lần lượt, xong thì trả các tên còn để lại trong ô. Không dùng `load()`: làm mới hỏng thì không báo thêm,
+   * bảng kết quả đã nói đúng từng tên (design §4.7). Vì không qua `load()` nên phải tự xoá câu lỗi tải cũ.
    */
   const addMany = async (names: string[], duplicates: number, role: Role): Promise<string[]> => {
     setBusy(true);
     setError(null);
+    setLoadError(null);
     setAddResults(null);
     try {
       const { lines, stopReason } = await addInOrder(
@@ -196,6 +197,19 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
     else act();
   };
 
+  const loadFailure = loadError && (
+    // Vùng alert chỉ có câu lỗi, [Thử lại] nằm ngoài để trình đọc màn hình không đọc lẫn vào câu.
+    // Khoá khi đang ghi: GET chạy song song về sau có thể đè danh sách mới hơn
+    <div className="load-err">
+      <p className="field-error" role="alert">
+        ⚠ {loadError}
+      </p>
+      <button disabled={busy} onClick={() => void load()}>
+        Thử lại
+      </button>
+    </div>
+  );
+
   return (
     <>
       <h2>Thành viên · {project.name}</h2>
@@ -214,17 +228,10 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
           }}
         />
       )}
-      {loadError ? (
-        // Vùng alert chỉ có câu lỗi, [Thử lại] nằm ngoài để trình đọc màn hình không đọc lẫn vào câu
-        <div className="load-err">
-          <p className="field-error" role="alert">
-            ⚠ {loadError}
-          </p>
-          <button onClick={() => void load()}>Thử lại</button>
-        </div>
-      ) : members === null ? (
-        <p>Đang tải…</p>
+      {members === null ? (
+        (loadFailure || <p>Đang tải…</p>)
       ) : (
+        // Đã có danh sách thì tải lại lỗi không được gỡ form: giữ nguyên phần đang nhập (design §8)
         <>
           {/* Lỗi nằm ngay dưới nút [Thêm], trong cùng khối */}
           <div className="card">
@@ -242,6 +249,8 @@ function Members({ project, myUserId }: { project: AccountProject; myUserId: str
             )}
             <AddResults results={addResults} />
           </div>
+          {/* Nằm sát danh sách, không dưới nút [Thêm]: câu này nói về danh sách, thao tác vừa rồi đã xong */}
+          {loadFailure}
           <ul className="card mlist" data-testid="members">
             {members.map((m) => (
               <MemberRow
