@@ -497,6 +497,133 @@ test('360px: tên dán vào dài không làm trang cuộn ngang, ô kéo cao kh�
   expect((rect?.x ?? 0) + (rect?.width ?? 0)).toBeLessThanOrEqual(360);
 });
 
+// Ghi xong mà tải lại lỗi: giữ phần đang nhập (design §8), danh sách cũ, hiện câu lỗi kèm [Thử lại] (ui.md màn hình 6)
+const MEMBERS_URL = '**/api/projects/*/members';
+const retry = (page: Page) => page.getByRole('button', { name: 'Thử lại' });
+const fulfill500 = (route: Route) =>
+  route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'internal_error' }) });
+
+/** Cho GET danh sách đi theo `handle`, các method khác đi thật. */
+async function failMemberList(page: Page, handle: (route: Route) => Promise<void>) {
+  await page.route(MEMBERS_URL, (route) => (route.request().method() === 'GET' ? handle(route) : route.continue()));
+}
+
+test('thêm một tên, tải lại lỗi: giữ form, vai trò, danh sách cũ; có câu lỗi và Thử lại', async ({ page, request }) => {
+  await openMembers(page, 'chu');
+  await failMemberList(page, fulfill500);
+
+  await add(page, 'lan', 'Giám sát viên');
+  await expect(page.getByRole('alert')).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
+  await expect(box(page)).toHaveValue('');
+  await expect(page.getByRole('combobox', { name: 'Vai trò', exact: true })).toHaveValue('supervisor');
+  await expect(error(page)).toHaveCount(0);
+  await expect(row(page, 'chu')).toBeVisible();
+  await expect(row(page, 'lan')).toHaveCount(0);
+  expect((await serverMembers(request)).map((m) => m.username)).toEqual(['chu', 'lan']);
+
+  await page.unroute(MEMBERS_URL);
+  await retry(page).click();
+  await expect(row(page, 'lan')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(retry(page)).toHaveCount(0);
+});
+
+test('tên còn trong ô, Rút xong mà mất mạng lúc tải lại: ô giữ nguyên, Thử lại thì dòng mất', async ({ page }) => {
+  await openMembers(page, 'chu');
+  await addMany(page, 'lan\nkhong.co.ai');
+  await expect(box(page)).toHaveValue('khong.co.ai');
+  await failMemberList(page, (route) => route.abort());
+
+  await page.getByRole('button', { name: 'Rút lan' }).click();
+  await answerConfirm(page, 'Rút lan (lan) khỏi tổ chức?', 'Rút');
+  await expect(page.getByRole('alert')).toHaveText('⚠ Cần kết nối mạng để quản lý thành viên');
+  await expect(box(page)).toHaveValue('khong.co.ai');
+  await expect(row(page, 'lan')).toBeVisible();
+
+  await page.unroute(MEMBERS_URL);
+  await retry(page).click();
+  await expect(row(page, 'lan')).toHaveCount(0);
+  await expect(box(page)).toHaveValue('khong.co.ai');
+});
+
+test('Owner gõ dở tên tổ chức, bật công khai xong mà tải lại lỗi: chữ gõ dở còn, ô đã tích', async ({ page }) => {
+  await openMembers(page, 'chu');
+  const name = page.getByRole('textbox', { name: 'Tên tổ chức' });
+  await name.fill('Tên đang gõ dở');
+  await failMemberList(page, fulfill500);
+
+  await page.getByTestId('org-public').click();
+  await expect(page.getByRole('alert')).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
+  await expect(page.getByTestId('org-public')).toBeChecked();
+  await expect(name).toHaveValue('Tên đang gõ dở');
+});
+
+test('đang có câu lỗi tải, thêm nhiều thành công: câu lỗi và Thử lại mất', async ({ page }) => {
+  await openMembers(page, 'chu');
+  await failMemberList(page, fulfill500);
+  await add(page, 'lan', 'Điều tra viên');
+  await expect(retry(page)).toBeVisible();
+  await page.unroute(MEMBERS_URL);
+
+  await addMany(page, 'minh\nkhong.co.ai');
+  await expect(results(page)).toHaveText('Đã thêm 1/2 tên.');
+  await expect(row(page, 'lan')).toBeVisible();
+  await expect(row(page, 'minh')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(retry(page)).toHaveCount(0);
+});
+
+test('đang có câu lỗi tải, trong lúc chờ Rút thì Thử lại khoá', async ({ page, request }) => {
+  await setMembership(request, project, 'u_minh', 'surveyor');
+  await openMembers(page, 'chu');
+  await failMemberList(page, fulfill500);
+  await add(page, 'lan', 'Điều tra viên');
+  await expect(retry(page)).toBeEnabled();
+
+  let release = () => {};
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(`${MEMBERS_URL}/*`, async (route) => {
+    await held;
+    await route.continue();
+  });
+  await page.getByRole('button', { name: 'Rút minh' }).click();
+  await answerConfirm(page, 'Rút minh (minh) khỏi tổ chức?', 'Rút');
+  await expect(retry(page)).toBeDisabled();
+
+  release();
+  await expect(retry(page)).toBeEnabled();
+});
+
+test('lần tải đầu lỗi: chỉ có câu lỗi và Thử lại, chưa có form', async ({ page }) => {
+  await login(page, 'chu');
+  await failMemberList(page, fulfill500);
+  await page.getByRole('link', { name: 'Thành viên' }).click();
+
+  await expect(page.getByRole('alert')).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
+  await expect(retry(page)).toBeVisible();
+  await expect(box(page)).toHaveCount(0);
+  await expect(page.getByTestId('members')).toHaveCount(0);
+});
+
+test('Owner lần đầu tải được danh sách, cài đặt lỗi: có form và danh sách; Thử lại thì khối Tổ chức hiện', async ({ page }) => {
+  await login(page, 'chu');
+  const settingsUrl = '**/api/projects/*/settings';
+  await page.route(settingsUrl, fulfill500);
+  await page.getByRole('link', { name: 'Thành viên' }).click();
+
+  await expect(page.getByRole('alert')).toHaveText('⚠ Máy chủ đang lỗi, thử lại sau');
+  await expect(box(page)).toBeVisible();
+  await expect(row(page, 'chu')).toBeVisible();
+  await expect(page.getByTestId('org-public')).toHaveCount(0);
+
+  await page.unroute(settingsUrl);
+  await retry(page).click();
+  await expect(page.getByTestId('org-public')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
 // Audit C9: không đủ quyền thì vẫn có lối về, không thành ngõ cụt
 test('điều tra viên mở #/members: báo không có quyền, có ← Quay lại về trang chủ', async ({ page, request }) => {
   await setMembership(request, project, 'u_minh', 'surveyor');

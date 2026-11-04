@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-04 | — | fix | Màn 6: đã có danh sách mà tải lại lỗi thì giữ form, chữ đang nhập, danh sách cũ, câu lỗi kèm [Thử lại] ngay trên danh sách; chỉ sửa client; E2E members.spec; design 0.5.69, ui 0.2.45, requirements 0.19 | chờ PR | chờ review |
 | 2026-11-03 | — | feat | PR #122 đã merge | PR #122 | xong |
 | 2026-11-03 | — | feat | Mở phiếu máy khác tạo thì tải ảnh về xem: ghi `done`, không tạo op, câu báo khi không tải được, × chỉ có khi đã có ảnh | PR #122 | chờ review |
 | 2026-11-03 | — | feat | PR #121 đã merge | PR #121 | xong |
