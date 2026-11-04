@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-04 | — | fix | PR #125 đã merge | PR #125 | xong |
+| 2026-11-04 | — | fix | Màn 4: mở lại phiếu đã xoá thì form khoá, Lưu không còn bỏ xoá, Back không về lại phiếu; E2E O10; design 0.5.70, ui 0.2.46, requirements 0.20, N24 | PR #125 | chờ review |
 | 2026-11-04 | — | fix | PR #124 đã merge | PR #124 | xong |
 | 2026-11-04 | — | fix | Màn 6: đã có danh sách mà tải lại lỗi thì giữ form, chữ đang nhập, danh sách cũ, câu lỗi kèm [Thử lại] ngay trên danh sách; chỉ sửa client; E2E members.spec; design 0.5.69, ui 0.2.45, requirements 0.19 | PR #124 | chờ review |
 | 2026-11-03 | — | feat | PR #122 đã merge | PR #122 | xong |

@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.19 (2026-11-04)
+- **Phiên bản:** 0.20 (2026-11-04)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -77,6 +77,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** phiếu đã đồng bộ, **when** tôi xoá, **then** server có `deleted: true`, máy khác pull thấy phiếu đã xoá.
 - **Given** tôi xoá còn người khác sửa cùng phiếu (hoặc ngược lại), **when** đồng bộ, **then** app hỏi giữ hay xoá, nút Áp dụng khoá tới khi tôi trả lời.
 - **Given** tôi là điều tra viên, **when** mở phiếu người khác tạo, **then** không có nút Xoá.
+- **Given** phiếu đã xoá còn trên máy, **when** tôi mở lại bằng Back hay địa chỉ cũ, **then** app báo phiếu đã bị xoá, form khoá, không có Lưu và Xoá, phiếu không tự sống lại; phiếu đang xung đột vẫn đi màn hình xung đột.
 
 ### US-07 · Tạo và sửa form an toàn · Must (xuất/nhập form: Could)
 
@@ -192,6 +193,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-06 | Xoá phiếu đã đồng bộ → tombstone | O8 `delete.spec.ts` | TV2-13 (#35) |
 | US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts`; unit `autoMergedNote` (`client/src/conflictView.test.ts`) | TV3-08 (#47); bỏ câu "đã được gộp" TV1-12 (b2 p3) |
 | US-06 | Điều tra viên không xoá phiếu người khác | `record-owner.spec.ts` | TV1-17 (#44, #45) |
+| US-06 | Mở lại phiếu đã xoá → khoá, không tự sống lại | O10 `delete.spec.ts`, `typing-buffer.spec.ts` (đang gõ thì tombstone về); `delete-conflict.spec.ts` (C4 mở bằng địa chỉ, "Giữ phiếu" rồi sửa được); unit `recordLock.test.ts` | không ticket, sửa lỗi (#125) |
 | US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8; đổi thẳng địa chỉ giữa hai builder hiện đúng form, lưu form mới không thêm version form cũ, TV1-04; chọn/thêm trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu" + ô Mã viền đỏ, câu danh sách trường rỗng, TV1-12 sau audit UI; nền trang trắng, theme-color trắng, gợi ý và mã khoá nền ô chìm, TV1-12 nền trắng; nút ▲▼ có tên kèm nhãn trường, design §11.3); unit `moveFieldTo`, `selectionAfterMove`, `formIdInvalid` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`; điều tra viên thấy form sau vòng đồng bộ ở máy khác: `form-sync.spec.ts`; `headings.spec.ts` (tiêu đề trang màn 5 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-03 (#19), TV1-04 (#24); TV3-14; tên nút ▲▼ TV1-12 (#117) |
 | US-07 | Sửa form lên version mới, phiếu cũ mở bằng version cũ | `builder.spec.ts`, `form-version.spec.ts` | TV1-04 (#24), TV1-10 (#32) |
 | US-07 | Đổi `type`/bỏ trường → `400 invalid_form` | `server/test/forms.test.ts`; unit `formValidation.test.ts` | TV1-03 (#19) |
@@ -258,3 +260,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.17 | 2026-11-03 | US-11 thêm tiêu chí thêm nhiều người một lần, kèm dòng truy vết (Could, không ticket) |
 | 0.18 | 2026-11-03 | US-03 mở rộng câu story có giám sát viên, thêm tiêu chí xem ảnh của phiếu máy khác tạo, kèm dòng truy vết (Must, không ticket) |
 | 0.19 | 2026-11-04 | US-11 thêm tiêu chí ghi xong mà tải lại danh sách lỗi thì giữ form, kèm dòng truy vết (sửa lỗi, không ticket) |
+| 0.20 | 2026-11-04 | US-06 thêm tiêu chí mở lại phiếu đã xoá, kèm dòng truy vết (sửa lỗi, không ticket) |

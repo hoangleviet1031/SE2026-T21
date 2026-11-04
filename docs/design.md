@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.69 (2026-11-04)
+- **Phiên bản:** 0.5.70 (2026-11-04)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -103,6 +103,7 @@
 | 0.5.67 | 2026-11-03 | Thêm nhiều thành viên một lần ở màn hình Thành viên (Could, ngoài MVP, không ticket, Dương duyệt, phiên review AI chốt câu chữ thay Dương theo uỷ quyền 2026-11-02): §1 thêm dòng MoSCoW; §4.7 ghi cách tách danh sách, dừng khi lỗi chung, giữ tên trong ô, hỏi lại khi thêm nhiều Owner. Không đổi API, mã lỗi |
 | 0.5.68 | 2026-11-03 | Lấp chỗ hở spec của dòng Attachments (Must, không ticket, Dương duyệt): xem được ảnh do máy khác tạo. §1 ghi thêm; §4.4, §5.6 mục "Tải về để xem" (tải khi mở phiếu, ghi `done`, không tạo op, nút × chỉ có khi đã có blob); §5.6 sửa câu "Ảnh đang tải lên" thành hai ca; §7 dòng `GET P/attachments/:id`; §8 thêm dòng; §10.1 thêm O9. Không đổi server, schema, mã lỗi. Thêm nợ N23 (chưa có cách dọn ảnh) |
 | 0.5.69 | 2026-11-04 | Sửa lỗi màn hình Thành viên (không ticket, Dương cho phép): đã có danh sách mà tải lại lỗi thì giữ form, phần đang nhập, danh sách cũ, câu lỗi kèm "Thử lại" (§4.7, §8). Không đổi API, mã lỗi |
+| 0.5.70 | 2026-11-04 | Sửa lỗi phiếu đã xoá sống lại ở màn hình 4 (không ticket, Dương cho phép, Must theo US-06): phiếu đã xoá mở lại thì form khoá, báo đã xoá, không có Lưu và Xoá; `saveRecordLocally` từ chối lưu lên phiếu đã xoá (`RecordDeletedError`); xoá xong thay mục lịch sử để Back không về lại phiếu (§4.1, §5.7, §8, ca O10). Không đổi API, mã lỗi, schema; giới hạn còn lại ở tech-debt N24 |
 
 ## Mục lục
 
@@ -417,7 +418,7 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
 - Phiếu đã từng lên server mà bị sửa thành không hợp lệ cũng thành `draft`: bản trên server giữ nguyên, thay đổi cục bộ được giữ và không bị pull ghi đè (ADR quy tắc 8).
 - **Bộ đệm đang nhập** (Could, Dương chốt 2026-10-30; `client/src/typingBuffer.ts`, `client/src/db/typingBuffer.ts`): chữ đang gõ ở màn hình 4 mà chưa bấm Lưu được tự ghi vào `meta` `typing:<recordId>` (§4.2) sau 1 s ngừng gõ và ngay khi trang bị ẩn. Bộ đệm không phải phiếu: không đổi `syncState`, không tạo, sửa hay xoá op, không lên server, không chặn Đăng xuất (Đăng xuất xoá CSDL dự án thì mất theo).
   - Chỉ ghi khi chữ khác bản đã nạp vào form; ô rỗng (`''`, `[]`, `null`, thiếu) coi như nhau, xoá một giá trị cũ vẫn là thay đổi. Phiếu đang `conflict` (chỉ đọc) không ghi thêm; phần đã gõ trước lúc phiếu thành chỉ đọc (đồng bộ chạy nền) vẫn được ghi khi ẩn hay rời trang.
-  - Mở lại phiếu có bộ đệm thì hỏi [Khôi phục] / [Bỏ], form khoá tới khi chọn; không tự điền. Bộ đệm trùng phiếu (máy tắt giữa lúc Lưu và lúc xoá bộ đệm) thì bỏ, không hỏi. Phiếu đã bị xoá thì chỉ có [Bỏ].
+  - Mở lại phiếu có bộ đệm thì hỏi [Khôi phục] / [Bỏ], form khoá tới khi chọn; không tự điền. Bộ đệm trùng phiếu (máy tắt giữa lúc Lưu và lúc xoá bộ đệm) thì bỏ, không hỏi. Phiếu đã bị xoá thì chỉ có [Bỏ], bấm xong trang báo đã xoá và form vẫn khoá (§5.7).
   - Phiếu bị đổi trong lúc chưa Lưu (pull bản của máy khác): [Khôi phục] gộp theo trường bằng `threeWayMerge` với gốc là bản đã nạp lúc gõ (ADR 0001 quy tắc 5). Trường cả hai cùng sửa giữ bản mới và hiện chữ đã gõ để người dùng nhập lại nếu cần, không tự chọn hộ (bất biến 1).
   - Phiếu mới chưa Lưu lần nào không có trong danh sách: trang chủ có dải dẫn về (§4.8), để app bị tắt rồi mở lại vẫn tìm được.
   - Lưu (cả nháp) hay Xoá phiếu thì xoá bộ đệm; "← Quay lại" giữ. Ảnh đã chọn nằm sẵn trong `attachments` (§5.6) nên bộ đệm chỉ giữ id ảnh. Bấm [Tải lại] ở dải cập nhật (§4.3) thì ghi nốt bộ đệm rồi mới tải lại.
@@ -716,6 +717,9 @@ Nút "Xoá phiếu" ở trang phiếu, luôn có hộp xác nhận "Xoá phiếu
 - **Ảnh của phiếu đã xoá:** ngừng upload (hàng đợi upload của TV3-06 phải bỏ qua phiếu `deleted`); blob chưa upload được xoá cùng lúc op xoá được server xác nhận, trong cùng transaction với việc xoá phiếu.
 - **Sau khi xác nhận:** op xoá nhận `200/201` và phiếu không còn op nào thì phiếu và ảnh bị xoá khỏi máy. Pull sau đó nhận lại tombstone của chính phiếu này; pull **bỏ qua tombstone của phiếu máy không có** để không chèn lại. Phiếu máy đang có (không có thay đổi chưa gửi) thì vẫn nhận tombstone và bị ẩn khỏi danh sách.
 - **Code:** `deleteRecordLocally` trong `client/src/sync/outbox.ts` (TV2-13); nút "Xoá phiếu" ở trang phiếu hỏi bằng hộp xác nhận trong app `ConfirmDialog` (đúng câu chữ trên, TV1-13) rồi gọi hàm này. Phiếu thành `conflict` lúc hộp đang mở thì hộp đóng hẳn, hết xung đột cũng không tự hiện lại (TV1-12).
+- **Mở lại phiếu đã xoá:** phiếu `deleted` còn trên máy (op xoá chờ gửi, đã gửi mà mất response, bị `4xx`, hoặc tombstone pull về) mở bằng Back, địa chỉ cũ hay đang mở ở tab khác thì chỉ đọc: báo "Phiếu này đã bị xoá nên không sửa được nữa.", khoá ô nhập, không có Lưu và Xoá; phiếu có op bị `4xx` vẫn có "Thử lại", "Xuất JSON phiếu này" (§8). Phiếu đang `conflict` vẫn theo §4.5, không theo mục này. Đang mở mà phiếu rời máy (op xoá được xác nhận, tab khác xoá hẳn) thì vẫn chỉ đọc, chữ đang hiện giữ nguyên; không còn dữ liệu gì thì ẩn form.
+- **Không bỏ xoá khi Lưu:** `saveRecordLocally` ném `RecordDeletedError`, không ghi gì, nếu phiếu đã `deleted`. Server không chặn được việc này: `baseVersion` khớp thì ghi `deleted = 0`, và "Khôi phục" ở màn hình xung đột cũng đi đường đó.
+- **Lịch sử trình duyệt:** xoá xong thay mục lịch sử hiện tại (`navigateReplace`), nên Back không về lại phiếu. Giới hạn đã chấp nhận (tech-debt N24): phiếu đã rời máy thì không còn gì để phân biệt với phiếu mới, nên địa chỉ cũ và mục lịch sử cũ hơn ra form trống. Lưu ở đó thì server trả `409` và app hỏi như xoá vs sửa nếu server đã có tombstone; phiếu chưa từng lên server thì là phiếu mới.
 - Khôi phục phiếu đã xoá (bỏ tombstone) ngoài phạm vi MVP, trừ trường hợp người dùng chọn "Khôi phục" trong màn hình xung đột.
 
 ## 6. Mô hình dữ liệu
@@ -1034,6 +1038,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | Mở phiếu mà máy chưa có blob của ảnh (§5.6) | Tải về một lần; lỗi thì không lưu gì, phiếu không đổi | Đang tải: "Đang tải…" trong ô. Offline, timeout, mất kết nối: "Cần kết nối để xem ảnh này", có mạng lại thì tự thử lại. `404` (chưa lên server hoặc ngoài phạm vi, không phân biệt): "Ảnh chưa được tải lên". `5xx`, `429`, `4xx` khác, `200` không phải ảnh: "Máy chủ đang lỗi, thử lại sau", không tự thử lại. `401`, `403 not_member`, bộ nhớ đầy: như các dòng trên ("Bạn không còn thuộc tổ chức này" ở dưới ô ảnh) |
 | File nhập form không hợp lệ | Không đổi nội dung builder, không gửi | "File không phải JSON" / "File không đúng định dạng biểu mẫu" / lỗi luật lưu form (§4.1) |
 | Phiếu dùng form version chưa có trên máy | Trang điền phiếu gọi `syncNow()`, bước 5 tải form version đó (§5.3) | Đang tải: "Đang tải biểu mẫu…"; offline hoặc tải không được: "Cần kết nối để mở phiếu này", có mạng lại thì tự thử lại |
+| Mở lại phiếu đã xoá (§5.7) | Chỉ đọc, không tạo op; bấm Lưu đúng lúc phiếu vừa bị xoá thì tầng dữ liệu từ chối, không ghi gì | "Phiếu này đã bị xoá nên không sửa được nữa." |
 | Phiếu chưa đồng bộ quá 24 giờ | Không đổi hành vi | Cảnh báo đầu trang (§5.2) |
 | Bấm "Lấy vị trí" mà không lấy được (từ chối quyền, không lấy được, quá 30 s, trình duyệt không có geolocation) | Không đổi giá trị trường; chờ tối đa 30 s; bấm lại thì thử lại (`client/src/gps.ts`) | Lúc chờ: "Đang lấy vị trí…". Từ chối quyền: "Chưa được phép lấy vị trí. Bật quyền vị trí cho trang này trong cài đặt trình duyệt rồi bấm lại." Không lấy được hoặc quá giờ: "Không lấy được vị trí. Ra chỗ thoáng rồi bấm lại." Không có geolocation: "Trình duyệt này không lấy được vị trí." |
 
@@ -1079,6 +1084,7 @@ Phạm vi đồ án giữ đơn giản:
 | O7 | Xoá phiếu chưa từng gửi (tạo khi offline): bấm "Huỷ" thì phiếu còn; xác nhận thì phiếu, op, ảnh biến khỏi máy, online lên không có request nào cho phiếu đó (§5.7) | Có (`delete.spec.ts`; hộp xác nhận trong app, kiểm cả Huỷ và Esc) |
 | O8 | Xoá phiếu đã đồng bộ: phiếu biến khỏi danh sách, server có `deleted: true`, máy khác pull thấy tombstone; phiếu bị xoá khỏi máy sau khi op xoá được xác nhận (§5.7) | Có (`delete.spec.ts`) |
 | O9 | Mở phiếu máy khác tạo: thấy ảnh thật (giải mã được), nhãn vẫn "Đã đồng bộ", không có request upload, không có op, đăng xuất không bị chặn; mở lại khi offline vẫn thấy; lần đầu offline báo cần mạng, có mạng thì tự tải; `404`, `5xx` báo đúng câu, không gọi lặp; ảnh ngoài phạm vi không tải được; ảnh chờ gửi của máy này không bị đè (§5.6) | Có (`photo-download.spec.ts`) |
+| O10 | Mở lại phiếu đã xoá: Back sau khi xoá không về lại phiếu; op chờ gửi, op mất response, op bị `4xx`, tombstone pull về, tab khác xoá thì form khoá, không có Lưu và Xoá, không tạo op, server vẫn `deleted: true`; bộ đệm chỉ có [Bỏ], bấm xong vẫn khoá; địa chỉ cũ của phiếu đã rời máy ra form trống, Lưu thì app hỏi (§5.7) | Có (`delete.spec.ts`, `typing-buffer.spec.ts`, `delete-conflict.spec.ts`; unit `recordLock.test.ts`; chưa có E2E cho lúc bấm Lưu đúng lúc phiếu vừa bị xoá) |
 
 **Conflict**
 
