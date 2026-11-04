@@ -217,7 +217,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-11 | Owner cuối cùng | A7 `members.test.ts`; `members.spec.ts` (cả dòng thành viên hai dòng; chọn vai trò rồi bấm [Đổi], ← Quay lại khi không đủ quyền); `headings.spec.ts` (tiêu đề trang màn 6 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-08 (#38, #39); giao diện TV1-12 (b2 p5, màn 6 sau audit UI) |
 | US-11 | Người mới thêm thấy tổ chức, gửi được phiếu | M3 `orgs.spec.ts` | TV1-08 (#39), TV1-15 (#54) |
 | US-11 | Máy chủ lỗi ở Thành viên | `api-errors.spec.ts` (cả Tổ chức, builder lưu form, Xuất) | TV1-12 (#62, #68, b2 p5: Thử lại ngoài vùng alert, Tổ chức ẩn khối công khai) |
-| US-11 | Ghi xong mà tải lại danh sách lỗi | `members.spec.ts` (thêm một tên, Rút khi còn tên trong ô, bật công khai khi gõ dở tên tổ chức, thêm nhiều xoá câu lỗi cũ, [Thử lại] khoá lúc đang ghi, lần tải đầu lỗi, lần đầu cài đặt lỗi) | không ticket (chờ PR) |
+| US-11 | Ghi xong mà tải lại danh sách lỗi | `members.spec.ts` (thêm một tên, Rút khi còn tên trong ô, bật công khai khi gõ dở tên tổ chức, thêm nhiều xoá câu lỗi cũ, [Thử lại] khoá lúc đang ghi, lần tải đầu lỗi, lần đầu cài đặt lỗi) | không ticket (#124) |
 | US-11 | Thêm nhiều người một lần | `members.spec.ts` (ca "thêm nhiều": hết được, một phần, tin chia sẻ, supervisor, Owner hỏi lại, mất mạng, 5xx và `forbidden`, làm mới danh sách lỗi, khoá trong lúc chạy, quá 50 tên; bàn phím, 360px); unit `parseUsernameList`, `addInOrder`, `namesToKeep` (`client/src/members.test.ts`) | không ticket (#121) |
 | US-12 | Admin không đọc được dữ liệu | Q7 `projectRequests.test.ts`; T4 `isolation.test.ts`, `admin.test.ts` | TV2-15 (#49) |
 | US-12 | Tài khoản admin vào app khảo sát | Q11 `account.spec.ts` | TV2-16 (#50), TV1-14 (#53) |
