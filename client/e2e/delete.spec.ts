@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { API, PROJECT, TOKENS, authHeaders, login, readStore } from './helpers';
+import { API, PROJECT, TOKENS, authHeaders, login, putRow, readStore } from './helpers';
 
 // Xoá phiếu (design §5.7, TV2-13): chưa thể tới server thì xoá hẳn trên máy; có thể đã tới server
 // thì xoá mềm, gửi op xoá, server xác nhận xong mới xoá khỏi máy. Ca O7, O8 ở §10.1.
@@ -357,4 +357,297 @@ test('hộp xác nhận xoá đang mở thì phiếu thành xung đột: hộp �
   await expect(page.getByTestId('record-in-conflict')).toHaveCount(0, { timeout: 15_000 });
   await expect(page.getByRole('button', { name: 'Xoá phiếu' })).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
+// Mở lại phiếu đã xoá (design §5.7, ca O10): phiếu còn trên máy thì form khoá, không có Lưu và Xoá, để không
+// ai bỏ xoá mà không được hỏi (bất biến 1). Xung đột xoá vs sửa vẫn đi đường riêng (delete-conflict.spec.ts).
+const DELETED_TEXT = 'Phiếu này đã bị xoá nên không sửa được nữa.';
+const nameField = (page: Page) => page.locator('input[name=householdName]');
+const fillUrl = (id: string) => `/#/fill/household-survey/${id}`;
+
+/** Phiếu đã xoá mở ra đúng dạng khoá. Chờ ô nhập hiện trước để "không có Lưu" không qua chỉ vì trang chưa vẽ. */
+async function expectLocked(page: Page) {
+  await expect(nameField(page)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Lưu' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Xoá phiếu' })).toHaveCount(0);
+  await expect(page.getByTestId('record-deleted')).toHaveText(DELETED_TEXT);
+  await expect(nameField(page)).toBeDisabled();
+  await expect(page.getByRole('link', { name: '← Quay lại' })).toBeVisible();
+}
+
+/** Xoá rồi chờ về hẳn danh sách: hộp đóng trước khi xoá xong, đi tiếp ngay thì `navigate` kéo trang về lại danh sách. */
+async function deleteAndGoHome(page: Page, name: string) {
+  await deleteFromForm(page, name);
+  await expect(page.getByRole('button', { name: 'Tạo phiếu mới' })).toBeVisible();
+  await expect(recordRow(page, name)).toHaveCount(0);
+}
+
+async function createSyncedWithPhoto(page: Page, name: string): Promise<string> {
+  const id = await createWithPhoto(page, name);
+  await expect(recordRow(page, name).getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 15_000 });
+  return id;
+}
+
+test('O10: xoá khi offline rồi bấm Back thì về danh sách, không về lại phiếu', async ({ page, context }) => {
+  await login(page);
+  const name = uniq('Hộ O10 back offline');
+  const id = await createSyncedWithPhoto(page, name);
+  await context.setOffline(true);
+  await deleteAndGoHome(page, name);
+
+  await page.goBack();
+  await expect(page).not.toHaveURL(new RegExp(id));
+  await expect(page.getByRole('button', { name: 'Tạo phiếu mới' })).toBeVisible();
+});
+
+test('O10: xoá khi online, op đã xác nhận, bấm Back không ra form trống dưới id cũ', async ({ page }) => {
+  await login(page);
+  const name = uniq('Hộ O10 back online');
+  const id = await createSyncedWithPhoto(page, name);
+  await deleteAndGoHome(page, name);
+  await expect.poll(async () => (await records(page)).some((r) => r.id === id), { timeout: 15_000 }).toBe(false);
+
+  await page.goBack();
+  await expect(page).not.toHaveURL(new RegExp(id));
+  await expect(page.getByRole('button', { name: 'Lưu' })).toHaveCount(0);
+});
+
+test('O10: op xoá còn chờ gửi, mở lại địa chỉ cũ thì form khoá; phiếu và op không đổi, online thì xoá như thường', async ({
+  page,
+  context,
+  request,
+}) => {
+  await login(page);
+  const name = uniq('Hộ O10 chờ gửi');
+  const id = await createSyncedWithPhoto(page, name);
+  await context.setOffline(true);
+  await deleteAndGoHome(page, name);
+  const before = (await records(page)).find((r) => r.id === id);
+  const opsBefore = await ops(page, id);
+  expect(opsBefore).toMatchObject([{ deleted: true, attempts: 0 }]);
+
+  await page.goto(fillUrl(id));
+  await expectLocked(page);
+  await expect(nameField(page)).toHaveValue(name);
+  expect((await records(page)).find((r) => r.id === id)).toEqual(before);
+  expect(await ops(page, id)).toEqual(opsBefore);
+
+  await context.setOffline(false);
+  await expect.poll(async () => (await serverRecord(request, id))?.deleted, { timeout: 15_000 }).toBe(true);
+  expect(await serverRecord(request, id)).toMatchObject({ version: 2, deleted: true });
+});
+
+test('O10: op đã gửi mà mất response (attempts > 0), mở lại thì form khoá, không thêm op', async ({ page, request }) => {
+  await login(page);
+  const name = uniq('Hộ O10 mất response');
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
+  await request.post(FAULTS, { data: { mode: 'drop', count: 100 } });
+  try {
+    const id = await createWithPhoto(page, name);
+    await expect.poll(async () => (await ops(page, id))[0]?.attempts ?? 0, { timeout: 15_000 }).toBeGreaterThan(0);
+    await deleteAndGoHome(page, name);
+    expect(await ops(page, id)).toMatchObject([{ deleted: false }, { deleted: true }]);
+
+    await page.goto(fillUrl(id));
+    await expectLocked(page);
+    expect(await ops(page, id)).toMatchObject([{ deleted: false }, { deleted: true }]);
+
+    await request.delete(FAULTS);
+    await expect.poll(async () => (await serverRecord(request, id))?.deleted, { timeout: 20_000 }).toBe(true);
+  } finally {
+    await request.delete(FAULTS);
+  }
+});
+
+test('O10: đang mở phiếu đã xoá mà op được xác nhận (phiếu rời máy): vẫn khoá, không hiện lại Lưu', async ({
+  page,
+  context,
+  request,
+}) => {
+  await login(page);
+  const name = uniq('Hộ O10 rời máy');
+  const id = await createSyncedWithPhoto(page, name);
+  await context.setOffline(true);
+  await deleteAndGoHome(page, name);
+  await page.goto(fillUrl(id));
+  await expectLocked(page);
+
+  await context.setOffline(false);
+  await expect.poll(async () => (await records(page)).some((r) => r.id === id), { timeout: 15_000 }).toBe(false);
+  await expectLocked(page);
+  await expect(nameField(page)).toHaveValue(name);
+  expect(await serverRecord(request, id)).toMatchObject({ deleted: true });
+});
+
+test('O10: người khác xoá, pull về tombstone, mở địa chỉ cũ thì form khoá, không có op, server vẫn xoá', async ({
+  page,
+  request,
+}) => {
+  await login(page);
+  const name = uniq('Hộ O10 tombstone');
+  const id = await createSyncedWithPhoto(page, name);
+  const put = await request.put(`${API}/records/${id}`, {
+    headers: { ...authHeaders(TOKENS.lan), 'Idempotency-Key': crypto.randomUUID() },
+    data: { formId: 'household-survey', formVersion: 1, baseVersion: 1, deleted: true, data: { householdName: name } },
+  });
+  expect(put.status()).toBe(200);
+  await page.getByRole('button', { name: 'Đồng bộ' }).click();
+  await expect.poll(async () => (await records(page)).find((r) => r.id === id)?.deleted).toBe(true);
+
+  await page.goto(fillUrl(id));
+  await expectLocked(page);
+  expect(await ops(page, id)).toHaveLength(0);
+  expect(await serverRecord(request, id)).toMatchObject({ version: 2, deleted: true });
+});
+
+test('O10: op xoá bị 4xx: form khoá nhưng vẫn có [Thử lại], bấm thì server có tombstone', async ({
+  page,
+  context,
+  request,
+}) => {
+  await login(page);
+  const name = uniq('Hộ O10 lỗi xoá');
+  const id = await createSyncedWithPhoto(page, name);
+  await context.setOffline(true);
+  await deleteAndGoHome(page, name);
+  await request.post(FAULTS, { data: { mode: '400', count: 1 } });
+  try {
+    await context.setOffline(false);
+    await expect.poll(async () => (await records(page)).find((r) => r.id === id)?.syncState, { timeout: 15_000 }).toBe('error');
+
+    await page.goto(fillUrl(id));
+    await expectLocked(page);
+    await expect(page.getByTestId('sync-error')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Thử lại' }).click();
+    await expect.poll(async () => (await serverRecord(request, id))?.deleted, { timeout: 15_000 }).toBe(true);
+  } finally {
+    await request.delete(FAULTS);
+  }
+});
+
+test('O10: địa chỉ cũ của phiếu đã rời máy ra form trống; nhập rồi Lưu thì app hỏi, server không tự bỏ xoá (N24)', async ({
+  page,
+  request,
+}) => {
+  await login(page);
+  const name = uniq('Hộ O10 form trống');
+  const id = await createSyncedWithPhoto(page, name);
+  await deleteAndGoHome(page, name);
+  await expect.poll(async () => (await records(page)).some((r) => r.id === id), { timeout: 15_000 }).toBe(false);
+
+  await page.goto(fillUrl(id));
+  await expect(nameField(page)).toHaveValue('');
+  const typed = `${name} nhập lại`;
+  await nameField(page).fill(typed);
+  await page.getByRole('button', { name: 'Lưu' }).click();
+
+  await expect(recordRow(page, typed).getByRole('link', { name: 'Cần xử lý xung đột' })).toBeVisible({ timeout: 15_000 });
+  expect(await serverRecord(request, id)).toMatchObject({ deleted: true, data: { householdName: name } });
+});
+
+test('O10: tab kia xoá khi tab này đang gõ: tab này khoá, chữ vẫn trên màn hình', async ({ page, context }) => {
+  await login(page);
+  const name = uniq('Hộ O10 hai tab');
+  const id = await createSyncedWithPhoto(page, name);
+  await page.goto(fillUrl(id));
+  await expect(nameField(page)).toHaveValue(name);
+
+  const other = await context.newPage();
+  await other.goto(fillUrl(id));
+  await other.getByRole('button', { name: 'Xoá phiếu' }).click();
+  await expect(other.getByRole('dialog')).toBeVisible();
+
+  const typed = `${name} đang gõ`;
+  await nameField(page).fill(typed);
+  await other.getByRole('dialog').getByRole('button', { name: 'Xoá', exact: true }).click();
+  await expect.poll(async () => (await records(page)).some((r) => r.id === id), { timeout: 15_000 }).toBe(false);
+  await other.close();
+
+  await expectLocked(page);
+  await expect(nameField(page)).toHaveValue(typed);
+});
+
+test('O10: phiếu đã rời máy còn bộ đệm: chỉ có [Bỏ], bấm xong báo đã xoá, không còn form và không tạo lại phiếu', async ({
+  page,
+}) => {
+  await login(page);
+  const name = uniq('Hộ O10 còn bộ đệm');
+  const id = await createSyncedWithPhoto(page, name);
+  await deleteAndGoHome(page, name);
+  await expect.poll(async () => (await records(page)).some((r) => r.id === id), { timeout: 15_000 }).toBe(false);
+  // Bộ đệm do tab khác ghi trước khi phiếu bị xoá: gốc khác rỗng nên biết đây không phải phiếu mới
+  await putRow(page, DB, 'meta', {
+    key: `typing:${id}`,
+    value: {
+      formId: 'household-survey',
+      formVersion: 1,
+      data: { householdName: `${name} đang gõ` },
+      base: { householdName: name },
+      savedAt: new Date().toISOString(),
+    },
+  });
+
+  await page.goto(fillUrl(id));
+  const restore = page.getByTestId('typing-restore');
+  await expect(restore).toContainText('Phiếu này đã bị xoá nên không khôi phục được nội dung đang nhập.');
+  await expect(page.getByTestId('record-deleted')).toHaveCount(0);
+  await restore.getByRole('button', { name: 'Bỏ' }).click();
+
+  await expect(page.getByTestId('record-deleted')).toHaveText(DELETED_TEXT);
+  // Không còn gì để xem: ẩn form thay vì một form trống bị khoá
+  await expect(page.getByTestId('record-form')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Lưu' })).toHaveCount(0);
+  expect((await records(page)).some((r) => r.id === id)).toBe(false);
+  expect(await ops(page, id)).toHaveLength(0);
+});
+
+test('O10: hộp xác nhận xoá đang mở mà tab kia đã xoá phiếu thì hộp đóng, form khoá', async ({ page, context }) => {
+  await login(page);
+  const name = uniq('Hộ O10 hộp mở');
+  const id = await createSyncedWithPhoto(page, name);
+  await page.goto(fillUrl(id));
+  await page.getByRole('button', { name: 'Xoá phiếu' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+
+  const other = await context.newPage();
+  await other.goto(fillUrl(id));
+  await clickDelete(other);
+  // Hộp đóng trước khi xoá xong: đóng tab ngay thì lệnh xoá chưa kịp chạy
+  await expect(other.getByRole('button', { name: 'Tạo phiếu mới' })).toBeVisible();
+  await other.close();
+
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expectLocked(page);
+});
+
+/** Ghi lại nếu dải đã xoá từng xuất hiện trong DOM, dù chỉ một khung hình: đánh dấu lên thẻ html, không bị trang vẽ lại. */
+async function watchDeletedBanner(page: Page) {
+  await page.evaluate(() => {
+    new MutationObserver((batch) => {
+      for (const m of batch) {
+        for (const n of m.addedNodes) {
+          if (n instanceof HTMLElement && (n.matches('[data-testid=record-deleted]') || n.querySelector('[data-testid=record-deleted]'))) {
+            document.documentElement.dataset.deletedBannerSeen = 'true';
+          }
+        }
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+}
+const deletedBannerSeen = (page: Page) => page.locator('html').getAttribute('data-deleted-banner-seen');
+
+test('O10: xoá xong dải đã xoá không nhấp nháy trước khi về danh sách (xoá mềm và xoá hẳn)', async ({ page, context }) => {
+  await login(page);
+  await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
+  const synced = uniq('Hộ O10 nhấp nháy mềm');
+  await createSyncedWithPhoto(page, synced);
+  await context.setOffline(true);
+  const local = uniq('Hộ O10 nhấp nháy hẳn');
+  await createWithPhoto(page, local);
+  await watchDeletedBanner(page);
+
+  await deleteAndGoHome(page, synced);
+  await deleteAndGoHome(page, local);
+  expect(await deletedBannerSeen(page)).toBeNull();
 });

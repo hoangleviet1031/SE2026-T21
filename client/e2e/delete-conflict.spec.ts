@@ -123,6 +123,37 @@ test('C4: máy xoá, server sửa; chọn "Vẫn xoá" thì server deleted: true
   await expect.poll(async () => localRecord(page, id), { timeout: 15_000 }).toBeUndefined();
 });
 
+test('C4: phiếu đã xoá mà đang xung đột, mở bằng địa chỉ thì là dải xung đột, không phải dải đã xoá', async ({
+  page,
+  context,
+  request,
+}) => {
+  const name = `Hộ C4 mở ${Date.now()}`;
+  const id = await localDeleteRemoteEdit(page, context, request, name);
+  await expect(recordRow(page, name).getByRole('link', { name: 'Cần xử lý xung đột' })).toBeVisible({ timeout: 15_000 });
+
+  await page.goto(`/#/fill/household-survey/${id}`);
+  await expect(page.getByTestId('record-in-conflict')).toBeVisible();
+  await expect(page.getByTestId('record-deleted')).toHaveCount(0);
+  await expect(page.locator('input[name=householdName]')).toBeDisabled();
+  await page.getByTestId('record-in-conflict').getByRole('link', { name: 'Xử lý' }).click();
+  await expect(page.getByTestId('delete-conflict')).toBeVisible();
+});
+
+test('C4: chọn "Giữ phiếu" rồi mở lại thì sửa được như thường, không còn khoá', async ({ page, context, request }) => {
+  const name = `Hộ C4 giữ mở ${Date.now()}`;
+  await localDeleteRemoteEdit(page, context, request, name);
+  const dialog = await openDialog(page, name, /Bạn đã xoá phiếu này nhưng lan vừa sửa nó/);
+  await dialog.getByRole('radio', { name: 'Giữ phiếu (với bản của lan)' }).check();
+  await page.getByRole('button', { name: APPLY }).click();
+  await expect(recordRow(page, name).getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 15_000 });
+
+  await recordRow(page, name).getByRole('link').first().click();
+  await expect(page.locator('input[name=householdName]')).toBeEnabled();
+  await expect(page.getByTestId('record-deleted')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Lưu' })).toBeVisible();
+});
+
 test('C5: máy sửa, server xoá; chọn "Khôi phục" thì server có phiếu chưa xoá với bản của mình', async ({
   page,
   context,

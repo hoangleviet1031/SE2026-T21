@@ -190,6 +190,48 @@ test('ảnh đã chọn chưa Lưu: tải lại, Khôi phục thì ảnh vẫn c
   await expect(nameInput(page)).toHaveValue('Hộ ảnh dở');
 });
 
+test('đang gõ thì tombstone về: chữ còn trên form khoá; mở lại chỉ có [Bỏ], bấm xong vẫn khoá, không có op', async ({
+  page,
+  request,
+}) => {
+  await login(page);
+  const id = await createSynced(page, 'Hộ gõ dở bị xoá');
+  await recordRow(page, 'Hộ gõ dở bị xoá').getByTestId('record-title').click();
+  await membersInput(page).fill('6');
+
+  // Chưa chờ tự lưu: phần đang chờ vẫn phải được ghi lúc rời trang dù form đã khoá (design §4.1)
+  const put = await request.put(`${API}/records/${id}`, {
+    headers: { ...authHeaders(TOKENS.lan), 'Idempotency-Key': crypto.randomUUID() },
+    data: { formId: 'household-survey', formVersion: 1, baseVersion: 1, deleted: true, data: { householdName: 'Hộ gõ dở bị xoá', members: 3 } },
+  });
+  expect(put.status()).toBe(200);
+  await page.getByRole('button', { name: 'Đồng bộ' }).click();
+
+  const deletedBanner = page.getByTestId('record-deleted');
+  await expect(page.getByRole('button', { name: 'Lưu' })).toHaveCount(0, { timeout: 15_000 });
+  await expect(deletedBanner).toHaveText('Phiếu này đã bị xoá nên không sửa được nữa.');
+  await expect(membersInput(page)).toBeDisabled();
+  await expect(membersInput(page)).toHaveValue('6');
+
+  await page.getByRole('link', { name: '← Quay lại' }).click();
+  await expectBuffered(page, id, 'members', 6);
+
+  await page.goto(`/#/fill/household-survey/${id}`);
+  await expect(banner(page)).toHaveText(/Phiếu này đã bị xoá nên không khôi phục được nội dung đang nhập\./);
+  // Không có hai dải cùng nói phiếu đã xoá
+  await expect(deletedBanner).toHaveCount(0);
+  await expect(banner(page).getByRole('button', { name: 'Khôi phục' })).toHaveCount(0);
+  expect((await typingBuffer(page, id))?.data.members).toBe(6);
+
+  await banner(page).getByRole('button', { name: 'Bỏ' }).click();
+  await expect(banner(page)).toHaveCount(0);
+  await expect(deletedBanner).toBeVisible();
+  await expect(membersInput(page)).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Lưu' })).toHaveCount(0);
+  await expect.poll(() => typingBuffer(page, id)).toBeUndefined();
+  expect(await opsOf(page, id)).toHaveLength(0);
+});
+
 /** Máy này sửa tên khi offline và Lưu, máy B sửa cùng trường trên server: phiếu thành `conflict`. */
 async function goConflict(page: Page, context: BrowserContext, request: APIRequestContext, id: string, name: string) {
   await context.setOffline(true);

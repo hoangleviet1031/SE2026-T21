@@ -9,15 +9,16 @@ import { FormRenderer } from '../components/FormRenderer';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { RecordErrorBox } from '../components/RecordErrorBox';
 import { Icon } from '../components/Icon';
-import { RecordInConflictError, deleteRecordLocally, saveRecordLocally } from '../sync/outbox';
+import { RecordDeletedError, RecordInConflictError, deleteRecordLocally, saveRecordLocally } from '../sync/outbox';
 import { syncNow } from '../sync/engine';
 import { displayState } from '../sync/displayState';
 import { statusIcon } from '../statusIcon';
 import { requestPersistentStorage } from '../persistStorage';
-import { navigate } from '../useHashRoute';
+import { navigate, navigateReplace } from '../useHashRoute';
 import { useOnline } from '../useOnline';
 import { formatEditedAt } from '../recordList';
-import { keptFieldLine, needsBuffer, restorePlan, type RestorePlan } from '../typingBuffer';
+import { recordLock } from '../recordLock';
+import { keptFieldLine, needsBuffer, restorePlan, withoutEmpty, type RestorePlan } from '../typingBuffer';
 import { deleteTypingBuffer, getTypingBuffer, putTypingBuffer, setTypingFlush } from '../db/typingBuffer';
 
 /** Dải bộ đệm đang nhập (ui.md màn hình 4): đang hỏi khôi phục, phiếu đã bị xoá, hay báo trường giữ bản mới */
@@ -50,6 +51,11 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const [inConflict, setInConflict] = useState(false);
   // Đang hỏi xác nhận xoá phiếu
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // Đang xoá theo lệnh của chính trang này: sắp về danh sách, không báo "đã bị xoá" cho một khung hình
+  const [removing, setRemoving] = useState(false);
+  // Id phiếu biết là từng có trên máy: sau đó mà không còn thì là đã xoá, không phải phiếu mới (design §5.7)
+  const [seenRecordId, setSeenRecordId] = useState<string>();
+  if (record?.id === id && seenRecordId !== id) setSeenRecordId(id);
 
   // Đọc phiếu và bộ đệm cùng lúc khi mở trang: có bộ đệm thì hỏi khôi phục, không tự điền (design §4.1)
   useEffect(() => {
@@ -71,6 +77,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
         return;
       }
       hasBuffer.current = true;
+      if (plan.kind === 'gone') setSeenRecordId(id);
       setTypingPrompt(plan.kind === 'gone' ? { kind: 'gone' } : { kind: 'ask', savedAt: buffer.savedAt });
     }).catch((e) => console.warn('không đọc được phiếu hoặc bộ đệm đang nhập', e));
     return () => {
@@ -94,12 +101,17 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   }, [missingVersion, online]);
 
   const asking = typingPrompt?.kind === 'ask' || typingPrompt?.kind === 'gone';
-  const conflictNow = record?.syncState === 'conflict' || inConflict;
+  const lock = recordLock({ record, recordId: id, seenRecordId, inConflict });
+  const conflictNow = lock === 'conflict';
+  const deletedNow = lock === 'deleted';
+  // Phiếu xung đột hay đã xoá đều chỉ đọc. Có thể đổi ngay lúc form đang mở (đồng bộ chạy nền, tab khác):
+  // liveQuery đổi record là trang tự chuyển sang chỉ đọc, phần đang nhập vẫn hiện trên màn hình.
+  const readOnly = lock !== 'editable';
 
   // Tự lưu chữ đang gõ sau 1 s ngừng gõ (design §4.1). Không ghi khi đang hỏi khôi phục (sẽ đè bộ đệm cũ)
-  // hay phiếu đang xung đột (chỉ đọc). Chỉ ghi meta, không đụng phiếu và outbox (bất biến 2, 3).
+  // hay phiếu chỉ đọc (xung đột, đã xoá). Chỉ ghi meta, không đụng phiếu và outbox (bất biến 2, 3).
   useEffect(() => {
-    if (!db || !form || base === null || asking || conflictNow) return;
+    if (!db || !form || base === null || asking || readOnly) return;
     const write = async () => {
       pendingWrite.current = null;
       if (needsBuffer(data, base)) {
@@ -123,7 +135,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
       void write().catch((e) => console.warn('không ghi được bộ đệm đang nhập', e));
     }, 1000);
     return () => clearTimeout(timer);
-  }, [db, form, id, data, base, asking, conflictNow]);
+  }, [db, form, id, data, base, asking, readOnly]);
 
   // Ẩn trang (chuyển app, khoá máy: Android hay tắt app lúc này) hoặc rời trang thì ghi ngay phần đang chờ
   useEffect(() => {
@@ -160,10 +172,9 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // Lỗi lấy từ lần lưu gần nhất (design §4.1: mở lại nháp thì thấy danh sách lỗi)
   const isDraft = record?.syncState === 'draft';
 
-  // Phiếu đang xung đột thì chỉ đọc (ADR 0001 quy tắc 7, design §4.5): khoá ô nhập, ẩn Lưu và Xoá, banner
-  // dẫn tới màn hình xung đột. Phiếu có thể thành conflict ngay lúc form đang mở (đồng bộ chạy nền):
-  // liveQuery đổi record là trang tự chuyển sang chỉ đọc, phần đang nhập vẫn hiện trên màn hình.
-  const readOnly = conflictNow;
+  // Phiếu chỉ đọc (ADR 0001 quy tắc 7, design §4.5, §5.7): khoá ô nhập, ẩn Lưu và Xoá; xung đột có banner dẫn
+  // tới màn hình xung đột, đã xoá có banner báo. Phiếu đã xoá mà không còn gì để xem thì ẩn luôn form.
+  const noContent = deletedNow && Object.keys(withoutEmpty(data)).length === 0;
   // Phiếu thành chỉ đọc lúc hộp xoá đang mở: đóng hẳn hộp, để khi hết xung đột hộp không tự hiện lại.
   // Chỉnh state ngay lúc render (không dùng effect vì phía trên có return sớm)
   if (readOnly && confirmingDelete) setConfirmingDelete(false);
@@ -171,11 +182,13 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // Phiếu mới chưa lưu thì chưa có trạng thái gì
   const state = record ? displayState(record, photos ?? []) : undefined;
   const canDelete = !!record && !!project && !!user && canDeleteRecord(project.role, user.id, record.createdBy);
-  // Bấm Lưu đúng lúc phiếu vừa thành conflict (trước khi liveQuery kịp cập nhật): tầng dữ liệu từ chối.
-  const unlessInConflict = async <T,>(write: () => Promise<T>): Promise<T | undefined> => {
+  // Bấm Lưu đúng lúc phiếu vừa thành conflict hay vừa bị xoá (trước khi liveQuery kịp cập nhật): tầng dữ liệu
+  // từ chối, không ghi gì; chữ đang gõ vẫn còn. Phiếu vừa bị xoá thì liveQuery tự chuyển trang sang chỉ đọc.
+  const unlessLocked = async <T,>(write: () => Promise<T>): Promise<T | undefined> => {
     try {
       return await write();
     } catch (err) {
+      if (err instanceof RecordDeletedError) return undefined;
       if (!(err instanceof RecordInConflictError)) throw err;
       setInConflict(true);
       return undefined;
@@ -190,7 +203,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   };
 
   const save = async () => {
-    const errors = await unlessInConflict(() =>
+    const errors = await unlessLocked(() =>
       saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data }),
     );
     if (!errors) return;
@@ -209,10 +222,15 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const remove = async () => {
     // Đóng hộp trước khi ghi để bấm Xoá hai lần không chạy xoá hai lần
     setConfirmingDelete(false);
-    if (!(await unlessInConflict(() => deleteRecordLocally(db, id)))) return;
+    setRemoving(true);
+    if (!(await unlessLocked(() => deleteRecordLocally(db, id)))) {
+      setRemoving(false);
+      return;
+    }
     await dropBuffer();
     void syncNow();
-    navigate();
+    // Thay mục lịch sử: Back không về lại phiếu vừa xoá (design §5.7)
+    navigateReplace();
   };
 
   // Khôi phục theo phiếu lúc bấm (có thể vừa đồng bộ về bản mới), không theo lúc mở trang
@@ -222,6 +240,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
     const current = rec?.data ?? {};
     setBase(current);
     if (plan.kind === 'gone') {
+      setSeenRecordId(id);
       setTypingPrompt({ kind: 'gone' });
       return;
     }
@@ -258,9 +277,15 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
           {record.syncState === 'error' && <RecordErrorBox db={db} recordId={id} lastError={record.lastError} />}
         </div>
       )}
-      {readOnly && (
+      {conflictNow && (
         <div className="ro-banner" data-testid="record-in-conflict">
           <span>Phiếu này cần xử lý xung đột trước.</span> <a href={`#/conflict/${id}`}>Xử lý</a>
+        </div>
+      )}
+      {/* Dải "đã bị xoá…" của bộ đệm đang hiện thì không thêm dải thứ hai cùng ý */}
+      {deletedNow && !removing && typingPrompt?.kind !== 'gone' && (
+        <div className="ro-banner" data-testid="record-deleted">
+          <span>Phiếu này đã bị xoá nên không sửa được nữa.</span>
         </div>
       )}
       {typingPrompt?.kind === 'ask' && (
@@ -302,16 +327,18 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
       )}
       {/* fieldset disabled khoá mọi ô nhập và nút bên trong, kể cả chọn/bỏ ảnh */}
       {/* Đang hỏi khôi phục thì khoá: gõ tiếp rồi bấm Khôi phục sẽ thay mất phần vừa gõ */}
-      <fieldset className="form-fieldset" disabled={readOnly || asking} data-testid="record-form">
-        <FormRenderer
-          db={db}
-          form={form}
-          recordId={id}
-          value={data}
-          onChange={setData}
-          errors={isDraft ? record.validationErrors : undefined}
-        />
-      </fieldset>
+      {!noContent && (
+        <fieldset className="form-fieldset" disabled={readOnly || asking} data-testid="record-form">
+          <FormRenderer
+            db={db}
+            form={form}
+            recordId={id}
+            value={data}
+            onChange={setData}
+            errors={isDraft ? record.validationErrors : undefined}
+          />
+        </fieldset>
+      )}
       {/* Hàng nút dính đáy màn hình để phiếu dài vẫn bấm Lưu bằng ngón cái (ui.md màn hình 4, TV1-12 b2) */}
       {!readOnly && !asking && (
         <div className="actionbar" data-testid="record-actions">

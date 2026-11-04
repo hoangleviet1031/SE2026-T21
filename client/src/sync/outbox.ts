@@ -1,5 +1,6 @@
 import { validateRecord, type RecordData } from '@field-survey/shared';
 import { formKey, type LocalRecord, type OutboxOp, type ProjectDb } from '../db/projectDb';
+import { saveWouldUndelete } from '../recordLock';
 
 /**
  * Phiếu đang `conflict` là chỉ đọc cho tới khi người dùng giải quyết (ADR 0001 quy tắc 7): cho sửa
@@ -14,12 +15,24 @@ export class RecordInConflictError extends Error {
 }
 
 /**
+ * Phiếu đã xoá không lưu tiếp được (design §5.7): lưu sẽ bỏ xoá mà người dùng không được hỏi, kể cả trên server
+ * (bất biến 1). Màn hình đã khoá form; lỗi này chặn ở tầng dữ liệu cho lúc phiếu vừa bị xoá khi form đang mở.
+ */
+export class RecordDeletedError extends Error {
+  constructor(readonly recordId: string) {
+    super(`Phiếu ${recordId} đã bị xoá, không lưu tiếp được`);
+    this.name = 'RecordDeletedError';
+  }
+}
+
+/**
  * Lưu bản ghi cục bộ và đưa vào outbox trong cùng một transaction,
  * nên không bao giờ có bản ghi đã sửa mà không có op tương ứng.
  *
  * Phiếu chưa qua validate thì lưu thành nháp, không tạo op (design §4.1, §5.1).
  * Trả lỗi theo id trường; object rỗng nghĩa là phiếu hợp lệ và đã vào outbox.
  * Phiếu đang `conflict` thì ném `RecordInConflictError`, không ghi gì (cả lưu lẫn xoá).
+ * Phiếu đã xoá thì ném `RecordDeletedError`, không ghi gì.
  */
 export async function saveRecordLocally(
   db: ProjectDb,
@@ -34,6 +47,7 @@ export async function saveRecordLocally(
   return db.transaction('rw', db.records, db.outbox, db.forms, async () => {
     const existing = await db.records.get(input.id);
     if (existing?.syncState === 'conflict') throw new RecordInConflictError(input.id);
+    if (saveWouldUndelete(existing, input.deleted)) throw new RecordDeletedError(input.id);
     const now = new Date().toISOString();
     const deleted = input.deleted ?? false;
 

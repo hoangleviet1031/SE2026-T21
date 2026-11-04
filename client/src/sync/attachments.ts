@@ -2,7 +2,7 @@ import { nextRetryDelay } from '@field-survey/shared';
 import type { LocalAttachment, ProjectDb } from '../db/projectDb';
 import { NetworkError, completeAttachment, fetchAttachmentStatus, putAttachmentChunk, type AttachmentResult } from './api';
 import { classifyUploadError, isUploadable } from './attachmentRules';
-import { saveRecordLocally } from './outbox';
+import { RecordDeletedError, saveRecordLocally } from './outbox';
 
 // Hàng đợi upload ảnh (design §5.6): chính bảng attachments, không dùng outbox. Chạy trong vòng
 // đồng bộ sau bước push phiếu (§5.3 bước 3), mỗi lần một ảnh, cũ trước mới sau.
@@ -121,7 +121,8 @@ export async function retryAttachment(db: ProjectDb, id: string): Promise<void> 
 /**
  * "Bỏ ảnh này": bỏ id khỏi mọi trường của phiếu, lưu qua saveRecordLocally để có op mới (CLAUDE.md
  * bất biến 2). Blob giữ trên máy tới khi người dùng dọn bộ nhớ (§5.6). Phiếu đang xung đột thì
- * saveRecordLocally ném RecordInConflictError; màn hình không hiện nút cho phiếu đó.
+ * saveRecordLocally ném RecordInConflictError; màn hình không hiện nút cho phiếu đó. Phiếu vừa bị xoá
+ * (tombstone về lúc đang xem danh sách): không còn gì để bỏ, ảnh đi cùng phiếu (design §5.7).
  */
 export async function dropAttachment(db: ProjectDb, recordId: string, attachmentId: string): Promise<void> {
   const record = await db.records.get(recordId);
@@ -129,5 +130,9 @@ export async function dropAttachment(db: ProjectDb, recordId: string, attachment
   const data = Object.fromEntries(
     Object.entries(record.data).map(([k, v]) => [k, Array.isArray(v) ? v.filter((x) => x !== attachmentId) : v]),
   );
-  await saveRecordLocally(db, { id: record.id, formId: record.formId, formVersion: record.formVersion, data });
+  try {
+    await saveRecordLocally(db, { id: record.id, formId: record.formId, formVersion: record.formVersion, data });
+  } catch (err) {
+    if (!(err instanceof RecordDeletedError)) throw err;
+  }
 }
