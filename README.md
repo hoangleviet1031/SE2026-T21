@@ -2,6 +2,7 @@
 
 PWA thu thập phiếu khảo sát khi mất mạng, tự đồng bộ khi có kết nối, và giải thích xung đột cho người dùng. Một hệ thống phục vụ nhiều nhóm/tổ chức, mỗi nhóm là một dự án có dữ liệu tách biệt.
 
+- **Hướng dẫn sử dụng** (điều tra viên, giám sát viên và Owner, quản trị): [docs/user-guide.md](docs/user-guide.md)
 - Thiết kế: [docs/design.md](docs/design.md), phác thảo giao diện: [docs/ui.md](docs/ui.md)
 - Mô hình nhất quán: [docs/adr/0001-consistency-model.md](docs/adr/0001-consistency-model.md)
 - Nhiều tổ chức (multi-tenancy): [docs/adr/0002-multi-tenancy.md](docs/adr/0002-multi-tenancy.md)
