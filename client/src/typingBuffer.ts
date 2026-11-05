@@ -14,6 +14,11 @@ export interface TypingBuffer {
   base: RecordData;
   /** Lúc ghi (ISO, giờ thiết bị), chỉ để hiện cho người dùng */
   savedAt: string;
+  /**
+   * Vừa tạo bằng "Nhân bản phiếu" (design §4.1): lần nạp đầu điền luôn, không hỏi. Tự lưu ghi lại thì mất cờ, nên
+   * lần mở sau hỏi Khôi phục / Bỏ như phiếu mới gõ dở; phiếu chưa có trên máy không có cách bỏ nào khác.
+   */
+  fromCopy?: boolean;
 }
 
 /** Ô rỗng: chưa nhập, xoá trống ô số hay ô chọn (null), chuỗi rỗng, chưa chọn ảnh nào */

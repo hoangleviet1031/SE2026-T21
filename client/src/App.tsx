@@ -89,7 +89,8 @@ export function App() {
           <ProjectSwitcher />
           <main>
             {page === 'fill' && args[0] ? (
-              <FillPage formId={args[0]} recordId={args[1]} />
+              // key: mỗi phiếu một trang mới, state của phiếu trước không theo sang (vd. từ phiếu gốc sang bản sao)
+              <FillPage key={args[1]} formId={args[0]} recordId={args[1]} />
             ) : page === 'conflict' && args[0] ? (
               <ConflictPage recordId={args[0]} />
             ) : page === 'builder' && args[0] ? (
