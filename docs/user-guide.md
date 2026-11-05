@@ -95,6 +95,8 @@ Từ trên xuống:
 
 **Lỡ thoát giữa chừng?** Chữ đang gõ được tự giữ trên máy kể cả khi chưa bấm Lưu (tắt ứng dụng, hết pin, bấm Quay lại). Mở lại phiếu đó sẽ thấy "Có nội dung đang nhập chưa lưu" với hai nút **Khôi phục** / **Bỏ**. Phiếu mới gõ dở mà chưa Lưu lần nào hiện ở dải **Phiếu đang nhập dở, chưa lưu** trên trang chủ.
 
+**Nhân bản phiếu:** cần điền nhiều phiếu gần giống nhau (cùng thôn, cùng đợt)? Mở một phiếu đã lưu, bấm **Nhân bản phiếu** ở dưới form. Ứng dụng mở một phiếu mới điền sẵn các giá trị đang hiện, kèm dải "Đây là bản sao, chưa lưu. Ảnh và vị trí không được chép." Sửa những chỗ khác rồi bấm **Lưu**. Chưa bấm Lưu thì bản sao chưa thành phiếu; rời trang thì nó nằm ở dải "Phiếu đang nhập dở, chưa lưu" trên trang chủ. Phiếu gốc không đổi. Không nhân bản được phiếu đang xung đột hay đã xoá; điều tra viên chỉ nhân bản phiếu mình tạo.
+
 **Xoá phiếu:** mở phiếu, bấm **Xoá phiếu**, xác nhận **Xoá**. Điều tra viên chỉ xoá được phiếu mình tạo.
 
 | Câu báo khi lấy vị trí | Làm gì |
@@ -322,4 +324,5 @@ Vận hành máy chủ (deploy, sao lưu, khôi phục) ở [deploy.md](deploy.m
 | Bộ nhớ đầy: đồng bộ rồi dọn ảnh đã tải lên | Điền phiếu | Đồng bộ, xoá bớt dữ liệu khác trên máy |
 | Không đọc được ảnh này. Hãy chụp lại hoặc chọn ảnh JPEG/PNG | Điền phiếu | Ảnh HEIC trên Android không đọc được; chụp thẳng bằng nút + Chụp ảnh |
 | Phiếu này đã bị xoá nên không sửa được nữa. | Điền phiếu | Phiếu đã xoá ở nơi khác; quay lại danh sách |
+| Không nhân bản được phiếu. Thử lại sau. | Điền phiếu | Thường do bộ nhớ máy đầy; đồng bộ, dọn bớt rồi bấm lại |
 | Có phiên bản mới [Tải lại] | Trên cùng | Bấm Tải lại khi tiện; chữ đang gõ được giữ, mở lại phiếu để khôi phục |
