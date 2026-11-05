@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.70 (2026-11-04)
+- **Phiên bản:** 0.5.71 (2026-11-05)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -104,6 +104,7 @@
 | 0.5.68 | 2026-11-03 | Lấp chỗ hở spec của dòng Attachments (Must, không ticket, Dương duyệt): xem được ảnh do máy khác tạo. §1 ghi thêm; §4.4, §5.6 mục "Tải về để xem" (tải khi mở phiếu, ghi `done`, không tạo op, nút × chỉ có khi đã có blob); §5.6 sửa câu "Ảnh đang tải lên" thành hai ca; §7 dòng `GET P/attachments/:id`; §8 thêm dòng; §10.1 thêm O9. Không đổi server, schema, mã lỗi. Thêm nợ N23 (chưa có cách dọn ảnh) |
 | 0.5.69 | 2026-11-04 | Sửa lỗi màn hình Thành viên (không ticket, Dương cho phép): đã có danh sách mà tải lại lỗi thì giữ form, phần đang nhập, danh sách cũ, câu lỗi kèm "Thử lại" (§4.7, §8). Không đổi API, mã lỗi |
 | 0.5.70 | 2026-11-04 | Sửa lỗi phiếu đã xoá sống lại ở màn hình 4 (không ticket, Dương cho phép, Must theo US-06): phiếu đã xoá mở lại thì form khoá, báo đã xoá, không có Lưu và Xoá; `saveRecordLocally` từ chối lưu lên phiếu đã xoá (`RecordDeletedError`); xoá xong thay mục lịch sử để Back không về lại phiếu (§4.1, §5.7, §8, ca O10). Không đổi API, mã lỗi, schema; giới hạn còn lại ở tech-debt N24 |
+| 0.5.71 | 2026-11-05 | Nhân bản phiếu ở màn hình 4 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-04): §1 thêm dòng MoSCoW; §4.1 mục "Nhân bản phiếu" (bản sao là bộ đệm của id mới, `fromCopy`, dùng form mới nhất, không chép ảnh, vị trí, trường ẩn, giá trị sai định dạng); §5.1 bản sao chưa Lưu không phải phiếu; §8 không ghi được bản sao vào máy thì báo. Không đổi API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -167,6 +168,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Tự lưu chữ đang gõ (§4.1) | Chữ chưa bấm Lưu ở màn hình 4 được giữ trên máy; tải lại hay app bị tắt thì mở lại phiếu hỏi khôi phục. | Could (Dương chốt 2026-10-30, ngoài MVP, cắt được) |
 | Gửi tên đăng nhập, hiện vai trò (§4.7) | Nút [Sao chép], [Chia sẻ] dưới tên đăng nhập; hàng tổ chức đang chọn hiện vai trò của mình. | Could (Dương chọn 2026-11-02, ngoài MVP, cắt được) |
 | Thêm nhiều thành viên một lần (§4.7) | Dán danh sách tên đăng nhập ở màn hình Thành viên, xem kết quả từng tên. | Could (Dương duyệt 2026-11-03, ngoài MVP, cắt được) |
+| Nhân bản phiếu (§4.1) | Nút ở màn hình 4 tạo phiếu mới chưa Lưu, điền sẵn giá trị của phiếu đang mở. | Could (Dương duyệt 2026-11-04, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
 **Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
@@ -422,6 +424,11 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
   - Phiếu bị đổi trong lúc chưa Lưu (pull bản của máy khác): [Khôi phục] gộp theo trường bằng `threeWayMerge` với gốc là bản đã nạp lúc gõ (ADR 0001 quy tắc 5). Trường cả hai cùng sửa giữ bản mới và hiện chữ đã gõ để người dùng nhập lại nếu cần, không tự chọn hộ (bất biến 1).
   - Phiếu mới chưa Lưu lần nào không có trong danh sách: trang chủ có dải dẫn về (§4.8), để app bị tắt rồi mở lại vẫn tìm được.
   - Lưu (cả nháp) hay Xoá phiếu thì xoá bộ đệm; "← Quay lại" giữ. Ảnh đã chọn nằm sẵn trong `attachments` (§5.6) nên bộ đệm chỉ giữ id ảnh. Bấm [Tải lại] ở dải cập nhật (§4.3) thì ghi nốt bộ đệm rồi mới tải lại.
+- **Nhân bản phiếu** (Could, Dương duyệt 2026-11-04, cắt được; `client/src/recordCopy.ts`): nút "Nhân bản phiếu" ở màn hình 4 tạo một phiếu mới chưa Lưu, điền sẵn giá trị đang hiện trên form (ui.md màn hình 4).
+  - Bản sao chỉ là bộ đệm đang nhập của một id mới (`typing:<id mới>`, `fromCopy: true`, `base` rỗng): trước khi bấm Lưu không có phiếu và không có op. Bấm Lưu thì đi đúng luồng phiếu mới, có `opId` mới (bất biến 2, 3). Chữ chưa Lưu của phiếu gốc được ghi vào bộ đệm của phiếu gốc trước khi rời trang; phiếu gốc không đổi.
+  - Dùng bản form mới nhất trên máy (ADR 0001 quy tắc 9). Chỉ chép giá trị có nội dung và đúng định dạng của trường đang hiện ở bản đó. Không chép ảnh, vị trí, trường đã ẩn, id không có trong form. Trường bắt buộc còn thiếu thì Lưu ra nháp như thường.
+  - Lần mở đầu điền luôn, không hỏi. Tự lưu ghi lại bộ đệm thì mất `fromCopy`: rời trang chưa Lưu thì lên dải "Phiếu đang nhập dở" (§4.8), mở lại hỏi [Khôi phục] / [Bỏ] như phiếu mới gõ dở. Phiếu gốc bị xoá không ảnh hưởng bản sao.
+  - Có nút ở phiếu đã lưu sửa được, gồm nháp và phiếu Lỗi. Không có nút ở phiếu `conflict`, phiếu đã xoá, phiếu mới, lúc đang hỏi khôi phục, và với surveyor ở phiếu người khác tạo (cùng luật nút Xoá phiếu §5.7; chưa biết người tạo thì hiện). Người tạo bản sao lấy theo token như mọi phiếu (bất biến 6).
 
 **Tiêu chí chấp nhận**
 - Giám sát viên tạo form 7 loại trường, lưu, điều tra viên thấy form sau lần đồng bộ kế tiếp.
@@ -624,6 +631,7 @@ stateDiagram-v2
 - `error`: op ở trạng thái `failed` (lần bị `4xx` tính là một lần gửi, `attempts + 1`). Sửa phiếu thì op `failed` bị bỏ và dữ liệu mới đi trong một op mới với `opId` mới, không dùng lại key cho dữ liệu khác (CLAUDE.md bất biến 3; an toàn vì server không lưu key cho response lỗi). Bấm "Thử lại" thì gửi lại đúng op đó (cùng `opId`, cùng dữ liệu, giữ `attempts`).
 - Nhãn hiển thị tách khỏi `syncState`: phiếu `synced` nhưng còn ảnh chưa lên hiện "Đang tải ảnh (n)" (§5.6).
 - Bộ đệm đang nhập (§4.1) không phải một trạng thái: phiếu giữ nguyên `syncState` cho tới khi người dùng bấm Lưu.
+- Bản sao chưa Lưu (§4.1 "Nhân bản phiếu") cũng chỉ là bộ đệm: chưa có phiếu nên chưa có `syncState`; bấm Lưu thì vào `draft` hoặc `pending` như phiếu mới.
 
 ### 5.2 Outbox
 
@@ -1039,6 +1047,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | File nhập form không hợp lệ | Không đổi nội dung builder, không gửi | "File không phải JSON" / "File không đúng định dạng biểu mẫu" / lỗi luật lưu form (§4.1) |
 | Phiếu dùng form version chưa có trên máy | Trang điền phiếu gọi `syncNow()`, bước 5 tải form version đó (§5.3) | Đang tải: "Đang tải biểu mẫu…"; offline hoặc tải không được: "Cần kết nối để mở phiếu này", có mạng lại thì tự thử lại |
 | Mở lại phiếu đã xoá (§5.7) | Chỉ đọc, không tạo op; bấm Lưu đúng lúc phiếu vừa bị xoá thì tầng dữ liệu từ chối, không ghi gì | "Phiếu này đã bị xoá nên không sửa được nữa." |
+| Nhân bản phiếu mà không ghi được vào máy (§4.1), vd. IndexedDB đầy | Ở lại phiếu gốc, không đổi gì, không có phiếu và op; bấm lại được | "Không nhân bản được phiếu. Thử lại sau." dưới nút; bấm lại mà được thì hết |
 | Phiếu chưa đồng bộ quá 24 giờ | Không đổi hành vi | Cảnh báo đầu trang (§5.2) |
 | Bấm "Lấy vị trí" mà không lấy được (từ chối quyền, không lấy được, quá 30 s, trình duyệt không có geolocation) | Không đổi giá trị trường; chờ tối đa 30 s; bấm lại thì thử lại (`client/src/gps.ts`) | Lúc chờ: "Đang lấy vị trí…". Từ chối quyền: "Chưa được phép lấy vị trí. Bật quyền vị trí cho trang này trong cài đặt trình duyệt rồi bấm lại." Không lấy được hoặc quá giờ: "Không lấy được vị trí. Ra chỗ thoáng rồi bấm lại." Không có geolocation: "Trình duyệt này không lấy được vị trí." |
 

@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.20 (2026-11-04)
+- **Phiên bản:** 0.21 (2026-11-05)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -31,6 +31,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** đang ở trang nhập phiếu, **when** có phiên bản mới và tôi bấm [Tải lại], **then** app hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?"; Huỷ thì giữ nguyên chỗ đang nhập.
 - (Could) **Given** tôi đang gõ phiếu mà chưa bấm Lưu, **when** trang bị tải lại hoặc tôi bấm "← Quay lại" rồi mở lại phiếu, **then** app hỏi [Khôi phục] / [Bỏ]; Khôi phục thì có lại chữ đã gõ (cả ảnh đã chọn), trong lúc đó phiếu không đổi trạng thái và không có op nào; phiếu đã bị sửa ở nơi khác thì trường cả hai cùng sửa giữ bản mới và hiện chữ tôi đã gõ.
 - (Could) **Given** tôi đang gõ một phiếu mới chưa Lưu lần nào, **when** app bị tắt rồi tôi mở lại (vào trang chủ), **then** trang chủ có dải "Phiếu đang nhập dở, chưa lưu" dẫn về phiếu đó để khôi phục; Lưu xong thì dải mất.
+- (Could) **Given** tôi đang mở một phiếu sửa được, **when** bấm [Nhân bản phiếu], **then** tôi có phiếu mới chưa lưu điền sẵn giá trị đang hiện, theo form mới nhất, không kèm ảnh và vị trí; trước khi Lưu không có phiếu và op nào, phiếu gốc không đổi; Lưu thì lên server thành phiếu riêng, người tạo là tôi. Phiếu xung đột, đã xoá, hoặc phiếu người khác khi tôi là điều tra viên thì không có nút. Không ghi được vào máy thì ở lại phiếu gốc và báo, bấm lại được.
 - **Given** tôi lưu phiếu (kể cả nháp), **when** lưu xong, **then** app xin trình duyệt giữ bộ nhớ (`storage.persist()`); **given** trình duyệt thiếu API bắt buộc (vd. Web Locks), **when** mở app, **then** hiện "Trình duyệt không được hỗ trợ" thay cho app.
 
 ### US-02 · Lưu nháp khi phiếu chưa đủ · Must
@@ -173,6 +174,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Có bản mới khi đang nhập → hỏi trước khi tải lại | `update.spec.ts` | TV1-07 (#27); câu hỏi đổi khi có bộ đệm (#114) |
 | US-01 | Chữ đang gõ được giữ, mở lại hỏi khôi phục, không tạo op; gộp theo trường khi phiếu bị đổi (Could) | `typing-buffer.spec.ts`; unit `needsBuffer`, `restorePlan`, `keptFieldLine` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p1 (#114) |
 | US-01 | Phiếu mới gõ dở có dải ở trang chủ dẫn về; phiếu đã có không lên dải (Could) | `typing-buffer.spec.ts` (ca "mở lại app vào trang chủ", "không lên dải"); unit `unsavedNewRecords` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p2 (#115) |
+| US-01 | Nhân bản phiếu: bản sao chưa Lưu không có phiếu và op, không chép ảnh, vị trí, trường ẩn; ẩn nút theo trạng thái và vai trò (Could) | `record-copy.spec.ts`; unit `copyableData`, `copyBuffer`, `canCopyRecord` (`client/src/recordCopy.test.ts`) | không ticket (#126) |
 | US-01 | Lưu phiếu thì xin giữ bộ nhớ; thiếu Web Locks → "Trình duyệt không được hỗ trợ" | `browser-support.spec.ts`; unit `browserSupport.test.ts` | TV1-07 (#28) |
 | US-02 | Nháp không lên server; sửa đủ thì đồng bộ | O5 `draft.spec.ts`; unit `shared/src/recordValidation.test.ts` | TV1-05 (#7, #17) |
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
@@ -261,3 +263,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.18 | 2026-11-03 | US-03 mở rộng câu story có giám sát viên, thêm tiêu chí xem ảnh của phiếu máy khác tạo, kèm dòng truy vết (Must, không ticket) |
 | 0.19 | 2026-11-04 | US-11 thêm tiêu chí ghi xong mà tải lại danh sách lỗi thì giữ form, kèm dòng truy vết (sửa lỗi, không ticket) |
 | 0.20 | 2026-11-04 | US-06 thêm tiêu chí mở lại phiếu đã xoá, kèm dòng truy vết (sửa lỗi, không ticket) |
+| 0.21 | 2026-11-05 | US-01 thêm tiêu chí nhân bản phiếu, kèm dòng truy vết (Could, không ticket) |

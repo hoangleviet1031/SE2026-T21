@@ -118,6 +118,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Tải ảnh từ server về để xem phiếu máy khác tạo, lấp chỗ hở dòng Attachments (không ticket, Dương duyệt) | Must | N23 | ✅ PR #122 |
 | — | Màn 6: ghi xong mà tải lại danh sách lỗi thì giữ form (sửa lỗi, không ticket, Dương cho phép) | Must | – | ✅ PR #124 |
 | — | Màn 4: phiếu đã xoá không sống lại khi mở lại (sửa lỗi, không ticket, Dương cho phép) | Must | – | ✅ PR #125 |
+| — | Màn 4: Nhân bản phiếu (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #126 |
 
 ## Phụ thuộc quan trọng
 

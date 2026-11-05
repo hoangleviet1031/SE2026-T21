@@ -20,6 +20,7 @@ import { formatEditedAt } from '../recordList';
 import { recordLock } from '../recordLock';
 import { keptFieldLine, needsBuffer, restorePlan, withoutEmpty, type RestorePlan } from '../typingBuffer';
 import { deleteTypingBuffer, getTypingBuffer, putTypingBuffer, setTypingFlush } from '../db/typingBuffer';
+import { canCopyRecord, copyBuffer } from '../recordCopy';
 
 /** Dải bộ đệm đang nhập (ui.md màn hình 4): đang hỏi khôi phục, phiếu đã bị xoá, hay báo trường giữ bản mới */
 type TypingPrompt = { kind: 'ask'; savedAt: string } | { kind: 'gone' } | { kind: 'kept'; lines: string[] };
@@ -56,6 +57,12 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // Id phiếu biết là từng có trên máy: sau đó mà không còn thì là đã xoá, không phải phiếu mới (design §5.7)
   const [seenRecordId, setSeenRecordId] = useState<string>();
   if (record?.id === id && seenRecordId !== id) setSeenRecordId(id);
+  // Trang này đang là bản sao vừa tạo, chưa Lưu (design §4.1 "Nhân bản phiếu")
+  const [isCopy, setIsCopy] = useState(false);
+  // Đang ghi để nhân bản: state khoá nút, ref chặn cả hai lần chạm tới trước khi React kịp vẽ lại
+  const [copying, setCopying] = useState(false);
+  const copyStarted = useRef(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   // Đọc phiếu và bộ đệm cùng lúc khi mở trang: có bộ đệm thì hỏi khôi phục, không tự điền (design §4.1)
   useEffect(() => {
@@ -67,6 +74,14 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
     hasBuffer.current = false;
     void Promise.all([db.records.get(id), getTypingBuffer(db, id)]).then(async ([rec, buffer]) => {
       if (cancelled) return;
+      // Vừa bấm "Nhân bản phiếu": điền luôn, không hỏi. Tab khác đã Lưu phiếu này thì đi đường thường bên dưới.
+      if (buffer?.fromCopy && !rec) {
+        setData(buffer.data);
+        setBase(buffer.base);
+        setIsCopy(true);
+        hasBuffer.current = true;
+        return;
+      }
       const loaded = rec?.data ?? {};
       setData(loaded);
       setBase(loaded);
@@ -182,6 +197,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   // Phiếu mới chưa lưu thì chưa có trạng thái gì
   const state = record ? displayState(record, photos ?? []) : undefined;
   const canDelete = !!record && !!project && !!user && canDeleteRecord(project.role, user.id, record.createdBy);
+  const canCopy = !!record && !!project && !!user && canCopyRecord(record, project.role, user.id);
   // Bấm Lưu đúng lúc phiếu vừa thành conflict hay vừa bị xoá (trước khi liveQuery kịp cập nhật): tầng dữ liệu
   // từ chối, không ghi gì; chữ đang gõ vẫn còn. Phiếu vừa bị xoá thì liveQuery tự chuyển trang sang chỉ đọc.
   const unlessLocked = async <T,>(write: () => Promise<T>): Promise<T | undefined> => {
@@ -256,6 +272,28 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
     setTypingPrompt(null);
   };
 
+  // Bản sao là phiếu mới chưa Lưu, nằm trong bộ đệm của id mới (design §4.1): không có phiếu, không có op tới khi
+  // bấm Lưu. Chép đúng thứ đang thấy trên form. Chữ chưa Lưu của phiếu gốc ghi vào bộ đệm của nó trước khi rời trang.
+  const copyRecord = async () => {
+    if (copyStarted.current) return;
+    copyStarted.current = true;
+    setCopying(true);
+    setCopyFailed(false);
+    try {
+      await pendingWrite.current?.();
+      const newId = crypto.randomUUID();
+      const latest = latestForms(forms)[0] ?? form;
+      await putTypingBuffer(db, newId, copyBuffer(latest, data, new Date().toISOString()));
+      navigate('fill', form.id, newId);
+    } catch (e) {
+      // Không ghi được thì ở lại phiếu gốc, chưa có gì đổi; báo để bấm lại (design §8)
+      console.warn('không nhân bản được phiếu', e);
+      copyStarted.current = false;
+      setCopying(false);
+      setCopyFailed(true);
+    }
+  };
+
   return (
     <section>
       {/* Rời trang chưa bấm Lưu: chữ đang gõ vẫn nằm trong bộ đệm, mở lại phiếu sẽ hỏi khôi phục (design §4.1) */}
@@ -320,6 +358,11 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
           </div>
         </div>
       )}
+      {isCopy && !record && (
+        <p className="draft-notice" role="status" data-testid="copy-note">
+          Đây là bản sao, chưa lưu. Ảnh và vị trí không được chép.
+        </p>
+      )}
       {isDraft && (
         <p className="draft-notice" data-testid="draft-notice">
           Đã lưu nháp, chưa đồng bộ. Sửa các trường báo lỗi rồi bấm Lưu.
@@ -338,6 +381,18 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
             errors={isDraft ? record.validationErrors : undefined}
           />
         </fieldset>
+      )}
+      {/* Ngoài hàng nút dính đáy: hàng đó đã chật ở 360px và bấm nhầm cạnh Lưu thì khó nhận ra.
+          Chờ base: phiếu đã đọc được mà form chưa nạp thì bấm lúc đó sẽ chép ra bản sao rỗng */}
+      {canCopy && base !== null && !readOnly && !asking && (
+        <button className="record-copy" disabled={copying} onClick={() => void copyRecord()}>
+          Nhân bản phiếu
+        </button>
+      )}
+      {copyFailed && (
+        <p className="field-error" role="alert" data-testid="copy-error">
+          Không nhân bản được phiếu. Thử lại sau.
+        </p>
       )}
       {/* Hàng nút dính đáy màn hình để phiếu dài vẫn bấm Lưu bằng ngón cái (ui.md màn hình 4, TV1-12 b2) */}
       {!readOnly && !asking && (
