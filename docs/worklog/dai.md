@@ -13,6 +13,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-05 | — | docs | Plan: TV3-14 ✅ PR #83, TV3-15 ✅ PR #104 (trước còn ghi "chờ PR" và tên nhánh) | nhánh `docs/plan-trang-thai-tv3` | chờ review |
 | 2026-10-29 | TV3-15 | quyết định | Ngăn kéo menu giữ con trỏ khi mở, như hộp thoại (ui.md chờ TV3-15 quyết); ghi design §14, ui 0.2.32 | design §14 | xong |
 | 2026-10-29 | TV3-15 | docs | Rà khả năng tiếp cận 9 màn PWA + A0–A3 ở 360/1280px bằng script Playwright: bảng đạt/chưa đạt ở design §11.3 (0.5.53); N8 trả, tách N16–N21 cho TV1-12 | nhánh `docs/tv3-15-a11y-audit` | chờ review |
 | 2026-10-24 | TV3-14 | test | E2E `gps-offline.spec.ts` (offline lấy vị trí, server nhận đúng toạ độ) và `form-sync.spec.ts` (điều tra viên thấy form sau Đồng bộ ở máy khác); requirements 0.4, test-report 0.3 | nhánh `test/tv3-14-gps-form-sync` | chờ review |

@@ -109,8 +109,8 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | TV2-18 | Danh sách phiếu: tìm kiếm, lọc theo người tạo, 2.000 phiếu · **Cắt được** | Could | N6 | — |
 | TV2-19 | Thân JSON hỏng trả `invalid_body`; log request | Should; log: Could | N1 | ⏳ Typecheck và test xanh; chờ review/staging |
 | TV3-13 | Sao lưu hằng ngày, `UPLOAD_DIR` ngoài repo | Must | N2 | ✅ PR #66 |
-| TV3-14 | E2E lấy GPS (US-03), điều tra viên thấy form sau đồng bộ (US-07) | Must | – | ⏳ chờ PR |
-| TV3-15 | Rà khả năng tiếp cận · **Cắt được** | Could | N8 | ✅ `docs/tv3-15-a11y-audit` (chỗ cần sửa: N16–N21 cho TV1-12) |
+| TV3-14 | E2E lấy GPS (US-03), điều tra viên thấy form sau đồng bộ (US-07) | Must | – | ✅ PR #83 |
+| TV3-15 | Rà khả năng tiếp cận · **Cắt được** | Could | N8 | ✅ PR #104 (chỗ cần sửa: N16–N21 cho TV1-12) |
 | TV3-16 | Tài liệu người dùng (chuyển từ TV1-12) | Must | – | — |
 | — | Tự đổi mật khẩu (không ticket, Dương chốt 2026-10-26) · **Cắt được** | Could | – | ✅ PR #98 (API), PR #99 (giao diện màn 8) |
 | — | Nút Sao chép, Chia sẻ tên đăng nhập; vai trò ở hàng tổ chức đang chọn (không ticket, Dương chọn 2026-11-02) · **Cắt được** | Could | – | ✅ PR #120 |
