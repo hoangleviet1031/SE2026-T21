@@ -251,7 +251,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-m
 
 ## TV3-16 · Tài liệu người dùng
 
-- **Trạng thái:** —
+- **Trạng thái:** ✅ `docs/tv3-16-user-guide`: `docs/user-guide.md` ba phần, 17 ảnh ở `docs/images/user-guide/`, README trỏ tới. Ảnh chụp từ bản build `main` 152303c bằng dữ liệu mẫu thay vì chụp trên staging (Đại chọn, 2026-11-05: không ghi tài khoản, phiếu mẫu lên staging); đối chiếu với staging trước khi merge
 - **Mức:** Must
 - **Tuần:** 8 · **Phụ thuộc:** các màn hình đã xong (chuyển từ TV1-12)
 - **File:** `docs/user-guide.md` (mới)
