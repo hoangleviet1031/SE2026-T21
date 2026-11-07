@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import type { FieldDef } from '@field-survey/shared';
 import { FIELD_TYPE_LABEL, parseOptions, type DraftField } from '../builder';
 
@@ -6,10 +7,14 @@ interface Props {
   onChange: (patch: Partial<Pick<FieldDef, 'id' | 'label' | 'required' | 'hidden' | 'options'>>) => void;
   /** Chỉ có với trường chưa lưu; trường đã lưu phải dùng "Ẩn" (design §4.1) */
   onRemove?: () => void;
+  /** Tạo trường mới ngay dưới, chép cấu hình (design §4.1 "Nhân bản trường") */
+  onDuplicate: () => void;
+  /** Ô Nhãn, để trang cha đưa con trỏ vào bản sao vừa tạo */
+  labelRef?: Ref<HTMLInputElement>;
 }
 
 // Panel thuộc tính của trường đang chọn (ui.md màn hình 5).
-export function FieldEditor({ field, onChange, onRemove }: Props) {
+export function FieldEditor({ field, onChange, onRemove, onDuplicate, labelRef }: Props) {
   const hasOptions = field.type === 'select' || field.type === 'multiselect';
   return (
     <div className="card" data-testid="field-editor">
@@ -18,7 +23,7 @@ export function FieldEditor({ field, onChange, onRemove }: Props) {
       </h3>
       <label className="field">
         <span>Nhãn</span>
-        <input value={field.label} onChange={(e) => onChange({ label: e.target.value })} />
+        <input ref={labelRef} value={field.label} onChange={(e) => onChange({ label: e.target.value })} />
       </label>
       <label className="field">
         <span>Mã</span>
@@ -58,13 +63,14 @@ export function FieldEditor({ field, onChange, onRemove }: Props) {
           />
         </label>
       )}
-      {onRemove && (
-        <div className="actions">
+      <div className="actions">
+        <button onClick={onDuplicate}>Nhân bản trường</button>
+        {onRemove && (
           <button className="danger-outline" onClick={onRemove}>
             Xoá trường
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

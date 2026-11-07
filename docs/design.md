@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.71 (2026-11-05)
+- **Phiên bản:** 0.5.72 (2026-11-07)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -105,6 +105,7 @@
 | 0.5.69 | 2026-11-04 | Sửa lỗi màn hình Thành viên (không ticket, Dương cho phép): đã có danh sách mà tải lại lỗi thì giữ form, phần đang nhập, danh sách cũ, câu lỗi kèm "Thử lại" (§4.7, §8). Không đổi API, mã lỗi |
 | 0.5.70 | 2026-11-04 | Sửa lỗi phiếu đã xoá sống lại ở màn hình 4 (không ticket, Dương cho phép, Must theo US-06): phiếu đã xoá mở lại thì form khoá, báo đã xoá, không có Lưu và Xoá; `saveRecordLocally` từ chối lưu lên phiếu đã xoá (`RecordDeletedError`); xoá xong thay mục lịch sử để Back không về lại phiếu (§4.1, §5.7, §8, ca O10). Không đổi API, mã lỗi, schema; giới hạn còn lại ở tech-debt N24 |
 | 0.5.71 | 2026-11-05 | Nhân bản phiếu ở màn hình 4 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-04): §1 thêm dòng MoSCoW; §4.1 mục "Nhân bản phiếu" (bản sao là bộ đệm của id mới, `fromCopy`, dùng form mới nhất, không chép ảnh, vị trí, trường ẩn, giá trị sai định dạng); §5.1 bản sao chưa Lưu không phải phiếu; §8 không ghi được bản sao vào máy thì báo. Không đổi API, mã lỗi, schema |
+| 0.5.72 | 2026-11-07 | Nhân bản trường ở màn hình 5 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-07): §1 thêm dòng MoSCoW; §4.1 "Builder UI" mục "Nhân bản trường" (trường mới chưa lưu ngay dưới trường gốc, giữ nhãn, mã gợi ý lại từ nhãn, bản sao của trường ẩn thì hiện; thành trường thêm mới khi Lưu bản mới). Chỉ client; không đổi API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -169,6 +170,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Gửi tên đăng nhập, hiện vai trò (§4.7) | Nút [Sao chép], [Chia sẻ] dưới tên đăng nhập; hàng tổ chức đang chọn hiện vai trò của mình. | Could (Dương chọn 2026-11-02, ngoài MVP, cắt được) |
 | Thêm nhiều thành viên một lần (§4.7) | Dán danh sách tên đăng nhập ở màn hình Thành viên, xem kết quả từng tên. | Could (Dương duyệt 2026-11-03, ngoài MVP, cắt được) |
 | Nhân bản phiếu (§4.1) | Nút ở màn hình 4 tạo phiếu mới chưa Lưu, điền sẵn giá trị của phiếu đang mở. | Could (Dương duyệt 2026-11-04, ngoài MVP, cắt được) |
+| Nhân bản trường (§4.1) | Nút ở màn hình 5 tạo trường mới chưa lưu ngay dưới trường đang chọn, chép cấu hình, mã mới. | Could (Dương duyệt 2026-11-07, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
 **Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
@@ -401,6 +403,7 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
   - **Mã** form và trường gợi ý từ tiêu đề/nhãn (bỏ dấu, camelCase, "Tên chủ hộ" → `tenChuHo`), sửa được tới khi lưu lần đầu, sau đó khoá.
   - Trường **chưa lưu** lần nào có nút "Xoá trường"; trường đã lưu chỉ có "Ẩn".
   - **Lựa chọn** của select/multiselect nhập trong ô văn bản, mỗi dòng một lựa chọn.
+  - **Nhân bản trường** (Could, Dương duyệt 2026-11-07, cắt được; `duplicateField` ở `client/src/builder.ts`): nút ở khối Thuộc tính của mọi trường, kể cả trường đã lưu và trường ẩn. Tạo một trường **chưa lưu** ngay dưới trường gốc, cùng loại, nhãn (giữ nguyên, không thêm hậu tố), bắt buộc, lựa chọn; mã gợi ý lại từ nhãn theo luật mã ở trên, không trùng mã nào đang có ("Họ tên" có `hoTen` thì bản sao `hoTen2`) và còn đi theo nhãn tới khi tự sửa. Bản sao luôn hiện (không chép Ẩn), sửa được mã và có "Xoá trường"; sửa bản sao không đổi trường gốc. Bản sao thành trường đang chọn. Không gọi API, không ghi IndexedDB: tới khi bấm "Lưu bản mới" thì bản sao chỉ là một trường thêm mới như "+ Thêm trường" (quy tắc đổi form an toàn ở trên, phiên bản form như thường; ADR 0001 quy tắc 9 không đổi).
   - **Xem trước** chỉ để nhìn, mọi ô nhập bị khoá (để trường ảnh không ghi ảnh rác vào máy). Bật xem trước thì trang tự cuộn tới khung xem trước (người dùng chọn giảm chuyển động thì nhảy thẳng, không cuộn mượt); đầu khung có dải "Đang xem trước, chưa sửa được. Bấm lại Xem trước để sửa tiếp." (`role="status"`). Lưu lỗi thì trang cuộn tới khung lỗi, khung nằm ngay trên hàng nút [Xem trước] [Lưu bản mới] dính đáy màn hình (TV1-12 b2).
   - **Lưu bản mới:** kiểm trước ở máy bằng `validateFormSchema` (so với bản mới nhất trên máy) cộng luật riêng của builder "trường phải có nhãn"; lỗi thì không gửi. Offline: "Cần kết nối để lưu form". Lưu được thì ghi form server trả về vào IndexedDB và về trang chủ (thấy form ngay; máy khác thấy sau vòng đồng bộ).
 - **Validate phiếu:** chạy ở client khi bấm Lưu (required, kiểu số, định dạng ngày). Phiếu không hợp lệ vẫn lưu được, ở trạng thái **nháp** (`draft`, xem §5.1): không tạo op trong outbox, không đồng bộ, hiện nhãn "Nháp" và danh sách lỗi khi mở lại. Lần lưu hợp lệ tiếp theo chuyển sang `pending` và tạo op.

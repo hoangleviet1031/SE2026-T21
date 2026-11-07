@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { FormSchema } from '@field-survey/shared';
+import { FIELD_ID_PATTERN, type FormSchema } from '@field-survey/shared';
 import {
   addField,
   FORM_ID_EMPTY,
   FORM_ID_TAKEN,
   builderErrors,
+  duplicateField,
   formIdInvalid,
   emptyBuilder,
   fromForm,
@@ -228,5 +229,70 @@ describe('selectionAfterMove', () => {
 
   it('không chọn gì thì vẫn không chọn gì', () => {
     expect(selectionAfterMove(null, 0, 1)).toBeNull();
+  });
+});
+
+describe('duplicateField', () => {
+  it('bản sao ngay dưới trường gốc, chép loại, nhãn, bắt buộc, lựa chọn; uid và mã mới, chưa lưu', () => {
+    const s = duplicateField(fromForm(saved), 0);
+    expect(s.fields.map((f) => f.label)).toEqual(['Tên', 'Tên', 'Nguồn nước']);
+    const [orig, copy] = s.fields;
+    expect(copy).toMatchObject({ type: 'text', label: 'Tên', required: true, saved: false, autoId: true });
+    expect(copy?.uid).not.toBe(orig?.uid);
+    expect(copy?.id).toBe('ten');
+    expect(orig).toMatchObject({ id: 'name', saved: true });
+
+    const sel = duplicateField(fromForm(saved), 1).fields[2];
+    expect(sel).toMatchObject({ type: 'select', label: 'Nguồn nước', options: ['Máy', 'Giếng'] });
+    expect(sel?.required).toBeUndefined();
+  });
+
+  it('mã không trùng mã nào đang có, kể cả bản sao trước đó; khớp mẫu mã trường', () => {
+    let s = fromImport({ id: 'f', title: 'F', fields: [{ id: 'hoTen', type: 'text', label: 'Họ tên' }] });
+    s = duplicateField(s, 0);
+    s = duplicateField(s, 0);
+    const ids = s.fields.map((f) => f.id);
+    expect(ids).toEqual(['hoTen', 'hoTen3', 'hoTen2']);
+    expect(ids.every((id) => FIELD_ID_PATTERN.test(id))).toBe(true);
+  });
+
+  it('sửa bản sao (nhãn, lựa chọn, bắt buộc) không đổi trường gốc; mã bản sao đi theo nhãn', () => {
+    let s = duplicateField(fromForm(saved), 1);
+    s = updateField(s, 2, { label: 'Nguồn điện', options: ['Lưới', 'Máy phát'], required: true });
+    expect(s.fields[1]).toMatchObject({ id: 'water', label: 'Nguồn nước', options: ['Máy', 'Giếng'] });
+    expect(s.fields[1]?.required).toBeUndefined();
+    expect(s.fields[2]).toMatchObject({ id: 'nguonDien', label: 'Nguồn điện', options: ['Lưới', 'Máy phát'] });
+    // Mảng lựa chọn không dùng chung với gốc
+    const copied = duplicateField(fromForm(saved), 1);
+    expect(copied.fields[2]?.options).not.toBe(copied.fields[1]?.options);
+  });
+
+  it('trường gốc đã lưu vẫn khoá; bản sao sửa mã được và xoá được', () => {
+    let s = duplicateField(fromForm(saved), 0);
+    s = updateField(s, 0, { id: 'khac' });
+    expect(s.fields[0]?.id).toBe('name');
+    s = updateField(s, 1, { id: 'tenKhac' });
+    expect(s.fields[1]?.id).toBe('tenKhac');
+    expect(removeField(s, 0).fields).toHaveLength(3);
+    expect(removeField(s, 1).fields.map((f) => f.id)).toEqual(['name', 'water']);
+  });
+
+  it('trường ẩn: bản sao bỏ ẩn, trường gốc vẫn ẩn', () => {
+    const s = duplicateField(updateField(fromForm(saved), 0, { hidden: true }), 0);
+    expect(s.fields[0]?.hidden).toBe(true);
+    expect(s.fields[1]?.hidden).toBeUndefined();
+    expect(toSaveRequest(s).fields[1]?.hidden).toBeUndefined();
+  });
+
+  it('chỉ số ngoài mảng thì trả lại đúng state cũ', () => {
+    const s = fromForm(saved);
+    expect(duplicateField(s, 2)).toBe(s);
+    expect(duplicateField(s, -1)).toBe(s);
+  });
+
+  it('form có bản sao là thêm trường hợp lệ so với bản trước, lưu ra thêm đúng một trường', () => {
+    const s = duplicateField(fromForm(saved), 1);
+    expect(builderErrors(s, saved)).toEqual([]);
+    expect(toSaveRequest(s).fields.map((f) => f.id)).toEqual(['name', 'water', 'nguonNuoc']);
   });
 });

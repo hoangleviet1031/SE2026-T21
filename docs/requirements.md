@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.21 (2026-11-05)
+- **Phiên bản:** 0.22 (2026-11-07)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -90,6 +90,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tôi là điều tra viên, **when** gọi lưu form, **then** `403 forbidden`.
 - **Given** form đã lưu, **when** tôi bấm "Xuất form" (chạy được khi offline), **then** tải file `<id>-v<version>.json`; nhập file đó ở "Biểu mẫu mới" của dự án khác thì builder nạp thành form mới chưa lưu, bấm "Lưu bản mới" thì thành form mới ở dự án đó.
 - **Given** file không phải JSON, sai định dạng hoặc sai luật lưu form, **when** nhập form, **then** báo "File không phải JSON", "File không đúng định dạng biểu mẫu" hoặc lỗi luật, builder giữ nguyên; **given** form mới có mã trùng form đã có trong dự án, **when** bấm "Lưu bản mới", **then** báo "Mã biểu mẫu đã có trong dự án", không gửi.
+- (Could) **Given** tôi đang sửa form và chọn một trường, **when** bấm [Nhân bản trường], **then** ngay dưới có trường mới chưa lưu cùng loại, nhãn, bắt buộc, lựa chọn, mã mới không trùng, không ẩn; sửa bản sao không đổi trường gốc; bấm "Lưu bản mới" thì form lên version mới có thêm đúng trường đó.
 
 ### US-08 · Xuất dữ liệu · Must (CSV), Should (JSON)
 
@@ -202,6 +203,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |
 | US-07 | Xuất form, nhập sang dự án khác thành form mới | `form-import-export.spec.ts`; unit `formFile.test.ts` (describe "xuất form") | TV1-10 (#33) |
 | US-07 | File nhập hỏng/sai luật; mã form trùng → báo lỗi, không gửi | `form-import-export.spec.ts` (cả ca mã trùng); unit `formFile.test.ts` (describe `parseFormFile`) | TV1-10 (#33) |
+| US-07 | Nhân bản trường: bản sao ngay dưới, mã mới, bỏ ẩn, sửa không đổi gốc, lưu ra version mới; nút gọn ở 360px (Could) | `builder.spec.ts` (ca "nhân bản trường…", "màn 360 px: [Nhân bản trường]…"); unit `duplicateField` (`client/src/builder.test.ts`) | không ticket (#129) |
 | US-08 | v1 và v2 cùng file, cột đúng, BOM | `export.spec.ts`; `server/test/export.test.ts` | TV3-09 (#48); nút [Xuất ▾] TV1-12 (b2 p2 #71, mất mạng thì đóng b2 p3) |
 | US-08 | Chống CSV injection | `server/test/csv.test.ts` | TV3-09 (#48) |
 | US-08 | Điều tra viên xuất → `403` | A3 `export.test.ts` | TV3-09 (#48) |
@@ -264,3 +266,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.19 | 2026-11-04 | US-11 thêm tiêu chí ghi xong mà tải lại danh sách lỗi thì giữ form, kèm dòng truy vết (sửa lỗi, không ticket) |
 | 0.20 | 2026-11-04 | US-06 thêm tiêu chí mở lại phiếu đã xoá, kèm dòng truy vết (sửa lỗi, không ticket) |
 | 0.21 | 2026-11-05 | US-01 thêm tiêu chí nhân bản phiếu, kèm dòng truy vết (Could, không ticket) |
+| 0.22 | 2026-11-07 | US-07 thêm tiêu chí nhân bản trường, kèm dòng truy vết (Could, không ticket) |

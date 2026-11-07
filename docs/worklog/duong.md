@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-07 | — | feat | PR #129 đã merge | PR #129 | xong |
+| 2026-11-07 | — | feat | Màn 5: Nhân bản trường (Could, ngoài MVP): trường mới chưa lưu ngay dưới, giữ nhãn, mã gợi ý lại, bỏ ẩn, con trỏ vào ô Nhãn; chỉ sửa client; E2E builder.spec (2 ca), unit duplicateField; design 0.5.72, ui 0.2.48, requirements 0.22 | PR #129 | chờ review |
 | 2026-11-05 | — | feat | PR #126 đã merge | PR #126 | xong |
 | 2026-11-05 | — | feat | Màn 4: Nhân bản phiếu (Could, ngoài MVP): bản sao là bộ đệm của id mới, chưa có phiếu và op tới khi Lưu; chỉ sửa client; E2E record-copy.spec, unit recordCopy.test; design 0.5.71, ui 0.2.47, requirements 0.21 | PR #126 | chờ review |
 | 2026-11-04 | — | fix | PR #125 đã merge | PR #125 | xong |
