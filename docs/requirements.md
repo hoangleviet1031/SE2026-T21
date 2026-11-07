@@ -203,7 +203,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |
 | US-07 | Xuất form, nhập sang dự án khác thành form mới | `form-import-export.spec.ts`; unit `formFile.test.ts` (describe "xuất form") | TV1-10 (#33) |
 | US-07 | File nhập hỏng/sai luật; mã form trùng → báo lỗi, không gửi | `form-import-export.spec.ts` (cả ca mã trùng); unit `formFile.test.ts` (describe `parseFormFile`) | TV1-10 (#33) |
-| US-07 | Nhân bản trường: bản sao ngay dưới, mã mới, bỏ ẩn, sửa không đổi gốc, lưu ra version mới; nút gọn ở 360px (Could) | `builder.spec.ts` (ca "nhân bản trường…", "màn 360 px: [Nhân bản trường]…"); unit `duplicateField` (`client/src/builder.test.ts`) | không ticket (PR nhân bản trường) |
+| US-07 | Nhân bản trường: bản sao ngay dưới, mã mới, bỏ ẩn, sửa không đổi gốc, lưu ra version mới; nút gọn ở 360px (Could) | `builder.spec.ts` (ca "nhân bản trường…", "màn 360 px: [Nhân bản trường]…"); unit `duplicateField` (`client/src/builder.test.ts`) | không ticket (#129) |
 | US-08 | v1 và v2 cùng file, cột đúng, BOM | `export.spec.ts`; `server/test/export.test.ts` | TV3-09 (#48); nút [Xuất ▾] TV1-12 (b2 p2 #71, mất mạng thì đóng b2 p3) |
 | US-08 | Chống CSV injection | `server/test/csv.test.ts` | TV3-09 (#48) |
 | US-08 | Điều tra viên xuất → `403` | A3 `export.test.ts` | TV3-09 (#48) |
