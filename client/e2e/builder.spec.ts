@@ -598,7 +598,12 @@ test('nhân bản trường có lựa chọn: bản sao ngay dưới, mã mới;
   await expect(rows.nth(3)).not.toContainText('ẩn');
   await expect(editor.getByLabel('Ẩn')).not.toBeChecked();
 
+  // Chờ đúng response lưu form rồi mới hỏi server: dòng trường "Nguồn nước" trong builder cũng khớp formRow
+  // nên chờ formRow là qua ngay khi còn ở builder (CI đỏ ở #129)
+  const saved = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/forms'));
   await page.getByRole('button', { name: 'Lưu bản mới' }).click();
+  expect((await saved).status()).toBe(201);
+  await expect(page.getByTestId('builder-fields')).toHaveCount(0);
   await expect(formRow(page, 'Nguồn nước')).toBeVisible();
 
   const v2 = await request.get(api('/forms/nuoc/versions/2'), { headers: authHeaders(TOKENS.lan) });
