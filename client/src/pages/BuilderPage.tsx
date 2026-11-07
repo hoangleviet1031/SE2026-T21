@@ -6,6 +6,7 @@ import {
   FIELD_TYPE_LABEL,
   addField,
   builderErrors,
+  duplicateField,
   emptyBuilder,
   formIdInvalid,
   fromForm,
@@ -97,6 +98,10 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const fieldsRef = useRef<HTMLUListElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLInputElement>(null);
+  // Tăng mỗi lần nhân bản trường: khối Thuộc tính dựng lại theo trường mới nên nút vừa bấm mất, con trỏ phải
+  // có chỗ đến; vào ô Nhãn để gõ tên mới ngay (ngoại lệ của luật "focus giữ ở nút", ui.md màn hình 5)
+  const [focusLabel, setFocusLabel] = useState(0);
   // Tăng mỗi lần bấm chọn hoặc thêm trường: khối Thuộc tính nằm dưới danh sách, trên điện thoại ngoài tầm nhìn
   // (critique K2). Không tăng khi ▲▼, kéo thả, nhập form: lúc đó người dùng đang nhìn danh sách
   const [reveal, setReveal] = useState(0);
@@ -126,6 +131,11 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
     if (reveal > 0) scrollToView(editorRef.current, 'start');
   }, [reveal]);
 
+  // Không cuộn ở đây: effect `reveal` phía trên lo cuộn tới khối Thuộc tính
+  useEffect(() => {
+    if (focusLabel > 0) labelRef.current?.focus({ preventScroll: true });
+  }, [focusLabel]);
+
   // Trường đang chọn bị xoá thì bỏ chọn
   useEffect(() => {
     if (selected !== null && selected >= state.fields.length) setSelected(null);
@@ -137,6 +147,13 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
     setState(addField(state, newType));
     setSelected(state.fields.length);
     setReveal((n) => n + 1);
+  };
+
+  const duplicate = (index: number) => {
+    setState(duplicateField(state, index));
+    setSelected(index + 1);
+    setReveal((n) => n + 1);
+    setFocusLabel((n) => n + 1);
   };
 
   const select = (index: number) => {
@@ -305,6 +322,8 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
             field={field}
             onChange={(patch) => setState(updateField(state, selected, patch))}
             onRemove={field.saved ? undefined : () => setState(removeField(state, selected))}
+            onDuplicate={() => duplicate(selected)}
+            labelRef={labelRef}
           />
         )}
       </div>

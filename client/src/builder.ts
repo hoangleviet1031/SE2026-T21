@@ -155,6 +155,32 @@ export function selectionAfterMove(selected: number | null, from: number, to: nu
   return selected;
 }
 
+/**
+ * Nhân bản trường ở `index` thành trường mới chưa lưu ngay dưới nó (design §4.1 "Nhân bản trường"): cùng loại,
+ * nhãn, bắt buộc, lựa chọn; mã gợi ý lại từ nhãn để không trùng mã nào đang có và vẫn đi theo nhãn khi đổi.
+ * Bản sao luôn hiện: bản sao của trường ẩn mà vẫn ẩn thì không hiện ở đâu cả, tưởng bấm không ăn (Dương chốt
+ * 2026-11-07). Chỉ số ngoài mảng thì trả lại đúng `state` cũ.
+ */
+export function duplicateField(state: BuilderState, index: number): BuilderState {
+  const src = state.fields[index];
+  if (!src) return state;
+  const taken = new Set(state.fields.map((f) => f.id));
+  const copy: DraftField = {
+    uid: nextUid++,
+    id: suggestId(src.label, taken),
+    type: src.type,
+    label: src.label,
+    saved: false,
+    autoId: true,
+  };
+  if (src.required) copy.required = true;
+  // Mảng mới: sửa lựa chọn của bản sao không được đổi trường gốc
+  if (hasOptions(src.type)) copy.options = [...(src.options ?? [])];
+  const fields = [...state.fields];
+  fields.splice(index + 1, 0, copy);
+  return { ...state, fields };
+}
+
 /** Chỉ xoá được trường chưa lưu lần nào; trường đã lưu phải dùng "Ẩn". */
 export function removeField(state: BuilderState, index: number): BuilderState {
   if (state.fields[index]?.saved !== false) return state;

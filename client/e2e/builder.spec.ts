@@ -545,3 +545,103 @@ test('nút ▲▼ có tên kèm nhãn trường; chưa có nhãn thì "Trường
   await expect(list.getByRole('listitem').first()).toContainText('Địa chỉ');
   await expect(button('Lên: Địa chỉ')).toBeDisabled();
 });
+
+// Nhân bản trường (Could, Dương duyệt 2026-11-07; design §4.1, ui.md màn hình 5)
+test('nhân bản trường có lựa chọn: bản sao ngay dưới, mã mới; sửa bản sao không đổi gốc; lưu ra version mới', async ({
+  page,
+  request,
+}) => {
+  const res = await request.post(api('/forms'), {
+    headers: authHeaders(TOKENS.lan),
+    data: {
+      id: 'nuoc',
+      title: 'Nguồn nước',
+      fields: [
+        { id: 'water', type: 'select', label: 'Nguồn nước', options: ['Máy', 'Giếng'] },
+        { id: 'note', type: 'text', label: 'Ghi chú', hidden: true },
+      ],
+    },
+  });
+  expect(res.status()).toBe(201);
+
+  await login(page, 'lan');
+  await formRow(page, 'Nguồn nước').getByRole('link', { name: 'Sửa form' }).click();
+  const rows = fieldRows(page);
+  const editor = page.getByTestId('field-editor');
+  await rows.nth(0).getByRole('button', { name: /^Nguồn nước \(/ }).click();
+  await editor.getByRole('button', { name: 'Nhân bản trường' }).click();
+
+  await expect(rows).toHaveCount(3);
+  await expect(rows.nth(1).getByRole('button', { name: /^Nguồn nước \(/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(rows.nth(0).getByRole('button', { name: /^Nguồn nước \(/ })).toHaveAttribute('aria-pressed', 'false');
+  // Bản sao là trường mới: mã sửa được, khác mã gốc; có đủ lựa chọn; con trỏ ở ô Nhãn
+  await expect(editor.getByLabel('Mã', { exact: true })).toHaveValue('nguonNuoc');
+  await expect(editor.getByLabel('Lựa chọn (mỗi dòng một lựa chọn)')).toHaveValue('Máy\nGiếng');
+  await expect(editor.getByLabel('Nhãn')).toBeFocused();
+  await expect(editor.getByRole('button', { name: 'Xoá trường' })).toBeVisible();
+
+  await editor.getByLabel('Nhãn').fill('Nguồn điện');
+  await editor.getByLabel('Lựa chọn (mỗi dòng một lựa chọn)').fill('Lưới\nMáy phát');
+  await expect(editor.getByLabel('Mã', { exact: true })).toHaveValue('nguonDien');
+
+  // Trường gốc không đổi
+  await rows.nth(0).getByRole('button', { name: /^Nguồn nước \(/ }).click();
+  await expect(editor.getByLabel('Nhãn')).toHaveValue('Nguồn nước');
+  await expect(editor).toContainText('water (khoá)');
+  await expect(editor.getByLabel('Lựa chọn (mỗi dòng một lựa chọn)')).toHaveValue('Máy\nGiếng');
+
+  // Trường ẩn nhân bản ra trường hiện
+  await rows.nth(2).getByRole('button', { name: /^Ghi chú \(/ }).click();
+  await editor.getByRole('button', { name: 'Nhân bản trường' }).click();
+  await expect(rows).toHaveCount(4);
+  await expect(rows.nth(3)).toHaveText(/Ghi chú \(Chữ\)/);
+  await expect(rows.nth(3)).not.toContainText('ẩn');
+  await expect(editor.getByLabel('Ẩn')).not.toBeChecked();
+
+  await page.getByRole('button', { name: 'Lưu bản mới' }).click();
+  await expect(formRow(page, 'Nguồn nước')).toBeVisible();
+
+  const v2 = await request.get(api('/forms/nuoc/versions/2'), { headers: authHeaders(TOKENS.lan) });
+  expect(v2.status()).toBe(200);
+  const fields = ((await v2.json()) as { fields: { id: string; type: string; options?: string[]; hidden?: boolean }[] })
+    .fields;
+  expect(fields).toEqual([
+    { id: 'water', type: 'select', label: 'Nguồn nước', options: ['Máy', 'Giếng'] },
+    { id: 'nguonDien', type: 'select', label: 'Nguồn điện', options: ['Lưới', 'Máy phát'] },
+    { id: 'note', type: 'text', label: 'Ghi chú', hidden: true },
+    { id: 'ghiChu', type: 'text', label: 'Ghi chú' },
+  ]);
+});
+
+test('màn 360 px: [Nhân bản trường] gọn trong khối Thuộc tính, cao 44px; bấm thì Thuộc tính trong khung nhìn', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  await newFormWith(page, ['Một', 'Hai', 'Ba', 'Bốn', 'Năm', 'Sáu']);
+  const editor = page.getByTestId('field-editor');
+  const dup = editor.getByRole('button', { name: 'Nhân bản trường' });
+  const remove = editor.getByRole('button', { name: 'Xoá trường' });
+  const card = await editor.boundingBox();
+  for (const button of [dup, remove]) {
+    const box = await button.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    expect(card && box && box.x >= card.x && box.x + box.width <= card.x + card.width).toBe(true);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(
+    true,
+  );
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await fieldRows(page).nth(0).getByRole('button', { name: /^Một/ }).click();
+  await editor.getByRole('button', { name: 'Nhân bản trường' }).click();
+  await expect(fieldRows(page)).toHaveCount(7);
+  await expect(fieldRows(page).nth(1)).toContainText('Một');
+  await expect(editor.getByLabel('Nhãn')).toHaveValue('Một');
+  await expect(editor.getByLabel('Nhãn')).toBeFocused();
+  await expect(editor).toBeInViewport();
+  // ▲▼ vẫn 34×44
+  const up = fieldRows(page).nth(1).getByRole('button', { name: 'Lên' });
+  const box = await up.boundingBox();
+  expect(box?.width).toBeGreaterThanOrEqual(34);
+  expect(box?.height).toBeGreaterThanOrEqual(44);
+});
