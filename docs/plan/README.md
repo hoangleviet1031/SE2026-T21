@@ -119,7 +119,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Màn 6: ghi xong mà tải lại danh sách lỗi thì giữ form (sửa lỗi, không ticket, Dương cho phép) | Must | – | ✅ PR #124 |
 | — | Màn 4: phiếu đã xoá không sống lại khi mở lại (sửa lỗi, không ticket, Dương cho phép) | Must | – | ✅ PR #125 |
 | — | Màn 4: Nhân bản phiếu (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #126 |
-| — | Màn 5: Nhân bản trường (không ticket, Dương duyệt) · **Cắt được** | Could | – | ⏳ PR #129 chờ review |
+| — | Màn 5: Nhân bản trường (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #129 |
 
 ## Phụ thuộc quan trọng
 
