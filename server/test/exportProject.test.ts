@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import type { FormSchema, SaveFormRequest, ServerRecord } from '@field-survey/shared';
 import { SAMPLE_FORM } from '../src/db';
+import { readProjectExport } from '../src/routes/export';
 import { createTestServer, type TestServer } from './fixtures';
 
 // Xuất JSON cả dự án: GET P/export?format=json&includeDeleted= (design §4.6). Ca EX-01..EX-10 trong
@@ -150,5 +151,16 @@ describe('quyền và lỗi (A3, design §7.1)', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('content-disposition')).toBe(`attachment; filename="${HH}.json"`);
     expect(((await res.json()) as ProjectExport).records.map((r) => r.id)).toEqual([rMinh, rLan]);
+  });
+});
+
+describe('phòng thủ ở lớp đọc dữ liệu', () => {
+  // Mutation M3 (bỏ lọc created_by) sống sót mọi test HTTP vì requireMember('supervisor') chặn surveyor
+  // trước. Gọi thẳng hàm route dùng, trên CSDL thật, để lớp phòng thủ thứ hai cũng có test.
+  it('EX-15 nếu surveyor lọt tới hàm đọc thì chỉ thấy phiếu mình tạo, kể cả phiếu đã xoá', () => {
+    const asMinh = readProjectExport({ userId: 'u_minh', projectId: t.projects.yte, role: 'surveyor' }, t.db, true);
+    expect(asMinh.records.map((r) => r.id)).toEqual([rMinh]);
+    const asLan = readProjectExport({ userId: 'u_lan', projectId: t.projects.yte, role: 'supervisor' }, t.db, true);
+    expect(asLan.records.map((r) => r.id)).toEqual([rMinh, rLan, rWater, rDel]);
   });
 });
