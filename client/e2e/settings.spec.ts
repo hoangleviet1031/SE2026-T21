@@ -127,6 +127,34 @@ test('Cài đặt có hướng dẫn cài lên màn hình chính; mở từ app 
   await expect(page.getByTestId('settings-install')).toHaveText('Đã cài lên màn hình chính.');
 });
 
+// Khối "Dữ liệu trên máy" (ui.md màn hình 8; Could): số biểu mẫu khác nhau và số op trong outbox của dự
+// án đang chọn, tự đổi khi đồng bộ xong
+test('Dữ liệu trên máy: đếm biểu mẫu và thay đổi chờ gửi, đồng bộ xong tự về 0', async ({ page, context }) => {
+  await login(page);
+  await openSettings(page);
+  const device = page.getByTestId('settings-device');
+  await expect(device.getByRole('heading', { name: 'Dữ liệu trên máy' })).toBeVisible();
+  await expect(device).toContainText('Tổ chức "Y tế xã (demo)"');
+  // Server E2E dùng chung giữa các spec nên số form không cố định: so với số mã form trong IndexedDB
+  const forms = (await readStore(page, PROJECT_DB, 'forms')) as { id: string }[];
+  const formCount = new Set(forms.map((f) => f.id)).size;
+  expect(formCount).toBeGreaterThan(0);
+  await expect(page.getByTestId('settings-form-count')).toHaveText(`Biểu mẫu: ${formCount}`);
+  await expect(page.getByTestId('settings-pending-ops')).toHaveText('Thay đổi chờ gửi: 0');
+
+  await context.setOffline(true);
+  await page.getByRole('link', { name: 'Quay lại' }).click();
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await page.locator('input[name=householdName]').fill('Hộ đếm chờ gửi');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await openSettings(page);
+  await expect(page.getByTestId('settings-pending-ops')).toHaveText('Thay đổi chờ gửi: 1');
+
+  await context.setOffline(false);
+  await page.getByRole('button', { name: 'Đồng bộ' }).click();
+  await expect(page.getByTestId('settings-pending-ops')).toHaveText('Thay đổi chờ gửi: 0', { timeout: 15_000 });
+});
+
 /** Tên các cache của SW, đọc bằng API gốc của trình duyệt. */
 const cacheNames = (page: Page) => page.evaluate(() => caches.keys());
 

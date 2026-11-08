@@ -15,7 +15,8 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
 import { UsernameActions } from '../components/UsernameActions';
 import { getAccountValue } from '../db/accountDb';
-import { useCurrentProject } from '../db/current';
+import { getCurrentProjectId, openProjectDb, projectDbExists, useCurrentProject } from '../db/current';
+import { deviceStatus } from '../deviceStatus';
 import { formatBytes, usagePercent } from '../formatBytes';
 import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
 import { apiFailure, changePassword } from '../sync/api';
@@ -121,6 +122,8 @@ export function SettingsPage() {
         </div>
       )}
 
+      {project && <DeviceStatusCard projectName={project.name} />}
+
       <div className="card">
         <h3>Cài lên màn hình chính</h3>
         <div className="install" data-testid="settings-install">
@@ -176,6 +179,35 @@ export function SettingsPage() {
       )}
     </section>
   );
+}
+
+/**
+ * Khối "Dữ liệu trên máy" (ui.md màn hình 8; Could, cắt được): số biểu mẫu và thay đổi chờ gửi của dự
+ * án đang chọn. Chỉ đọc IndexedDB qua liveQuery nên offline vẫn đúng, đồng bộ xong số tự đổi.
+ */
+function DeviceStatusCard({ projectName }: { projectName: string }) {
+  const status = useLiveQuery(readDeviceStatus, []);
+  // Chưa đọc xong, hoặc máy chưa có CSDL của dự án, thì chưa vẽ, để không nháy số 0 trước số thật
+  if (!status) return null;
+  return (
+    <div className="card" data-testid="settings-device">
+      <h3>Dữ liệu trên máy</h3>
+      <p className="hint">Tổ chức "{projectName}"</p>
+      <p data-testid="settings-form-count">Biểu mẫu: {status.formCount}</p>
+      <p data-testid="settings-pending-ops">Thay đổi chờ gửi: {status.pendingOps}</p>
+    </div>
+  );
+}
+
+/**
+ * Không dùng `useCurrentProjectDb`: lúc Đăng xuất xoá CSDL dự án, dự án vẫn còn trong `projects` nên hook đó mở
+ * lại đúng CSDL vừa xoá và Dexie tạo lại nó rỗng. Kiểm CSDL còn trên máy trước khi mở, như `projectsBlockingLogout`.
+ */
+async function readDeviceStatus() {
+  const id = await getCurrentProjectId();
+  if (id === null || !(await projectDbExists(id))) return null;
+  const db = openProjectDb(id);
+  return deviceStatus(await db.forms.toArray(), await db.outbox.count());
 }
 
 const EMPTY_PASSWORDS: ChangePasswordInput = { currentPassword: '', newPassword: '', newPassword2: '' };
