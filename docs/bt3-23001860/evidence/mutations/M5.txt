@@ -1,0 +1,413 @@
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":4.7,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.65,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.57,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":6.26,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.83,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.94,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.51,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.72,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.94,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.17,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.81,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.86,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":4.54,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.77,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.62,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.36,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.79,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.73,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":3.71,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.63,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.21,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.67,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.72,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.65,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.44,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.33,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":3.99,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.16,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.79,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.31,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.68,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.57,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.88,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.64,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":1.64,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.8,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.38,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.97,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.66,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":2.2,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.95,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.1,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.54,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.79,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":2.03,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.83,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.92,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.17,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.71,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.73,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.67,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.72,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.73,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.74,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":7.67,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.37,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":4.32,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.65,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.93,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.79,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":140.6,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":98.63,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":184.28,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":156.54,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/4967e736-18ea-4478-848e-011d951712dd","status":201,"durationMs":16.3,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/387eaecc-940a-4f3d-9126-6d21aa919034","status":201,"durationMs":4.26,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/d7e6a6a5-f132-4746-926a-ab7ecfe1c95a","status":201,"durationMs":3.35,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/75405a2f-2a6d-40ad-9cb0-a1561350e775","status":201,"durationMs":3.14,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/10752ce1-0c6f-4f68-acc7-bf04ac0bc4b3","status":201,"durationMs":3.77,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/f0879f35-d34d-4bb8-bc52-cf7fe20f7059","status":201,"durationMs":7.96,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/82d7c51d-523f-4218-aebb-f10e51b16c68","status":201,"durationMs":3.64,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/81bd3034-f8a9-4fc3-b6a1-1d32026b2fe1","status":201,"durationMs":4.54,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/7fee4334-6691-4501-9030-c5404114b5b5","status":201,"durationMs":3.29,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/dc349129-3f78-4cb8-a72a-24db8f1b581b","status":201,"durationMs":3.89,"userId":"u_chu"}
+
+ ❯ test/exportConcurrency.test.ts (4 tests | 1 failed) 4224ms
+   ❯ nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi (1)
+     × EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác 431ms
+stdout | test/exportProject.test.ts > xuất cả dự án (thành công) > EX-01 supervisor: mọi phiên bản của mọi form, phiếu chưa xoá theo thứ tự ghi; tải về dạng file
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":5.93,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts > xuất cả dự án (thành công) > EX-02 includeDeleted=1 thì có phiếu đã xoá, deleted là true
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.63,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts > xuất cả dự án (thành công) > EX-03 owner xuất được, không truyền format thì mặc định JSON
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.62,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts > phạm vi dữ liệu > EX-05 không bao giờ có phiếu hay form của dự án khác, kể cả cùng id form
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.28,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":168.35,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":105.66,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":131.33,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":132.63,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":11.05,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":9.49,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-nongnghiep/forms","status":201,"durationMs":2.5,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/745464fa-b62d-4771-8272-f0bf09e4fc3e","status":201,"durationMs":6.1,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/697242c6-d1e2-45b0-b932-aea63f682c7a","status":201,"durationMs":5.24,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/ce0c8a3e-ce8c-46d8-a3ee-42ca07c3a901","status":201,"durationMs":3.17,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/3f0ebb35-97dc-4726-86f5-0cd1021686c3","status":201,"durationMs":2.39,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/3f0ebb35-97dc-4726-86f5-0cd1021686c3","status":200,"durationMs":2.48,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/f9dd9ae5-b253-4e25-aeb6-da2d5c278408","status":201,"durationMs":2.09,"userId":"u_chu"}
+
+ ❯ test/exportProject.test.ts (10 tests | 4 failed) 1251ms
+   ❯ xuất cả dự án (thành công) (4)
+     × EX-01 supervisor: mọi phiên bản của mọi form, phiếu chưa xoá theo thứ tự ghi; tải về dạng file 47ms
+     × EX-02 includeDeleted=1 thì có phiếu đã xoá, deleted là true 11ms
+     × EX-03 owner xuất được, không truyền format thì mặc định JSON 8ms
+   ❯ phạm vi dữ liệu (1)
+     × EX-05 không bao giờ có phiếu hay form của dự án khác, kể cả cùng id form 35ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+AssertionError: expected [ …(10) ] to deeply equal [ …(5) ]
+
+- Expected
++ Received
+
+  [
+    "4967e736-18ea-4478-848e-011d951712dd",
++   "387eaecc-940a-4f3d-9126-6d21aa919034",
+    "d7e6a6a5-f132-4746-926a-ab7ecfe1c95a",
++   "75405a2f-2a6d-40ad-9cb0-a1561350e775",
+    "10752ce1-0c6f-4f68-acc7-bf04ac0bc4b3",
++   "f0879f35-d34d-4bb8-bc52-cf7fe20f7059",
+    "82d7c51d-523f-4218-aebb-f10e51b16c68",
++   "81bd3034-f8a9-4fc3-b6a1-1d32026b2fe1",
+    "7fee4334-6691-4501-9030-c5404114b5b5",
++   "dc349129-3f78-4cb8-a72a-24db8f1b581b",
+  ]
+
+ ❯ test/exportConcurrency.test.ts:86:87
+     84|     for (const { expected, status, body } of results) {
+     85|       expect(status).toBe(expected.status);
+     86|       if ('ids' in expected) expect((body as ProjectExport).records.ma…
+       |                                                                                       ^
+     87|       else expect(body).toEqual({ error: expected.error });
+     88|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  test/exportProject.test.ts > xuất cả dự án (thành công) > EX-01 supervisor: mọi phiên bản của mọi form, phiếu chưa xoá theo thứ tự ghi; tải về dạng file
+AssertionError: expected [ …(4) ] to deeply equal [ …(3) ]
+
+- Expected
++ Received
+
+  [
+    "745464fa-b62d-4771-8272-f0bf09e4fc3e",
+    "697242c6-d1e2-45b0-b932-aea63f682c7a",
+    "ce0c8a3e-ce8c-46d8-a3ee-42ca07c3a901",
++   "f9dd9ae5-b253-4e25-aeb6-da2d5c278408",
+  ]
+
+ ❯ test/exportProject.test.ts:82:43
+     80|     const body = (await res.json()) as ProjectExport;
+     81|     expect(body.forms.map((f) => `${f.id}@${f.version}`)).toEqual([`${…
+     82|     expect(body.records.map((r) => r.id)).toEqual([rMinh, rLan, rWater…
+       |                                           ^
+     83|   });
+     84|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  test/exportProject.test.ts > xuất cả dự án (thành công) > EX-02 includeDeleted=1 thì có phiếu đã xoá, deleted là true
+AssertionError: expected [ …(5) ] to deeply equal [ …(4) ]
+
+- Expected
++ Received
+
+  [
+    "745464fa-b62d-4771-8272-f0bf09e4fc3e",
+    "697242c6-d1e2-45b0-b932-aea63f682c7a",
+    "ce0c8a3e-ce8c-46d8-a3ee-42ca07c3a901",
+    "3f0ebb35-97dc-4726-86f5-0cd1021686c3",
++   "f9dd9ae5-b253-4e25-aeb6-da2d5c278408",
+  ]
+
+ ❯ test/exportProject.test.ts:87:43
+     85|   it('EX-02 includeDeleted=1 thì có phiếu đã xoá, deleted là true', as…
+     86|     const body = (await (await call('GET', exportUrl('?format=json&inc…
+     87|     expect(body.records.map((r) => r.id)).toEqual([rMinh, rLan, rWater…
+       |                                           ^
+     88|     expect(body.records.find((r) => r.id === rDel)?.deleted).toBe(true…
+     89|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  test/exportProject.test.ts > xuất cả dự án (thành công) > EX-03 owner xuất được, không truyền format thì mặc định JSON
+AssertionError: expected [ …(4) ] to deeply equal [ …(3) ]
+
+- Expected
++ Received
+
+  [
+    "745464fa-b62d-4771-8272-f0bf09e4fc3e",
+    "697242c6-d1e2-45b0-b932-aea63f682c7a",
+    "ce0c8a3e-ce8c-46d8-a3ee-42ca07c3a901",
++   "f9dd9ae5-b253-4e25-aeb6-da2d5c278408",
+  ]
+
+ ❯ test/exportProject.test.ts:94:76
+     92|     const res = await call('GET', exportUrl(), t.tokens.chu);
+     93|     expect(res.status).toBe(200);
+     94|     expect(((await res.json()) as ProjectExport).records.map((r) => r.…
+       |                                                                            ^
+     95|   });
+     96|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  test/exportProject.test.ts > phạm vi dữ liệu > EX-05 không bao giờ có phiếu hay form của dự án khác, kể cả cùng id form
+AssertionError: expected '{"forms":[{"id":"household-survey","v…' not to contain 'f9dd9ae5-b253-4e25-aeb6-da2d5c278408'
+
+Expected: "f9dd9ae5-b253-4e25-aeb6-da2d5c278408"
+Received: "{"forms":[{"id":"household-survey","version":1,"title":"Khảo sát hộ gia đình","fields":[{"id":"householdName","type":"text","label":"Tên chủ hộ","required":true},{"id":"members","type":"number","label":"Số thành viên"},{"id":"waterSource","type":"select","label":"Nguồn nước","options":["Máy","Giếng","Mưa","Khác"]},{"id":"assets","type":"multiselect","label":"Tài sản","options":["Xe máy","Tivi","Tủ lạnh","Máy giặt"]},{"id":"visitDate","type":"date","label":"Ngày khảo sát"},{"id":"housePhoto","type":"photo","label":"Ảnh nhà"},{"id":"location","type":"gps","label":"Vị trí"}]},{"id":"household-survey","title":"Khảo sát hộ gia đình","fields":[{"id":"householdName","type":"text","label":"Tên chủ hộ","required":true},{"id":"members","type":"number","label":"Số thành viên"},{"id":"waterSource","type":"select","label":"Nguồn nước","options":["Máy","Giếng","Mưa","Khác"]},{"id":"assets","type":"multiselect","label":"Tài sản","options":["Xe máy","Tivi","Tủ lạnh","Máy giặt"]},{"id":"visitDate","type":"date","label":"Ngày khảo sát"},{"id":"housePhoto","type":"photo","label":"Ảnh nhà"},{"id":"location","type":"gps","label":"Vị trí"},{"id":"phone","type":"text","label":"Điện thoại"}],"version":2},{"id":"water-check","title":"Kiểm tra nguồn nước","fields":[{"id":"note","type":"text","label":"Ghi chú"}],"version":1}],"records":[{"id":"745464fa-b62d-4771-8272-f0bf09e4fc3e","formId":"household-survey","formVersion":1,"data":{"householdName":"Hộ của Minh","members":4},"version":1,"deleted":false,"createdBy":"u_minh","createdByName":"minh","updatedAt":"2026-11-08T08:31:31.898Z","updatedBy":"u_minh","updatedByName":"minh"},{"id":"697242c6-d1e2-45b0-b932-aea63f682c7a","formId":"household-survey","formVersion":2,"data":{"householdName":"Hộ của Lan","phone":"0912"},"version":1,"deleted":false,"createdBy":"u_lan","createdByName":"lan","updatedAt":"2026-11-08T08:31:31.918Z","updatedBy":"u_lan","updatedByName":"lan"},{"id":"ce0c8a3e-ce8c-46d8-a3ee-42ca07c3a901","formId":"water-check","formVersion":1,"data":{"note":"Giếng khoan"},"version":1,"deleted":false,"createdBy":"u_lan","createdByName":"lan","updatedAt":"2026-11-08T08:31:31.936Z","updatedBy":"u_lan","updatedByName":"lan"},{"id":"3f0ebb35-97dc-4726-86f5-0cd1021686c3","formId":"household-survey","formVersion":2,"data":{"householdName":"Sẽ xoá"},"version":2,"deleted":true,"createdBy":"u_lan","createdByName":"lan","updatedAt":"2026-11-08T08:31:31.963Z","updatedBy":"u_lan","updatedByName":"lan"},{"id":"f9dd9ae5-b253-4e25-aeb6-da2d5c278408","formId":"household-survey","formVersion":1,"data":{"householdName":"Dự án khác"},"version":1,"deleted":false,"createdBy":"u_chu","createdByName":"Chủ (demo)","updatedAt":"2026-11-08T08:31:31.981Z","updatedBy":"u_chu","updatedByName":"Chủ (demo)"}]}"
+
+ ❯ test/exportProject.test.ts:111:22
+    109|   it('EX-05 không bao giờ có phiếu hay form của dự án khác, kể cả cùng…
+    110|     const text = await (await call('GET', exportUrl('?includeDeleted=1…
+    111|     expect(text).not.toContain(rOther);
+       |                      ^
+    112|     expect(text).not.toContain('Dự án khác');
+    113|     expect(text).not.toContain('Form riêng nông nghiệp');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed | 27 passed (29)
+      Tests  5 failed | 427 passed (432)
+   Start at  15:31:21
+   Duration  28.14s (tests 75%, import 20%, transform 5%, worker 1%)
+
+    Isolate  29 workers spawned · ~543ms startup each (spawn + environment, per file)
+             at least ~1.71s faster with isolate: false — reuses workers across files instead of one per file
+

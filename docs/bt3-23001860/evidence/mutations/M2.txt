@@ -1,0 +1,79 @@
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-09 format khác json (kể cả csv, lặp tham số) thì 400 invalid_body
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":3.89,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":131.85,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":111.87,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":194.46,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":104.52,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":5.51,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":3.56,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-nongnghiep/forms","status":201,"durationMs":2.51,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/26633b93-6a54-4bdc-a7bd-68c6066cfa93","status":201,"durationMs":10.86,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/6f183251-c92c-4c39-804e-03c935958c76","status":201,"durationMs":7.26,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/59088975-72e8-4823-b2b5-51e55f2d9ba2","status":201,"durationMs":3.8,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/a8a18bca-270d-427c-bb00-68b1e674d451","status":201,"durationMs":7.78,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/a8a18bca-270d-427c-bb00-68b1e674d451","status":200,"durationMs":3.23,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/71961094-4e98-4ace-8c56-3a43d8eafa9e","status":201,"durationMs":3.76,"userId":"u_chu"}
+
+ ❯ test/exportProject.test.ts (10 tests | 1 failed) 1227ms
+   ❯ quyền và lỗi (A3, design §7.1) (5)
+     × EX-09 format khác json (kể cả csv, lặp tham số) thì 400 invalid_body 37ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-09 format khác json (kể cả csv, lặp tham số) thì 400 invalid_body
+AssertionError: ?format=csv: expected 200 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 200
+
+ ❯ test/exportProject.test.ts:143:29
+    141|     for (const q of ['?format=csv', '?format=xml', '?format=json&forma…
+    142|       const res = await call('GET', exportUrl(q), t.tokens.lan);
+    143|       expect(res.status, q).toBe(400);
+       |                             ^
+    144|       expect(await res.json(), q).toEqual({ error: 'invalid_body' });
+    145|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 28 passed (29)
+      Tests  1 failed | 431 passed (432)
+   Start at  15:29:35
+   Duration  28.09s (tests 75%, import 20%, transform 5%, worker 1%)
+
+    Isolate  29 workers spawned · ~483ms startup each (spawn + environment, per file)
+             at least ~1.52s faster with isolate: false — reuses workers across files instead of one per file
+

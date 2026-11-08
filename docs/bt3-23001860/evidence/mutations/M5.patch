@@ -1,0 +1,29 @@
+From 9eef88a1b35f2050df8497fff2cca7c4f893c416 Mon Sep 17 00:00:00 2001
+From: MagnusW <daitrong127@gmail.com>
+Date: Sun, 8 Nov 2026 15:31:15 +0700
+Subject: [PATCH] =?UTF-8?q?MUTATION=20M5=20(t=E1=BA=A1m,=20kh=C3=B4ng=20me?=
+ =?UTF-8?q?rge)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ server/src/repo/records.ts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/server/src/repo/records.ts b/server/src/repo/records.ts
+index e976e7f..61daa8f 100644
+--- a/server/src/repo/records.ts
++++ b/server/src/repo/records.ts
+@@ -141,7 +141,7 @@ export function listRecordsByProject(ctx: Ctx, db: Db, includeDeleted: boolean):
+       ? (db
+           .prepare(`${SELECT_RECORD} WHERE r.project_id = ? AND r.created_by = ?${deleted} ORDER BY r.seq`)
+           .all(ctx.projectId, ctx.userId) as unknown as RecordRow[])
+-      : (db.prepare(`${SELECT_RECORD} WHERE r.project_id = ?${deleted} ORDER BY r.seq`).all(ctx.projectId) as unknown as RecordRow[]);
++      : (db.prepare(`${SELECT_RECORD} WHERE (r.project_id = ? OR 1)${deleted} ORDER BY r.seq`).all(ctx.projectId) as unknown as RecordRow[]);
+   return rows.map(toRecord);
+ }
+ 
+-- 
+2.54.0.windows.1
+

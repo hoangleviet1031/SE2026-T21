@@ -1,0 +1,22 @@
+{
+  "mode": "form",
+  "records": 2000,
+  "concurrent": 60,
+  "rounds": 5,
+  "exportSamples": 300,
+  "p50_ms": 855,
+  "p95_ms": 1909,
+  "max_ms": 2435,
+  "round_wall_ms": [
+    1585,
+    1533,
+    1447,
+    1728,
+    2444
+  ],
+  "response_kb": 324,
+  "non_2xx": 0,
+  "wrong_record_count": 0,
+  "target_p95_ms": 2000,
+  "pass": true
+}

@@ -1,0 +1,20 @@
+
+> @field-survey/server@0.1.0 typecheck
+> tsc -p .
+
+
+> @field-survey/server@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+
+ Test Files  27 passed (27)
+      Tests  418 passed (418)
+   Start at  15:17:51
+   Duration  23.45s (tests 54%, import 41%, transform 4%, worker 1%)
+
+    Isolate  27 workers spawned · ~513ms startup each (spawn + environment, per file)
+             at least ~1.46s faster with isolate: false — reuses workers across files instead of one per file
+

@@ -1,0 +1,32 @@
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+      Coverage enabled with v8
+
+
+ Test Files  29 passed (29)
+      Tests  433 passed (433)
+   Start at  15:33:26
+   Duration  28.53s (tests 77%, import 17%, transform 3%, worker 2%)
+
+    Isolate  29 workers spawned · ~498ms startup each (spawn + environment, per file)
+             at least ~1.57s faster with isolate: false — reuses workers across files instead of one per file
+
+ % Coverage report from v8
+-----------------|---------|----------|---------|---------|-------------------
+File             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-----------------|---------|----------|---------|---------|-------------------
+All files        |    96.8 |       95 |     100 |   97.48 |                   
+ src             |   91.83 |       75 |     100 |    91.3 |                   
+  db.ts          |   91.83 |       75 |     100 |    91.3 | 237,274,320-321   
+ src/lib         |   97.91 |    97.29 |     100 |     100 |                   
+  exportTable.ts |   97.29 |    96.29 |     100 |     100 | 28                
+ src/repo        |   98.33 |    95.12 |     100 |     100 |                   
+  records.ts     |   97.61 |    93.93 |     100 |     100 | 123,196           
+-----------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 96.8% ( 182/188 )
+Branches     : 95% ( 95/100 )
+Functions    : 100% ( 52/52 )
+Lines        : 97.48% ( 155/159 )
+================================================================================

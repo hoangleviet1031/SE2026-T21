@@ -1,0 +1,80 @@
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":147.04,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":95.8,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":83.53,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":81.9,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":6.16,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":1.71,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-nongnghiep/forms","status":201,"durationMs":1.55,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/f2e431af-983e-426a-9d9a-eae7eca827f6","status":201,"durationMs":3.13,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/c8f2b26e-8f53-4327-be82-5fb764b33404","status":201,"durationMs":1.93,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/5cf6d670-9942-44ba-b844-f719be6c4631","status":201,"durationMs":1.71,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/480023a0-877a-4b4a-a660-38dcd6f1d5c8","status":201,"durationMs":2.06,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/480023a0-877a-4b4a-a660-38dcd6f1d5c8","status":200,"durationMs":1.38,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/c7c631f8-ef6b-4c5b-b813-1519a739ea3a","status":201,"durationMs":1.69,"userId":"u_chu"}
+
+ ❯ test/exportProject.test.ts (11 tests | 1 failed) 1115ms
+   ❯ phòng thủ ở lớp đọc dữ liệu (1)
+     × EX-15 nếu surveyor lọt tới hàm đọc thì chỉ thấy phiếu mình tạo, kể cả phiếu đã xoá 14ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/exportProject.test.ts > phòng thủ ở lớp đọc dữ liệu > EX-15 nếu surveyor lọt tới hàm đọc thì chỉ thấy phiếu mình tạo, kể cả phiếu đã xoá
+AssertionError: expected [ …(4) ] to deeply equal [ Array(1) ]
+
+- Expected
++ Received
+
+  [
+    "f2e431af-983e-426a-9d9a-eae7eca827f6",
++   "c8f2b26e-8f53-4327-be82-5fb764b33404",
++   "5cf6d670-9942-44ba-b844-f719be6c4631",
++   "480023a0-877a-4b4a-a660-38dcd6f1d5c8",
+  ]
+
+ ❯ test/exportProject.test.ts:162:45
+    160|   it('EX-15 nếu surveyor lọt tới hàm đọc thì chỉ thấy phiếu mình tạo, …
+    161|     const asMinh = readProjectExport({ userId: 'u_minh', projectId: t.…
+    162|     expect(asMinh.records.map((r) => r.id)).toEqual([rMinh]);
+       |                                             ^
+    163|     const asLan = readProjectExport({ userId: 'u_lan', projectId: t.pr…
+    164|     expect(asLan.records.map((r) => r.id)).toEqual([rMinh, rLan, rWate…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 28 passed (29)
+      Tests  1 failed | 432 passed (433)
+   Start at  15:32:27
+   Duration  26.94s (tests 76%, import 19%, transform 4%, worker 1%)
+
+    Isolate  29 workers spawned · ~494ms startup each (spawn + environment, per file)
+             at least ~1.55s faster with isolate: false — reuses workers across files instead of one per file
+

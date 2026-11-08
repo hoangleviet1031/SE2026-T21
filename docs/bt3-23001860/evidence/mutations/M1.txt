@@ -1,0 +1,683 @@
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":7.83,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.63,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.46,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.13,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.08,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.7,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":3.35,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.74,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.23,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.84,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":5.67,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.65,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.89,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.08,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.44,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.83,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":5.95,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.9,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.13,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.3,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.32,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.89,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":0.97,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.66,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.89,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.09,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":0.93,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.93,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.05,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.56,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.15,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":6.31,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.42,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.21,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.09,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.59,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.88,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.02,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":3.25,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.33,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.03,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.63,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.04,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.38,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.4,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.29,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":8.39,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.98,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.19,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.15,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":1.08,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":0.91,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":7.38,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.6,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.11,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.68,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":0.68,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.91,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":0.95,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.52,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":96.94,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":62.88,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":170.01,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":68.9,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/7457b522-b3bf-4615-b027-278cbede8a5b","status":201,"durationMs":4.5,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/3232cf88-1416-4125-9421-646bbe2256bb","status":201,"durationMs":5.79,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/77710198-44b6-4f74-b49f-eb659e79694b","status":201,"durationMs":1.51,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/79689ffb-3802-422a-b59a-4180be8ac675","status":201,"durationMs":6.51,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/30239bda-2eb3-4610-99f1-2523e661e94e","status":201,"durationMs":1.88,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/4011091c-1820-4b20-8a22-71d0e9aa0252","status":201,"durationMs":2.13,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/b1f846a1-8838-4708-abcc-3528f48e46d5","status":201,"durationMs":2.5,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/4dbc6edf-d048-4a23-af7b-e2485133bfd7","status":201,"durationMs":2.85,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/8304fa1c-d15f-4cfb-8851-62214cc1a2cc","status":201,"durationMs":7.01,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/48a3334b-bd70-488d-936c-4bd4aae65c6d","status":201,"durationMs":2.2,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.36,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.27,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.22,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":5.79,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.54,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.1,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.96,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.21,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.93,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":7.74,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.95,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.06,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.86,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.8,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.06,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.83,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.03,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.5,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.24,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.16,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.12,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":4.29,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.34,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.24,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.39,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.56,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.22,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.82,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":3.38,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"PUT","path":"/api/projects/demo-yte/members/u_lan","status":200,"durationMs":2.54,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":3.14,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.03,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":4,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.55,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.11,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.83,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.19,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":5.07,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.15,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.91,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.43,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.31,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.13,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.07,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.48,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":3.5,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.4,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.05,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.03,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.1,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":1.04,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.76,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.77,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.7,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.41,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":5,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.99,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.9,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.92,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":0.86,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":65.37,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":70.22,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":70.09,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":64.99,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"PUT","path":"/api/projects/demo-yte/records/8ac85485-1cd0-4b6b-8fe0-884489588507","status":201,"durationMs":2.38,"userId":"u_minh"}
+
+ ❯ test/exportConcurrency.test.ts (4 tests | 2 failed) 2934ms
+   ❯ nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi (1)
+     × EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác 378ms
+   ❯ quyền bị hạ trong lúc đang xuất (1)
+     × EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403 345ms
+stdout | test/export.test.ts > quyền và lỗi (A3, design §7.1) > surveyor nhận 403 forbidden; supervisor và owner xuất được
+{"method":"GET","path":"/api/projects/demo-yte/export/household-survey","status":200,"durationMs":1.84,"userId":"u_minh"}
+
+stdout | test/export.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":176.54,"userId":null}
+
+stdout | test/export.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":104.25,"userId":null}
+
+stdout | test/export.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":133.57,"userId":null}
+
+stdout | test/export.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":104.42,"userId":null}
+
+stdout | test/export.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":9.11,"userId":"u_lan"}
+
+stdout | test/export.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/c968b785-738a-4ea5-8390-39f216a870e1","status":201,"durationMs":8.63,"userId":"u_minh"}
+
+stdout | test/export.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/bef1c6cd-13cb-4f14-a891-e45571fb390a","status":201,"durationMs":5.15,"userId":"u_lan"}
+
+stdout | test/export.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/8439ff4e-d41a-4f03-b8a7-c7517ad79edb","status":201,"durationMs":4.53,"userId":"u_lan"}
+
+stdout | test/export.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/8439ff4e-d41a-4f03-b8a7-c7517ad79edb","status":200,"durationMs":4.32,"userId":"u_lan"}
+
+stdout | test/export.test.ts
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/020f7714-aa18-4c58-8916-6d58cd6ab7e8","status":201,"durationMs":9.56,"userId":"u_lan"}
+
+ ❯ test/export.test.ts (8 tests | 1 failed) 1221ms
+   ❯ quyền và lỗi (A3, design §7.1) (3)
+     × surveyor nhận 403 forbidden; supervisor và owner xuất được 29ms
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-06 surveyor nhận 403 forbidden
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":2.48,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-07 supervisor ở dự án này nhưng surveyor ở dự án kia: xuất dự án kia nhận 403 forbidden
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":200,"durationMs":2.16,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":161.34,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":117.13,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":177.1,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":116.5,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":9.69,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":4.23,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-nongnghiep/forms","status":201,"durationMs":1.92,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/8b782793-9936-46db-8438-d85f7a68b9de","status":201,"durationMs":8.2,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/3cb2fd8e-6f53-4836-99ac-6d0b7c38d407","status":201,"durationMs":5.54,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/38669dc1-ec8a-4c76-9857-2ab94d96129a","status":201,"durationMs":31.77,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/aa957e10-345d-4bc2-9ebc-e6b4b9795fb5","status":201,"durationMs":2.69,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/aa957e10-345d-4bc2-9ebc-e6b4b9795fb5","status":200,"durationMs":3.23,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/f9412402-a52e-43c8-bd9c-bd48b5cac456","status":201,"durationMs":6.79,"userId":"u_chu"}
+
+ ❯ test/exportProject.test.ts (10 tests | 2 failed) 1298ms
+   ❯ quyền và lỗi (A3, design §7.1) (5)
+     × EX-06 surveyor nhận 403 forbidden 49ms
+     × EX-07 supervisor ở dự án này nhưng surveyor ở dự án kia: xuất dự án kia nhận 403 forbidden 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/export.test.ts > quyền và lỗi (A3, design §7.1) > surveyor nhận 403 forbidden; supervisor và owner xuất được
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ test/export.test.ts:168:27
+    166|   it('surveyor nhận 403 forbidden; supervisor và owner xuất được', asy…
+    167|     const asMinh = await call('GET', exportUrl(), t.tokens.minh);
+    168|     expect(asMinh.status).toBe(403);
+       |                           ^
+    169|     expect(await asMinh.json()).toEqual({ error: 'forbidden' });
+    170|     expect((await call('GET', exportUrl(), t.tokens.chu)).status).toBe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ test/exportConcurrency.test.ts:85:22
+     83|
+     84|     for (const { expected, status, body } of results) {
+     85|       expect(status).toBe(expected.status);
+       |                      ^
+     86|       if ('ids' in expected) expect((body as ProjectExport).records.ma…
+     87|       else expect(body).toEqual({ error: expected.error });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+AssertionError: expected { status: 200, body: { …(2) } } to deeply equal { status: 403, …(1) }
+
+- Expected
++ Received
+
+  {
+    "body": {
+-     "error": "forbidden",
++     "forms": [
++       {
++         "fields": [
++           {
++             "id": "householdName",
++             "label": "Tên chủ hộ",
++             "required": true,
++             "type": "text",
++           },
++           {
++             "id": "members",
++             "label": "Số thành viên",
++             "type": "number",
++           },
++           {
++             "id": "waterSource",
++             "label": "Nguồn nước",
++             "options": [
++               "Máy",
++               "Giếng",
++               "Mưa",
++               "Khác",
++             ],
++             "type": "select",
++           },
++           {
++             "id": "assets",
++             "label": "Tài sản",
++             "options": [
++               "Xe máy",
++               "Tivi",
++               "Tủ lạnh",
++               "Máy giặt",
++             ],
++             "type": "multiselect",
++           },
++           {
++             "id": "visitDate",
++             "label": "Ngày khảo sát",
++             "type": "date",
+            },
+-   "status": 403,
++           {
++             "id": "housePhoto",
++             "label": "Ảnh nhà",
++             "type": "photo",
++           },
++           {
++             "id": "location",
++             "label": "Vị trí",
++             "type": "gps",
++           },
++         ],
++         "id": "household-survey",
++         "title": "Khảo sát hộ gia đình",
++         "version": 1,
++       },
++     ],
++     "records": [],
++   },
++   "status": 200,
+  }
+
+ ❯ test/exportConcurrency.test.ts:147:38
+    145|     // Request gửi trước khi hạ xong: được qua hay bị chặn đều đúng, m…
+    146|     for (const r of await Promise.all(before)) expect([200, 403]).toCo…
+    147|     for (const r of after) expect(r).toEqual({ status: 403, body: { er…
+       |                                      ^
+    148|   });
+    149| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-06 surveyor nhận 403 forbidden
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ test/exportProject.test.ts:124:24
+    122|   it('EX-06 surveyor nhận 403 forbidden', async () => {
+    123|     const res = await call('GET', exportUrl(), t.tokens.minh);
+    124|     expect(res.status).toBe(403);
+       |                        ^
+    125|     expect(await res.json()).toEqual({ error: 'forbidden' });
+    126|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-07 supervisor ở dự án này nhưng surveyor ở dự án kia: xuất dự án kia nhận 403 forbidden
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ test/exportProject.test.ts:130:24
+    128|   it('EX-07 supervisor ở dự án này nhưng surveyor ở dự án kia: xuất dự…
+    129|     const res = await call('GET', exportUrl('', t.projects.nongnghiep)…
+    130|     expect(res.status).toBe(403);
+       |                        ^
+    131|     expect(await res.json()).toEqual({ error: 'forbidden' });
+    132|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  3 failed | 26 passed (29)
+      Tests  5 failed | 427 passed (432)
+   Start at  15:29:02
+   Duration  26.34s (tests 77%, import 18%, transform 4%, worker 1%)
+
+    Isolate  29 workers spawned · ~432ms startup each (spawn + environment, per file)
+             at least ~1.36s faster with isolate: false — reuses workers across files instead of one per file
+

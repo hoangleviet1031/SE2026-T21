@@ -1,0 +1,29 @@
+From bfbaaa2d6809a8f9c9c7fe78d88c9f025610fc8b Mon Sep 17 00:00:00 2001
+From: MagnusW <daitrong127@gmail.com>
+Date: Sun, 8 Nov 2026 15:29:29 +0700
+Subject: [PATCH] =?UTF-8?q?MUTATION=20M2=20(t=E1=BA=A1m,=20kh=C3=B4ng=20me?=
+ =?UTF-8?q?rge)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ server/src/routes/export.ts | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/server/src/routes/export.ts b/server/src/routes/export.ts
+index 0f00290..c80844c 100644
+--- a/server/src/routes/export.ts
++++ b/server/src/routes/export.ts
+@@ -27,8 +27,6 @@ export function exportRouter(db: Db, publicBaseUrl: string): Router {
+   // GET P/export?format=json&includeDeleted=0: cả dự án, chỉ JSON vì một bảng CSV không chứa được nhiều
+   // form khác cột (design §4.6). Quyền như xuất theo form: requireMember('supervisor') ở app.ts.
+   r.get('/', (req, res) => {
+-    const format = req.query.format ?? 'json';
+-    if (format !== 'json') return void res.status(400).json({ error: 'invalid_body' });
+     const ctx = getCtx(req);
+     const body = readProjectExport(ctx, db, req.query.includeDeleted === '1');
+     // projectId đã qua requireMember nhưng vẫn lọc ký tự như tên file theo form.
+-- 
+2.54.0.windows.1
+

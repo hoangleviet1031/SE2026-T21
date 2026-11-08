@@ -1,0 +1,1178 @@
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":57.01,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":56,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":45.9,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":48.37,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":43.46,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":44.25,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":40.74,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":41.45,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":3.58,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/8fb249f6-2507-4383-a5cf-be531a7e6e96","status":201,"durationMs":3.79,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":1.16,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/7e9146d3-d971-43f9-9a9a-36cbaa028ace","status":201,"durationMs":1.43,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-nongnghiep/forms","status":201,"durationMs":1.04,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/eece2603-6559-4a45-bd61-d1c9831e92b8","status":201,"durationMs":1.27,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/7f3066a9-93c8-410b-bb9b-e6a7d4bfb262","status":201,"durationMs":1.72,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/bdea9882-f36e-4adc-b6e7-3431a85ef194","status":201,"durationMs":3.23,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/c536a041-f51c-49bc-9cb8-8c8c74ccf1be","status":201,"durationMs":1.89,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/10859d5e-3cbe-465b-80c4-d136fb9ed41c","status":201,"durationMs":1.73,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/0d338586-4c01-4408-8f1a-368754c439de","status":201,"durationMs":1.27,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/80ffabf4-44bb-40fe-bdc6-c25b2c837572","status":201,"durationMs":1.01,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/a707dc86-b874-4688-b040-dc4013a4cdde","status":201,"durationMs":1.67,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/bd83fd0a-d074-4d7b-9f7b-161b02e17db1","status":201,"durationMs":1.79,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/e2e99129-83e6-420e-997f-88732a0aec92","status":201,"durationMs":1.2,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/e2e99129-83e6-420e-997f-88732a0aec92","status":200,"durationMs":1.57,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-yte/records/d46258a9-263b-4fe2-8c8d-60a0ee42325c","status":201,"durationMs":1.75,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/94f4b48f-4fc5-445d-b3c0-da6def2efd73","status":201,"durationMs":3.04,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/3807d4f4-bfdf-468e-858e-99e291132231","status":201,"durationMs":3.13,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts > xuất cả dự án (thành công) > EX-01 supervisor: mọi phiên bản của mọi form, phiếu chưa xoá theo thứ tự ghi; tải về dạng file
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":3.03,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts > xuất cả dự án (thành công) > EX-02 includeDeleted=1 thì có phiếu đã xoá, deleted là true
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":1.3,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":1.78,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts > xuất cả dự án (thành công) > EX-03 owner xuất được, không truyền format thì mặc định JSON
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":0.59,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts > xuất cả dự án (thành công) > EX-04 contract với CSDL: deleted là boolean, data là object, tên người tạo/sửa ghép từ users
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":0.69,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.66,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts > phạm vi dữ liệu > EX-05 không bao giờ có phiếu hay form của dự án khác, kể cả cùng id form
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":0.79,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.4,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.46,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.35,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":1.92,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.54,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.32,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.38,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.31,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.26,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.39,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.28,"userId":"u_admin"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.3,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.48,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.42,"userId":"u_admin"}
+
+stdout | test/exportProject.test.ts > phạm vi dữ liệu > EX-05 không bao giờ có phiếu hay form của dự án khác, kể cả cùng id form
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":404,"durationMs":0.9,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-06 surveyor nhận 403 forbidden
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.83,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":23.65,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":404,"durationMs":24.6,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":22.4,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":22.4,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":404,"durationMs":22.43,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":18.96,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":17.33,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":404,"durationMs":17.15,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":15.53,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":15.48,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":404,"durationMs":15.44,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":14.06,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":14.05,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":404,"durationMs":13.93,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":11.99,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":11.87,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":404,"durationMs":11.84,"userId":"u_chu"}
+
+ × test/exportProject.test.ts > xuất cả dự án (thành công) > EX-01 supervisor: mọi phiên bản của mọi form, phiếu chưa xoá theo thứ tự ghi; tải về dạng file 20ms
+   → expected 404 to be 200 // Object.is equality
+ × test/exportProject.test.ts > xuất cả dự án (thành công) > EX-02 includeDeleted=1 thì có phiếu đã xoá, deleted là true 10ms
+   → Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ × test/exportProject.test.ts > xuất cả dự án (thành công) > EX-03 owner xuất được, không truyền format thì mặc định JSON 15ms
+   → expected 404 to be 200 // Object.is equality
+ × test/exportProject.test.ts > xuất cả dự án (thành công) > EX-04 contract với CSDL: deleted là boolean, data là object, tên người tạo/sửa ghép từ users 13ms
+   → Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ × test/exportProject.test.ts > phạm vi dữ liệu > EX-05 không bao giờ có phiếu hay form của dự án khác, kể cả cùng id form 31ms
+   → Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ✓ test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-06 surveyor nhận 403 forbidden 6ms
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-07 supervisor ở dự án này nhưng surveyor ở dự án kia: xuất dự án kia nhận 403 forbidden
+{"method":"GET","path":"/api/projects/demo-nongnghiep/export","status":403,"durationMs":0.48,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-08 admin không là thành viên: 403 not_member; không có token: 401; dự án không có: 403 not_member
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.98,"userId":"u_admin"}
+
+ × test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác 55ms
+   → Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-08 admin không là thành viên: 403 not_member; không có token: 401; dự án không có: 403 not_member
+{"method":"GET","path":"/api/projects/demo-yte/export","status":401,"durationMs":0.5,"userId":null}
+
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-08 admin không là thành viên: 403 not_member; không có token: 401; dự án không có: 403 not_member
+{"method":"GET","path":"/api/projects/khong-co-du-an/export","status":403,"durationMs":0.53,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-09 format khác json (kể cả csv, lặp tham số) thì 400 invalid_body
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":0.57,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":41.9,"userId":null}
+
+stdout | test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-10 route xuất theo form có sẵn không đổi hành vi
+{"method":"GET","path":"/api/projects/demo-yte/export/household-survey","status":200,"durationMs":1.48,"userId":"u_lan"}
+
+ ✓ test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-07 supervisor ở dự án này nhưng surveyor ở dự án kia: xuất dự án kia nhận 403 forbidden 9ms
+ ✓ test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-08 admin không là thành viên: 403 not_member; không có token: 401; dự án không có: 403 not_member 31ms
+ × test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-09 format khác json (kể cả csv, lặp tham số) thì 400 invalid_body 15ms
+   → ?format=csv: expected 404 to be 400 // Object.is equality
+ ✓ test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-10 route xuất theo form có sẵn không đổi hành vi 17ms
+ × test/exportProject.test.ts > phòng thủ ở lớp đọc dữ liệu > EX-15 nếu surveyor lọt tới hàm đọc thì chỉ thấy phiếu mình tạo, kể cả phiếu đã xoá 0ms
+   → readProjectExport is not a function
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":46.32,"userId":null}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":46.71,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":45.46,"userId":null}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":46.71,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":40.28,"userId":null}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":45.57,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/30633656-dbc9-47e0-ab0b-98e3ce30242a","status":201,"durationMs":1.19,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/985c616a-de19-40d0-90fd-de276ac1331b","status":201,"durationMs":1.14,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/3905f837-2da9-4bd9-be14-e2289c49c678","status":201,"durationMs":1.2,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/5b061a0d-879a-478b-a04b-0128d56560f1","status":201,"durationMs":4.04,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/6d9c037c-c728-486f-96b0-d4f13f22ea14","status":201,"durationMs":1.53,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/e8c2aa07-6932-444a-a493-9f245f87f2c1","status":201,"durationMs":1.31,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/52a10b78-9656-46b2-af67-7795f10a6a4f","status":201,"durationMs":1.42,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":49.95,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/b330f11a-f22b-4bdd-8da4-2894c5187ce3","status":201,"durationMs":1.34,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/764de1b3-ea58-4947-a4d9-e5441ce94c56","status":201,"durationMs":1.15,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/e7a9f7dc-070d-4bc2-a281-ce0b23c753e9","status":201,"durationMs":1.02,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/07806e4d-5cbf-4f73-828d-cde56979cfde","status":201,"durationMs":1.03,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/d3c8b3a9-c1ac-4ce4-9019-f82f957d44bb","status":201,"durationMs":1.22,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/532dfee0-60e4-4126-9c28-0a54424d9963","status":201,"durationMs":3.32,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/99d586e8-f316-4d29-a16d-3e49ea6a12c4","status":201,"durationMs":0.77,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/de57035a-0f12-4954-922a-5a08cf2472cf","status":201,"durationMs":0.78,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":0.75,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/f4736f90-bf4c-4f74-9f74-202166f7209a","status":201,"durationMs":1.53,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/c58fe119-8b38-4751-ac0f-ade82fdf3d65","status":201,"durationMs":0.95,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/9d8a3f77-73d8-48b9-a448-37fdc1e0c531","status":201,"durationMs":0.79,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/d22cc26c-bf57-4a2f-b04a-f58432d6fc75","status":201,"durationMs":0.88,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/b793b583-57d2-4b98-9fa4-108e8e68d9ba","status":201,"durationMs":0.74,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/a42502ae-88a2-431c-9707-6193092f5627","status":201,"durationMs":0.75,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/81dfc738-7f30-4bdd-9139-e4de06ad3ebd","status":201,"durationMs":1.11,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/e9dfc48d-3015-4abb-86f7-819c1e9894d6","status":201,"durationMs":0.78,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/3a21e5f2-0bb3-40ce-a3e3-7673d96a4b48","status":201,"durationMs":0.78,"userId":"u_minh"}
+
+ × test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được 233ms
+   → expected 404 to be 500 // Object.is equality
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/af741b0b-652e-4a59-b613-27faaf905f75","status":201,"durationMs":6.5,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/c9225239-2056-477c-b98a-add4599c9bd5","status":201,"durationMs":1.15,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/ed018d46-224e-4ea5-b340-9312eb3d06af","status":201,"durationMs":1.05,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/d63f419a-ff5c-4298-941a-f71f5d95e937","status":201,"durationMs":1.33,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/6976da3d-8269-4ac5-b0bb-2576aa1c728f","status":201,"durationMs":0.97,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"PUT","path":"/api/projects/demo-yte/records/2b39974a-0f6f-478f-a206-8ab6a6d39ca4","status":201,"durationMs":0.91,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":64.27,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":63.37,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":61.56,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":60.06,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":59.05,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.42,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.23,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":57.99,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":57.81,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":57.59,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":57.37,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":57,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":56.82,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":56.61,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":56.45,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":56.26,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":56.21,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":56.15,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":56.45,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":57.01,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.25,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.84,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":59.02,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.98,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.92,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.83,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.69,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.66,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.59,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":58.57,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":0.42,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":37.18,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":40.32,"userId":null}
+
+ × test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu 131ms
+   → Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":42.46,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":42.52,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất
+{"method":"PUT","path":"/api/projects/demo-yte/records/eb45aced-e6b3-4ec5-8b2c-1a489b7fc7fb","status":201,"durationMs":1.52,"userId":"u_minh"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":0.89,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"PUT","path":"/api/projects/demo-yte/members/u_lan","status":200,"durationMs":1.05,"userId":"u_chu"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":10.1,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":9.98,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":9.98,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":10.05,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":10.12,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":10.2,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":10.27,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":10.19,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":9.97,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":9.92,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":9.82,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":9.7,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":9.52,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":8.2,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":7.45,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":7.34,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":7.26,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":7.27,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":7.21,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":7.12,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":6.83,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":6.61,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":6.48,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":6.4,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":6.39,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":6.46,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":6.59,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":6.55,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":6.55,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.55,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.32,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.15,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":1.12,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.32,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.23,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.31,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.25,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.22,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.3,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.24,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.21,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.22,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.22,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.36,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.28,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.2,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.23,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.19,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.22,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.24,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.27,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.23,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.17,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.17,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.18,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.27,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.25,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.19,"userId":"u_lan"}
+
+stdout | test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+{"method":"GET","path":"/api/projects/demo-yte/export","status":403,"durationMs":0.19,"userId":"u_lan"}
+
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 57)
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 58)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 59)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 60)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 61)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 62)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 63)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 64)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 65)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 66)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 67)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 68)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 69)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 71)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 70)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 72)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 73)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 74)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 75)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 76)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 77)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 78)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 79)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 80)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 81)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 82)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 84)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 83)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 85)
+(node:5752) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 86)
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":41.19,"userId":null}
+
+ × test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403 101ms
+   → Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":41.49,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":44.07,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":46.13,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"GET","path":"/api/projects/demo-yte/export","status":404,"durationMs":5.85,"userId":"u_lan"}
+
+ × test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào 285ms
+   → Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác
+ FAIL  test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu
+ FAIL  test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403
+ FAIL  test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+ FAIL  test/exportProject.test.ts > xuất cả dự án (thành công) > EX-02 includeDeleted=1 thì có phiếu đã xoá, deleted là true
+ FAIL  test/exportProject.test.ts > xuất cả dự án (thành công) > EX-04 contract với CSDL: deleted là boolean, data là object, tên người tạo/sửa ghép từ users
+ FAIL  test/exportProject.test.ts > phạm vi dữ liệu > EX-05 không bao giờ có phiếu hay form của dự án khác, kể cả cùng id form
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  test/exportProject.test.ts > xuất cả dự án (thành công) > EX-01 supervisor: mọi phiên bản của mọi form, phiếu chưa xoá theo thứ tự ghi; tải về dạng file
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ test/exportProject.test.ts:78:24
+     76|   it('EX-01 supervisor: mọi phiên bản của mọi form, phiếu chưa xoá the…
+     77|     const res = await call('GET', exportUrl('?format=json'), t.tokens.…
+     78|     expect(res.status).toBe(200);
+       |                        ^
+     79|     expect(res.headers.get('content-type')).toMatch(/^application\/jso…
+     80|     expect(res.headers.get('content-disposition')).toBe(`attachment; f…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  test/exportProject.test.ts > xuất cả dự án (thành công) > EX-03 owner xuất được, không truyền format thì mặc định JSON
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ test/exportProject.test.ts:94:24
+     92|   it('EX-03 owner xuất được, không truyền format thì mặc định JSON', a…
+     93|     const res = await call('GET', exportUrl(), t.tokens.chu);
+     94|     expect(res.status).toBe(200);
+       |                        ^
+     95|     expect(((await res.json()) as ProjectExport).records.map((r) => r.…
+     96|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-09 format khác json (kể cả csv, lặp tham số) thì 400 invalid_body
+AssertionError: ?format=csv: expected 404 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 404
+
+ ❯ test/exportProject.test.ts:144:29
+    142|     for (const q of ['?format=csv', '?format=xml', '?format=json&forma…
+    143|       const res = await call('GET', exportUrl(q), t.tokens.lan);
+    144|       expect(res.status, q).toBe(400);
+       |                             ^
+    145|       expect(await res.json(), q).toEqual({ error: 'invalid_body' });
+    146|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  test/exportProject.test.ts > phòng thủ ở lớp đọc dữ liệu > EX-15 nếu surveyor lọt tới hàm đọc thì chỉ thấy phiếu mình tạo, kể cả phiếu đã xoá
+TypeError: readProjectExport is not a function
+ ❯ test/exportProject.test.ts:161:20
+    159|   // trước. Gọi thẳng hàm route dùng, trên CSDL thật, để lớp phòng thủ…
+    160|   it('EX-15 nếu surveyor lọt tới hàm đọc thì chỉ thấy phiếu mình tạo, …
+    161|     const asMinh = readProjectExport({ userId: 'u_minh', projectId: t.…
+       |                    ^
+    162|     expect(asMinh.records.map((r) => r.id)).toEqual([rMinh]);
+    163|     const asLan = readProjectExport({ userId: 'u_lan', projectId: t.pr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+AssertionError: expected 404 to be 500 // Object.is equality
+
+- Expected
++ Received
+
+- 500
++ 404
+
+ ❯ test/exportProject.test.ts:183:73
+    181|       );
+    182|       const url = `${s.base}/api/projects/${s.projects.yte}`;
+    183|       expect((await call('GET', `${url}/export`, s.tokens.lan)).status…
+       |                                                                         ^
+    184|       // readTx phải ROLLBACK: nếu transaction đọc còn mở thì BEGIN IM…
+    185|       const id = randomUUID();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 30 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ ❯ parseJSONFromBytes node:internal/deps/undici/undici:4387:19
+ ❯ successSteps node:internal/deps/undici/undici:7041:27
+ ❯ readAllBytes node:internal/deps/undici/undici:5958:13
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "test/exportConcurrency.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  2 failed (2)
+      Tests  12 failed | 4 passed (16)
+     Errors  30 errors
+   Start at  15:46:34
+   Duration  2.62s (tests 55%, import 29%, transform 15%)
+

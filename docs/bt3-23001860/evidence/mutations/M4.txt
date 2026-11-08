@@ -1,0 +1,55 @@
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":127.07,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":101.97,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":121.93,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":108.67,"userId":null}
+
+stdout | test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+{"method":"GET","path":"/api/projects/demo-yte/export","status":200,"durationMs":12.61,"userId":"u_lan"}
+
+ ❯ test/exportConcurrency.test.ts (4 tests | 1 failed) 4232ms
+   ❯ một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) (1)
+     × EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào 722ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào
+AssertionError: expected { sawForm: false, sawRecord: true } to deeply equal { sawForm: false, sawRecord: false }
+
+- Expected
++ Received
+
+  {
+    "sawForm": false,
+-   "sawRecord": false,
++   "sawRecord": true,
+  }
+
+ ❯ test/exportConcurrency.test.ts:190:36
+    188|     const sawForm = during.forms.some((f) => f.id === 'late-form');
+    189|     const sawRecord = during.records.some((r) => r.id === lateRecord);
+    190|     expect({ sawForm, sawRecord }).toEqual({ sawForm: false, sawRecord…
+       |                                    ^
+    191|
+    192|     const after = (await (await call('GET', `${srv.base}/api/projects/…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 28 passed (29)
+      Tests  1 failed | 431 passed (432)
+   Start at  15:30:47
+   Duration  28.44s (tests 75%, import 19%, transform 5%, worker 1%)
+
+    Isolate  29 workers spawned · ~499ms startup each (spawn + environment, per file)
+             at least ~1.57s faster with isolate: false — reuses workers across files instead of one per file
+

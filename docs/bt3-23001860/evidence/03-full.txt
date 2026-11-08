@@ -1,0 +1,65 @@
+
+> field-survey-pwa@0.1.0 typecheck
+> npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client
+
+
+> @field-survey/shared@0.1.0 typecheck
+> tsc -p .
+
+
+> @field-survey/server@0.1.0 typecheck
+> tsc -p .
+
+
+> @field-survey/client@0.1.0 typecheck
+> tsc -p .
+
+
+> field-survey-pwa@0.1.0 test
+> npm test -w shared && npm test -w server && npm test -w client
+
+
+> @field-survey/shared@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/shared
+
+
+ Test Files  6 passed (6)
+      Tests  137 passed (137)
+   Start at  15:48:27
+   Duration  711ms (transform 48%, import 38%, tests 9%, worker 5%)
+
+
+> @field-survey/server@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+
+ Test Files  29 passed (29)
+      Tests  434 passed (434)
+   Start at  15:48:29
+   Duration  28.41s (tests 74%, import 19%, transform 6%, worker 1%)
+
+    Isolate  29 workers spawned · ~514ms startup each (spawn + environment, per file)
+             at least ~1.62s faster with isolate: false — reuses workers across files instead of one per file
+
+
+> @field-survey/client@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/client
+
+
+ Test Files  32 passed (32)
+      Tests  320 passed (320)
+   Start at  15:48:58
+   Duration  3.10s (import 49%, transform 30%, tests 14%, worker 7%, environment 1%)
+
+    Isolate  32 workers spawned · ~430ms startup each (spawn + environment, per file)
+             at least ~1.54s faster with isolate: false — reuses workers across files instead of one per file
+
