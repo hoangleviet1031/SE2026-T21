@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import type { FormSchema, SaveFormRequest, ServerRecord } from '@field-survey/shared';
-import { SAMPLE_FORM } from '../src/db';
+import { nextSeq, SAMPLE_FORM, tx } from '../src/db';
 import { readProjectExport } from '../src/routes/export';
 import { createTestServer, type TestServer } from './fixtures';
 
@@ -162,5 +162,31 @@ describe('phòng thủ ở lớp đọc dữ liệu', () => {
     expect(asMinh.records.map((r) => r.id)).toEqual([rMinh]);
     const asLan = readProjectExport({ userId: 'u_lan', projectId: t.projects.yte, role: 'supervisor' }, t.db, true);
     expect(asLan.records.map((r) => r.id)).toEqual([rMinh, rLan, rWater, rDel]);
+  });
+});
+
+describe('đường lỗi', () => {
+  it('EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được', async () => {
+    // Server riêng vì dòng hỏng nằm lại trong CSDL. Dòng hỏng đi thẳng vào bảng như một bản cũ hay sửa
+    // tay để lại: đúng loại vi phạm contract mà repo giả định (data luôn là JSON) và mock không có.
+    const s = await createTestServer();
+    try {
+      tx(s.db, () =>
+        s.db
+          .prepare(
+            `INSERT INTO records (id, project_id, form_id, form_version, data, version, deleted, created_by, updated_at, updated_by, seq)
+             VALUES (?, ?, ?, 1, ?, 1, 0, 'u_minh', ?, 'u_minh', ?)`,
+          )
+          .run(randomUUID(), s.projects.yte, HH, 'không phải JSON', new Date().toISOString(), nextSeq(s.db)),
+      );
+      const url = `${s.base}/api/projects/${s.projects.yte}`;
+      expect((await call('GET', `${url}/export`, s.tokens.lan)).status).toBe(500);
+      // readTx phải ROLLBACK: nếu transaction đọc còn mở thì BEGIN IMMEDIATE của mọi lần ghi sau đều lỗi.
+      const id = randomUUID();
+      const put = await call('PUT', `${url}/records/${id}`, s.tokens.minh, { formId: HH, formVersion: 1, baseVersion: 0, deleted: false, data: { householdName: 'Sau lỗi' } });
+      expect(put.status).toBe(201);
+    } finally {
+      s.close();
+    }
   });
 });
