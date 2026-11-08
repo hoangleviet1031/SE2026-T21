@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-11-08 | — | feat | Màn 8: khối Dữ liệu trên máy (Could, ngoài MVP): số biểu mẫu và thay đổi chờ gửi của tổ chức đang chọn, chỉ đọc IndexedDB; sketch logout-blocked theo chữ thật; chỉ sửa client; E2E settings.spec (1 ca), unit deviceStatus; design 0.5.73, ui 0.2.49, requirements 0.23 | PR #N | chờ review |
+| 2026-11-08 | — | feat | Màn 8: khối Dữ liệu trên máy (Could, ngoài MVP): số biểu mẫu và thay đổi chờ gửi của tổ chức đang chọn, chỉ đọc IndexedDB; sketch logout-blocked theo chữ thật; chỉ sửa client; E2E settings.spec (1 ca), unit deviceStatus; design 0.5.73, ui 0.2.49, requirements 0.23 | PR #130 | chờ review |
 | 2026-11-07 | — | feat | PR #129 đã merge | PR #129 | xong |
 | 2026-11-07 | — | feat | Màn 5: Nhân bản trường (Could, ngoài MVP): trường mới chưa lưu ngay dưới, giữ nhãn, mã gợi ý lại, bỏ ẩn, con trỏ vào ô Nhãn; chỉ sửa client; E2E builder.spec (2 ca), unit duplicateField; design 0.5.72, ui 0.2.48, requirements 0.22 | PR #129 | chờ review |
 | 2026-11-05 | — | feat | PR #126 đã merge | PR #126 | xong |
