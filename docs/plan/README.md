@@ -120,6 +120,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Màn 4: phiếu đã xoá không sống lại khi mở lại (sửa lỗi, không ticket, Dương cho phép) | Must | – | ✅ PR #125 |
 | — | Màn 4: Nhân bản phiếu (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #126 |
 | — | Màn 5: Nhân bản trường (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #129 |
+| — | Màn 8: Dữ liệu trên máy (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #130 |
 
 ## Phụ thuộc quan trọng
 

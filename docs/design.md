@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.72 (2026-11-07)
+- **Phiên bản:** 0.5.73 (2026-11-08)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -106,6 +106,7 @@
 | 0.5.70 | 2026-11-04 | Sửa lỗi phiếu đã xoá sống lại ở màn hình 4 (không ticket, Dương cho phép, Must theo US-06): phiếu đã xoá mở lại thì form khoá, báo đã xoá, không có Lưu và Xoá; `saveRecordLocally` từ chối lưu lên phiếu đã xoá (`RecordDeletedError`); xoá xong thay mục lịch sử để Back không về lại phiếu (§4.1, §5.7, §8, ca O10). Không đổi API, mã lỗi, schema; giới hạn còn lại ở tech-debt N24 |
 | 0.5.71 | 2026-11-05 | Nhân bản phiếu ở màn hình 4 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-04): §1 thêm dòng MoSCoW; §4.1 mục "Nhân bản phiếu" (bản sao là bộ đệm của id mới, `fromCopy`, dùng form mới nhất, không chép ảnh, vị trí, trường ẩn, giá trị sai định dạng); §5.1 bản sao chưa Lưu không phải phiếu; §8 không ghi được bản sao vào máy thì báo. Không đổi API, mã lỗi, schema |
 | 0.5.72 | 2026-11-07 | Nhân bản trường ở màn hình 5 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-07): §1 thêm dòng MoSCoW; §4.1 "Builder UI" mục "Nhân bản trường" (trường mới chưa lưu ngay dưới trường gốc, giữ nhãn, mã gợi ý lại từ nhãn, bản sao của trường ẩn thì hiện; thành trường thêm mới khi Lưu bản mới). Chỉ client; không đổi API, mã lỗi, schema |
+| 0.5.73 | 2026-11-08 | Khối "Dữ liệu trên máy" ở màn hình 8 Cài đặt (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-08): §1 thêm dòng MoSCoW; §4.2 số biểu mẫu (mã form khác nhau) và số thay đổi chờ gửi (mọi op trong outbox) của dự án đang chọn, chỉ đọc IndexedDB. Không có mốc đồng bộ lần cuối. Chỉ client; không đổi API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -171,6 +172,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Thêm nhiều thành viên một lần (§4.7) | Dán danh sách tên đăng nhập ở màn hình Thành viên, xem kết quả từng tên. | Could (Dương duyệt 2026-11-03, ngoài MVP, cắt được) |
 | Nhân bản phiếu (§4.1) | Nút ở màn hình 4 tạo phiếu mới chưa Lưu, điền sẵn giá trị của phiếu đang mở. | Could (Dương duyệt 2026-11-04, ngoài MVP, cắt được) |
 | Nhân bản trường (§4.1) | Nút ở màn hình 5 tạo trường mới chưa lưu ngay dưới trường đang chọn, chép cấu hình, mã mới. | Could (Dương duyệt 2026-11-07, ngoài MVP, cắt được) |
+| Dữ liệu trên máy ở Cài đặt (§4.2) | Màn hình 8 hiện số biểu mẫu và số thay đổi chờ gửi của dự án đang chọn, đọc từ IndexedDB. | Could (Dương duyệt 2026-11-08, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
 **Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
@@ -469,6 +471,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - **Ghi nguyên tử:** lưu phiếu và thêm op vào outbox trong cùng một transaction Dexie (`saveRecordLocally`), không bao giờ có phiếu đã sửa mà thiếu op (trừ phiếu nháp, vốn không có op).
 - **Nâng cấp schema:** thêm `this.version(n+1).stores(...).upgrade(...)`, không sửa version cũ. Mọi CSDL dự án dùng chung một lớp `ProjectDb` nên được nâng cấp giống nhau khi mở. CSDL `field-survey` của khung hiện tại không chuyển dữ liệu sang (chưa có người dùng thật), chỉ xoá.
 - **Chống bị xoá dữ liệu:** gọi `navigator.storage.persist()` sau lần lưu phiếu đầu tiên, kể cả phiếu nháp (`client/src/persistStorage.ts`: gọi sau mỗi lần lưu nhưng bỏ qua khi `persisted()` đã là `true`, nên trình duyệt từ chối thì lần lưu sau xin lại; không có API thì bỏ qua); hiển thị dung lượng đã dùng qua `navigator.storage.estimate()` ở trang Cài đặt.
+- **Dữ liệu trên máy** (Could, Dương duyệt 2026-11-08, cắt được; `client/src/deviceStatus.ts`): trang Cài đặt có khối đếm cho **dự án đang chọn**: số biểu mẫu là số mã form khác nhau trong `forms` (không đếm từng phiên bản), số thay đổi chờ gửi là số op trong `outbox` kể cả op `failed` (đúng phần outbox mà `hasUnsentData` dùng để khoá Đăng xuất; nháp không có op nên không tính, ảnh chờ gửi không tính). Đọc bằng liveQuery nên đồng bộ xong số tự đổi; chỉ đọc IndexedDB, không gọi API. Máy chưa có CSDL của dự án thì không hiện khối, và khối không mở CSDL chưa có (để không tạo lại CSDL vừa bị xoá khi Đăng xuất). Không có mốc "đồng bộ lần cuối".
 
 ### 4.3 Service worker và cài đặt PWA
 
