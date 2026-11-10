@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-10 | — | feat | PR #131 đã merge | PR #131 | xong |
+| 2026-11-10 | — | feat | Màn 5: sửa form đã có thì hộp hỏi lại tóm tắt khác bản đang dùng trước khi lưu (Could, ngoài MVP); unit formChanges, E2E builder.spec 2 ca; design 0.5.74, ui 0.2.50, requirements 0.24 | PR #131 | chờ review |
 | 2026-11-08 | — | feat | PR #130 đã merge | PR #130 | xong |
 | 2026-11-08 | — | feat | Màn 8: khối Dữ liệu trên máy (Could, ngoài MVP): số biểu mẫu và thay đổi chờ gửi của tổ chức đang chọn, chỉ đọc IndexedDB; sketch logout-blocked theo chữ thật; chỉ sửa client; E2E settings.spec (1 ca), unit deviceStatus; design 0.5.73, ui 0.2.49, requirements 0.23 | PR #130 | chờ review |
 | 2026-11-07 | — | feat | PR #129 đã merge | PR #129 | xong |
