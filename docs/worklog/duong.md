@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-10 | — | docs | README khớp code: bỏ ghi chú 501/TODO ở Cấu trúc, liệt kê đúng route và docs, thêm link ADR 0003, requirements, deploy, tech-debt; E2E trỏ tới bảng truy vết | PR #? | chờ review |
 | 2026-11-10 | — | feat | PR #131 đã merge | PR #131 | xong |
 | 2026-11-10 | — | feat | Màn 5: sửa form đã có thì hộp hỏi lại tóm tắt khác bản đang dùng trước khi lưu (Could, ngoài MVP); unit formChanges, E2E builder.spec 2 ca; design 0.5.74, ui 0.2.50, requirements 0.24 | PR #131 | chờ review |
 | 2026-11-08 | — | feat | PR #130 đã merge | PR #130 | xong |
