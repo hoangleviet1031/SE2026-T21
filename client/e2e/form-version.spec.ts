@@ -63,6 +63,10 @@ test('tạo phiếu ở v1, ẩn một trường tạo v2: phiếu cũ vẫn th�
   await page.getByTestId('builder-fields').getByRole('button', { name: /^Ghi chú \(/ }).click();
   await page.getByTestId('field-editor').getByLabel('Ẩn').check();
   await page.getByRole('button', { name: 'Lưu bản mới' }).click();
+  // Sửa form đã có thì hỏi lại kèm tóm tắt trước khi gửi (design 0.5.74 §4.1 "Lưu bản mới")
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('So với bản 1 đang dùng: ẩn 1 trường. Lưu bản mới?')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Lưu', exact: true }).click();
   await expect(form).toBeVisible();
   const v2 = await request.get(api('/forms/ho/versions/2'), { headers: authHeaders(TOKENS.lan) });
   expect(v2.status()).toBe(200);

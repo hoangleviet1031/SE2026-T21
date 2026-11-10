@@ -38,6 +38,13 @@ function formRow(page: Page, title: string) {
   return page.getByRole('listitem').filter({ hasText: title });
 }
 
+/** Hộp hỏi lại khi lưu bản mới của form đã có: kiểm câu tóm tắt rồi bấm [Lưu] (design §4.1 "Lưu bản mới"). */
+async function confirmSave(page: Page, summary: string) {
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText(summary, { exact: true })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Lưu', exact: true }).click();
+}
+
 test('tạo form đủ 7 loại trường, lưu, thấy ngay ở trang chủ và tạo được phiếu từ form đó', async ({
   page,
   request,
@@ -109,6 +116,8 @@ test('sửa form tạo version mới; phiếu cũ vẫn mở bằng version cũ;
   await expect(page.getByRole('button', { name: 'Xoá trường' })).toHaveCount(0);
   await addField(page, 'Số', 'Số người');
   await page.getByRole('button', { name: 'Lưu bản mới' }).click();
+  // Sửa form đã có thì hỏi lại kèm tóm tắt trước khi gửi (design 0.5.74 §4.1 "Lưu bản mới")
+  await confirmSave(page, 'So với bản 1 đang dùng: thêm 1 trường. Lưu bản mới?');
   await expect(formRow(page, 'Hộ dân')).toBeVisible();
 
   const v2 = await request.get(api('/forms/ho/versions/2'), { headers: authHeaders(TOKENS.lan) });
@@ -602,6 +611,7 @@ test('nhân bản trường có lựa chọn: bản sao ngay dưới, mã mới;
   // nên chờ formRow là qua ngay khi còn ở builder (CI đỏ ở #129)
   const saved = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/forms'));
   await page.getByRole('button', { name: 'Lưu bản mới' }).click();
+  await confirmSave(page, 'So với bản 1 đang dùng: thêm 2 trường. Lưu bản mới?');
   expect((await saved).status()).toBe(201);
   await expect(page.getByTestId('builder-fields')).toHaveCount(0);
   await expect(formRow(page, 'Nguồn nước')).toBeVisible();
@@ -649,4 +659,76 @@ test('màn 360 px: [Nhân bản trường] gọn trong khối Thuộc tính, cao
   const box = await up.boundingBox();
   expect(box?.width).toBeGreaterThanOrEqual(34);
   expect(box?.height).toBeGreaterThanOrEqual(44);
+});
+
+// Tóm tắt thay đổi khi lưu (Could, cắt được; design §4.1 "Lưu bản mới", ui.md màn hình 5)
+test('sửa form rồi Lưu bản mới: hộp tóm tắt khác bản đang dùng; Huỷ, Esc không gửi, giữ phần đang sửa; Lưu ra version mới', async ({
+  page,
+  request,
+}) => {
+  const res = await request.post(api('/forms'), {
+    headers: authHeaders(TOKENS.lan),
+    data: {
+      id: 'ho',
+      title: 'Hộ dân',
+      fields: [
+        { id: 'ten', type: 'text', label: 'Tên' },
+        { id: 'note', type: 'text', label: 'Ghi chú' },
+      ],
+    },
+  });
+  expect(res.status()).toBe(201);
+  const posts: string[] = [];
+  page.on('request', (req) => {
+    if (req.method() === 'POST' && req.url().endsWith('/forms')) posts.push(req.url());
+  });
+
+  await login(page, 'lan');
+  await formRow(page, 'Hộ dân').getByRole('link', { name: 'Sửa form' }).click();
+  await addField(page, 'Số', 'Số người');
+  await page.getByTestId('builder-fields').getByRole('button', { name: /^Ghi chú \(/ }).click();
+  await page.getByTestId('field-editor').getByLabel('Ẩn').check();
+
+  const save = page.getByRole('button', { name: 'Lưu bản mới' });
+  const dialog = page.getByRole('dialog');
+  const summary = 'So với bản 1 đang dùng: thêm 1 trường, ẩn 1 trường. Lưu bản mới?';
+  await save.click();
+  await expect(dialog.getByText(summary, { exact: true })).toBeVisible();
+  // Huỷ đứng trước để lỡ Enter không gửi; nút Lưu là nút chính, không đỏ
+  await expect(dialog.getByRole('button', { name: 'Huỷ' })).toBeFocused();
+  await dialog.getByRole('button', { name: 'Huỷ' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(save).toBeFocused();
+  await expect(fieldRows(page)).toHaveCount(3);
+  await expect(fieldRows(page).nth(1)).toHaveText(/Ghi chú \(Chữ, ẩn\)/);
+
+  await save.click();
+  await expect(dialog.getByText(summary, { exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  expect(posts).toEqual([]);
+
+  await save.click();
+  await dialog.getByRole('button', { name: 'Lưu', exact: true }).click();
+  await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toBeVisible();
+  expect(posts).toHaveLength(1);
+  const v2 = await request.get(api('/forms/ho/versions/2'), { headers: authHeaders(TOKENS.lan) });
+  expect(v2.status()).toBe(200);
+  expect(((await v2.json()) as { fields: unknown[] }).fields).toHaveLength(3);
+});
+
+test('sửa form mà không đổi gì: hộp nói không có gì khác, vẫn lưu được', async ({ page, request }) => {
+  const res = await request.post(api('/forms'), {
+    headers: authHeaders(TOKENS.lan),
+    data: { id: 'ho', title: 'Hộ dân', fields: [{ id: 'ten', type: 'text', label: 'Tên' }] },
+  });
+  expect(res.status()).toBe(201);
+
+  await login(page, 'lan');
+  await formRow(page, 'Hộ dân').getByRole('link', { name: 'Sửa form' }).click();
+  await page.getByRole('button', { name: 'Lưu bản mới' }).click();
+  await confirmSave(page, 'Không có gì khác bản 1 đang dùng. Vẫn lưu bản mới?');
+  await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toBeVisible();
+  const v2 = await request.get(api('/forms/ho/versions/2'), { headers: authHeaders(TOKENS.lan) });
+  expect(v2.status()).toBe(200);
 });
