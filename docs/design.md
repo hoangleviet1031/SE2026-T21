@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.74 (2026-11-10)
+- **Phiên bản:** 0.5.75 (2026-11-11)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -108,6 +108,7 @@
 | 0.5.72 | 2026-11-07 | Nhân bản trường ở màn hình 5 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-07): §1 thêm dòng MoSCoW; §4.1 "Builder UI" mục "Nhân bản trường" (trường mới chưa lưu ngay dưới trường gốc, giữ nhãn, mã gợi ý lại từ nhãn, bản sao của trường ẩn thì hiện; thành trường thêm mới khi Lưu bản mới). Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.73 | 2026-11-08 | Khối "Dữ liệu trên máy" ở màn hình 8 Cài đặt (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-08): §1 thêm dòng MoSCoW; §4.2 số biểu mẫu (mã form khác nhau) và số thay đổi chờ gửi (mọi op trong outbox) của dự án đang chọn, chỉ đọc IndexedDB. Không có mốc đồng bộ lần cuối. Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.74 | 2026-11-10 | Tóm tắt thay đổi khi lưu form ở màn hình 5 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-10): §1 thêm dòng MoSCoW; §4.1 "Lưu bản mới": sửa form đã có thì hỏi lại trong app, câu tóm tắt bản mới khác bản mới nhất trên máy (thêm, ẩn, hiện lại, đổi nhãn, đổi Bắt buộc, thêm lựa chọn, đổi thứ tự, đổi tiêu đề); không đổi gì vẫn cho lưu; form mới không hỏi. Chỉ client; không đổi API, mã lỗi, schema |
+| 0.5.75 | 2026-11-11 | Cảnh báo dung lượng gần đầy ở màn hình 8 Cài đặt (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-11): §1 thêm dòng MoSCoW; §4.2 đã dùng từ 80% hạn mức `storage.estimate()` thì khối Dung lượng có câu cảnh báo, trình duyệt không báo hạn mức thì không cảnh báo; §13 dòng rủi ro dung lượng. Chỉ client; không đổi API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -174,6 +175,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Nhân bản phiếu (§4.1) | Nút ở màn hình 4 tạo phiếu mới chưa Lưu, điền sẵn giá trị của phiếu đang mở. | Could (Dương duyệt 2026-11-04, ngoài MVP, cắt được) |
 | Nhân bản trường (§4.1) | Nút ở màn hình 5 tạo trường mới chưa lưu ngay dưới trường đang chọn, chép cấu hình, mã mới. | Could (Dương duyệt 2026-11-07, ngoài MVP, cắt được) |
 | Dữ liệu trên máy ở Cài đặt (§4.2) | Màn hình 8 hiện số biểu mẫu và số thay đổi chờ gửi của dự án đang chọn, đọc từ IndexedDB. | Could (Dương duyệt 2026-11-08, ngoài MVP, cắt được) |
+| Cảnh báo dung lượng gần đầy (§4.2) | Màn hình 8 cảnh báo khi đã dùng từ 80% hạn mức bộ nhớ mà trình duyệt báo. | Could (Dương duyệt 2026-11-11, ngoài MVP, cắt được) |
 | Tóm tắt thay đổi khi lưu form (§4.1) | Sửa form đã có rồi bấm "Lưu bản mới" ở màn hình 5 thì hộp hỏi lại nêu bản mới khác bản đang dùng thế nào. | Could (Dương duyệt 2026-11-10, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
@@ -474,6 +476,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - **Ghi nguyên tử:** lưu phiếu và thêm op vào outbox trong cùng một transaction Dexie (`saveRecordLocally`), không bao giờ có phiếu đã sửa mà thiếu op (trừ phiếu nháp, vốn không có op).
 - **Nâng cấp schema:** thêm `this.version(n+1).stores(...).upgrade(...)`, không sửa version cũ. Mọi CSDL dự án dùng chung một lớp `ProjectDb` nên được nâng cấp giống nhau khi mở. CSDL `field-survey` của khung hiện tại không chuyển dữ liệu sang (chưa có người dùng thật), chỉ xoá.
 - **Chống bị xoá dữ liệu:** gọi `navigator.storage.persist()` sau lần lưu phiếu đầu tiên, kể cả phiếu nháp (`client/src/persistStorage.ts`: gọi sau mỗi lần lưu nhưng bỏ qua khi `persisted()` đã là `true`, nên trình duyệt từ chối thì lần lưu sau xin lại; không có API thì bỏ qua); hiển thị dung lượng đã dùng qua `navigator.storage.estimate()` ở trang Cài đặt.
+- **Cảnh báo dung lượng gần đầy** (Could, Dương duyệt 2026-11-11, cắt được; `storageNearlyFull` trong `client/src/formatBytes.ts`): đã dùng từ 80% `quota` (`STORAGE_WARN_PERCENT`) thì khối Dung lượng ở trang Cài đặt có câu cảnh báo, vì hết hạn mức thì mọi lần ghi IndexedDB đều lỗi (§8 `QuotaExceededError`). Trình duyệt không báo `quota` (0 hoặc không có) hoặc không có `estimate()` thì không cảnh báo. Chỉ đọc một lần khi mở trang Cài đặt; chỉ gợi ý việc đã làm được (Đồng bộ, dọn máy), vì app chưa có nút dọn ảnh ([tech-debt](tech-debt.md) N23).
 - **Dữ liệu trên máy** (Could, Dương duyệt 2026-11-08, cắt được; `client/src/deviceStatus.ts`): trang Cài đặt có khối đếm cho **dự án đang chọn**: số biểu mẫu là số mã form khác nhau trong `forms` (không đếm từng phiên bản), số thay đổi chờ gửi là số op trong `outbox` kể cả op `failed` (đúng phần outbox mà `hasUnsentData` dùng để khoá Đăng xuất; nháp không có op nên không tính, ảnh chờ gửi không tính). Đọc bằng liveQuery nên đồng bộ xong số tự đổi; chỉ đọc IndexedDB, không gọi API. Máy chưa có CSDL của dự án thì không hiện khối, và khối không mở CSDL chưa có (để không tạo lại CSDL vừa bị xoá khi Đăng xuất). Không có mốc "đồng bộ lần cuối".
 
 ### 4.3 Service worker và cài đặt PWA
@@ -1322,7 +1325,7 @@ Rủi ro của sản phẩm và cách giảm. Chỗ spec đã chốt mà code ho
 | Safari/iOS xoá IndexedDB sau 7 ngày không dùng (ITP) nếu không cài PWA | Mất phiếu chưa đồng bộ | Hướng dẫn "Thêm vào màn hình chính"; `storage.persist()`; cảnh báo khi có op tồn lâu |
 | Người dùng xoá dữ liệu trình duyệt, gỡ app hoặc đổi máy khi còn phiếu chưa gửi | Mất phiếu chưa đồng bộ | Cảnh báo phiếu tồn > 24 giờ; nút "Xuất JSON" cho từng phiếu và cho toàn bộ phiếu chưa đồng bộ; tài liệu người dùng nhắc đồng bộ trước khi đổi máy |
 | iOS không có Background Sync | Chỉ đồng bộ khi app đang mở | Đồng bộ khi mở app và khi `online`; nhãn trạng thái rõ ràng |
-| Dung lượng IndexedDB hạn chế trên máy yếu | Không lưu được ảnh | Nén ảnh; hiển thị dung lượng; dọn ảnh đã lên server; chỉ pull phiếu của mình (§5.5) |
+| Dung lượng IndexedDB hạn chế trên máy yếu | Không lưu được ảnh | Nén ảnh; hiển thị dung lượng, cảnh báo khi đã dùng từ 80% hạn mức; dọn ảnh đã lên server; chỉ pull phiếu của mình (§5.5) |
 | Đồng hồ thiết bị sai | Thời gian hiển thị sai | Server tự gán `updatedAt`; pull dùng `seq`, không dùng giờ |
 | Đổi schema form làm vỡ phiếu cũ | Phiếu không mở được | Phiên bản hoá form, cấm đổi `id`/`type`, xoá trường bằng `hidden`, server validate so với bản trước |
 | Hai giám sát viên cùng sửa một form | Thay đổi nhãn/thứ tự của người lưu trước bị bản sau ghi đè | Chấp nhận (nhóm chốt khi làm TV1-04): bản lưu sau thành version mới; server vẫn từ chối nếu bản sau làm mất trường hoặc lựa chọn của bản trước, nên dữ liệu phiếu không mất |

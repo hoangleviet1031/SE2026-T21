@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-11 | — | feat | Màn 8: cảnh báo dung lượng gần đầy (Could, ngoài MVP): từ 80% hạn mức `storage.estimate()` thì khối Dung lượng có câu ⚠ gợi ý Đồng bộ và dọn máy, không có hạn mức thì không cảnh báo; chỉ sửa client; E2E settings.spec (1 ca), unit storageNearlyFull; design 0.5.75, ui 0.2.51, requirements 0.25 | — | chờ review |
 | 2026-11-10 | — | docs | PR #132 đã merge | PR #132 | xong |
 | 2026-11-10 | — | docs | README khớp code: bỏ ghi chú 501/TODO ở Cấu trúc, liệt kê đúng route và docs, thêm link ADR 0003, requirements, deploy, tech-debt; E2E trỏ tới bảng truy vết | PR #132 | chờ review |
 | 2026-11-10 | — | feat | PR #131 đã merge | PR #131 | xong |

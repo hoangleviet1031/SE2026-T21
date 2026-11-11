@@ -204,3 +204,33 @@ test('Đăng xuất bị chặn vì còn phiếu chưa gửi thì cache me và f
 
   expect(await cacheNames(page)).toEqual(expect.arrayContaining(['me', 'forms']));
 });
+
+// Cảnh báo dung lượng gần đầy (design §4.2, ui.md màn hình 8; Could): trình duyệt E2E còn nhiều chỗ nên giả
+// storage.estimate. Số đọc từ biến trên window để đổi được giữa hai lần mở Cài đặt mà không tải lại trang
+test('dung lượng từ 80% hạn mức: cảnh báo bộ nhớ gần đầy; dưới 80% thì không', async ({ page, context }) => {
+  await context.addInitScript(() => {
+    Reflect.set(window, '__storage', { usage: 857, quota: 1000 });
+    navigator.storage.estimate = async () => Reflect.get(window, '__storage') as StorageEstimate;
+  });
+  await login(page);
+  await openSettings(page);
+  await expect(page.getByTestId('storage-warning')).toHaveText(
+    '⚠ Bộ nhớ gần đầy (đã dùng 85%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm Đồng bộ để gửi dữ liệu lên máy chủ, rồi xoá bớt ảnh hoặc ứng dụng khác trên điện thoại.',
+  );
+  // Nằm trong khối Dung lượng, không phải dải chung đầu trang
+  await expect(page.getByTestId('settings-storage').locator('..').getByTestId('storage-warning')).toBeVisible();
+
+  await page.evaluate(() => Reflect.set(window, '__storage', { usage: 799, quota: 1000 }));
+  await page.getByRole('link', { name: 'Quay lại' }).click();
+  await openSettings(page);
+  await expect(page.getByTestId('storage-bar')).toBeVisible();
+  await expect(page.getByTestId('storage-warning')).toHaveCount(0);
+
+  // Trình duyệt không báo hạn mức: không biết gần đầy hay chưa nên không cảnh báo
+  await page.evaluate(() => Reflect.set(window, '__storage', { usage: 5000 }));
+  await page.getByRole('link', { name: 'Quay lại' }).click();
+  await openSettings(page);
+  await expect(page.getByTestId('settings-storage')).toContainText('Đã dùng');
+  await expect(page.getByTestId('storage-bar')).toHaveCount(0);
+  await expect(page.getByTestId('storage-warning')).toHaveCount(0);
+});
