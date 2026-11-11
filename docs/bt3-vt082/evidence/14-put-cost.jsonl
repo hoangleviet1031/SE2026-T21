@@ -1,0 +1,3 @@
+{"size":"small","bodyBytes":355,"iterations":20,"medianMs":{"parseBody":0.01,"requestHash":0.04,"txWriteAndCommit":1.14,"stringifyResponse":0.01},"totalMs":1.2}
+{"size":"250KB","bodyBytes":251005,"iterations":20,"medianMs":{"parseBody":0.19,"requestHash":1.23,"txWriteAndCommit":6.63,"stringifyResponse":0.47},"totalMs":8.52}
+{"size":"2MB","bodyBytes":2002005,"iterations":20,"medianMs":{"parseBody":1.63,"requestHash":8.71,"txWriteAndCommit":54.5,"stringifyResponse":3.85},"totalMs":68.69}

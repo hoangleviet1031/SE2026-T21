@@ -1,0 +1,133 @@
+{
+  "concurrent": 120,
+  "targetP95Ms": 3500,
+  "node": "v24.19.0",
+  "results": [
+    {
+      "mode": "baseline",
+      "size": "large",
+      "bodyBytes": 2002011,
+      "rounds": 3,
+      "samples": 360,
+      "statusCounts": {
+        "0": 100,
+        "201": 260
+      },
+      "p50Ms": 5745,
+      "p95Ms": 24090,
+      "p99Ms": 26862,
+      "maxMs": 27558,
+      "roundP95Ms": [
+        23703,
+        4708,
+        26161
+      ],
+      "meetsTarget": false,
+      "server": {
+        "type": "stats",
+        "notifier": null,
+        "rssMb": 210,
+        "eventLoopP99Ms": 24646
+      }
+    },
+    {
+      "mode": "good",
+      "size": "large",
+      "bodyBytes": 2002011,
+      "rounds": 3,
+      "samples": 360,
+      "statusCounts": {
+        "0": 98,
+        "201": 262
+      },
+      "p50Ms": 6721,
+      "p95Ms": 22006,
+      "p99Ms": 25460,
+      "maxMs": 26142,
+      "roundP95Ms": [
+        24745,
+        4609,
+        21224
+      ],
+      "meetsTarget": false,
+      "server": {
+        "type": "stats",
+        "notifier": {
+          "sent": 13,
+          "failed": 0,
+          "timedOut": 0,
+          "dropped": 0,
+          "skipped": 0
+        },
+        "rssMb": 249,
+        "eventLoopP99Ms": 25921
+      }
+    },
+    {
+      "mode": "failing",
+      "size": "large",
+      "bodyBytes": 2002011,
+      "rounds": 3,
+      "samples": 360,
+      "statusCounts": {
+        "0": 97,
+        "201": 263
+      },
+      "p50Ms": 5088,
+      "p95Ms": 23073,
+      "p99Ms": 24878,
+      "maxMs": 25401,
+      "roundP95Ms": [
+        23833,
+        4242,
+        23659
+      ],
+      "meetsTarget": false,
+      "server": {
+        "type": "stats",
+        "notifier": {
+          "sent": 0,
+          "failed": 17,
+          "timedOut": 0,
+          "dropped": 0,
+          "skipped": 0
+        },
+        "rssMb": 168,
+        "eventLoopP99Ms": 25048
+      }
+    },
+    {
+      "mode": "hanging",
+      "size": "large",
+      "bodyBytes": 2002011,
+      "rounds": 3,
+      "samples": 360,
+      "statusCounts": {
+        "0": 99,
+        "201": 261
+      },
+      "p50Ms": 6422,
+      "p95Ms": 21421,
+      "p99Ms": 22599,
+      "maxMs": 23038,
+      "roundP95Ms": [
+        22042,
+        4177,
+        21589
+      ],
+      "meetsTarget": false,
+      "server": {
+        "type": "stats",
+        "notifier": {
+          "sent": 0,
+          "failed": 0,
+          "timedOut": 9,
+          "dropped": 0,
+          "skipped": 0
+        },
+        "rssMb": 156,
+        "eventLoopP99Ms": 22834
+      }
+    }
+  ]
+}

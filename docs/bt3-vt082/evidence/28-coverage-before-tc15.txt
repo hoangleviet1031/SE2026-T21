@@ -1,0 +1,9 @@
+# commit 6a8e22f (trước khi có test biên id). Lệnh: npx vitest run test/notifications.test.ts test/notificationsRecords.test.ts --coverage --coverage.include=src/notifications.ts --coverage.reporter=text --coverage.reportsDirectory=<thư mục tạm>
+ Test Files  2 passed (2)
+      Tests  37 passed (37)
+------------------|---------|----------|---------|---------|-------------------
+File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+------------------|---------|----------|---------|---------|-------------------
+All files         |     100 |      100 |   93.33 |     100 |                   
+ notifications.ts |     100 |      100 |   93.33 |     100 |                   
+------------------|---------|----------|---------|---------|-------------------

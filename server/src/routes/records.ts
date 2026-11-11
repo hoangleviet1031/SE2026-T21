@@ -4,6 +4,7 @@ import { getCtx, type Ctx } from '../auth';
 import { tx, type Db } from '../db';
 import { findResponse, requestHash, saveResponse } from '../repo/idempotency';
 import { getHistory, getRecordAccess, pullRecords, writeRecord } from '../repo/records';
+import { logFailure, type Notifier, type RecordCreatedEvent } from '../notifications';
 
 // Route theo dự án: chỉ dùng `getCtx(req)`, không đọc projectId/userId từ body hay query.
 // Xem docs/design.md §5.5, §7 và ADR 0002 §3.
@@ -24,7 +25,12 @@ function isValidPush(body: unknown): body is PushRecordRequest {
   );
 }
 
-function applyPush(ctx: Ctx, db: Db, id: string, body: unknown): { status: number; body: unknown } {
+function applyPush(
+  ctx: Ctx,
+  db: Db,
+  id: string,
+  body: unknown,
+): { status: number; body: unknown; created?: RecordCreatedEvent } {
   if (!isValidPush(body)) return { status: 400, body: { error: 'invalid_body' } };
 
   const access = getRecordAccess(ctx, db, id);
@@ -49,10 +55,15 @@ function applyPush(ctx: Ctx, db: Db, id: string, body: unknown): { status: numbe
     data: body.data,
     deleted: body.deleted,
   });
-  return { status: currentVersion === 0 ? 201 : 200, body: saved };
+  if (currentVersion !== 0) return { status: 200, body: saved };
+  // Tạo mà đã xoá (design §5.7) thì không phải phiếu mới để báo.
+  const created = saved.deleted
+    ? undefined
+    : { recordId: saved.id, formId: saved.formId, formVersion: saved.formVersion, createdAt: saved.updatedAt };
+  return { status: 201, body: saved, created };
 }
 
-export function recordsRouter(db: Db): Router {
+export function recordsRouter(db: Db, notifier: Notifier): Router {
   const r = Router();
 
   // Pull: các bản ghi thay đổi sau cursor, trong phạm vi của vai trò (design §5.5)
@@ -96,6 +107,17 @@ export function recordsRouter(db: Db): Router {
       if (out.status < 300) saveResponse(ctx, db, key, req.params.id, hash, out.status, out.body);
       return { ...out, replay: false };
     });
+
+    // `created` chỉ có ở lần ghi thật, replay cũng 201 nên không dựa vào status. Tx đã commit; báo trước
+    // `res.json` vì fault `drop` cắt socket ở đó mà phiếu vẫn đã ghi.
+    if (result.created) {
+      // Đã commit nên không rollback được nữa: để lọt lỗi ra là trả 500 cho phiếu đã ghi (invariant).
+      try {
+        notifier.recordCreated(ctx, result.created);
+      } catch (err) {
+        logFailure('notifier_error', { projectId: ctx.projectId, recordId: req.params.id }, err);
+      }
+    }
 
     if (result.replay) res.setHeader('Idempotent-Replayed', 'true');
     res.status(result.status).json(result.body);

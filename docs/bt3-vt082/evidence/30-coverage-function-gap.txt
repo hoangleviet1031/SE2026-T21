@@ -1,0 +1,6 @@
+# Hàm nào làm coverage function của notifications.ts còn 93,33%. Commit ca4b774.
+# Lệnh (trong server/): npx vitest run test/notifications.test.ts test/notificationsRecords.test.ts --coverage --coverage.include=src/notifications.ts --coverage.reporter=json
+# Kết quả từ coverage-final.json: 15 hàm, 14 hàm được gọi.
+Hàm chưa gọi: anonymous_4, server/src/notifications.ts:103, `let expire = () => {};`
+Lý do: đây là giá trị khởi tạo để biến có kiểu. Hàm tạo Promise ở dòng 104-106 chạy đồng bộ và gán đè `expire` ngay, nên trong luồng thường hàm rỗng này không bao giờ được gọi.
+Kết luận: phần thiếu không phải logic chưa được test.

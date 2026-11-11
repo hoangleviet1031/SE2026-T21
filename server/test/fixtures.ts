@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import type { AuthResponse } from '@field-survey/shared';
 import { openDb, type Db } from '../src/db';
 import { createApp } from '../src/app';
+import type { Notifier } from '../src/notifications';
 import { DEMO_PASSWORD, DEMO_PROJECTS, DEMO_USERNAMES, seedDemo } from '../src/seedDemo';
 
 export type DemoUser = keyof typeof DEMO_USERNAMES;
@@ -27,16 +28,17 @@ export interface TestServer {
  * Server thật cổng ngẫu nhiên với bộ dữ liệu demo (hai dự án; lan, minh, chu là Owner, admin).
  * `enableTestRoutes`: bật /api/__test/* (tiêm lỗi, nhật ký request) như server E2E.
  * `publicBaseUrl`: gốc URL ảnh trong file xuất (PUBLIC_BASE_URL, design §12).
+ * `notifier`: thay notifier mặc định, nhận `db` của server (test thông báo dùng kênh giả).
  * `dbPath`: CSDL trên đĩa thay cho `:memory:`, cho test cần file thật (vd. sao lưu khi server đang
  * mở CSDL ở chế độ WAL). Người gọi tự đóng `db` và xoá file.
  */
 export async function createTestServer(
-  opts: { enableTestRoutes?: boolean; publicBaseUrl?: string; dbPath?: string } = {},
+  opts: { enableTestRoutes?: boolean; publicBaseUrl?: string; dbPath?: string; notifier?: (db: Db) => Notifier } = {},
 ): Promise<TestServer> {
   const db = openDb(opts.dbPath ?? ':memory:');
   seedDemo(db);
   const uploadDir = mkdtempSync(join(tmpdir(), 'field-survey-uploads-'));
-  const server: Server = createApp(db, { uploadDir, enableTestRoutes: opts.enableTestRoutes, publicBaseUrl: opts.publicBaseUrl }).listen(0);
+  const server: Server = createApp(db, { uploadDir, enableTestRoutes: opts.enableTestRoutes, publicBaseUrl: opts.publicBaseUrl, notifier: opts.notifier?.(db) }).listen(0);
   await new Promise((r) => server.once('listening', r));
   const base = `http://localhost:${(server.address() as AddressInfo).port}`;
 

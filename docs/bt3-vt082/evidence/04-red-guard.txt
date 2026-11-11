@@ -1,0 +1,24 @@
+# commit b349b17 (test có, chốt chặn chưa có). Lệnh: npx vitest run test/notifications.test.ts test/notificationsRecords.test.ts
+ RUN  v5.0.3 D:/School/BT3_VT-082/repo/server
+ ❯ test/notificationsRecords.test.ts (28 tests | 1 failed) 9390ms
+   ❯ invariant: notifier vi phạm hợp đồng (1)
+     × recordCreated ném lỗi sau commit: client vẫn 201 đúng body, phiếu đã ghi, có log, không lộ dữ liệu 533ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  test/notificationsRecords.test.ts > invariant: notifier vi phạm hợp đồng > recordCreated ném lỗi sau commit: client vẫn 201 đúng body, phiếu đã ghi, có log, không lộ dữ liệu
+AssertionError: expected 500 to be 201 // Object.is equality
+- Expected
++ Received
+- 201
++ 500
+ ❯ test/notificationsRecords.test.ts:653:26
+    651|     try {
+    652|       const res = await put(t, t.projects.yte, t.tokens.minh, 'guard',…
+    653|       expect(res.status).toBe(201);
+       |                          ^
+    654|       expect((await res.json()).version).toBe(1);
+    655|       expect(countRows(t.db, `SELECT COUNT(*) AS n FROM records WHERE …
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 36 passed (37)
+   Start at  15:32:56
+   Duration  10.22s (tests 93%, transform 4%, import 3%)

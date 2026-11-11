@@ -1,0 +1,4 @@
+# commit be586c9, 44 test. Lệnh: npx vitest run test/notifications.test.ts test/notificationsRecords.test.ts --coverage --coverage.include=src/notifications.ts --coverage.reporter=text
+      Tests  44 passed (44)
+File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+ notifications.ts |     100 |      100 |   93.33 |     100 |                   

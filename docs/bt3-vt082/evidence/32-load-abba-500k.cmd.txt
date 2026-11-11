@@ -1,0 +1,10 @@
+Lệnh (trong server/, baseline là worktree tại ef92b35): npx tsx test/perf/notifyLoad.ts --sizes s500k --modes good,baseline,baseline,good,good,baseline,baseline,good,good,baseline,baseline,good --rounds 3 --baseline-root ../.baseline
+Dữ liệu 32-load-abba-500k.jsonl là stdout của lệnh, chỉ thêm trường pos theo thứ tự chạy. Harness không đổi. 2026-11-03, 20:39:26 đến 20:43:09, Node 24.19, i9-13900H, 16 GB, Windows 11, cắm sạc.
+
+Quy tắc chốt trước khi đo: "đạt ổn định" nếu mọi lần của cả hai chế độ có p95 ≤ 3.500 ms và 0 lỗi; trung vị đạt nhưng có lần vượt là "trung vị đạt, không ổn định"; trung vị vượt là "không đạt".
+Kết luận theo quy tắc: KHÔNG ĐẠT. good: min 3.558, trung vị 5.754,5, max 8.781 ms. baseline: min 3.583, trung vị 6.266,5, max 7.090 ms. 12/12 lần vượt 3.500 ms, 0 lỗi, 4.320/4.320 lượt 201.
+
+Điều kiện đo KHÔNG hoàn toàn rảnh, số có thể bị nhiễu:
+- Ngay trước khi đo: CPU 20 %, RAM trống 5,3 GB, Brave (1,7 GB) và Zalo vẫn mở, VS Code đang chạy.
+- Trong lúc đo: người dùng mở thêm Brave và Chrome vì có việc, không rõ thời điểm chính xác. Lúc 20:42:44, khi đã xong 10/12 lượt, đếm được Chrome 17 tiến trình, Brave 14 tiến trình. Zalo bị tắt lúc 20:42:44.
+- Không tách được phần nhiễu ra khỏi số đo, nên không so sánh nhỏ giữa good và baseline từ lượt này.

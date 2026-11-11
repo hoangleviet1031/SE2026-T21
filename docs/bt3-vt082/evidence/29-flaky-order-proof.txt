@@ -1,0 +1,26 @@
+# Thứ tự test có đổi theo seed không. Commit ca4b774. Lệnh (trong server/): npx vitest run test/notifications.test.ts test/notificationsRecords.test.ts --sequence.shuffle.tests --sequence.shuffle.files --sequence.seed=<seed> --reporter=verbose
+# Kết luận: hai seed cho thứ tự khác nhau trên cùng tập 41 test, cả hai 41/41 pass.
+
+== seed=1, 10 test đầu
+ ✓ test/notifications.test.ts > timeout (N2) > kênh treo bị abort, đếm timedOut, trả chỗ cho lần sau; kết thúc muộn không làm đếm lại
+ ✓ test/notifications.test.ts > biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót) > formId dài 257 ký tự: 0 thông báo
+ ✓ test/notifications.test.ts > biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót) > formId dài 256 ký tự: 1 thông báo
+ ✓ test/notifications.test.ts > biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót) > recordId dài 257 ký tự: 0 thông báo
+ ✓ test/notifications.test.ts > biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót) > recordId dài 256 ký tự: 1 thông báo
+ ✓ test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào
+ ✓ test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng
+ ✓ test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > không vượt `concurrency`; idle() chỉ resolve khi hàng đợi rỗng và không còn lần gửi nào
+ ✓ test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > gửi đúng một thông báo chỉ metadata tới supervisor và Owner, trừ người tạo, kể cả khi sự kiện lọt `data`
+ ✓ test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > loại surveyor, tài khoản bị khoá, admin không là thành viên và thành viên dự án khác
+
+== seed=2, 10 test đầu
+ ✓ test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > gửi đúng một thông báo chỉ metadata tới supervisor và Owner, trừ người tạo, kể cả khi sự kiện lọt `data`
+ ✓ test/notifications.test.ts > nội dung thông báo và người nhận (AC1, AC4, AC5) > loại surveyor, tài khoản bị khoá, admin không là thành viên và thành viên dự án khác
+ ✓ test/notifications.test.ts > timeout với kênh tôn trọng signal (N2) > kênh reject ngay khi bị abort: tính là timedOut, không phải failed
+ ✓ test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > tràn hàng đợi: log một dòng khi bắt đầu tràn, hết tràn rồi tràn lại thì log thêm một dòng
+ ✓ test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > quá sức chứa thì bỏ và đếm dropped, không ném lỗi, phần còn lại gửi theo thứ tự vào
+ ✓ test/notifications.test.ts > hàng đợi có giới hạn (AC4, N3) > không vượt `concurrency`; idle() chỉ resolve khi hàng đợi rỗng và không còn lần gửi nào
+ ✓ test/notifications.test.ts > timeout (N2) > kênh treo bị abort, đếm timedOut, trả chỗ cho lần sau; kết thúc muộn không làm đếm lại
+ ✓ test/notifications.test.ts > biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót) > recordId dài 256 ký tự: 1 thông báo
+ ✓ test/notifications.test.ts > biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót) > formId dài 257 ký tự: 0 thông báo
+ ✓ test/notifications.test.ts > biên độ dài id (AC4, review plan R4; bổ sung sau khi mutation M2, M3 sống sót) > formId dài 256 ký tự: 1 thông báo
