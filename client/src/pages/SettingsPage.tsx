@@ -17,7 +17,7 @@ import { UsernameActions } from '../components/UsernameActions';
 import { getAccountValue } from '../db/accountDb';
 import { getCurrentProjectId, openProjectDb, projectDbExists, useCurrentProject } from '../db/current';
 import { deviceStatus } from '../deviceStatus';
-import { formatBytes, usagePercent } from '../formatBytes';
+import { formatBytes, storageNearlyFull, usagePercent } from '../formatBytes';
 import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
 import { apiFailure, changePassword } from '../sync/api';
 import { useOnline } from '../useOnline';
@@ -118,6 +118,14 @@ export function SettingsPage() {
             <div className="bar" aria-hidden="true" data-testid="storage-bar">
               <i style={{ width: `${percent}%` }} />
             </div>
+          )}
+          {/* Có sẵn ngay khi mở trang nên không cần role="alert"; chỉ gợi ý việc đã làm được: nút Đồng bộ trên
+              header và dọn máy, vì app chưa có nút dọn ảnh (tech-debt N23) */}
+          {percent !== null && storageNearlyFull(storage.usage, storage.quota) && (
+            <p className="warning" data-testid="storage-warning">
+              ⚠ Bộ nhớ gần đầy (đã dùng {Math.floor(percent)}%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm
+              Đồng bộ để gửi dữ liệu lên máy chủ, rồi xoá bớt ảnh hoặc ứng dụng khác trên điện thoại.
+            </p>
           )}
         </div>
       )}

@@ -21,3 +21,12 @@ export function usagePercent(usage: number, quota: number | undefined): number |
   if (!Number.isFinite(usage) || usage <= 0) return 0;
   return Math.min(100, (usage / quota) * 100);
 }
+
+// Cảnh báo "Bộ nhớ gần đầy" ở Cài đặt (design §4.2): hết hạn mức thì mọi lần ghi IndexedDB đều lỗi, nên báo
+// trước khi tới đó. Không có hạn mức thì không biết gần đầy hay chưa, không cảnh báo (cùng lý do không vẽ thanh).
+export const STORAGE_WARN_PERCENT = 80;
+
+export function storageNearlyFull(usage: number, quota: number | undefined): boolean {
+  const percent = usagePercent(usage, quota);
+  return percent !== null && percent >= STORAGE_WARN_PERCENT;
+}
