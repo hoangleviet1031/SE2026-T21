@@ -180,7 +180,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Phiếu mới gõ dở có dải ở trang chủ dẫn về; phiếu đã có không lên dải (Could) | `typing-buffer.spec.ts` (ca "mở lại app vào trang chủ", "không lên dải"); unit `unsavedNewRecords` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p2 (#115) |
 | US-01 | Nhân bản phiếu: bản sao chưa Lưu không có phiếu và op, không chép ảnh, vị trí, trường ẩn; ẩn nút theo trạng thái và vai trò (Could) | `record-copy.spec.ts`; unit `copyableData`, `copyBuffer`, `canCopyRecord` (`client/src/recordCopy.test.ts`) | không ticket (#126) |
 | US-01 | Dữ liệu trên máy ở Cài đặt: đếm biểu mẫu (mã form khác nhau) và thay đổi chờ gửi, đồng bộ xong tự về 0 (Could) | `settings.spec.ts` (ca "Dữ liệu trên máy…"); unit `deviceStatus` (`client/src/deviceStatus.test.ts`) | không ticket (#130) |
-| US-01 | Cảnh báo dung lượng gần đầy ở Cài đặt từ 80% hạn mức; không có hạn mức thì không cảnh báo (Could) | `settings.spec.ts` (ca "dung lượng từ 80% hạn mức…"); unit `storageNearlyFull` (`client/src/formatBytes.test.ts`) | không ticket |
+| US-01 | Cảnh báo dung lượng gần đầy ở Cài đặt từ 80% hạn mức; không có hạn mức thì không cảnh báo (Could) | `settings.spec.ts` (ca "dung lượng từ 80% hạn mức…"); unit `storageNearlyFull` (`client/src/formatBytes.test.ts`) | không ticket (#133) |
 | US-01 | Lưu phiếu thì xin giữ bộ nhớ; thiếu Web Locks → "Trình duyệt không được hỗ trợ" | `browser-support.spec.ts`; unit `browserSupport.test.ts` | TV1-07 (#28) |
 | US-02 | Nháp không lên server; sửa đủ thì đồng bộ | O5 `draft.spec.ts`; unit `shared/src/recordValidation.test.ts` | TV1-05 (#7, #17) |
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |

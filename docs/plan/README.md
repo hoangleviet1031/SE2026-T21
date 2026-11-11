@@ -121,7 +121,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Màn 4: Nhân bản phiếu (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #126 |
 | — | Màn 5: Nhân bản trường (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #129 |
 | — | Màn 8: Dữ liệu trên máy (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #130 |
-| — | Màn 8: Cảnh báo dung lượng gần đầy (không ticket, Dương duyệt) · **Cắt được** | Could | – | ⏳ |
+| — | Màn 8: Cảnh báo dung lượng gần đầy (không ticket, Dương duyệt) · **Cắt được** | Could | – | ⏳ PR #133 |
 
 ## Phụ thuộc quan trọng
 
