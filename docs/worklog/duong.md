@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-12 | — | feat | PR #137 đã merge | PR #137 | xong |
+| 2026-11-12 | — | feat | Màn 4: ô chữ gợi ý giá trị đã nhập ở phiếu khác cùng form bằng `<datalist>` (Could) | PR #137 | chờ review |
 | 2026-11-12 | — | feat | PR #136 đã merge | PR #136 | xong |
 | 2026-11-12 | — | feat | Builder tự lưu phần đang sửa, mở lại hỏi Khôi phục/Bỏ, form lên bản mới thì thêm trường mới vào cuối (Could); tech-debt N25, N26 | PR #136 | chờ review |
 | 2026-11-11 | — | feat | PR #133 đã merge | PR #133 | xong |

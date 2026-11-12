@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.75 (2026-11-11)
+- **Phiên bản:** 0.5.77 (2026-11-12)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -110,6 +110,7 @@
 | 0.5.74 | 2026-11-10 | Tóm tắt thay đổi khi lưu form ở màn hình 5 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-10): §1 thêm dòng MoSCoW; §4.1 "Lưu bản mới": sửa form đã có thì hỏi lại trong app, câu tóm tắt bản mới khác bản mới nhất trên máy (thêm, ẩn, hiện lại, đổi nhãn, đổi Bắt buộc, thêm lựa chọn, đổi thứ tự, đổi tiêu đề); không đổi gì vẫn cho lưu; form mới không hỏi. Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.75 | 2026-11-11 | Cảnh báo dung lượng gần đầy ở màn hình 8 Cài đặt (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-11): §1 thêm dòng MoSCoW; §4.2 đã dùng từ 80% hạn mức `storage.estimate()` thì khối Dung lượng có câu cảnh báo, trình duyệt không báo hạn mức thì không cảnh báo; §13 dòng rủi ro dung lượng. Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.76 | 2026-11-12 | Tự lưu bản đang sửa của builder ở màn hình 5 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-12): §1 thêm dòng MoSCoW; §4.1 mục "Tự lưu bản đang sửa" (meta `builder:<mã form>` / `builder-new`, ghi sau 1 s ngừng sửa và khi ẩn/rời trang, mở lại hỏi [Khôi phục] / [Bỏ] trước khi dựng builder, trùng bản mới nhất thì bỏ không hỏi, form đã lên bản mới thì thêm trường mới vào cuối và báo, Lưu bản mới thành công hoặc [Bỏ] thì xoá, "← Quay lại" giữ, không chặn Đăng xuất); §4.2 dòng `meta`; §4.3 [Tải lại] ở trang khác trang nhập phiếu cũng ghi nốt bản tự lưu trước |
+| 0.5.77 | 2026-11-12 | Gợi ý giá trị đã nhập ở màn hình 4 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-12): §1 thêm dòng MoSCoW; §4.1 mục "Gợi ý giá trị đã nhập" (ô `text` không ẩn có `<datalist>` giá trị ở phiếu khác cùng form trên máy, mọi phiên bản theo mã trường; bỏ phiếu đã xoá, phiếu đang mở, bộ đệm đang nhập; bỏ trùng không phân biệt hoa thường, khoảng trắng, cách gõ dấu; mới trước, tối đa 50; đọc một lần khi mở trang). Chỉ client; không đổi API, mã lỗi, schema. Dòng "Phiên bản" đầu file sửa cho khớp (trước ghi 0.5.75) |
 
 ## Mục lục
 
@@ -178,6 +179,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Dữ liệu trên máy ở Cài đặt (§4.2) | Màn hình 8 hiện số biểu mẫu và số thay đổi chờ gửi của dự án đang chọn, đọc từ IndexedDB. | Could (Dương duyệt 2026-11-08, ngoài MVP, cắt được) |
 | Cảnh báo dung lượng gần đầy (§4.2) | Màn hình 8 cảnh báo khi đã dùng từ 80% hạn mức bộ nhớ mà trình duyệt báo. | Could (Dương duyệt 2026-11-11, ngoài MVP, cắt được) |
 | Tự lưu bản đang sửa của builder (§4.1) | Phần chưa bấm "Lưu bản mới" ở màn hình 5 được giữ trên máy; tải lại, rời trang hay app bị tắt thì mở lại builder hỏi khôi phục. | Could (Dương duyệt 2026-11-12, ngoài MVP, cắt được) |
+| Gợi ý giá trị đã nhập (§4.1) | Ô chữ ở màn hình 4 gợi ý các giá trị đã nhập ở phiếu khác cùng form trên máy (`<datalist>` của trình duyệt). | Could (Dương duyệt 2026-11-12, ngoài MVP, cắt được) |
 | Tóm tắt thay đổi khi lưu form (§4.1) | Sửa form đã có rồi bấm "Lưu bản mới" ở màn hình 5 thì hộp hỏi lại nêu bản mới khác bản đang dùng thế nào. | Could (Dương duyệt 2026-11-10, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
@@ -446,6 +448,11 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
   - Dùng bản form mới nhất trên máy (ADR 0001 quy tắc 9). Chỉ chép giá trị có nội dung và đúng định dạng của trường đang hiện ở bản đó. Không chép ảnh, vị trí, trường đã ẩn, id không có trong form. Trường bắt buộc còn thiếu thì Lưu ra nháp như thường.
   - Lần mở đầu điền luôn, không hỏi. Tự lưu ghi lại bộ đệm thì mất `fromCopy`: rời trang chưa Lưu thì lên dải "Phiếu đang nhập dở" (§4.8), mở lại hỏi [Khôi phục] / [Bỏ] như phiếu mới gõ dở. Phiếu gốc bị xoá không ảnh hưởng bản sao.
   - Có nút ở phiếu đã lưu sửa được, gồm nháp và phiếu Lỗi. Không có nút ở phiếu `conflict`, phiếu đã xoá, phiếu mới, lúc đang hỏi khôi phục, và với surveyor ở phiếu người khác tạo (cùng luật nút Xoá phiếu §5.7; chưa biết người tạo thì hiện). Người tạo bản sao lấy theo token như mọi phiếu (bất biến 6).
+- **Gợi ý giá trị đã nhập** (Could, Dương duyệt 2026-11-12, cắt được; `client/src/fieldSuggestions.ts`): ô chữ ở màn hình 4 gợi ý các giá trị đã nhập ở phiếu khác, để nhập nhanh và đỡ gõ sai ở thực địa. Dùng `<datalist>` có sẵn của trình duyệt (`list="suggest-<mã trường>"`), không có chữ mới trên màn hình; chọn gợi ý chỉ là điền vào ô như gõ tay.
+  - Chỉ trường `text` không ẩn của bản form đang hiển thị phiếu. Không có cờ bật/tắt theo trường trong builder; khung xem trước ở builder không có gợi ý.
+  - Nguồn: phiếu trong `records` (§4.2, index `formId`) cùng mã form, mọi phiên bản, ghép theo mã trường; gồm phiếu ở mọi trạng thái kể cả nháp và `conflict` (lấy `data` trên máy) và phiếu người khác đã có trên máy (giám sát viên). Không lấy phiếu `deleted`, chính phiếu đang mở, bộ đệm đang nhập.
+  - Cắt khoảng trắng hai đầu, gộp khoảng trắng liền nhau; rỗng thì bỏ. Bỏ trùng không phân biệt hoa thường, khoảng trắng và cách gõ dấu (so theo NFC), giữ cách viết của phiếu sửa gần nhất. Mới trước theo `updatedAt` (giờ máy, chỉ để hiển thị như §4.8), tối đa 50 giá trị mỗi trường (`SUGGESTION_LIMIT`). Không bỏ giá trị dài.
+  - Đọc một lần khi mở trang, không theo dõi thay đổi (khỏi đọc lại cả nghìn phiếu sau mỗi vòng đồng bộ); chưa đọc xong thì ô vẫn gõ được. Chỉ đọc IndexedDB, không gọi API, không ghi gì.
 
 **Tiêu chí chấp nhận**
 - Giám sát viên tạo form 7 loại trường, lưu, điều tra viên thấy form sau lần đồng bộ kế tiếp.
