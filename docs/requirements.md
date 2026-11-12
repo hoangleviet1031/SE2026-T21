@@ -94,6 +94,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** file không phải JSON, sai định dạng hoặc sai luật lưu form, **when** nhập form, **then** báo "File không phải JSON", "File không đúng định dạng biểu mẫu" hoặc lỗi luật, builder giữ nguyên; **given** form mới có mã trùng form đã có trong dự án, **when** bấm "Lưu bản mới", **then** báo "Mã biểu mẫu đã có trong dự án", không gửi.
 - (Could) **Given** tôi đang sửa form và chọn một trường, **when** bấm [Nhân bản trường], **then** ngay dưới có trường mới chưa lưu cùng loại, nhãn, bắt buộc, lựa chọn, mã mới không trùng, không ẩn; sửa bản sao không đổi trường gốc; bấm "Lưu bản mới" thì form lên version mới có thêm đúng trường đó.
 - (Could) **Given** tôi sửa form đã có (vd. thêm 2 trường, ẩn 1 trường), **when** bấm "Lưu bản mới", **then** trước khi gửi có hộp hỏi lại "So với bản <n> đang dùng: thêm 2 trường, ẩn 1 trường. Lưu bản mới?"; [Huỷ] hoặc Esc thì không gửi, phần đang sửa giữ nguyên; [Lưu] thì form lên version mới; không đổi gì thì hộp nói "Không có gì khác bản <n> đang dùng" và vẫn cho lưu; form mới không hỏi.
+- (Could) **Given** tôi đang sửa form trong builder chưa bấm "Lưu bản mới", **when** tải lại trang, bấm "← Quay lại" hay app bị tắt rồi mở lại builder, **then** có dải "Có phần đang sửa chưa lưu (…)" với [Khôi phục] / [Bỏ]; [Khôi phục] nạp lại phần đang sửa, form đã lên bản mới thì trường mới của bản đó được thêm vào cuối và có dải báo; [Bỏ] hoặc Lưu bản mới thành công thì bản tự lưu bị xoá.
 
 ### US-08 · Xuất dữ liệu · Must (CSV), Should (JSON)
 
@@ -210,6 +211,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-07 | File nhập hỏng/sai luật; mã form trùng → báo lỗi, không gửi | `form-import-export.spec.ts` (cả ca mã trùng); unit `formFile.test.ts` (describe `parseFormFile`) | TV1-10 (#33) |
 | US-07 | Nhân bản trường: bản sao ngay dưới, mã mới, bỏ ẩn, sửa không đổi gốc, lưu ra version mới; nút gọn ở 360px (Could) | `builder.spec.ts` (ca "nhân bản trường…", "màn 360 px: [Nhân bản trường]…"); unit `duplicateField` (`client/src/builder.test.ts`) | không ticket (#129) |
 | US-07 | Tóm tắt thay đổi khi lưu form đã có: hộp hỏi lại nêu thêm/ẩn/hiện lại/đổi nhãn/đổi Bắt buộc/thêm lựa chọn/đổi thứ tự/đổi tiêu đề; Huỷ, Esc không gửi; không đổi gì vẫn lưu được (Could) | `builder.spec.ts` (ca "sửa form rồi Lưu bản mới: hộp tóm tắt…", "sửa form mà không đổi gì…"; câu tóm tắt ở ca "sửa form tạo version mới…", "nhân bản trường có lựa chọn…"), `form-version.spec.ts` (ca ẩn trường tạo v2); unit `formChanges`, `formChangeText` (`client/src/formChanges.test.ts`) | không ticket (#131) |
+| US-07 | Tự lưu bản đang sửa của builder: tải lại / ← Quay lại rồi mở lại hỏi Khôi phục / Bỏ; Lưu bản mới hoặc Bỏ thì xoá; sửa ngược về như cũ thì xoá; form đã lên bản mới thì thêm trường mới vào cuối, có dải báo (Could) | `builder-draft.spec.ts`; unit `needsDraft`, `rebaseDraft`, `restoreDraft`, `draftIsStale`, `rebasedNote` (`client/src/builderDraft.test.ts`) | không ticket (#PR) |
 | US-08 | v1 và v2 cùng file, cột đúng, BOM | `export.spec.ts`; `server/test/export.test.ts` | TV3-09 (#48); nút [Xuất ▾] TV1-12 (b2 p2 #71, mất mạng thì đóng b2 p3) |
 | US-08 | Chống CSV injection | `server/test/csv.test.ts` | TV3-09 (#48) |
 | US-08 | Điều tra viên xuất → `403` | A3 `export.test.ts` | TV3-09 (#48) |
@@ -276,3 +278,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.23 | 2026-11-08 | US-01 thêm tiêu chí khối Dữ liệu trên máy ở Cài đặt, kèm dòng truy vết (Could, không ticket) |
 | 0.24 | 2026-11-10 | US-07 thêm tiêu chí tóm tắt thay đổi khi lưu form, kèm dòng truy vết (Could, không ticket) |
 | 0.25 | 2026-11-11 | US-01 thêm tiêu chí cảnh báo dung lượng gần đầy ở Cài đặt, kèm dòng truy vết (Could, không ticket) |
+| 0.26 | 2026-11-12 | US-07 thêm tiêu chí tự lưu bản đang sửa của builder, kèm dòng truy vết (Could, không ticket) |

@@ -66,6 +66,14 @@ export function fromImport(form: SaveFormRequest): BuilderState {
 }
 
 /**
+ * Bản tự lưu đọc lại từ máy (design §4.1 "Tự lưu bản đang sửa"): giữ nguyên mọi cờ, chỉ cấp uid mới vì uid
+ * cũ có thể trùng uid mà phiên này đã cấp.
+ */
+export function fromDraft(state: BuilderState): BuilderState {
+  return { ...state, fields: state.fields.map((f) => ({ ...f, uid: nextUid++ })) };
+}
+
+/**
  * Mã gợi ý từ nhãn: bỏ dấu tiếng Việt, ghép kiểu camelCase, thêm "f" nếu bắt đầu bằng số, thêm số
  * nếu trùng mã đã có ("Tên chủ hộ" → "tenChuHo"). Kết quả khớp FIELD_ID_PATTERN (nên cũng khớp FORM_ID_PATTERN) hoặc là chuỗi rỗng.
  */
