@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatBytes, usagePercent } from './formatBytes';
+import { formatBytes, storageNearlyFull, usagePercent } from './formatBytes';
 
 describe('formatBytes', () => {
   it.each([
@@ -30,5 +30,22 @@ describe('usagePercent', () => {
 
   it.each([0, undefined, -1, Number.NaN])('quota %s → không vẽ thanh', (quota) => {
     expect(usagePercent(100, quota)).toBeNull();
+  });
+});
+
+describe('storageNearlyFull', () => {
+  it.each([
+    [799, 1000, false],
+    [800, 1000, true],
+    [950, 1000, true],
+    [1500, 1000, true],
+    [-5, 1000, false],
+    [Number.NaN, 1000, false],
+  ])('usage %d / quota %d → %s', (usage, quota, nearlyFull) => {
+    expect(storageNearlyFull(usage, quota)).toBe(nearlyFull);
+  });
+
+  it.each([0, undefined, -1, Number.NaN])('quota %s → không cảnh báo', (quota) => {
+    expect(storageNearlyFull(100, quota)).toBe(false);
   });
 });

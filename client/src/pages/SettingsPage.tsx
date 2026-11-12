@@ -15,8 +15,9 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
 import { UsernameActions } from '../components/UsernameActions';
 import { getAccountValue } from '../db/accountDb';
-import { useCurrentProject } from '../db/current';
-import { formatBytes, usagePercent } from '../formatBytes';
+import { getCurrentProjectId, openProjectDb, projectDbExists, useCurrentProject } from '../db/current';
+import { deviceStatus } from '../deviceStatus';
+import { formatBytes, storageNearlyFull, usagePercent } from '../formatBytes';
 import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
 import { apiFailure, changePassword } from '../sync/api';
 import { useOnline } from '../useOnline';
@@ -118,8 +119,18 @@ export function SettingsPage() {
               <i style={{ width: `${percent}%` }} />
             </div>
           )}
+          {/* Có sẵn ngay khi mở trang nên không cần role="alert"; chỉ gợi ý việc đã làm được: nút Đồng bộ trên
+              header và dọn máy, vì app chưa có nút dọn ảnh (tech-debt N23) */}
+          {percent !== null && storageNearlyFull(storage.usage, storage.quota) && (
+            <p className="warning" data-testid="storage-warning">
+              ⚠ Bộ nhớ gần đầy (đã dùng {Math.floor(percent)}%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm
+              Đồng bộ để gửi dữ liệu lên máy chủ, rồi xoá bớt ảnh hoặc ứng dụng khác trên điện thoại.
+            </p>
+          )}
         </div>
       )}
+
+      {project && <DeviceStatusCard projectName={project.name} />}
 
       <div className="card">
         <h3>Cài lên màn hình chính</h3>
@@ -176,6 +187,35 @@ export function SettingsPage() {
       )}
     </section>
   );
+}
+
+/**
+ * Khối "Dữ liệu trên máy" (ui.md màn hình 8; Could, cắt được): số biểu mẫu và thay đổi chờ gửi của dự
+ * án đang chọn. Chỉ đọc IndexedDB qua liveQuery nên offline vẫn đúng, đồng bộ xong số tự đổi.
+ */
+function DeviceStatusCard({ projectName }: { projectName: string }) {
+  const status = useLiveQuery(readDeviceStatus, []);
+  // Chưa đọc xong, hoặc máy chưa có CSDL của dự án, thì chưa vẽ, để không nháy số 0 trước số thật
+  if (!status) return null;
+  return (
+    <div className="card" data-testid="settings-device">
+      <h3>Dữ liệu trên máy</h3>
+      <p className="hint">Tổ chức "{projectName}"</p>
+      <p data-testid="settings-form-count">Biểu mẫu: {status.formCount}</p>
+      <p data-testid="settings-pending-ops">Thay đổi chờ gửi: {status.pendingOps}</p>
+    </div>
+  );
+}
+
+/**
+ * Không dùng `useCurrentProjectDb`: lúc Đăng xuất xoá CSDL dự án, dự án vẫn còn trong `projects` nên hook đó mở
+ * lại đúng CSDL vừa xoá và Dexie tạo lại nó rỗng. Kiểm CSDL còn trên máy trước khi mở, như `projectsBlockingLogout`.
+ */
+async function readDeviceStatus() {
+  const id = await getCurrentProjectId();
+  if (id === null || !(await projectDbExists(id))) return null;
+  const db = openProjectDb(id);
+  return deviceStatus(await db.forms.toArray(), await db.outbox.count());
 }
 
 const EMPTY_PASSWORDS: ChangePasswordInput = { currentPassword: '', newPassword: '', newPassword2: '' };

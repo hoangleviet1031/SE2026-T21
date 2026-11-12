@@ -6,6 +6,9 @@ PWA thu thập phiếu khảo sát khi mất mạng, tự đồng bộ khi có k
 - Thiết kế: [docs/design.md](docs/design.md), phác thảo giao diện: [docs/ui.md](docs/ui.md)
 - Mô hình nhất quán: [docs/adr/0001-consistency-model.md](docs/adr/0001-consistency-model.md)
 - Nhiều tổ chức (multi-tenancy): [docs/adr/0002-multi-tenancy.md](docs/adr/0002-multi-tenancy.md)
+- Tài khoản và vai Owner: [docs/adr/0003-accounts-and-owner-role.md](docs/adr/0003-accounts-and-owner-role.md)
+- User story, truy vết test: [docs/requirements.md](docs/requirements.md)
+- Staging, sao lưu: [docs/deploy.md](docs/deploy.md); nợ kỹ thuật: [docs/tech-debt.md](docs/tech-debt.md)
 - Ticket theo từng thành viên: [docs/plan/](docs/plan/README.md)
 
 ## Làm việc với AI
@@ -63,13 +66,13 @@ npm run user:disable -w server -- --user dang                          # khoá t
 ## Kiểm thử
 
 ```bash
-npm test             # unit (shared) + integration API (server)
+npm test             # unit (shared, client) + integration API (server)
 npm run typecheck
 npx playwright install chromium   # lần đầu
 npm run test:e2e     # build, chạy vite preview + API in-memory, chạy E2E
 ```
 
-E2E hiện có: điền phiếu offline rồi đồng bộ, retry khi server lỗi 500, xung đột cùng trường và giải quyết qua UI.
+Ca E2E nào kiểm story hay ca test nào: xem bảng truy vết ở [docs/requirements.md](docs/requirements.md) và ma trận ở [docs/design.md](docs/design.md) §10.1.
 
 Route tiêm lỗi `POST /api/__test/faults` (giả lập server lỗi 500, treo, cắt kết nối) chỉ bật khi đặt `ENABLE_TEST_ROUTES=1`. E2E tự bật; muốn thử bằng tay khi chạy dev thì:
 
@@ -81,10 +84,13 @@ $env:ENABLE_TEST_ROUTES='1'; npm run dev          # PowerShell
 ## Cấu trúc
 
 ```
-shared/   kiểu dữ liệu, threeWayMerge, backoff (dùng chung client + server)
-server/   Express API, SQLite; routes/ forms, records, attachments*, export*, faults (tiêm lỗi để test)
-client/   React PWA; src/db (Dexie), src/sync (outbox, sync engine), src/pages, e2e/
-docs/     tài liệu thiết kế, ADR, phân công
+shared/   kiểu dữ liệu, threeWayMerge, backoff, validate (dùng chung client + server, hàm thuần)
+server/   Express API, SQLite; src/routes/ auth, me, directory, projectRequests, admin, members, forms,
+          records, attachments, export; faults, testMemberships (route /api/__test, chỉ khi test); src/cli/
+client/   React PWA; src/db (Dexie), src/sync (outbox, sync engine), src/pages, src/components,
+          src/admin (trang quản trị /admin/), e2e/
+docs/     design.md (spec), ui.md (phác thảo màn hình), requirements.md (user story, truy vết), adr/ (quyết định),
+          plan/ (ticket), worklog/ (nhật ký từng người), deploy.md (staging), tech-debt.md (nợ kỹ thuật),
+          user-guide.md (hướng dẫn sử dụng), vibe-coding.md (quy trình), team-plan.md (phân công),
+          perf.md, test-report.md, sync-internals.md
 ```
-
-`*` là phần đang để trống (trả 501), có ghi `TODO(Thành viên N)` trỏ tới mục tương ứng trong tài liệu thiết kế.

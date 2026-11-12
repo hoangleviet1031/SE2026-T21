@@ -11,6 +11,14 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-11 | — | feat | PR #133 đã merge | PR #133 | xong |
+| 2026-11-11 | — | feat | Màn 8: cảnh báo dung lượng gần đầy (Could, ngoài MVP): từ 80% hạn mức `storage.estimate()` thì khối Dung lượng có câu ⚠ gợi ý Đồng bộ và dọn máy, không có hạn mức thì không cảnh báo; chỉ sửa client; E2E settings.spec (1 ca), unit storageNearlyFull; design 0.5.75, ui 0.2.51, requirements 0.25 | PR #133 | chờ review |
+| 2026-11-10 | — | docs | PR #132 đã merge | PR #132 | xong |
+| 2026-11-10 | — | docs | README khớp code: bỏ ghi chú 501/TODO ở Cấu trúc, liệt kê đúng route và docs, thêm link ADR 0003, requirements, deploy, tech-debt; E2E trỏ tới bảng truy vết | PR #132 | chờ review |
+| 2026-11-10 | — | feat | PR #131 đã merge | PR #131 | xong |
+| 2026-11-10 | — | feat | Màn 5: sửa form đã có thì hộp hỏi lại tóm tắt khác bản đang dùng trước khi lưu (Could, ngoài MVP); unit formChanges, E2E builder.spec 2 ca; design 0.5.74, ui 0.2.50, requirements 0.24 | PR #131 | chờ review |
+| 2026-11-08 | — | feat | PR #130 đã merge | PR #130 | xong |
+| 2026-11-08 | — | feat | Màn 8: khối Dữ liệu trên máy (Could, ngoài MVP): số biểu mẫu và thay đổi chờ gửi của tổ chức đang chọn, chỉ đọc IndexedDB; sketch logout-blocked theo chữ thật; chỉ sửa client; E2E settings.spec (1 ca), unit deviceStatus; design 0.5.73, ui 0.2.49, requirements 0.23 | PR #130 | chờ review |
 | 2026-11-07 | — | feat | PR #129 đã merge | PR #129 | xong |
 | 2026-11-07 | — | feat | Màn 5: Nhân bản trường (Could, ngoài MVP): trường mới chưa lưu ngay dưới, giữ nhãn, mã gợi ý lại, bỏ ẩn, con trỏ vào ô Nhãn; chỉ sửa client; E2E builder.spec (2 ca), unit duplicateField; design 0.5.72, ui 0.2.48, requirements 0.22 | PR #129 | chờ review |
 | 2026-11-05 | — | feat | PR #126 đã merge | PR #126 | xong |

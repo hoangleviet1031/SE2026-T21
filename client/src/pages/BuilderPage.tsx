@@ -22,9 +22,11 @@ import {
   type BuilderState,
 } from '../builder';
 import { BusyNote } from '../components/BusyNote';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { FieldEditor } from '../components/FieldEditor';
 import { FormRenderer } from '../components/FormRenderer';
 import { Icon } from '../components/Icon';
+import { formChangeText, formChanges } from '../formChanges';
 import { formFileName, formFileText, parseFormFile } from '../formFile';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { formKey, type ProjectDb } from '../db/projectDb';
@@ -92,6 +94,8 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const [errors, setErrors] = useState<string[]>([]);
   const [preview, setPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Câu tóm tắt trong hộp hỏi lại trước khi lưu bản mới của form đã có; null là không hỏi
+  const [confirm, setConfirm] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLFieldSetElement>(null);
   const errorsRef = useRef<HTMLUListElement>(null);
@@ -168,13 +172,35 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
     if (next !== state) setSelected(selectionAfterMove(selected, index, index + delta));
   };
 
-  const save = async () => {
+  // Kiểm ở máy rồi báo offline trước khi hỏi: chỉ hỏi khi bấm [Lưu] là gửi được. Gọi lại lúc bấm [Lưu] trong hộp
+  // vì vòng đồng bộ có thể đã tải bản mới hơn của form trong lúc hộp mở
+  const readyToSend = () => {
     const found = builderErrors(state, prev, formIds);
     setErrors(found);
     setChecked(found.length > 0);
-    if (found.length > 0) return;
+    if (found.length > 0) return false;
     // Biết chắc offline thì báo ngay, không chờ hết thời gian request
-    if (!navigator.onLine) return setErrors([OFFLINE_MSG]);
+    if (!navigator.onLine) {
+      setErrors([OFFLINE_MSG]);
+      return false;
+    }
+    return true;
+  };
+
+  // Sửa form đã có thì hỏi lại kèm tóm tắt khác bản đang dùng thế nào; form mới không có gì để so nên gửi luôn
+  // (design §4.1 "Lưu bản mới")
+  const save = () => {
+    if (!readyToSend()) return;
+    if (prev) return setConfirm(formChangeText(prev.version, formChanges(prev, toSaveRequest(state))));
+    void send();
+  };
+
+  const confirmSave = () => {
+    setConfirm(null);
+    if (readyToSend()) void send();
+  };
+
+  const send = async () => {
     setSaving(true);
     try {
       const result = await saveForm(db.projectId, toSaveRequest(state));
@@ -387,11 +413,20 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
           <Icon name="eye" />
           Xem trước
         </button>
-        <button className="primary" disabled={saving} aria-busy={saving} onClick={() => void save()}>
+        <button className="primary" disabled={saving} aria-busy={saving} onClick={save}>
           Lưu bản mới
         </button>
         <BusyNote busy={saving} text="Đang lưu…" />
       </div>
+      {confirm !== null && (
+        <ConfirmDialog
+          message={confirm}
+          confirmLabel="Lưu"
+          danger={false}
+          onConfirm={confirmSave}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
     </section>
   );
 }

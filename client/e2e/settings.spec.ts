@@ -127,6 +127,34 @@ test('Cài đặt có hướng dẫn cài lên màn hình chính; mở từ app 
   await expect(page.getByTestId('settings-install')).toHaveText('Đã cài lên màn hình chính.');
 });
 
+// Khối "Dữ liệu trên máy" (ui.md màn hình 8; Could): số biểu mẫu khác nhau và số op trong outbox của dự
+// án đang chọn, tự đổi khi đồng bộ xong
+test('Dữ liệu trên máy: đếm biểu mẫu và thay đổi chờ gửi, đồng bộ xong tự về 0', async ({ page, context }) => {
+  await login(page);
+  await openSettings(page);
+  const device = page.getByTestId('settings-device');
+  await expect(device.getByRole('heading', { name: 'Dữ liệu trên máy' })).toBeVisible();
+  await expect(device).toContainText('Tổ chức "Y tế xã (demo)"');
+  // Server E2E dùng chung giữa các spec nên số form không cố định: so với số mã form trong IndexedDB
+  const forms = (await readStore(page, PROJECT_DB, 'forms')) as { id: string }[];
+  const formCount = new Set(forms.map((f) => f.id)).size;
+  expect(formCount).toBeGreaterThan(0);
+  await expect(page.getByTestId('settings-form-count')).toHaveText(`Biểu mẫu: ${formCount}`);
+  await expect(page.getByTestId('settings-pending-ops')).toHaveText('Thay đổi chờ gửi: 0');
+
+  await context.setOffline(true);
+  await page.getByRole('link', { name: 'Quay lại' }).click();
+  await page.getByRole('button', { name: 'Tạo phiếu mới' }).click();
+  await page.locator('input[name=householdName]').fill('Hộ đếm chờ gửi');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await openSettings(page);
+  await expect(page.getByTestId('settings-pending-ops')).toHaveText('Thay đổi chờ gửi: 1');
+
+  await context.setOffline(false);
+  await page.getByRole('button', { name: 'Đồng bộ' }).click();
+  await expect(page.getByTestId('settings-pending-ops')).toHaveText('Thay đổi chờ gửi: 0', { timeout: 15_000 });
+});
+
 /** Tên các cache của SW, đọc bằng API gốc của trình duyệt. */
 const cacheNames = (page: Page) => page.evaluate(() => caches.keys());
 
@@ -175,4 +203,34 @@ test('Đăng xuất bị chặn vì còn phiếu chưa gửi thì cache me và f
   await expect(page.getByTestId('logout-button')).toBeDisabled();
 
   expect(await cacheNames(page)).toEqual(expect.arrayContaining(['me', 'forms']));
+});
+
+// Cảnh báo dung lượng gần đầy (design §4.2, ui.md màn hình 8; Could): trình duyệt E2E còn nhiều chỗ nên giả
+// storage.estimate. Số đọc từ biến trên window để đổi được giữa hai lần mở Cài đặt mà không tải lại trang
+test('dung lượng từ 80% hạn mức: cảnh báo bộ nhớ gần đầy; dưới 80% thì không', async ({ page, context }) => {
+  await context.addInitScript(() => {
+    Reflect.set(window, '__storage', { usage: 857, quota: 1000 });
+    navigator.storage.estimate = async () => Reflect.get(window, '__storage') as StorageEstimate;
+  });
+  await login(page);
+  await openSettings(page);
+  await expect(page.getByTestId('storage-warning')).toHaveText(
+    '⚠ Bộ nhớ gần đầy (đã dùng 85%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm Đồng bộ để gửi dữ liệu lên máy chủ, rồi xoá bớt ảnh hoặc ứng dụng khác trên điện thoại.',
+  );
+  // Nằm trong khối Dung lượng, không phải dải chung đầu trang
+  await expect(page.getByTestId('settings-storage').locator('..').getByTestId('storage-warning')).toBeVisible();
+
+  await page.evaluate(() => Reflect.set(window, '__storage', { usage: 799, quota: 1000 }));
+  await page.getByRole('link', { name: 'Quay lại' }).click();
+  await openSettings(page);
+  await expect(page.getByTestId('storage-bar')).toBeVisible();
+  await expect(page.getByTestId('storage-warning')).toHaveCount(0);
+
+  // Trình duyệt không báo hạn mức: không biết gần đầy hay chưa nên không cảnh báo
+  await page.evaluate(() => Reflect.set(window, '__storage', { usage: 5000 }));
+  await page.getByRole('link', { name: 'Quay lại' }).click();
+  await openSettings(page);
+  await expect(page.getByTestId('settings-storage')).toContainText('Đã dùng');
+  await expect(page.getByTestId('storage-bar')).toHaveCount(0);
+  await expect(page.getByTestId('storage-warning')).toHaveCount(0);
 });

@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.22 (2026-11-07)
+- **Phiên bản:** 0.25 (2026-11-11)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -28,6 +28,8 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tôi đã lưu 10 phiếu khi offline, **when** có mạng trở lại, **then** server có đủ 10 phiếu, mỗi phiếu version 1, và nhãn đổi thành "Đã đồng bộ".
 - **Given** còn phiếu chưa gửi, **when** tôi đóng tab rồi mở lại, **then** phiếu vẫn còn và tự đồng bộ khi có mạng.
 - **Given** còn dữ liệu chưa gửi ở bất kỳ dự án nào, **when** tôi mở Cài đặt, **then** nút Đăng xuất bị khoá và đọc kèm lý do; lúc bấm [Đăng xuất] trong hộp xác nhận mới thấy còn dữ liệu chưa gửi (vd. tab khác vừa lưu) thì báo "⚠ Còn dữ liệu chưa gửi ở dự án …", không xoá phiếu, CSDL dự án hay cache `me`/`forms`.
+- (Could) **Given** tôi đang chọn một tổ chức, **when** mở Cài đặt, **then** khối "Dữ liệu trên máy" hiện số biểu mẫu và số thay đổi chờ gửi của tổ chức đó; lưu phiếu khi offline thì số chờ gửi tăng, đồng bộ xong tự về 0.
+- (Could) **Given** bộ nhớ trình duyệt đã dùng từ 80% hạn mức, **when** mở Cài đặt, **then** khối Dung lượng có câu "⚠ Bộ nhớ gần đầy (đã dùng n%)…" gợi ý Đồng bộ và dọn máy; dưới 80% hoặc trình duyệt không báo hạn mức thì không có câu đó.
 - **Given** đang ở trang nhập phiếu, **when** có phiên bản mới và tôi bấm [Tải lại], **then** app hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?"; Huỷ thì giữ nguyên chỗ đang nhập.
 - (Could) **Given** tôi đang gõ phiếu mà chưa bấm Lưu, **when** trang bị tải lại hoặc tôi bấm "← Quay lại" rồi mở lại phiếu, **then** app hỏi [Khôi phục] / [Bỏ]; Khôi phục thì có lại chữ đã gõ (cả ảnh đã chọn), trong lúc đó phiếu không đổi trạng thái và không có op nào; phiếu đã bị sửa ở nơi khác thì trường cả hai cùng sửa giữ bản mới và hiện chữ tôi đã gõ.
 - (Could) **Given** tôi đang gõ một phiếu mới chưa Lưu lần nào, **when** app bị tắt rồi tôi mở lại (vào trang chủ), **then** trang chủ có dải "Phiếu đang nhập dở, chưa lưu" dẫn về phiếu đó để khôi phục; Lưu xong thì dải mất.
@@ -91,6 +93,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** form đã lưu, **when** tôi bấm "Xuất form" (chạy được khi offline), **then** tải file `<id>-v<version>.json`; nhập file đó ở "Biểu mẫu mới" của dự án khác thì builder nạp thành form mới chưa lưu, bấm "Lưu bản mới" thì thành form mới ở dự án đó.
 - **Given** file không phải JSON, sai định dạng hoặc sai luật lưu form, **when** nhập form, **then** báo "File không phải JSON", "File không đúng định dạng biểu mẫu" hoặc lỗi luật, builder giữ nguyên; **given** form mới có mã trùng form đã có trong dự án, **when** bấm "Lưu bản mới", **then** báo "Mã biểu mẫu đã có trong dự án", không gửi.
 - (Could) **Given** tôi đang sửa form và chọn một trường, **when** bấm [Nhân bản trường], **then** ngay dưới có trường mới chưa lưu cùng loại, nhãn, bắt buộc, lựa chọn, mã mới không trùng, không ẩn; sửa bản sao không đổi trường gốc; bấm "Lưu bản mới" thì form lên version mới có thêm đúng trường đó.
+- (Could) **Given** tôi sửa form đã có (vd. thêm 2 trường, ẩn 1 trường), **when** bấm "Lưu bản mới", **then** trước khi gửi có hộp hỏi lại "So với bản <n> đang dùng: thêm 2 trường, ẩn 1 trường. Lưu bản mới?"; [Huỷ] hoặc Esc thì không gửi, phần đang sửa giữ nguyên; [Lưu] thì form lên version mới; không đổi gì thì hộp nói "Không có gì khác bản <n> đang dùng" và vẫn cho lưu; form mới không hỏi.
 
 ### US-08 · Xuất dữ liệu · Must (CSV), Should (JSON)
 
@@ -176,6 +179,8 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Chữ đang gõ được giữ, mở lại hỏi khôi phục, không tạo op; gộp theo trường khi phiếu bị đổi (Could) | `typing-buffer.spec.ts`; unit `needsBuffer`, `restorePlan`, `keptFieldLine` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p1 (#114) |
 | US-01 | Phiếu mới gõ dở có dải ở trang chủ dẫn về; phiếu đã có không lên dải (Could) | `typing-buffer.spec.ts` (ca "mở lại app vào trang chủ", "không lên dải"); unit `unsavedNewRecords` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p2 (#115) |
 | US-01 | Nhân bản phiếu: bản sao chưa Lưu không có phiếu và op, không chép ảnh, vị trí, trường ẩn; ẩn nút theo trạng thái và vai trò (Could) | `record-copy.spec.ts`; unit `copyableData`, `copyBuffer`, `canCopyRecord` (`client/src/recordCopy.test.ts`) | không ticket (#126) |
+| US-01 | Dữ liệu trên máy ở Cài đặt: đếm biểu mẫu (mã form khác nhau) và thay đổi chờ gửi, đồng bộ xong tự về 0 (Could) | `settings.spec.ts` (ca "Dữ liệu trên máy…"); unit `deviceStatus` (`client/src/deviceStatus.test.ts`) | không ticket (#130) |
+| US-01 | Cảnh báo dung lượng gần đầy ở Cài đặt từ 80% hạn mức; không có hạn mức thì không cảnh báo (Could) | `settings.spec.ts` (ca "dung lượng từ 80% hạn mức…"); unit `storageNearlyFull` (`client/src/formatBytes.test.ts`) | không ticket (#133) |
 | US-01 | Lưu phiếu thì xin giữ bộ nhớ; thiếu Web Locks → "Trình duyệt không được hỗ trợ" | `browser-support.spec.ts`; unit `browserSupport.test.ts` | TV1-07 (#28) |
 | US-02 | Nháp không lên server; sửa đủ thì đồng bộ | O5 `draft.spec.ts`; unit `shared/src/recordValidation.test.ts` | TV1-05 (#7, #17) |
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
@@ -204,6 +209,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-07 | Xuất form, nhập sang dự án khác thành form mới | `form-import-export.spec.ts`; unit `formFile.test.ts` (describe "xuất form") | TV1-10 (#33) |
 | US-07 | File nhập hỏng/sai luật; mã form trùng → báo lỗi, không gửi | `form-import-export.spec.ts` (cả ca mã trùng); unit `formFile.test.ts` (describe `parseFormFile`) | TV1-10 (#33) |
 | US-07 | Nhân bản trường: bản sao ngay dưới, mã mới, bỏ ẩn, sửa không đổi gốc, lưu ra version mới; nút gọn ở 360px (Could) | `builder.spec.ts` (ca "nhân bản trường…", "màn 360 px: [Nhân bản trường]…"); unit `duplicateField` (`client/src/builder.test.ts`) | không ticket (#129) |
+| US-07 | Tóm tắt thay đổi khi lưu form đã có: hộp hỏi lại nêu thêm/ẩn/hiện lại/đổi nhãn/đổi Bắt buộc/thêm lựa chọn/đổi thứ tự/đổi tiêu đề; Huỷ, Esc không gửi; không đổi gì vẫn lưu được (Could) | `builder.spec.ts` (ca "sửa form rồi Lưu bản mới: hộp tóm tắt…", "sửa form mà không đổi gì…"; câu tóm tắt ở ca "sửa form tạo version mới…", "nhân bản trường có lựa chọn…"), `form-version.spec.ts` (ca ẩn trường tạo v2); unit `formChanges`, `formChangeText` (`client/src/formChanges.test.ts`) | không ticket (#131) |
 | US-08 | v1 và v2 cùng file, cột đúng, BOM | `export.spec.ts`; `server/test/export.test.ts` | TV3-09 (#48); nút [Xuất ▾] TV1-12 (b2 p2 #71, mất mạng thì đóng b2 p3) |
 | US-08 | Chống CSV injection | `server/test/csv.test.ts` | TV3-09 (#48) |
 | US-08 | Điều tra viên xuất → `403` | A3 `export.test.ts` | TV3-09 (#48) |
@@ -267,3 +273,6 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.20 | 2026-11-04 | US-06 thêm tiêu chí mở lại phiếu đã xoá, kèm dòng truy vết (sửa lỗi, không ticket) |
 | 0.21 | 2026-11-05 | US-01 thêm tiêu chí nhân bản phiếu, kèm dòng truy vết (Could, không ticket) |
 | 0.22 | 2026-11-07 | US-07 thêm tiêu chí nhân bản trường, kèm dòng truy vết (Could, không ticket) |
+| 0.23 | 2026-11-08 | US-01 thêm tiêu chí khối Dữ liệu trên máy ở Cài đặt, kèm dòng truy vết (Could, không ticket) |
+| 0.24 | 2026-11-10 | US-07 thêm tiêu chí tóm tắt thay đổi khi lưu form, kèm dòng truy vết (Could, không ticket) |
+| 0.25 | 2026-11-11 | US-01 thêm tiêu chí cảnh báo dung lượng gần đầy ở Cài đặt, kèm dòng truy vết (Could, không ticket) |
