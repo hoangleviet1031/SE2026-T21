@@ -170,7 +170,7 @@ TV3 là đầu mối kiểm thử: giữ [ma trận E2E](../design.md#101-ma-tr�
 
 ## TV3-11 · Báo cáo kiểm thử
 
-- **Trạng thái:** ⏳ `docs/test-report.md` bản 0.2: ma trận, truy vết, CI, lỗi đã biết xong; §6 hiệu năng chờ TV2-11, §7 chờ thử trên điện thoại thật
+- **Trạng thái:** ⏳ `docs/test-report.md` bản 0.4: ma trận, truy vết, CI, lỗi đã biết, §6 hiệu năng (từ `perf.md` của TV2-11) xong; §7 chờ thử trên điện thoại thật, số liệu chạy lại trên commit cuối
 - **Tuần:** 8
 - **File:** `docs/test-report.md` (mới)
 
@@ -251,7 +251,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ở [design §1](../design.md#1-m
 
 ## TV3-16 · Tài liệu người dùng
 
-- **Trạng thái:** ✅ `docs/tv3-16-user-guide`: `docs/user-guide.md` ba phần, 17 ảnh ở `docs/images/user-guide/`, README trỏ tới. Ảnh chụp từ bản build `main` 152303c bằng dữ liệu mẫu thay vì chụp trên staging (Đại chọn, 2026-11-05: không ghi tài khoản, phiếu mẫu lên staging); đối chiếu với staging trước khi merge
+- **Trạng thái:** ✅ PR #128 (`docs/tv3-16-user-guide`): `docs/user-guide.md` ba phần, 17 ảnh ở `docs/images/user-guide/`, README trỏ tới. Ảnh chụp từ bản build `main` 152303c bằng dữ liệu mẫu thay vì chụp trên staging (Đại chọn, 2026-11-05: không ghi tài khoản, phiếu mẫu lên staging); đối chiếu với staging trước khi merge
 - **Mức:** Must
 - **Tuần:** 8 · **Phụ thuộc:** các màn hình đã xong (chuyển từ TV1-12)
 - **File:** `docs/user-guide.md` (mới)

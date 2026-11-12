@@ -6,13 +6,13 @@ Quy ước ở [README.md](README.md).
 
 | Việc | Chặn bởi | Ghi chú |
 |---|---|---|
-| TV3-11 §6 hiệu năng | TV2-11 (`docs/perf.md`) | điền số đo vào bảng §11.2 |
 | TV3-11 §7 điện thoại thật | staging bản cuối (TV1) | thử P1–P13 trên Android, iPhone nếu có |
 
 ## Nhật ký
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-12 | TV3-11 | docs | `test-report.md` bản 0.4: §6 điền từ `perf.md` (pull 5.000 phiếu 2,3 s, danh sách 2.000 phiếu 211 ms, đổi dự án 246 ms, đều đạt); 5 chỉ tiêu không ticket nào nhận ghi "Chưa đo", gồm QS4; §1, §8.2, §9 theo đó; plan: TV3-16 ✅ PR #128 | nhánh `docs/tv3-11-perf` | chờ review |
 | 2026-11-05 | TV3-16 | docs | `docs/user-guide.md`: điều tra viên, giám sát viên/Owner, quản trị; 17 ảnh từ bản build `main` 152303c, chữ UI đã kiểm với code; README trỏ tới | nhánh `docs/tv3-16-user-guide` | chờ review |
 | 2026-11-05 | — | docs | Plan: TV3-14 ✅ PR #83, TV3-15 ✅ PR #104 (trước còn ghi "chờ PR" và tên nhánh) | nhánh `docs/plan-trang-thai-tv3` | chờ review |
 | 2026-10-29 | TV3-15 | quyết định | Ngăn kéo menu giữ con trỏ khi mở, như hộp thoại (ui.md chờ TV3-15 quyết); ghi design §14, ui 0.2.32 | design §14 | xong |
