@@ -33,10 +33,24 @@ export function needsDraft(state: BuilderState, base: BuilderState): boolean {
  */
 export function rebaseDraft(state: BuilderState, latest: FormSchema): { state: BuilderState; added: number } {
   const have = new Set(state.fields.filter((f) => f.saved).map((f) => f.id));
-  const added: DraftField[] = latest.fields
-    .filter((f) => !have.has(f.id))
-    .map((f) => ({ ...f, uid: 0, saved: true, autoId: false }));
+  // Qua fromForm để trường thêm có uid mới, đã lưu; trường đang có giữ uid để ô đang gõ không bị dựng lại
+  const added: DraftField[] = fromForm({ ...latest, fields: latest.fields.filter((f) => !have.has(f.id)) }).fields;
   return { state: { ...state, fields: [...state.fields, ...added] }, added: added.length };
+}
+
+/**
+ * Đang sửa thì vòng đồng bộ tải bản form mới hơn (tech-debt N25, design §4.1 "Tự lưu bản đang sửa"). Chưa sửa gì
+ * thì nạp nguyên bản mới, không báo: không đụng gì của người dùng, và giữ nhãn cũ thì lưu sau sẽ ngầm hoàn tác
+ * thay đổi của máy khác. Đã sửa thì đưa lên bản mới như lúc Khôi phục và trả câu báo.
+ */
+export function onNewerForm(
+  state: BuilderState,
+  oldBase: FormSchema,
+  latest: FormSchema,
+): { state: BuilderState; note: string | null } {
+  if (!needsDraft(state, draftBase(oldBase))) return { state: fromForm(latest), note: null };
+  const { state: next, added } = rebaseDraft(state, latest);
+  return { state: next, note: newerNote({ version: latest.version, added }) };
 }
 
 export interface RestoredDraft {
@@ -64,6 +78,11 @@ export function draftIsStale(draft: BuilderDraft, latest: FormSchema | undefined
 
 /** Câu ở dải sau khi khôi phục bản tự lưu cũ hơn bản form trên máy (ui.md màn hình 5) */
 export function rebasedNote(newer: { version: number; added: number }): string {
+  return `Đã khôi phục. ${newerNote(newer)}`;
+}
+
+/** Câu ở dải khi đang sửa mà form lên bản mới (ui.md màn hình 5) */
+export function newerNote(newer: { version: number; added: number }): string {
   const middle = newer.added > 0 ? `; ${newer.added} trường mới của bản đó được thêm vào cuối` : '';
-  return `Đã khôi phục. Trong lúc bạn sửa, biểu mẫu đã lên bản ${newer.version}${middle}. Kiểm lại trước khi lưu.`;
+  return `Trong lúc bạn sửa, biểu mẫu đã lên bản ${newer.version}${middle}. Kiểm lại trước khi lưu.`;
 }
