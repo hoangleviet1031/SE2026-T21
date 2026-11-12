@@ -1,0 +1,94 @@
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":94.87,"userId":null}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":103.88,"userId":null}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":140.7,"userId":null}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":103.46,"userId":null}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"GET","path":"/api/projects/demo-yte/export","status":500,"durationMs":33.3,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+{"method":"PUT","path":"/api/projects/demo-yte/records/dad0c841-b92c-49ec-a40e-cd90ec50fa7a","status":500,"durationMs":2.84,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":228.19,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":106.67,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":100.47,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/auth/login","status":200,"durationMs":129.79,"userId":null}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":8.64,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-yte/forms","status":201,"durationMs":2.25,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"POST","path":"/api/projects/demo-nongnghiep/forms","status":201,"durationMs":3.33,"userId":"u_chu"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/8ccffb38-102f-45d9-8e92-1c1a20272725","status":201,"durationMs":11.16,"userId":"u_minh"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/9e232607-638a-48e2-8b25-7cacd86ef969","status":201,"durationMs":4.31,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/dbda09d2-ec15-4158-be43-192b560f9f8b","status":201,"durationMs":5.33,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/89348854-c4ab-4201-b405-6774fd9e2eec","status":201,"durationMs":3.14,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-yte/records/89348854-c4ab-4201-b405-6774fd9e2eec","status":200,"durationMs":3.31,"userId":"u_lan"}
+
+stdout | test/exportProject.test.ts
+{"method":"PUT","path":"/api/projects/demo-nongnghiep/records/b886be67-df3c-43a7-abc7-935e400ddccf","status":201,"durationMs":2.16,"userId":"u_chu"}
+
+ ❯ test/exportProject.test.ts (12 tests | 1 failed) 2223ms
+   ❯ đường lỗi (1)
+     × EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được 605ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được
+AssertionError: expected 500 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 500
+
+ ❯ test/exportProject.test.ts:187:26
+    185|       const id = randomUUID();
+    186|       const put = await call('PUT', `${url}/records/${id}`, s.tokens.m…
+    187|       expect(put.status).toBe(201);
+       |                          ^
+    188|     } finally {
+    189|       s.close();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 28 passed (29)
+      Tests  1 failed | 433 passed (434)
+   Start at  15:35:55
+   Duration  33.20s (tests 75%, import 18%, transform 6%, worker 1%)
+
+    Isolate  29 workers spawned · ~718ms startup each (spawn + environment, per file)
+             at least ~2.26s faster with isolate: false — reuses workers across files instead of one per file
+

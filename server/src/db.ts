@@ -304,6 +304,24 @@ export function tx<T>(db: Db, fn: () => T): T {
   }
 }
 
+/**
+ * Nhiều câu đọc cùng nhìn một ảnh chụp của CSDL. Trong tiến trình server các handler đồng bộ không
+ * chen nhau, nhưng kết nối khác (CLI `seed:perf`, `user:*`) vẫn ghi được giữa hai câu đọc; ở chế độ WAL
+ * transaction đọc giữ nguyên ảnh chụp từ câu đọc đầu tiên. `BEGIN` thường (deferred), không phải
+ * `IMMEDIATE`, để không giữ khoá ghi trong lúc đọc nhiều dữ liệu. Xem docs/design.md §4.6.
+ */
+export function readTx<T>(db: Db, fn: () => T): T {
+  db.exec('BEGIN');
+  try {
+    const result = fn();
+    db.exec('COMMIT');
+    return result;
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
+
 export const SAMPLE_FORM: FormSchema = {
   id: 'household-survey',
   version: 1,

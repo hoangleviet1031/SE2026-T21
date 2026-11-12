@@ -30,6 +30,14 @@ export function listFormVersions(ctx: Ctx, db: Db, id: string): FormSchema[] {
   return rows.map(toForm);
 }
 
+/** Mọi phiên bản của mọi form trong dự án, theo id rồi version (xuất cả dự án, design §4.6). */
+export function listAllFormVersions(ctx: Ctx, db: Db): FormSchema[] {
+  const rows = db
+    .prepare(`SELECT schema FROM forms WHERE project_id = ? ORDER BY id, version`)
+    .all(ctx.projectId) as unknown as FormRow[];
+  return rows.map(toForm);
+}
+
 export function getFormVersion(ctx: Ctx, db: Db, id: string, version: number): FormSchema | undefined {
   const row = db
     .prepare(`SELECT schema FROM forms WHERE project_id = ? AND id = ? AND version = ?`)

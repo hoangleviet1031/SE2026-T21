@@ -1,0 +1,29 @@
+From 3f92eae176ea99f4dac7b5f46629699eb15d643c Mon Sep 17 00:00:00 2001
+From: MagnusW <daitrong127@gmail.com>
+Date: Sun, 8 Nov 2026 15:28:57 +0700
+Subject: [PATCH] =?UTF-8?q?MUTATION=20M1=20(t=E1=BA=A1m,=20kh=C3=B4ng=20me?=
+ =?UTF-8?q?rge)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ server/src/app.ts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/server/src/app.ts b/server/src/app.ts
+index 746ec4e..e308d4e 100644
+--- a/server/src/app.ts
++++ b/server/src/app.ts
+@@ -105,7 +105,7 @@ export function createApp(
+   app.use(
+     '/api/projects/:projectId/export',
+     requireAuth,
+-    requireMember('supervisor'),
++    requireMember('surveyor'),
+     exportRouter(db, opts.publicBaseUrl ?? 'http://localhost:3001'),
+   );
+   app.use(jsonParseErrorHandler);
+-- 
+2.54.0.windows.1
+

@@ -1,0 +1,38 @@
+From 33a8ceba4d89a1c970c23a4617afaff70a5ced70 Mon Sep 17 00:00:00 2001
+From: MagnusW <daitrong127@gmail.com>
+Date: Sun, 8 Nov 2026 15:30:41 +0700
+Subject: [PATCH] =?UTF-8?q?MUTATION=20M4=20(t=E1=BA=A1m,=20kh=C3=B4ng=20me?=
+ =?UTF-8?q?rge)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ server/src/routes/export.ts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/server/src/routes/export.ts b/server/src/routes/export.ts
+index 0f00290..b469e73 100644
+--- a/server/src/routes/export.ts
++++ b/server/src/routes/export.ts
+@@ -1,7 +1,7 @@
+ import { Router, type Request } from 'express';
+ import type { FormSchema, ServerRecord } from '@field-survey/shared';
+ import { getCtx, type Ctx } from '../auth';
+-import { readTx, type Db } from '../db';
++import type { Db } from '../db';
+ import { toCsv } from '../lib/csv';
+ import { exportTable } from '../lib/exportTable';
+ import { listAllFormVersions, listFormVersions } from '../repo/forms';
+@@ -17,7 +17,7 @@ import { listRecordsByForm, listRecordsByProject } from '../repo/records';
+  * đó giữa hai câu đọc thì file vẫn nhất quán, thấy cả hai hoặc không thấy cái nào (ca EX-14).
+  */
+ export function readProjectExport(ctx: Ctx, db: Db, includeDeleted: boolean): { forms: FormSchema[]; records: ServerRecord[] } {
+-  return readTx(db, () => ({ forms: listAllFormVersions(ctx, db), records: listRecordsByProject(ctx, db, includeDeleted) }));
++  return ((fn: () => { forms: FormSchema[]; records: ServerRecord[] }) => fn())(() => ({ forms: listAllFormVersions(ctx, db), records: listRecordsByProject(ctx, db, includeDeleted) }));
+ }
+ 
+ export function exportRouter(db: Db, publicBaseUrl: string): Router {
+-- 
+2.54.0.windows.1
+

@@ -1,0 +1,22 @@
+{
+  "mode": "project",
+  "records": 2000,
+  "concurrent": 60,
+  "rounds": 5,
+  "exportSamples": 300,
+  "p50_ms": 1112,
+  "p95_ms": 2417,
+  "max_ms": 2956,
+  "round_wall_ms": [
+    1820,
+    1858,
+    1876,
+    2977,
+    2601
+  ],
+  "response_kb": 863,
+  "non_2xx": 0,
+  "wrong_record_count": 0,
+  "target_p95_ms": 2000,
+  "pass": false
+}

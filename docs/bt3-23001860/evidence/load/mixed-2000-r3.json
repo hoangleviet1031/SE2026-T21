@@ -1,0 +1,23 @@
+{
+  "mode": "mixed",
+  "records": 2000,
+  "concurrent": 60,
+  "rounds": 5,
+  "exportSamples": 150,
+  "p50_ms": 480,
+  "p95_ms": 885,
+  "max_ms": 996,
+  "round_wall_ms": [
+    1091,
+    1037,
+    1060,
+    1149,
+    1018
+  ],
+  "response_kb": 871,
+  "non_2xx": 0,
+  "wrong_record_count": 0,
+  "write_p95_ms": 1111,
+  "target_p95_ms": 2000,
+  "pass": true
+}

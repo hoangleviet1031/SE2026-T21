@@ -1,0 +1,439 @@
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+ ✓ test/cli.test.ts > newTempPassword > 12 ký tự chữ và số, không có ký tự dễ nhầm, đủ dài theo luật mật khẩu 7ms
+ ✓ test/cli.test.ts > user:add > tạo tài khoản, đăng nhập được bằng mật khẩu tạm, DB chỉ giữ hash 316ms
+ ✓ test/cli.test.ts > user:add > --admin đặt cờ quản trị 130ms
+ ✓ test/cli.test.ts > user:add > tên đăng nhập sai định dạng, trùng (khác hoa thường) hoặc tên hiển thị rỗng thì báo lỗi, không ghi 86ms
+ ✓ test/admin.test.ts > GET /api/me > trả người dùng và các dự án kèm vai trò 25ms
+ ✓ test/admin.test.ts > GET /api/me > admin không là thành viên dự án nào thì danh sách rỗng 28ms
+ ✓ test/admin.test.ts > GET /api/me > không có token hoặc token sai trả 401 8ms
+ ✓ test/isolation.test.ts > T1: thành viên dự án A gọi API của dự án B > đọc phiếu, đọc form của dự án mình không thuộc trả 403 not_member 49ms
+ ✓ test/isolation.test.ts > T1: thành viên dự án A gọi API của dự án B > ghi phiếu vào dự án mình không thuộc trả 403, không tạo phiếu 30ms
+ ✓ test/admin.test.ts > GET /api/me > không chứa dự án đã bị rút 46ms
+ ✓ test/admin.test.ts > GET /api/me > không chứa dự án đã lưu trữ 32ms
+ ✓ test/admin.test.ts > /api/admin/projects > người thường gọi mọi route admin trả 403 forbidden 22ms
+ ✓ test/admin.test.ts > /api/admin/projects > không có token trả 401 9ms
+ ✓ test/admin.test.ts > /api/admin/projects > GET liệt kê mọi dự án, kể cả đã lưu trữ, kèm tên đăng nhập Owner và số thành viên 18ms
+ ✓ test/admin.test.ts > /api/admin/projects > GET: nhiều Owner thì sắp theo tên đăng nhập 4ms
+ ✓ test/isolation.test.ts > T2: PUT vào dự án B với id đã có ở dự án A > trả 404 và phiếu ở dự án A không đổi 48ms
+ ✓ test/isolation.test.ts > T3: pull của surveyor và supervisor cùng dự án > surveyor chỉ nhận phiếu mình tạo, supervisor nhận tất cả 45ms
+ ✓ test/isolation.test.ts > T4: admin không là thành viên > đọc phiếu, form của dự án trả 403 not_member 18ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > tìm được route, gồm các route đã biết 2ms
+ ✓ test/accounts.test.ts > POST /api/auth/register > U1: đăng ký trả 201 kèm token; /me bằng token đó đúng người, chưa thuộc dự án nào 754ms
+ ✓ test/admin.test.ts > /api/admin/projects > POST /admin/projects không còn (tổ chức chỉ tạo khi duyệt yêu cầu) 16ms
+ ✓ test/admin.test.ts > /api/admin/projects > T4: admin không là thành viên thì đọc form, phiếu trả 403 not_member 31ms
+ ✓ test/admin.test.ts > /api/admin/projects > PATCH khoá (lưu trữ) và mở lại 12ms
+ ✓ test/exportProject.test.ts > xuất cả dự án (thành công) > EX-01 supervisor: mọi phiên bản của mọi form, phiếu chưa xoá theo thứ tự ghi; tải về dạng file 21ms
+ ✓ test/exportProject.test.ts > xuất cả dự án (thành công) > EX-02 includeDeleted=1 thì có phiếu đã xoá, deleted là true 10ms
+ ✓ test/exportProject.test.ts > xuất cả dự án (thành công) > EX-03 owner xuất được, không truyền format thì mặc định JSON 10ms
+ ✓ test/exportProject.test.ts > xuất cả dự án (thành công) > EX-04 contract với CSDL: deleted là boolean, data là object, tên người tạo/sửa ghép từ users 10ms
+ ✓ test/exportProject.test.ts > phạm vi dữ liệu > EX-05 không bao giờ có phiếu hay form của dự án khác, kể cả cùng id form 16ms
+ ✓ test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-06 surveyor nhận 403 forbidden 6ms
+ ✓ test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-07 supervisor ở dự án này nhưng surveyor ở dự án kia: xuất dự án kia nhận 403 forbidden 14ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > DELETE /api/projects/:projectId/attachments 48ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/attachments 27ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PATCH /api/projects/:projectId/attachments 32ms
+ ✓ test/admin.test.ts > /api/admin/projects > PATCH chỉ nhận archived: đổi tên, công khai hay thân sai trả 400; dự án không có trả 404 74ms
+ ✓ test/admin.test.ts > /api/admin/projects > PUT …/members/:userId không còn (thay bằng …/owners/:username) 19ms
+ ✓ test/admin.test.ts > PUT /api/admin/projects/:projectId/owners/:username > A8: admin chỉ định Owner bằng tên đăng nhập; người đó vào được tổ chức với vai trò owner 80ms
+ ✓ test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-08 admin không là thành viên: 403 not_member; không có token: 401; dự án không có: 403 not_member 50ms
+ ✓ test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-09 format khác json (kể cả csv, lặp tham số) thì 400 invalid_body 49ms
+ ✓ test/exportProject.test.ts > quyền và lỗi (A3, design §7.1) > EX-10 route xuất theo form có sẵn không đổi hành vi 15ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > POST /api/projects/:projectId/attachments 47ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PUT /api/projects/:projectId/attachments 51ms
+ ✓ test/backup.test.ts > sao lưu khi server đang chạy > bản sao lưu mở được: có phiếu, có dòng ảnh, file ảnh đúng SHA-256 335ms
+ ✓ test/admin.test.ts > PUT /api/admin/projects/:projectId/owners/:username > A8: người thường (kể cả Owner của tổ chức) gọi → 403 forbidden 12ms
+ ✓ test/admin.test.ts > PUT /api/admin/projects/:projectId/owners/:username > nâng thành viên đang có lên owner, giữ added_at 14ms
+ ✓ test/admin.test.ts > PUT /api/admin/projects/:projectId/owners/:username > không có dự án hoặc tên đăng nhập → 404 33ms
+ ✓ test/admin.test.ts > PUT /api/admin/projects/:projectId/owners/:username > tài khoản admin → 409 admin_account 17ms
+ ✓ test/admin.test.ts > PUT /api/admin/projects/:projectId/owners/:username > vẫn chạy với dự án đã lưu trữ (chuẩn bị trước khi mở lại) 23ms
+ ✓ test/exportConcurrency.test.ts > nhiều người xuất cùng lúc, mỗi người đúng quyền và đúng phạm vi > EX-11 60 request trộn 6 loại người gọi: không request nào nhận dữ liệu hay mã lỗi của request khác 361ms
+ ✓ test/exportProject.test.ts > phòng thủ ở lớp đọc dữ liệu > EX-15 nếu surveyor lọt tới hàm đọc thì chỉ thấy phiếu mình tạo, kể cả phiếu đã xoá 2ms
+ ✓ test/cli.test.ts > user:reset-password > mật khẩu cũ hết dùng, mật khẩu tạm mới dùng được, phiên đang có vẫn còn 530ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/attachments/:id 93ms
+ ✓ test/cli.test.ts > user:reset-password > tên không tồn tại thì báo lỗi 1ms
+ ✓ test/backup.test.ts > sao lưu khi server đang chạy > không chép chunk của ảnh tải dở 259ms
+ ✓ test/admin.test.ts > /api/admin/users > người thường (kể cả Owner) gọi mọi route → 403 forbidden, không có gì đổi; không token → 401 198ms
+ ✓ test/admin.test.ts > /api/admin/users > GET tìm theo chuỗi con trong tên đăng nhập, không phân biệt hoa thường, đúng các trường 50ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PUT /api/projects/:projectId/attachments/:i… 299ms
+ ✓ test/admin.test.ts > /api/admin/users > GET: "_" và "%" trong q là ký tự thường, không phải ký tự đại diện 30ms
+ ✓ test/admin.test.ts > /api/admin/users > GET không có q thì trả mọi tài khoản sắp theo tên đăng nhập, tối đa 50 70ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > POST /api/projects/:projectId/attachments/:i… 101ms
+ ✓ test/accounts.test.ts > POST /api/auth/register > U2: trùng tên đăng nhập (khác hoa thường) → 409 username_taken 684ms
+ ✓ test/exportProject.test.ts > đường lỗi > EX-16 CSDL có dòng phiếu hỏng (data không phải JSON): xuất trả 500, server không kẹt transaction, ghi tiếp được 536ms
+ ✓ test/admin.test.ts > /api/admin/users > GET: projectCount đếm tổ chức chưa lưu trữ đang là thành viên 27ms
+ ✓ test/backup.test.ts > bản sao lưu hỏng không được tính > CSDL có ảnh mà thư mục ảnh thiếu: báo lỗi, không tạo bản mới, bản cũ còn nguyên 238ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/attachments/:i… 119ms
+ ✓ test/admin.test.ts > /api/admin/users > disable: khoá, thu hồi mọi phiên; token cũ và đăng nhập đều 401; gọi lại vẫn 200 202ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > DELETE /api/projects/:projectId/export 56ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/export 31ms
+ ✓ test/backup.test.ts > bản sao lưu hỏng không được tính > thiếu tham số: báo cách dùng 243ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PATCH /api/projects/:projectId/export 37ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > POST /api/projects/:projectId/export 41ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PUT /api/projects/:projectId/export 39ms
+ ✓ test/admin.test.ts > /api/admin/users > revoke-sessions: mọi phiên hết hiệu lực, tài khoản vẫn đăng nhập lại được 138ms
+ ✓ test/cli.test.ts > user:revoke-sessions > mọi phiên của người đó nhận 401, đăng nhập lại được 778ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/export/:formId 96ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > DELETE /api/projects/:projectId/forms 36ms
+ ✓ test/cli.test.ts > user:revoke-sessions > tên không tồn tại thì báo lỗi 1ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/forms 31ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PATCH /api/projects/:projectId/forms 31ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > POST /api/projects/:projectId/forms 38ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PUT /api/projects/:projectId/forms 48ms
+ ✓ test/backup.test.ts > xoay vòng > giữ 7 bản mới nhất, dọn thư mục tạm còn sót, không đụng file khác 304ms
+ ✓ test/exportConcurrency.test.ts > xuất trong lúc đang có người ghi > EX-12 30 lần ghi + 30 lần xuất xen nhau: mỗi file là một tiền tố của thứ tự ghi, file cuối đủ mọi phiếu 457ms
+ ✓ test/accounts.test.ts > POST /api/auth/register > trùng tên của tài khoản đã có trước (tài khoản demo lan) → 409 660ms
+ ✓ test/cli.test.ts > user:disable > khoá tài khoản: phiên cũ nhận 401, không đăng nhập được nữa 406ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/forms/:id/vers… 340ms
+ ✓ test/cli.test.ts > user:disable > tên không tồn tại thì báo lỗi 1ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > DELETE /api/projects/:projectId/members 45ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/members 29ms
+ ✓ test/cli.test.ts > runUserCli (đọc tham số dòng lệnh) > add in tên đăng nhập và mật khẩu tạm, thoát 0 261ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PATCH /api/projects/:projectId/members 32ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > POST /api/projects/:projectId/members 39ms
+ ✓ test/admin.test.ts > /api/admin/users > reset-password: mật khẩu tạm trả một lần, DB chỉ có hash; mật khẩu cũ hết hiệu lực, phiên đang có giữ nguyên 911ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PUT /api/projects/:projectId/members 72ms
+ ✓ test/accounts.test.ts > POST /api/auth/register > tên sai định dạng → 400 invalid_body 574ms
+ ✓ test/admin.test.ts > /api/admin/users > id không có → 404 not_found ở cả ba thao tác 54ms
+ ✓ test/admin.test.ts > /api/admin/users > admin không tự khoá hay tự thu hồi phiên của chính mình → 409 self_action 60ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > DELETE /api/projects/:projectId/members/:userId 139ms
+ ✓ test/cli.test.ts > runUserCli (đọc tham số dòng lệnh) > reset-password, revoke-sessions, disable chạy được qua dòng lệnh 393ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PUT /api/projects/:projectId/members/:userId 116ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > DELETE /api/projects/:projectId/records 32ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/records 40ms
+ ✓ test/cli.test.ts > runUserCli (đọc tham số dòng lệnh) > thiếu tham số, tên không có, lệnh lạ hoặc lệnh cũ rotate-token thì thoát 1 và báo lỗi 3ms
+ ✓ test/cli.test.ts > seed:demo > chạy hai lần không lỗi, không tạo trùng 4ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PATCH /api/projects/:projectId/records 35ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > POST /api/projects/:projectId/records 45ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PUT /api/projects/:projectId/records 21ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PUT /api/projects/:projectId/records/:id 111ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/records/:id/hi… 91ms
+ ✓ test/exportConcurrency.test.ts > quyền bị hạ trong lúc đang xuất > EX-13 hạ supervisor xuống surveyor giữa 60 request: mọi request gửi sau khi hạ xong đều 403 475ms
+ ✓ test/accounts.test.ts > POST /api/auth/register > mật khẩu ngắn → 400 invalid_body 578ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > DELETE /api/projects/:projectId/settings 45ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > GET /api/projects/:projectId/settings 31ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PATCH /api/projects/:projectId/settings 66ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > POST /api/projects/:projectId/settings 32ms
+ ✓ test/isolation.test.ts > T5: mọi route theo dự án chặn người ngoài dự án > PUT /api/projects/:projectId/settings 36ms
+ ✓ test/cli.test.ts > seed:demo > tài khoản demo đăng nhập được bằng mật khẩu demo; không còn phiên token cố định (N7) 658ms
+ ✓ test/cli.test.ts > seed:demo > DB dev có phiên token demo từ bản cũ: chạy seed thì phiên đó bị xoá 172ms
+ ✓ test/cli.test.ts > seed:demo > chu là Owner của cả hai dự án; lan, minh giữ vai trò cũ; admin không thuộc dự án nào 1ms
+ ✓ test/cli.test.ts > seed:demo > từ chối chạy khi NODE_ENV=production (mật khẩu demo ai cũng biết) 1ms
+ ✓ test/accounts.test.ts > POST /api/auth/register > thiếu tên hiển thị → 400 invalid_body 618ms
+ ✓ test/exportConcurrency.test.ts > một kết nối CSDL khác ghi xen giữa hai câu đọc của export (CLI seed:perf, user:*) > EX-14 file xuất là một ảnh chụp nhất quán: hoặc thấy cả form mới lẫn phiếu dùng form đó, hoặc không thấy cái nào 716ms
+ ✓ test/accounts.test.ts > POST /api/auth/register > là mảng → 400 invalid_body 543ms
+ ✓ test/seedPerf.test.ts > seedPerf > thêm đúng số phiếu, mỗi phiếu có lịch sử version 1, seq tăng liên tục; pull qua API trả đủ 843ms
+ ✓ test/attachments.test.ts > upload đủ chunk > status, gửi từng chunk, complete rồi tải về đúng từng byte 237ms
+ ✓ test/seedPerf.test.ts > seedPerf > dự án hoặc người dùng không có, số lượng sai: SeedPerfError, không ghi gì 5ms
+ ✓ test/seedPerf.test.ts > npm run seed:perf > thêm phiếu theo tên đăng nhập 30ms
+ ✓ test/seedPerf.test.ts > npm run seed:perf > từ chối khi NODE_ENV=production; thiếu cờ hoặc sai tên trả 1 6ms
+ ✓ test/seedPerf.test.ts > POST /api/__test/seed-perf > gọi cùng seedPerf: 201 { count }, pull thấy đủ 43ms
+ ✓ test/attachments.test.ts > upload đủ chunk > gửi lại chunk đã có trả 200 và không ghi lại 56ms
+ ✓ test/attachments.test.ts > upload đủ chunk > complete lại ảnh đã xong: cùng hash trả 200, khác hash trả 422 74ms
+ ✓ test/attachments.test.ts > upload đủ chunk > chunk gửi tới ảnh đã xong trả 200, không đổi file 91ms
+ ✓ test/seedPerf.test.ts > POST /api/__test/seed-perf > thân sai trả 400; dự án hoặc người dùng không có trả 404 88ms
+ ✓ test/attachments.test.ts > lỗi khi complete > thiếu chunk trả 409 missing_chunks kèm chỉ số thiếu 84ms
+ ✓ test/attachments.test.ts > lỗi khi complete > sai SHA-256 trả 422 và xoá chunk tạm để client gửi lại từ đầu (§5.6) 65ms
+ ✓ test/attachments.test.ts > lỗi khi complete > không phải JPEG/PNG/WebP trả 415 51ms
+ ✓ test/attachments.test.ts > lỗi khi complete > magic bytes khác mimeType khai báo trả 415 37ms
+ ✓ test/attachments.test.ts > lỗi khi complete > khai báo loại ảnh không hỗ trợ trả 415 31ms
+ ✓ test/projectRequests.test.ts > POST /api/project-requests > Q1: gửi yêu cầu → 201 pending; chưa tạo tổ chức nào, /me vẫn rỗng 58ms
+ ✓ test/attachments.test.ts > lỗi khi complete > thân thiếu trường hoặc sai kiểu trả 400 invalid_body 84ms
+ ✓ test/attachments.test.ts > giới hạn kích thước > chunk lớn hơn 256 KB trả 413 30ms
+ ✓ test/attachments.test.ts > giới hạn kích thước > chunk đúng 256 KB được nhận 25ms
+ ✓ test/projectRequests.test.ts > POST /api/project-requests > thân sai trả 400 invalid_body 84ms
+ ✓ test/projectRequests.test.ts > POST /api/project-requests > không có token trả 401 30ms
+ ✓ test/projectRequests.test.ts > POST /api/project-requests > Q5: đang có yêu cầu chờ thì yêu cầu thứ hai → 409 project_limit_reached 37ms
+ ✓ test/attachments.test.ts > giới hạn kích thước > chỉ số chunk từ 40 trở lên (ảnh quá 10 MB) trả 413 28ms
+ ✓ test/attachments.test.ts > giới hạn kích thước > chunk rỗng hoặc chỉ số không hợp lệ trả 400 49ms
+ ✓ test/seedPerf.test.ts > POST /api/__test/seed-perf > không bật ENABLE_TEST_ROUTES thì không có route 594ms
+ ✓ test/projectRequests.test.ts > POST /api/project-requests > Q5: đã là Owner của 3 tổ chức chưa lưu trữ → 409; tổ chức đã lưu trữ không tính 34ms
+ ✓ test/projectRequests.test.ts > POST /api/project-requests > Q3: bị từ chối thì gửi được yêu cầu mới 47ms
+ ✓ test/attachments.test.ts > id ảnh và đường dẫn file > id không phải UUID trả 400, không tạo file ngoài thư mục upload 66ms
+ ✓ test/attachments.test.ts > phạm vi và cách ly dự án (ADR 0002 §3) > id ảnh đã có ở dự án khác: mọi thao tác qua đường dẫn dự án này trả 404 87ms
+ ✓ test/projectRequests.test.ts > GET /api/project-requests > chỉ trả yêu cầu của chính mình, mới nhất trước 81ms
+ ✓ test/projectRequests.test.ts > DELETE /api/project-requests/:id > huỷ yêu cầu đang chờ của mình → 204, trạng thái cancelled, gửi được yêu cầu mới 53ms
+ ✓ test/attachments.test.ts > phạm vi và cách ly dự án (ADR 0002 §3) > gắn ảnh vào phiếu của dự án khác trả 404 43ms
+ ✓ test/attachments.test.ts > phạm vi và cách ly dự án (ADR 0002 §3) > surveyor gắn ảnh vào phiếu của người khác, hoặc phiếu không tồn tại, trả 404 49ms
+ ✓ test/projectRequests.test.ts > DELETE /api/project-requests/:id > Q6: huỷ yêu cầu của người khác, yêu cầu đã xử lý hoặc không có → 404 78ms
+ ✓ test/projectRequests.test.ts > /api/admin/project-requests > Q4: người thường gọi → 403 forbidden, không có gì đổi 68ms
+ ✓ test/attachments.test.ts > phạm vi và cách ly dự án (ADR 0002 §3) > surveyor không tải được ảnh của phiếu người khác; supervisor tải được ảnh của surveyor 149ms
+ ✓ test/members.test.ts > GET P/members > supervisor thấy danh sách: Owner trước, đủ tên đăng nhập và tên hiển thị 32ms
+ ✓ test/members.test.ts > GET P/members > surveyor → 403 forbidden 15ms
+ ✓ test/members.test.ts > GET P/members > không thuộc dự án (kể cả admin) → 403 not_member 14ms
+ ✓ test/projectRequests.test.ts > /api/admin/project-requests > GET mặc định trả yêu cầu đang chờ, cũ nhất trước, kèm người gửi 30ms
+ ✓ test/attachments.test.ts > phạm vi và cách ly dự án (ADR 0002 §3) > ảnh chưa complete thì không tải được 15ms
+ ✓ test/attachments.test.ts > detectImageType (magic bytes) > nhận JPEG, PNG, WebP; từ chối loại khác 1ms
+ ✓ test/attachments.test.ts > cleanupStaleChunks (dọn rác §5.6) > xoá chunk tạm cũ hơn 7 ngày, giữ chunk mới và ảnh đã xong 11ms
+ ✓ test/attachments.test.ts > cleanupStaleChunks (dọn rác §5.6) > thư mục upload chưa tồn tại thì không lỗi 1ms
+ ✓ test/accounts.test.ts > POST /api/auth/register > quá 5 tài khoản/giờ cùng IP → 429; IP khác vẫn đăng ký được 1403ms
+ ✓ test/members.test.ts > POST P/members > M1: supervisor thêm surveyor bằng tên đăng nhập (không phân biệt hoa thường) → 201, ghi added_by 41ms
+ ✓ test/members.test.ts > POST P/members > M1: supervisor thêm supervisor hoặc Owner → 403 forbidden, không ghi gì 29ms
+ ✓ test/members.test.ts > POST P/members > M2: Owner thêm supervisor và Owner → 201 34ms
+ ✓ test/members.test.ts > POST P/members > M2: tên không có → 404 not_found; người đã là thành viên → 409 already_member 31ms
+ ✓ test/projectRequests.test.ts > /api/admin/project-requests > GET ?status= lọc theo trạng thái; giá trị lạ → 400 74ms
+ ✓ test/projectRequests.test.ts > /api/admin/project-requests > Q2: duyệt → tổ chức p-xxxxxxxx, người gửi là owner (added_by = admin), admin không có membership 97ms
+ ✓ test/members.test.ts > POST P/members > tài khoản bị khoá → 404 not_found như tên không có, không ghi gì 15ms
+ ✓ test/members.test.ts > POST P/members > Q9: thêm tài khoản admin → 409 admin_account (Owner hay supervisor đều vậy) 27ms
+ ✓ test/members.test.ts > POST P/members > thân sai → 400 invalid_body; surveyor → 403 forbidden 43ms
+ ✓ test/projectRequests.test.ts > /api/admin/project-requests > Q7: sau khi duyệt, admin gọi P/forms, P/records của tổ chức mới → 403 not_member 43ms
+ ✓ test/faults.test.ts > match > mặc định chỉ tiêm lỗi vào /records, như trước khi có match 85ms
+ ✓ test/faults.test.ts > match > match "/attachments" tiêm lỗi vào upload ảnh, không đụng /records 62ms
+ ✓ test/projectRequests.test.ts > /api/admin/project-requests > Q3: từ chối kèm lý do → người gửi đọc được lý do, không có tổ chức; thiếu lý do → 400 75ms
+ ✓ test/records.test.ts > PUT /api/projects/:projectId/records/:id > tạo mới với baseVersion 0 trả 201 và version 1 27ms
+ ✓ test/records.test.ts > PUT /api/projects/:projectId/records/:id > gửi lại cùng Idempotency-Key không tạo bản ghi mới 19ms
+ ✓ test/records.test.ts > PUT /api/projects/:projectId/records/:id > baseVersion cũ trả 409 kèm bản server và lịch sử 28ms
+ ✓ test/records.test.ts > PUT /api/projects/:projectId/records/:id > thiếu Idempotency-Key trả 400 7ms
+ ✓ test/records.test.ts > PUT /api/projects/:projectId/records/:id > updatedBy lấy từ token, bỏ qua giá trị client gửi (bất biến 6) 16ms
+ ✓ test/members.test.ts > PUT, DELETE P/members/:userId > supervisor rút surveyor → 204; không đổi, không rút được supervisor, Owner hay chính mình 112ms
+ ✓ test/members.test.ts > PUT, DELETE P/members/:userId > Owner đổi vai trò: giữ added_at, ghi added_by người đổi 13ms
+ ✓ test/members.test.ts > PUT, DELETE P/members/:userId > userId không thuộc dự án này (kể cả người ở dự án khác) → 404 not_found 55ms
+ ✓ test/faults.test.ts > chunkIndex > chỉ áp lỗi cho đúng chunk đó; chunk khác và status không bị ảnh hưởng 102ms
+ ✓ test/projectRequests.test.ts > /api/admin/project-requests > Q6: duyệt hoặc từ chối lại yêu cầu đã xử lý → 409 request_decided; không có → 404 115ms
+ ✓ test/projectRequests.test.ts > /api/admin/project-requests > duyệt khi người gửi đã thành Owner của 3 tổ chức trong lúc chờ → 409, yêu cầu vẫn chờ 28ms
+ ✓ test/projectRequests.test.ts > /api/admin/project-requests > decision sai → 400 37ms
+ ✓ test/projectRequests.test.ts > GET /api/directory > D1: chỉ id, name của tổ chức công khai, chưa lưu trữ, mình chưa là thành viên 28ms
+ ✓ test/members.test.ts > PUT, DELETE P/members/:userId > A7: rút hoặc hạ Owner cuối cùng → 409 last_owner; còn Owner khác thì được 85ms
+ ✓ test/records.test.ts > PUT /api/projects/:projectId/records/:id > surveyor sửa phiếu không phải của mình trả 404, phiếu không đổi 11ms
+ ✓ test/records.test.ts > PUT /api/projects/:projectId/records/:id > PUT id thuộc dự án khác trả 404 và không ghi đè 20ms
+ ✓ test/records.test.ts > PUT /api/projects/:projectId/records/:id > baseVersion > 0 vào id chưa tồn tại trả 404 5ms
+ ✓ test/records.test.ts > PUT /api/projects/:projectId/records/:id > thân sai trả 400 invalid_body 24ms
+ ✓ test/records.test.ts > xác thực và thành viên > không có token trả 401 10ms
+ ✓ test/records.test.ts > xác thực và thành viên > không là thành viên dự án trả 403 not_member 24ms
+ ✓ test/projectRequests.test.ts > GET /api/directory > D2 (vế D1): Owner bật công khai thì tổ chức hiện, tắt thì ẩn 55ms
+ ✓ test/projectRequests.test.ts > GET /api/directory > không có token trả 401 16ms
+ ✓ test/faults.test.ts > chunkIndex > drop-before ở chunk 1: kết nối bị cắt, server không ghi chunk đó 80ms
+ ✓ test/faults.test.ts > chunkIndex > drop ở chunk 1: server ghi xong rồi mới cắt kết nối 68ms
+ ✓ test/records.test.ts > GET /api/projects/:projectId/records?since= (pull) > chỉ trả các thay đổi sau cursor 24ms
+ ✓ test/records.test.ts > GET /api/projects/:projectId/records?since= (pull) > A2: surveyor chỉ nhận phiếu của mình, supervisor nhận mọi phiếu của dự án 49ms
+ ✓ test/records.test.ts > GET /api/projects/:projectId/records?since= (pull) > không lẫn phiếu của dự án khác 29ms
+ ✓ test/records.test.ts > GET /api/projects/:projectId/records/:id/history > trả lịch sử phiếu trong phạm vi 5ms
+ ✓ test/records.test.ts > GET /api/projects/:projectId/records/:id/history > phiếu ngoài phạm vi surveyor trả 404 9ms
+ ✓ test/members.test.ts > GET, PATCH P/settings > D2: Owner đổi tên và bật/tắt công khai → 200, cột public đổi đúng 40ms
+ ✓ test/members.test.ts > GET, PATCH P/settings > D2: supervisor, surveyor → 403 forbidden (cả GET); người ngoài → 403 not_member; thân sai → 400 48ms
+ ✓ test/faults.test.ts > stats > ghi method, đường dẫn (không có query), Idempotency-Key, status; request bị cắt có status 0 113ms
+ ✓ test/members.test.ts > A6: quyền ở tổ chức này không có hiệu lực ở tổ chức khác > owner ở A, surveyor ở B: sửa form, PATCH P/settings, thêm người được ở A; 403 forbidden ở B 106ms
+ ✓ test/records.test.ts > GET /api/projects/:projectId/records/:id/history > phiếu của dự án khác trả 404 17ms
+ ✓ test/records.test.ts > Idempotency-Key gắn với nội dung request (R6, ADR 0001 quy tắc 3) > cùng key, cùng phiếu nhưng khác nội dung trả 422, phiếu không đổi 12ms
+ ✓ test/records.test.ts > Idempotency-Key gắn với nội dung request (R6, ADR 0001 quy tắc 3) > cùng nội dung nhưng thứ tự khoá JSON khác vẫn được replay 38ms
+ ✓ test/records.test.ts > Idempotency-Key gắn với nội dung request (R6, ADR 0001 quy tắc 3) > trường lạ ngoài PushRecordRequest không làm đổi hash (server vốn bỏ qua chúng) 32ms
+ ✓ test/records.test.ts > GET /api/projects/:projectId/forms > thành viên lấy được form của dự án 7ms
+ ✓ test/records.test.ts > GET /api/projects/:projectId/forms > không là thành viên trả 403 5ms
+ ✓ test/faults.test.ts > stats > DELETE xoá nhật ký 60ms
+ ✓ test/faults.test.ts > POST /faults kiểm thân > mode lạ, count âm, match không bắt đầu bằng "/", chunkIndex không phải số nguyên ≥ 0 thì 400 73ms
+ ✓ test/faults.test.ts > POST /faults kiểm thân > trả lại lỗi đang chờ; count 0 thì tắt 44ms
+ ✓ test/accounts.test.ts > POST /api/auth/register > đăng ký hỏng (trùng tên, sai thân) không tính vào giới hạn 5/giờ 1422ms
+ ✓ test/forms.test.ts > POST P/forms > giám sát viên tạo v1 rồi v2; GET trả bản mới nhất và đủ hai phiên bản 85ms
+ ✓ test/forms.test.ts > POST P/forms > sửa form mẫu household-survey (id có dấu -) thành bản mới được 12ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > đúng mật khẩu: true; sai: false 482ms
+ ✓ test/forms.test.ts > POST P/forms > bỏ qua version client gửi, server tự đặt 12ms
+ ✓ test/forms.test.ts > POST P/forms > lưu created_by từ token 36ms
+ ✓ test/forms.test.ts > POST P/forms > hai request song song ra hai version khác nhau 16ms
+ ✓ test/forms.test.ts > POST P/forms > đổi type hoặc thiếu trường cũ: 400 invalid_form kèm details 74ms
+ ✓ test/forms.test.ts > POST P/forms > form mới sai luật (id trường trùng, select không lựa chọn): 400 invalid_form 11ms
+ ✓ test/forms.test.ts > POST P/forms > thân sai kiểu (mảng thay cho object): 400 invalid_body 46ms
+ ✓ test/forms.test.ts > POST P/forms > thân sai kiểu (thiếu fields): 400 invalid_body 18ms
+ ✓ test/forms.test.ts > POST P/forms > thân sai kiểu (type lạ): 400 invalid_body 8ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > định dạng scrypt$<N>$<salt>$<hash>, không chứa mật khẩu gốc 167ms
+ ✓ test/forms.test.ts > POST P/forms > thân sai kiểu (options không phải mảng chuỗi): 400 invalid_body 33ms
+ ✓ test/forms.test.ts > POST P/forms > thân sai kiểu (required không phải boolean): 400 invalid_body 11ms
+ ✓ test/forms.test.ts > POST P/forms > A3: điều tra viên gọi: 403 forbidden, không lưu gì 20ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > cùng mật khẩu băm hai lần ra hai chuỗi khác nhau (muối ngẫu nhiên) 229ms
+ ✓ test/forms.test.ts > POST P/forms > A5: Owner lưu form được (thứ hạng owner > supervisor, ADR 0003 §2) 140ms
+ ✓ test/forms.test.ts > POST P/forms > không là thành viên (admin): 403 not_member 18ms
+ ✓ test/accounts.test.ts > POST /api/auth/login > đúng tên (không phân biệt hoa thường) và mật khẩu → 200 kèm token phiên mới 879ms
+ ✓ test/forms.test.ts > POST P/forms > form của dự án A không hiện ở dự án B 14ms
+ ✓ test/forms.test.ts > POST P/forms > cùng id form ở hai dự án là hai form riêng, version đếm riêng 44ms
+ ✓ test/export.test.ts > CSV > file có BOM, tải về dạng file; phiếu v1 và v2 cùng file, cột đúng thứ tự; không có phiếu đã xoá 20ms
+ ✓ test/export.test.ts > CSV > không truyền format thì mặc định CSV 4ms
+ ✓ test/export.test.ts > CSV > includeDeleted=1 thì gồm phiếu đã xoá, cột deleted là true 8ms
+ ✓ test/export.test.ts > CSV > không bao giờ có phiếu của dự án khác, kể cả cùng formId 9ms
+ ✓ test/export.test.ts > JSON > { forms, records }: mọi phiên bản form, phiếu chưa xoá của dự án 13ms
+ ✓ test/export.test.ts > quyền và lỗi (A3, design §7.1) > surveyor nhận 403 forbidden; supervisor và owner xuất được 26ms
+ ✓ test/export.test.ts > quyền và lỗi (A3, design §7.1) > không thuộc dự án: 403 not_member; không có token: 401 39ms
+ ✓ test/export.test.ts > quyền và lỗi (A3, design §7.1) > format lạ thì 400 invalid_body; form không có trong dự án thì 404 not_found 15ms
+ ✓ test/idempotency.test.ts > deleteExpiredKeys > xoá key quá 30 ngày, giữ key mới hơn 78ms
+ ✓ test/idempotency.test.ts > deleteExpiredKeys > gửi lại op có key đã bị dọn: nhận 409, không ghi trùng (ADR 0001 quy tắc 3) 19ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > mật khẩu Unicode 347ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > chuỗi lưu hỏng "": false, không ném 2ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > chuỗi lưu hỏng "scrypt": false, không ném 2ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > chuỗi lưu hỏng "bcrypt$16384$abc$def": false, không ném 1ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > chuỗi lưu hỏng "scrypt$abc$c2FsdA==$aGFzaA==": false, không ném 1ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > chuỗi lưu hỏng "scrypt$16384$c2FsdA==": false, không ném 0ms
+ ✓ test/password.test.ts > hashPassword / verifyPassword (ADR 0003 §1) > chuỗi lưu hỏng "scrypt$3$c2FsdA==$aGFzaA==": false, không ném 0ms
+ ✓ test/idempotency.test.ts > fault drop > "drop": server ghi xong rồi mới cắt kết nối; gửi lại cùng key nhận replay 101ms
+ ✓ test/recordNames.test.ts > tên người tạo/sửa trong ServerRecord > PUT tạo mới trả người tạo và người sửa kèm tên 27ms
+ ✓ test/recordNames.test.ts > tên người tạo/sửa trong ServerRecord > người khác sửa: người tạo giữ nguyên, người sửa đổi; pull trả đủ tên 68ms
+ ✓ test/idempotency.test.ts > fault drop > "drop-before": cắt kết nối trước khi vào handler, không ghi gì 37ms
+ ✓ test/idempotency.test.ts > fault 400 > trả 400 injected_fault, không vào handler, không ghi gì 40ms
+ ✓ test/recordNames.test.ts > tên người tạo/sửa trong ServerRecord > 409 có tên ở bản server và ở từng dòng lịch sử 19ms
+ ✓ test/recordNames.test.ts > tên người tạo/sửa trong ServerRecord > GET history có tên người sửa ở mọi phiên bản 12ms
+ ✓ test/recordNames.test.ts > tên người tạo/sửa trong ServerRecord > không tìm thấy tài khoản người sửa: tên rỗng, phiếu vẫn trả về 28ms
+ ✓ test/recordNames.test.ts > tên người tạo/sửa trong ServerRecord > tên lấy lúc đọc: đổi tên tài khoản thì lần pull sau thấy tên mới 6ms
+ ✓ test/app.test.ts > middleware trong app > JSON sai cú pháp trả 400 JSON và log không chứa header hay thân request 31ms
+ ✓ test/app.test.ts > middleware trong app > log request đã xác thực có userId nhưng không có token 23ms
+ ✓ test/accounts.test.ts > POST /api/auth/login > U3: sai mật khẩu và sai tên đăng nhập trả cùng 401 invalid_credentials 944ms
+ ✓ test/queryPlan.test.ts > EXPLAIN QUERY PLAN của pull > phạm vi "all" dùng index (project_id, seq), không quét records, không sắp xếp tạm 19ms
+ ✓ test/queryPlan.test.ts > EXPLAIN QUERY PLAN của pull > phạm vi "own" dùng index (project_id, created_by, seq), không quét records, không sắp xếp tạm 9ms
+ ✓ test/queryPlan.test.ts > EXPLAIN QUERY PLAN của pull > ghép tên người tạo/sửa tra users theo khoá chính, không quét users 23ms
+ ✓ test/repo.test.ts > repo/memberships > trả vai trò theo từng dự án 19ms
+ ✓ test/repo.test.ts > repo/memberships > không là thành viên, dự án không có, hoặc dự án đã lưu trữ thì undefined 9ms
+ ✓ test/repo.test.ts > repo/forms > listLatestForms chỉ trả phiên bản mới nhất và chỉ của dự án trong ctx 13ms
+ ✓ test/repo.test.ts > repo/forms > getFormVersion chỉ thấy form trong dự án của ctx 18ms
+ ✓ test/repo.test.ts > repo/records: ghi > tạo mới: version 1, created_by và updated_by lấy từ ctx, seq tăng dần 20ms
+ ✓ test/repo.test.ts > repo/records: ghi > supervisor sửa phiếu của surveyor: version tăng, created_by giữ nguyên, updated_by đổi 14ms
+ ✓ test/auth.test.ts > hashToken > là SHA-256 dạng hex, ổn định và không trả lại token 5ms
+ ✓ test/repo.test.ts > repo/records: ghi > ghi lịch sử kèm project_id của dự án 14ms
+ ✓ test/repo.test.ts > repo/records: ghi > từ chối ghi vào phiếu thuộc dự án khác, dữ liệu không đổi 14ms
+ ✓ test/repo.test.ts > repo/records: ghi > từ chối surveyor ghi vào phiếu của surveyor khác trong cùng dự án 16ms
+ ✓ test/repo.test.ts > repo/records: getRecordAccess > none khi id chưa tồn tại ở đâu cả 16ms
+ ✓ test/repo.test.ts > repo/records: getRecordAccess > visible cho chủ phiếu và cho supervisor cùng dự án 10ms
+ ✓ test/repo.test.ts > repo/records: getRecordAccess > hidden khi phiếu thuộc dự án khác (không phân biệt được với "có nhưng không được thấy") 9ms
+ ✓ test/repo.test.ts > repo/records: getRecordAccess > hidden khi surveyor hỏi phiếu của surveyor khác 14ms
+ ✓ test/auth.test.ts > requireAuth > A1: không có token thì 401 unauthorized 230ms
+ ✓ test/auth.test.ts > requireAuth > token sai thì 401 48ms
+ ✓ test/repo.test.ts > repo/records: pullRecords > A2: surveyor chỉ nhận phiếu mình tạo, scope là own 16ms
+ ✓ test/repo.test.ts > repo/records: pullRecords > supervisor nhận mọi phiếu của dự án, không có phiếu dự án khác, scope là all 15ms
+ ✓ test/repo.test.ts > repo/records: pullRecords > supervisor sửa phiếu của surveyor thì surveyor vẫn nhận được bản mới 23ms
+ ✓ test/repo.test.ts > repo/records: pullRecords > cursor là seq của dòng cuối trang, giữ nguyên khi không có gì mới 26ms
+ ✓ test/repo.test.ts > repo/records: pullRecords > cursor không nhảy qua seq của dự án khác làm mất phiếu 21ms
+ ✓ test/repo.test.ts > repo/records: getHistory > trả các phiên bản sau afterVersion, cũ đến mới 28ms
+ ✓ test/repo.test.ts > repo/records: getHistory > chủ phiếu xem được lịch sử phiếu của mình 10ms
+ ✓ test/repo.test.ts > repo/records: getHistory > undefined khi phiếu thuộc dự án khác hoặc ngoài phạm vi surveyor hoặc không tồn tại 13ms
+ ✓ test/db.test.ts > schema sau migration > đúng tập bảng, không thừa không thiếu 8ms
+ ✓ test/db.test.ts > schema sau migration > bảng projects có đúng cột 4ms
+ ✓ test/db.test.ts > schema sau migration > bảng users có đúng cột 2ms
+ ✓ test/db.test.ts > schema sau migration > bảng memberships có đúng cột 1ms
+ ✓ test/db.test.ts > schema sau migration > bảng sessions có đúng cột 1ms
+ ✓ test/db.test.ts > schema sau migration > bảng forms có đúng cột 1ms
+ ✓ test/db.test.ts > schema sau migration > bảng records có đúng cột 1ms
+ ✓ test/db.test.ts > schema sau migration > bảng record_history có đúng cột 15ms
+ ✓ test/db.test.ts > schema sau migration > bảng idempotency có đúng cột 1ms
+ ✓ test/db.test.ts > schema sau migration > bảng meta có đúng cột 6ms
+ ✓ test/db.test.ts > schema sau migration > bảng attachments có đúng cột 1ms
+ ✓ test/db.test.ts > schema sau migration > bảng project_requests có đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > bảng projects có đúng khoá chính 0ms
+ ✓ test/db.test.ts > schema sau migration > bảng users có đúng khoá chính 0ms
+ ✓ test/db.test.ts > schema sau migration > bảng memberships có đúng khoá chính 0ms
+ ✓ test/db.test.ts > schema sau migration > bảng forms có đúng khoá chính 1ms
+ ✓ test/db.test.ts > schema sau migration > bảng records có đúng khoá chính 1ms
+ ✓ test/db.test.ts > schema sau migration > bảng record_history có đúng khoá chính 2ms
+ ✓ test/db.test.ts > schema sau migration > bảng idempotency có đúng khoá chính 1ms
+ ✓ test/db.test.ts > schema sau migration > bảng meta có đúng khoá chính 0ms
+ ✓ test/db.test.ts > schema sau migration > bảng attachments có đúng khoá chính 0ms
+ ✓ test/db.test.ts > schema sau migration > bảng sessions có đúng khoá chính 0ms
+ ✓ test/db.test.ts > schema sau migration > bảng project_requests có đúng khoá chính 0ms
+ ✓ test/db.test.ts > schema sau migration > index memberships_user đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index records_project_seq đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index records_project_creator_seq đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index record_history_project_record đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index idempotency_created_at đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index attachments_record đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index users_username đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index sessions_user đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index project_requests_status đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index project_requests_user đúng cột 0ms
+ ✓ test/db.test.ts > schema sau migration > index cũ records_seq (chỉ theo seq) không còn 3ms
+ ✓ test/db.test.ts > schema sau migration > khoá ngoại đúng như bản duyệt, created_by/updated_by không có FK 1ms
+ ✓ test/db.test.ts > schema sau migration > token_hash là duy nhất 2ms
+ ✓ test/db.test.ts > schema sau migration > role chỉ nhận surveyor, supervisor hoặc owner 2ms
+ ✓ test/db.test.ts > schema sau migration > username là duy nhất; nhiều tài khoản chưa có username (NULL) vẫn được 2ms
+ ✓ test/db.test.ts > schema sau migration > project_requests.status chỉ nhận pending, approved, rejected, cancelled 6ms
+ ✓ test/db.test.ts > schema sau migration > projects.public mặc định 0 (tổ chức mới không công khai) 1ms
+ ✓ test/db.test.ts > schema sau migration > khoá ngoại được thực thi: phiếu không thể trỏ tới dự án không tồn tại 1ms
+ ✓ test/db.test.ts > schema sau migration > created_by/updated_by không bị ràng buộc với users (người bị vô hiệu hoá vẫn giữ phiếu) 1ms
+ ✓ test/db.test.ts > migration > DB rỗng và DB ở user_version = 1 ra cùng schema 31ms
+ ✓ test/auth.test.ts > requireAuth > sai kiểu Authorization (không phải Bearer) thì 401 19ms
+ ✓ test/auth.test.ts > requireAuth > Bearer rỗng thì 401 7ms
+ ✓ test/auth.test.ts > requireAuth > người dùng bị vô hiệu hoá thì 401 dù token đúng và còn là thành viên 6ms
+ ✓ test/auth.test.ts > requireAuth > token đúng thì gắn req.user, không lộ token_hash 15ms
+ ✓ test/auth.test.ts > requireAuth > chỉ có users.token_hash mà không có phiên thì 401 (không còn đọc token_hash) 23ms
+ ✓ test/db.test.ts > migration > DB cũ của khung (user_version = 0, đã có bảng và dữ liệu) cũng lên được cùng schema 29ms
+ ✓ test/db.test.ts > migration > bộ đếm seq vẫn còn sau migration, để cursor không quay về 0 8ms
+ ✓ test/db.test.ts > migration > chạy lại trên DB đã mới nhất không đổi gì 13ms
+ ✓ test/db.test.ts > migration > migration lỗi giữa chừng thì rollback toàn bộ, user_version giữ nguyên 4ms
+ ✓ test/db.test.ts > migration > migration 2 lỗi thật sự (sau khi đã xoá bảng cũ) cũng không để DB nửa vời 29ms
+ ✓ test/db.test.ts > seed > tạo dự án demo-yte và form mẫu trong dự án đó 16ms
+ ✓ test/auth.test.ts > requireAuth > phiên bị xoá thì token đó 401 35ms
+ ✓ test/auth.test.ts > requireAuth > mỗi request cập nhật last_seen_at của phiên 11ms
+ ✓ test/auth.test.ts > requireMember > thành viên đủ vai trò thì gắn ctx từ đường dẫn và token 18ms
+ ✓ test/auth.test.ts > requireMember > supervisor vào được route yêu cầu surveyor 46ms
+ ✓ test/auth.test.ts > requireMember > không là thành viên dự án thì 403 not_member 4ms
+ ✓ test/auth.test.ts > requireMember > T4: admin không là thành viên thì 403 not_member (admin không tự đọc dữ liệu dự án) 16ms
+ ✓ test/auth.test.ts > requireMember > dự án không tồn tại trả 403 not_member, giống dự án của người khác (không lộ thông tin) 4ms
+ ✓ test/accounts.test.ts > POST /api/auth/login > tài khoản bị khoá → 401 invalid_credentials (không lộ là bị khoá) 843ms
+ ✓ test/testMemberships.test.ts > /api/__test/memberships > PUT thêm thành viên rồi đổi vai trò 343ms
+ ✓ test/auth.test.ts > requireMember > dự án đã lưu trữ thì 403 not_member kể cả với thành viên 10ms
+ ✓ test/auth.test.ts > requireMember > là thành viên nhưng thiếu vai trò thì 403 forbidden 3ms
+ ✓ test/auth.test.ts > requireMember > supervisor vào được route yêu cầu supervisor 3ms
+ ✓ test/auth.test.ts > requireMember > owner vào được route yêu cầu supervisor (thứ hạng surveyor < supervisor < owner) 9ms
+ ✓ test/auth.test.ts > requireMember > owner ở yte không có quyền gì ở dự án khác 16ms
+ ✓ test/testRoutes.test.ts > testRoutesEnabled > chỉ bật khi ENABLE_TEST_ROUTES đúng bằng "1" 23ms
+ ✓ test/testRoutes.test.ts > testRoutesEnabled > không có biến thì tắt, kể cả khi không phải production 1ms
+ ✓ test/testRoutes.test.ts > testRoutesEnabled > giá trị khác "1" thì tắt 1ms
+ ✓ test/testMemberships.test.ts > /api/__test/memberships > DELETE rút khỏi dự án 42ms
+ ✓ test/testMemberships.test.ts > /api/__test/memberships > vai trò sai trả 400, dự án hoặc người dùng không có trả 404 35ms
+ ✓ test/auth.test.ts > requireMember > projectId chỉ lấy từ đường dẫn, không từ query hay body 98ms
+ ✓ test/testMemberships.test.ts > /api/__test/memberships > không bật ENABLE_TEST_ROUTES thì không có route 32ms
+ ✓ test/testMemberships.test.ts > PUT /api/__test/projects/:projectId > tạo dự án chưa có, không công khai, không thành viên; gọi lại thì đặt lại tên 66ms
+ ✓ test/testRoutes.test.ts > POST /api/__test/faults > mặc định không đăng ký route, trả 404 319ms
+ ✓ test/csv.test.ts > escapeCell > chuỗi thường giữ nguyên, kể cả tiếng Việt 5ms
+ ✓ test/csv.test.ts > escapeCell > có dấu phẩy, ngoặc kép, xuống dòng thì bọc ngoặc kép, ngoặc kép bên trong nhân đôi 4ms
+ ✓ test/csv.test.ts > escapeCell > chuỗi bắt đầu bằng = + - @ (và tab, CR theo OWASP) có thêm tiền tố ' để Excel không chạy công thức 1ms
+ ✓ test/csv.test.ts > escapeCell > chống injection rồi mới escape: công thức có dấu phẩy vẫn bọc ngoặc kép 1ms
+ ✓ test/csv.test.ts > escapeCell > số (kể cả số âm) giữ nguyên để Excel còn coi là số; boolean, null, undefined 1ms
+ ✓ test/csv.test.ts > toCsv > mở đầu bằng BOM, mỗi dòng kết thúc CRLF, ô cách nhau bằng dấu phẩy 1ms
+ ✓ test/csv.test.ts > toCsv > không có dòng nào thì chỉ có BOM 1ms
+ ✓ test/db.test.ts > seed > gọi lại không nhân đôi dữ liệu 15ms
+ ✓ test/db.test.ts > seed > không tạo người dùng nào (việc của seed:demo ở TV3-02) 7ms
+ ✓ test/db.test.ts > khoá ngoại > đang bật trên kết nối từ openDb 12ms
+ ✓ test/db.test.ts > khoá ngoại > từ chối thành viên trỏ tới dự án không tồn tại 10ms
+ ✓ test/db.test.ts > migration 4: tài khoản, phiên, owner > MG1: admin đang là thành viên → lỗi liệt kê tài khoản, dự án, vai trò; rollback, user_version giữ 3 12ms
+ ✓ test/db.test.ts > migration 4: tài khoản, phiên, owner > MG1: admin là thành viên dự án đã lưu trữ cũng bị chặn 10ms
+ ✓ test/db.test.ts > migration 4: tài khoản, phiên, owner > MG2: lên bản mới nhất; membership giữ nguyên số dòng và vai trò, added_by để trống 17ms
+ ✓ test/db.test.ts > migration 4: tài khoản, phiên, owner > MG2: tài khoản cũ có username = id, chưa có mật khẩu; mỗi token cũ thành một phiên 16ms
+ ✓ test/testMemberships.test.ts > PUT /api/__test/projects/:projectId > id hoặc tên sai trả 400 83ms
+ ✓ test/testMemberships.test.ts > PUT /api/__test/projects/:projectId > không bật ENABLE_TEST_ROUTES thì không có route 40ms
+ ✓ test/testRoutes.test.ts > POST /api/__test/faults > bật enableTestRoutes thì nhận lệnh tiêm lỗi 78ms
+ ✓ test/db.test.ts > migration 4: tài khoản, phiên, owner > MG2: token cũ vẫn gọi được API; supervisor dùng được P/... khi tổ chức chưa có Owner 352ms
+ ✓ test/exportTable.test.ts > exportColumns > cột cố định, trường của bản mới nhất theo thứ tự (kể cả trường ẩn), rồi trường chỉ có ở bản cũ; gps 3 cột 6ms
+ ✓ test/exportTable.test.ts > exportTable > dòng đầu là tên cột; phiếu v1 và v2 cùng bảng, ô trường không có thì trống 1ms
+ ✓ test/exportTable.test.ts > exportTable > gps thiếu accuracy, ảnh rỗng, giá trị sai kiểu vẫn xuất được 1ms
+ ✓ test/exportTable.test.ts > exportTable > server không có tên người sửa (tên rỗng) thì để trống 0ms
+ ✓ test/accounts.test.ts > POST /api/auth/login > tài khoản cũ chưa có mật khẩu (trước migration 4) → 401 invalid_credentials 646ms
+ ✓ test/rateLimit.test.ts > createRateLimiter (ADR 0003 §1) > chặn khi đã đủ số lần trong cửa sổ, chưa đủ thì không 7ms
+ ✓ test/rateLimit.test.ts > createRateLimiter (ADR 0003 §1) > mỗi khoá đếm riêng 0ms
+ ✓ test/rateLimit.test.ts > createRateLimiter (ADR 0003 §1) > hết cửa sổ tính từ lần cũ nhất thì mở lại 0ms
+ ✓ test/rateLimit.test.ts > createRateLimiter (ADR 0003 §1) > release bỏ đúng một lần đã ghi (giữ chỗ rồi hoá ra không tính) 0ms
+ ✓ test/rateLimit.test.ts > createRateLimiter (ADR 0003 §1) > release khi cùng một mốc thời gian có hai lần thì chỉ bỏ một 0ms
+ ✓ test/rateLimit.test.ts > createRateLimiter (ADR 0003 §1) > khoá không còn lần nào trong cửa sổ thì bị dọn khỏi bộ nhớ 0ms
+ ✓ test/canonicalJson.test.ts > canonicalJson > sắp khoá object theo thứ tự chữ, ở mọi tầng 3ms
+ ✓ test/canonicalJson.test.ts > canonicalJson > cùng nội dung khác thứ tự khoá cho cùng kết quả 0ms
+ ✓ test/canonicalJson.test.ts > canonicalJson > giữ thứ tự phần tử mảng (mảng khác thứ tự là nội dung khác) 1ms
+ ✓ test/canonicalJson.test.ts > canonicalJson > giá trị đơn và khoá undefined giống JSON.stringify 0ms
+ ✓ test/accounts.test.ts > POST /api/auth/login > tài khoản admin đăng nhập được (để dùng trang quản trị) 772ms
+ ✓ test/accounts.test.ts > POST /api/auth/login > thân sai kiểu → 400 invalid_body 377ms
+ ✓ test/accounts.test.ts > POST /api/auth/login > U4: sai mật khẩu 10 lần thì lần 11 nhận 429, kể cả khi mật khẩu đúng 1235ms
+ ✓ test/accounts.test.ts > POST /api/auth/login > U4 theo IP: 10 lần sai từ một IP (nhiều tên khác nhau) thì IP đó bị chặn, IP khác không 1143ms
+ ✓ test/accounts.test.ts > giới hạn tần suất khi gửi song song > 15 lần đăng nhập sai cùng lúc: tối đa 10 lần được kiểm mật khẩu, còn lại 429; sau đó mật khẩu đúng cũng 429 537ms
+ ✓ test/accounts.test.ts > giới hạn tần suất khi gửi song song > 8 lần đăng ký cùng lúc từ một IP: đúng 5 tài khoản được tạo 433ms
+ ✓ test/accounts.test.ts > giới hạn tần suất khi gửi song song > đăng nhập đúng không chiếm lượt sai: 9 lần sai, 3 lần đúng, thêm 1 lần sai vẫn được kiểm 1431ms
+ ✓ test/accounts.test.ts > giới hạn tần suất khi gửi song song > đăng ký trùng tên cùng lúc không chiếm lượt đăng ký 787ms
+ ✓ test/accounts.test.ts > phiên theo máy > U5: hai phiên cùng gửi phiếu; đăng xuất một máy không ảnh hưởng máy kia 583ms
+ ✓ test/accounts.test.ts > phiên theo máy > đăng xuất không có token → 401; đăng xuất lần hai bằng token đã huỷ → 401 388ms
+ ✓ test/accounts.test.ts > phiên theo máy > U6: CSDL chỉ chứa hash, không có mật khẩu hay token gốc 423ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U8: đúng mật khẩu hiện tại → 204; mật khẩu mới đăng nhập được, cũ thì không; giữ phiên máy này, thu hồi phiên khác 820ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U8: tài khoản admin cũng đổi được (không có giao diện, design §4.7) 531ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U8: mật khẩu mới trùng mật khẩu cũ vẫn đổi được (luật đăng ký không cấm) 525ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U9: sai mật khẩu hiện tại → 403 wrong_password (không phải 401), không đổi gì 655ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U9: tài khoản cũ chưa có mật khẩu → 403 wrong_password 371ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U9: chưa đăng nhập → 401 280ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U9: mật khẩu mới 7 ký tự → 400 invalid_body, mật khẩu không đổi 442ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U9: mật khẩu mới 129 ký tự → 400 invalid_body, mật khẩu không đổi 386ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U9: thiếu mật khẩu mới → 400 invalid_body, mật khẩu không đổi 424ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U9: mật khẩu hiện tại sai kiểu → 400 invalid_body, mật khẩu không đổi 415ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U10: sai 10 lần thì lần 11 nhận 429 kể cả mật khẩu đúng; /login của cùng tên cũng bị chặn 1001ms
+ ✓ test/accounts.test.ts > POST /api/auth/change-password > U10: sai đăng nhập 10 lần thì đổi mật khẩu cũng 429; đổi đúng không chiếm lượt sai 1367ms
+ Test Files  29 passed (29)
+      Tests  434 passed (434)
+   Start at  15:46:46
+   Duration  27.23s (tests 78%, import 18%, transform 4%, worker 1%)

@@ -1,0 +1,12 @@
+
+ RUN  v5.0.3 E:/hus/se/SE2026-T21/server
+
+
+ Test Files  29 passed (29)
+      Tests  432 passed (432)
+   Start at  15:30:10
+   Duration  30.46s (tests 76%, import 19%, transform 4%, worker 1%)
+
+    Isolate  29 workers spawned · ~654ms startup each (spawn + environment, per file)
+             at least ~2.05s faster with isolate: false — reuses workers across files instead of one per file
+

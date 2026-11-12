@@ -130,6 +130,21 @@ export function listRecordsByForm(ctx: Ctx, db: Db, formId: string, includeDelet
   return rows.map(toRecord);
 }
 
+/**
+ * Mọi phiếu của dự án (mọi form), theo thứ tự ghi, cho xuất cả dự án (design §4.6). Như
+ * `listRecordsByForm`: route chỉ cho supervisor/owner nhưng vẫn lọc theo phạm vi để phòng thủ.
+ */
+export function listRecordsByProject(ctx: Ctx, db: Db, includeDeleted: boolean): ServerRecord[] {
+  const deleted = includeDeleted ? '' : ' AND r.deleted = 0';
+  const rows =
+    scopeOf(ctx) === 'own'
+      ? (db
+          .prepare(`${SELECT_RECORD} WHERE r.project_id = ? AND r.created_by = ?${deleted} ORDER BY r.seq`)
+          .all(ctx.projectId, ctx.userId) as unknown as RecordRow[])
+      : (db.prepare(`${SELECT_RECORD} WHERE r.project_id = ?${deleted} ORDER BY r.seq`).all(ctx.projectId) as unknown as RecordRow[]);
+  return rows.map(toRecord);
+}
+
 /** Lịch sử các phiên bản sau `afterVersion`, cũ đến mới. undefined nếu phiếu không thấy được. */
 export function getHistory(ctx: Ctx, db: Db, id: string, afterVersion = 0): RecordHistoryEntry[] | undefined {
   if (getRecordAccess(ctx, db, id).kind !== 'visible') return undefined;

@@ -1,0 +1,28 @@
+From 8c2fe03a24b81d5f77496ae2c8672facb13106fa Mon Sep 17 00:00:00 2001
+From: MagnusW <daitrong127@gmail.com>
+Date: Sun, 8 Nov 2026 15:35:44 +0700
+Subject: [PATCH] =?UTF-8?q?MUTATION=20M6=20(t=E1=BA=A1m,=20kh=C3=B4ng=20me?=
+ =?UTF-8?q?rge)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ server/src/db.ts | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/server/src/db.ts b/server/src/db.ts
+index 6ef14fa..5eb8abb 100644
+--- a/server/src/db.ts
++++ b/server/src/db.ts
+@@ -317,7 +317,6 @@ export function readTx<T>(db: Db, fn: () => T): T {
+     db.exec('COMMIT');
+     return result;
+   } catch (err) {
+-    db.exec('ROLLBACK');
+     throw err;
+   }
+ }
+-- 
+2.54.0.windows.1
+
