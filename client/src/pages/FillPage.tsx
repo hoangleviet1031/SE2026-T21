@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse, RecordData } from '@field-survey/shared';
 import { getAccountValue } from '../db/accountDb';
@@ -21,6 +21,7 @@ import { recordLock } from '../recordLock';
 import { keptFieldLine, needsBuffer, restorePlan, withoutEmpty, type RestorePlan } from '../typingBuffer';
 import { deleteTypingBuffer, getTypingBuffer, putTypingBuffer, setTypingFlush } from '../db/typingBuffer';
 import { canCopyRecord, copyBuffer } from '../recordCopy';
+import { fieldSuggestions, type SuggestionSource } from '../fieldSuggestions';
 
 /** Dải bộ đệm đang nhập (ui.md màn hình 4): đang hỏi khôi phục, phiếu đã bị xoá, hay báo trường giữ bản mới */
 type TypingPrompt = { kind: 'ask'; savedAt: string } | { kind: 'gone' } | { kind: 'kept'; lines: string[] };
@@ -63,6 +64,25 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const [copying, setCopying] = useState(false);
   const copyStarted = useRef(false);
   const [copyFailed, setCopyFailed] = useState(false);
+  // Phiếu cùng form trên máy để gợi ý ô chữ (design §4.1). Đọc một lần khi mở, không theo dõi: khỏi đọc lại
+  // cả nghìn phiếu sau mỗi vòng đồng bộ. Chưa đọc xong thì ô nhập vẫn gõ được, chỉ chưa có gợi ý.
+  const [sameFormRecords, setSameFormRecords] = useState<SuggestionSource[]>([]);
+  useEffect(() => {
+    if (!db) return;
+    let cancelled = false;
+    void db.records
+      .where('formId')
+      .equals(formId)
+      .toArray()
+      .then((rows) => {
+        if (!cancelled) setSameFormRecords(rows);
+      })
+      // Không có gợi ý thì vẫn nhập tay được, không cần báo người dùng
+      .catch((e) => console.warn('không đọc được phiếu để gợi ý', e));
+    return () => {
+      cancelled = true;
+    };
+  }, [db, formId]);
 
   // Đọc phiếu và bộ đệm cùng lúc khi mở trang: có bộ đệm thì hỏi khôi phục, không tự điền (design §4.1)
   useEffect(() => {
@@ -104,6 +124,10 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   const version = record?.formVersion ?? (forms?.length ? Math.max(...forms.map((f) => f.version)) : undefined);
   const form = forms?.find((f) => f.version === version);
   const missingVersion = record !== undefined && forms !== undefined && !form;
+  const suggestions = useMemo(
+    () => (form ? fieldSuggestions(form, sameFormRecords, id) : undefined),
+    [form, sameFormRecords, id],
+  );
 
   // Thiếu bản form của phiếu: vòng đồng bộ tải về (design §5.3 bước 5), trang không gọi API trực tiếp.
   // Có mạng lại thì thử lại.
@@ -379,6 +403,7 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
             value={data}
             onChange={setData}
             errors={isDraft ? record.validationErrors : undefined}
+            suggestions={suggestions}
           />
         </fieldset>
       )}
