@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { FormSchema } from '@field-survey/shared';
 import { addField, emptyBuilder, fromForm, moveField, setTitle, toSaveRequest, updateField } from './builder';
-import { draftIsStale, needsDraft, rebaseDraft, rebasedNote, restoreDraft, type BuilderDraft } from './builderDraft';
+import {
+  draftIsStale,
+  needsDraft,
+  newerNote,
+  onNewerForm,
+  rebaseDraft,
+  rebasedNote,
+  restoreDraft,
+  type BuilderDraft,
+} from './builderDraft';
 
 const v1: FormSchema = {
   id: 'household',
@@ -79,6 +88,14 @@ describe('rebaseDraft', () => {
     expect(state.fields.filter((f) => f.id === 'phone').map((f) => f.saved)).toEqual([false, true]);
   });
 
+  it('thêm nhiều trường: uid mới, khác nhau; trường đang có giữ uid', () => {
+    const edited = setTitle(fromForm(v1), 'Khác');
+    const v3: FormSchema = { ...v2, version: 3, fields: [...v2.fields, { id: 'email', type: 'text', label: 'Email' }] };
+    const { state } = rebaseDraft(edited, v3);
+    expect(state.fields.slice(0, 2).map((f) => f.uid)).toEqual(edited.fields.map((f) => f.uid));
+    expect(new Set(state.fields.map((f) => f.uid)).size).toBe(4);
+  });
+
   it('bản mới không thêm trường thì không thêm gì', () => {
     const { state, added } = rebaseDraft(fromForm(v1), { ...v1, version: 2, title: 'Đổi tên' });
     expect(added).toBe(0);
@@ -135,5 +152,37 @@ describe('rebasedNote', () => {
     expect(rebasedNote({ version: 3, added: 0 })).toBe(
       'Đã khôi phục. Trong lúc bạn sửa, biểu mẫu đã lên bản 3. Kiểm lại trước khi lưu.',
     );
+  });
+});
+
+describe('onNewerForm', () => {
+  it('chưa sửa gì: nạp nguyên bản mới, không báo', () => {
+    const r = onNewerForm(fromForm(v1), v1, v2);
+    expect(r.note).toBeNull();
+    expect(toSaveRequest(r.state)).toEqual(toSaveRequest(fromForm(v2)));
+    expect(r.state.fields[0]?.label).toBe('Tên chủ hộ');
+  });
+
+  it('đã sửa: giữ phần đang sửa, thêm trường mới vào cuối, có câu báo', () => {
+    const edited = addField(updateField(fromForm(v1), 1, { hidden: true }), 'text');
+    const r = onNewerForm(edited, v1, v2);
+    expect(r.note).toBe(newerNote({ version: 2, added: 1 }));
+    expect(r.state.fields.map((f) => [f.id, f.saved])).toEqual([
+      ['name', true],
+      ['members', true],
+      ['', false],
+      ['phone', true],
+    ]);
+    expect(r.state.fields[1]?.hidden).toBe(true);
+    expect(r.state.fields.slice(0, 3).map((f) => f.uid)).toEqual(edited.fields.map((f) => f.uid));
+  });
+});
+
+describe('newerNote', () => {
+  it('có trường thêm và không có trường thêm', () => {
+    expect(newerNote({ version: 2, added: 1 })).toBe(
+      'Trong lúc bạn sửa, biểu mẫu đã lên bản 2; 1 trường mới của bản đó được thêm vào cuối. Kiểm lại trước khi lưu.',
+    );
+    expect(newerNote({ version: 2, added: 0 })).toBe('Trong lúc bạn sửa, biểu mẫu đã lên bản 2. Kiểm lại trước khi lưu.');
   });
 });

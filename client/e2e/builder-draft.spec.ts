@@ -153,3 +153,95 @@ test('form đã lên bản mới trong lúc sửa: Khôi phục thêm trường 
     'dienThoai',
   ]);
 });
+
+// Đang sửa mà vòng đồng bộ tải bản mới (tech-debt N25, design §4.1 "Tự lưu bản đang sửa")
+async function syncForms(page: Page, keys: string[]) {
+  await page.getByRole('button', { name: 'Đồng bộ', exact: true }).click();
+  await expect
+    .poll(async () => ((await readStore(page, dbName(), 'forms')) as { key: string }[]).map((f) => f.key).sort())
+    .toEqual(keys);
+}
+
+async function draftBaseVersion(page: Page): Promise<number | null | undefined> {
+  const meta = (await readStore(page, dbName(), 'meta')) as { key: string; value?: { baseVersion?: number | null } }[];
+  return meta.find((r) => r.key === 'builder:ho')?.value?.baseVersion;
+}
+
+test('đang sửa mà form lên bản mới: trường mới thêm vào cuối, có dải báo, giữ phần đang sửa; lưu được version mới', async ({
+  page,
+  request,
+}) => {
+  await postForm(request, [{ id: 'ten', type: 'text', label: 'Tên' }]);
+  await login(page, 'lan');
+  await formRow(page, 'Hộ dân').getByRole('link', { name: 'Sửa form' }).click();
+  await addField(page, 'Số', 'Số người');
+
+  // Máy khác lưu bản 2 có thêm "dienThoai"; builder vẫn mở, bấm Đồng bộ
+  await postForm(request, [
+    { id: 'ten', type: 'text', label: 'Tên' },
+    { id: 'dienThoai', type: 'text', label: 'Điện thoại' },
+  ]);
+  await syncForms(page, ['ho@1', 'ho@2']);
+  const note = page.getByTestId('builder-rebased');
+  await expect(note).toHaveText(
+    /^Trong lúc bạn sửa, biểu mẫu đã lên bản 2; 1 trường mới của bản đó được thêm vào cuối\. Kiểm lại trước khi lưu\./,
+  );
+  await expect(rows(page)).toHaveCount(3);
+  await expect(rows(page).nth(1)).toContainText('Số người');
+  await expect(rows(page).nth(2)).toContainText('Điện thoại');
+  await note.getByRole('button', { name: 'Đóng' }).click();
+  await expect(note).toHaveCount(0);
+
+  // Bản tự lưu đã theo bản 2: tải lại rồi Khôi phục không thêm trường lần nữa, không có dải
+  await expect.poll(() => draftBaseVersion(page)).toBe(2);
+  await page.reload();
+  await restoreBanner(page).getByRole('button', { name: 'Khôi phục' }).click();
+  await expect(rows(page)).toHaveCount(3);
+  await expect(page.getByTestId('builder-rebased')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Lưu bản mới' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Lưu', exact: true }).click();
+  await expect(formRow(page, 'Hộ dân')).toBeVisible();
+  const v3 = await request.get(api('/forms/ho/versions/3'), { headers: authHeaders(TOKENS.lan) });
+  expect(v3.status()).toBe(200);
+  expect(((await v3.json()) as { fields: { id: string }[] }).fields.map((f) => f.id)).toEqual([
+    'ten',
+    'soNguoi',
+    'dienThoai',
+  ]);
+  expect(await draftKeys(page)).toEqual([]);
+});
+
+test('chưa sửa gì mà form lên bản mới: nạp nguyên bản mới, không dải báo, không bản tự lưu', async ({
+  page,
+  request,
+}) => {
+  await postForm(request, [{ id: 'ten', type: 'text', label: 'Tên' }]);
+  await login(page, 'lan');
+  await formRow(page, 'Hộ dân').getByRole('link', { name: 'Sửa form' }).click();
+  await expect(rows(page)).toHaveCount(1);
+
+  await postForm(request, [
+    { id: 'ten', type: 'text', label: 'Họ tên' },
+    { id: 'dienThoai', type: 'text', label: 'Điện thoại' },
+  ]);
+  await syncForms(page, ['ho@1', 'ho@2']);
+  await expect(rows(page)).toHaveCount(2);
+  // Nhãn theo bản 2, không giữ nhãn cũ của bản 1
+  await expect(rows(page).nth(0)).toContainText('Họ tên');
+  await expect(rows(page).nth(1)).toContainText('Điện thoại');
+  await expect(page.getByTestId('builder-rebased')).toHaveCount(0);
+  expect(await draftKeys(page)).toEqual([]);
+});
+
+test('đang sửa, Đồng bộ mà form không có bản mới: không dải báo, giữ phần đang sửa', async ({ page, request }) => {
+  await postForm(request, [{ id: 'ten', type: 'text', label: 'Tên' }]);
+  await login(page, 'lan');
+  await formRow(page, 'Hộ dân').getByRole('link', { name: 'Sửa form' }).click();
+  await addField(page, 'Số', 'Số người');
+  const listed = page.waitForResponse((r) => r.url().endsWith(`/projects/${project}/forms`) && r.ok());
+  await page.getByRole('button', { name: 'Đồng bộ', exact: true }).click();
+  await listed;
+  await expect(rows(page)).toHaveCount(2);
+  await expect(page.getByTestId('builder-rebased')).toHaveCount(0);
+});
