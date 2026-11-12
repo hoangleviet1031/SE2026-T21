@@ -124,7 +124,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Màn 8: Cảnh báo dung lượng gần đầy (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #133 |
 | — | Màn 5: Tự lưu bản đang sửa của builder (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #136 |
 | — | Màn 4: Gợi ý giá trị đã nhập (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #137 |
-| — | Màn 5: Builder đang mở mà form lên bản mới (sửa lỗi, không ticket, Dương duyệt) | Must | N25 | ⏳ PR #N |
+| — | Màn 5: Builder đang mở mà form lên bản mới (sửa lỗi, không ticket, Dương duyệt) | Must | N25 | ⏳ PR #138 |
 
 ## Phụ thuộc quan trọng
 
