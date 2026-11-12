@@ -123,7 +123,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Màn 8: Dữ liệu trên máy (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #130 |
 | — | Màn 8: Cảnh báo dung lượng gần đầy (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #133 |
 | — | Màn 5: Tự lưu bản đang sửa của builder (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #136 |
-| — | Màn 4: Gợi ý giá trị đã nhập (không ticket, Dương duyệt) · **Cắt được** | Could | – | ⏳ PR #PR |
+| — | Màn 4: Gợi ý giá trị đã nhập (không ticket, Dương duyệt) · **Cắt được** | Could | – | ⏳ PR #137 |
 
 ## Phụ thuộc quan trọng
 
