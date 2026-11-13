@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-11-13 | — | feat | Màn 5: khối "Bắt đầu từ mẫu" ở Biểu mẫu mới, ba mẫu có sẵn (hộ gia đình, y tế, cây trồng), đã sửa thì hỏi trước khi thay (Could) | nhánh `feat/mau-form` | chờ review |
+| 2026-11-13 | — | feat | Màn 5: khối "Bắt đầu từ mẫu" ở Biểu mẫu mới, ba mẫu có sẵn (hộ gia đình, y tế, cây trồng), đã sửa thì hỏi trước khi thay (Could) | PR #140 | chờ review |
 | 2026-11-13 | — | feat | PR #139 đã merge | PR #139 | xong |
 | 2026-11-13 | — | feat | Màn 4: nút [Lịch sử sửa] xem phiếu đã sửa những lần nào, ai sửa, lúc nào, trường nào đổi (Could; ngoại lệ cần mạng của bất biến 7) | PR #139 | chờ review |
 | 2026-11-12 | — | fix | PR #138 đã merge | PR #138 | xong |
