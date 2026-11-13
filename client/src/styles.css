@@ -430,6 +430,8 @@ button.wide { width: 100%; min-height: 48px; }
 @media (prefers-reduced-motion: reduce) { .frows.dragging .frow { transition: none; } }
 .addrow { display: flex; gap: 8px; align-items: end; }
 .addrow .field { flex: 1; min-width: 0; }
+/* Ô chọn co theo chỗ còn lại: tên mẫu dài không được đẩy trang tràn ngang ở 360px (ô "Bắt đầu từ mẫu") */
+.addrow select { width: 100%; min-width: 0; }
 .addrow > button { min-height: 48px; }
 /* Chưa có trường thì chỉ có câu hướng dẫn, không vẽ khung danh sách rỗng; chưa chọn trường thì chỗ cuộn tới
    khối Thuộc tính (critique K2) không chiếm thêm một khoảng của lưới */
