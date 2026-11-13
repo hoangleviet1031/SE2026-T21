@@ -7,8 +7,10 @@ import {
   addField,
   builderErrors,
   duplicateField,
+  emptyBuilder,
   formIdInvalid,
   fromImport,
+  fromTemplate,
   moveField,
   moveFieldTo,
   removeField,
@@ -26,6 +28,7 @@ import { FormRenderer } from '../components/FormRenderer';
 import { Icon } from '../components/Icon';
 import { formChangeText, formChanges } from '../formChanges';
 import { formFileName, formFileText, parseFormFile } from '../formFile';
+import { FORM_TEMPLATES, type FormTemplate } from '../formTemplates';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { formKey, type ProjectDb } from '../db/projectDb';
 import { canManageProject } from '../projects';
@@ -217,6 +220,9 @@ function Builder({
   const [saving, setSaving] = useState(false);
   // Câu tóm tắt trong hộp hỏi lại trước khi lưu bản mới của form đã có; null là không hỏi
   const [confirm, setConfirm] = useState<string | null>(null);
+  // Mẫu đang chọn trong ô "Bắt đầu từ mẫu" (chỉ số trong FORM_TEMPLATES, "" là chưa chọn) và mẫu đang chờ hỏi thay
+  const [templateIndex, setTemplateIndex] = useState('');
+  const [replaceWith, setReplaceWith] = useState<FormTemplate | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLFieldSetElement>(null);
   const errorsRef = useRef<HTMLUListElement>(null);
@@ -434,6 +440,22 @@ function Builder({
     setChecked(found.length > 0);
   };
 
+  // Nạp mẫu như Nhập form: thay hẳn phần đang sửa, xoá lỗi cũ (design §4.1 "Mẫu có sẵn")
+  const applyTemplate = (template: FormTemplate) => {
+    setState(fromTemplate(template, formIds));
+    setSelected(null);
+    setErrors([]);
+    setChecked(false);
+  };
+
+  // Builder còn trống thì nạp luôn; đã có gì thì hỏi trước vì phần đang sửa sẽ mất (bất biến 1)
+  const pickTemplate = () => {
+    const template = FORM_TEMPLATES[Number(templateIndex)];
+    if (templateIndex === '' || !template) return;
+    if (needsDraft(state, emptyBuilder())) setReplaceWith(template);
+    else applyTemplate(template);
+  };
+
   const idBad = checked && formIdInvalid(state, formIds);
 
   const previewForm: FormSchema = { ...toSaveRequest(state), version: (prev?.version ?? 0) + 1 };
@@ -450,6 +472,27 @@ function Builder({
           <span>{note}</span>
           <div className="acts">
             <button onClick={() => setNote(null)}>Đóng</button>
+          </div>
+        </div>
+      )}
+      {/* Chỉ ở "Biểu mẫu mới": form đã lưu không thay được bằng mẫu vì mã trường đã khoá (design §4.1) */}
+      {!prev && (
+        <div className="card" data-testid="builder-template">
+          <div className="addrow">
+            <label className="field">
+              <span>Bắt đầu từ mẫu</span>
+              <select value={templateIndex} onChange={(e) => setTemplateIndex(e.target.value)}>
+                <option value="">Chọn mẫu…</option>
+                {FORM_TEMPLATES.map((t, i) => (
+                  <option key={t.title} value={String(i)}>
+                    {t.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button disabled={templateIndex === ''} onClick={pickTemplate}>
+              Dùng mẫu
+            </button>
           </div>
         </div>
       )}
@@ -619,6 +662,17 @@ function Builder({
         </button>
         <BusyNote busy={saving} text="Đang lưu…" />
       </div>
+      {replaceWith && (
+        <ConfirmDialog
+          message={`Thay phần đang sửa bằng mẫu "${replaceWith.title}"? Phần đang sửa sẽ mất.`}
+          confirmLabel="Thay"
+          onConfirm={() => {
+            applyTemplate(replaceWith);
+            setReplaceWith(null);
+          }}
+          onCancel={() => setReplaceWith(null)}
+        />
+      )}
       {confirm !== null && (
         <ConfirmDialog
           message={confirm}

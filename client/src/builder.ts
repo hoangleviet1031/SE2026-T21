@@ -66,6 +66,30 @@ export function fromImport(form: SaveFormRequest): BuilderState {
 }
 
 /**
+ * Mẫu có sẵn (design §4.1 "Mẫu có sẵn") thành form mới chưa lưu, như tạo tay: mã form và mã trường còn đi
+ * theo tiêu đề/nhãn. Mã form gợi ý từ tiêu đề, trùng form đã có trong dự án thì thêm số.
+ */
+export function fromTemplate(
+  template: { title: string; fields: FieldDef[] },
+  existingFormIds: ReadonlySet<string> = new Set(),
+): BuilderState {
+  return {
+    id: suggestId(template.title, existingFormIds),
+    idLocked: false,
+    autoId: true,
+    title: template.title,
+    // Chép mảng lựa chọn: sửa trong builder không được đổi dữ liệu mẫu dùng chung
+    fields: template.fields.map((f) => ({
+      ...f,
+      ...(f.options ? { options: [...f.options] } : {}),
+      uid: nextUid++,
+      saved: false,
+      autoId: true,
+    })),
+  };
+}
+
+/**
  * Bản tự lưu đọc lại từ máy (design §4.1 "Tự lưu bản đang sửa"): giữ nguyên mọi cờ, chỉ cấp uid mới vì uid
  * cũ có thể trùng uid mà phiên này đã cấp.
  */
