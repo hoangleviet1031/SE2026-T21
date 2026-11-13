@@ -13,6 +13,7 @@ import type {
   ProjectSettings,
   PullResponse,
   PushRecordRequest,
+  RecordHistoryEntry,
   Role,
   SaveFormRequest,
   UpdateSettingsRequest,
@@ -302,6 +303,30 @@ export async function pushRecord(projectId: string, id: string, body: PushRecord
     projectId,
   );
   return { status: res.status, body: await res.json().catch(() => null) };
+}
+
+export type HistoryResult = { ok: true; entries: RecordHistoryEntry[] } | { ok: false; error: 'not_found' };
+
+/**
+ * `GET P/records/:id/history` cho nút Lịch sử sửa ở màn hình 4, ngoại lệ cần mạng của bất biến 7 (design §4.1).
+ * 404: phiếu không có trên server hoặc ngoài phạm vi (server không phân biệt). `no-store`: lịch sử có dữ liệu
+ * phiếu, không để lại trong cache HTTP sau khi Đăng xuất.
+ */
+export async function fetchRecordHistory(projectId: string, recordId: string): Promise<HistoryResult> {
+  const res = await request(
+    `${projectPath(projectId)}/records/${encodeURIComponent(recordId)}/history`,
+    { cache: 'no-store' },
+    projectId,
+  );
+  if (res.status === 404) return { ok: false, error: 'not_found' };
+  if (!res.ok) throw new ServerError(`GET history ${res.status}`);
+  try {
+    return { ok: true, entries: await res.json() };
+  } catch (err) {
+    // Thân không phải JSON là lỗi của server; thân bị cắt giữa chừng là lỗi mạng, như ảnh
+    if (err instanceof SyntaxError) throw new ServerError(`GET history: ${err.message}`);
+    throw new NetworkError(err instanceof Error ? err.message : String(err));
+  }
 }
 
 export async function pullRecords(projectId: string, since: number): Promise<PullResponse> {

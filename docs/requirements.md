@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.28 (2026-11-12)
+- **Phiên bản:** 0.29 (2026-11-13)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -14,7 +14,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 | Mã | Kết quả | Story phục vụ |
 |---|---|---|
 | K1 | Không mất phiếu: mọi phiếu đã lưu trên máy lên server đúng một lần | US-01, US-02, US-03, US-04, US-06 |
-| K2 | Không ghi đè âm thầm: hai nơi cùng sửa thì người dùng thấy và tự chọn | US-05, US-06, US-14 |
+| K2 | Không ghi đè âm thầm: hai nơi cùng sửa thì người dùng thấy và tự chọn | US-05, US-06, US-14, US-15 |
 | K3 | Không phải nhập lại: giám sát viên có dữ liệu dạng bảng ngay từ app | US-07, US-08 |
 | K4 | Không lẫn dữ liệu giữa các tổ chức, kể cả với người vận hành | US-09, US-10, US-11, US-12, US-13 |
 
@@ -168,6 +168,15 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 
 Lọc theo người tạo, tên người tạo cho giám sát viên và ô tìm kiếm (design §4.8) là TV2-18, chưa có code nên chưa có tiêu chí.
 
+### US-15 · Xem lịch sử sửa phiếu · Could
+
+*Là điều tra viên hay giám sát viên, tôi muốn xem một phiếu đã được sửa những lần nào, ai sửa, lúc nào, sửa trường gì, để biết vì sao phiếu đang có giá trị này mà không phải đi hỏi từng người.* (Dương duyệt 2026-11-13, ngoài MVP, cắt được; design §4.1 "Lịch sử sửa".)
+
+- **Given** phiếu đã lên server và đang có mạng, **when** tôi bấm [Lịch sử sửa] ở màn hình 4, **then** thấy mỗi lần ghi trên server một mục, mới trước: tên người sửa, giờ theo server, "tạo phiếu" / "sửa" / "xoá phiếu" / "khôi phục phiếu", và các trường đổi so với lần trước dạng "nhãn: cũ → mới"; người khác vừa sửa thì đóng mở lại là thấy.
+- **Given** phiếu chưa từng lên server (mới, tạo khi offline, bản sao chưa Lưu), **when** mở phiếu, **then** không có nút [Lịch sử sửa].
+- **Given** phiếu có thay đổi chưa gửi (nháp, chờ, lỗi, xung đột), **when** mở lịch sử, **then** khối báo "Thay đổi chưa đồng bộ trên máy này chưa có trong lịch sử."
+- **Given** offline, máy chủ lỗi, hoặc phiếu không có trên server / ngoài phạm vi (`404`), **when** bấm [Lịch sử sửa], **then** báo câu tương ứng ở design §8, không ghi gì; bấm lại thì thử lại.
+
 ## Truy vết
 
 Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → test chứng minh → ticket và PR. Chỗ **chưa có test** in đậm; thêm test thì sửa dòng đó.
@@ -250,6 +259,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-14 | Lọc trạng thái, "Cần xử lý (n)", nhóm rỗng ẩn | `conflict.spec.ts` (ca số "Cần xử lý" và bộ lọc); `home.spec.ts` (ca N10: lọc "Chưa đồng bộ" đếm theo lọc, ẩn nhóm rỗng); unit `recordFilter.test.ts` | TV3-07 (#41); không ticket, N10 (#105) |
 | US-14 | "Chưa có phiếu nào." ẩn bộ lọc; lọc rỗng giữ bộ lọc | `ui-states.spec.ts` (ca chưa có phiếu); `home.spec.ts` (ca lọc ra rỗng) | TV1-12 (b1, b2 p2) |
 | US-14 | Phiếu đã xoá không hiện, trừ khi đang xung đột | `delete.spec.ts` (O7, O8, xoá mềm); `conflict.spec.ts` (ca xoá vs sửa hiện ở "Cần xử lý") | TV2-13 (#35), TV1-13 (#42), TV3-08 (#47) |
+| US-15 | Xem lịch sử sửa: ai, lúc nào, trường nào đổi; không có nút ở phiếu chưa lên server; báo thay đổi chưa đồng bộ; offline, `5xx`, `404` (Could) | `record-history.spec.ts`; unit `buildHistoryView` (`client/src/recordHistory.test.ts`) | không ticket (#PR) |
 
 Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --json commits`).
 
@@ -285,3 +295,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.26 | 2026-11-12 | US-07 thêm tiêu chí tự lưu bản đang sửa của builder, kèm dòng truy vết (Could, không ticket) |
 | 0.27 | 2026-11-12 | US-01 thêm tiêu chí gợi ý giá trị đã nhập ở màn hình 4, kèm dòng truy vết (Could, không ticket); dòng "Phiên bản" đầu file sửa cho khớp (trước ghi 0.25) |
 | 0.28 | 2026-11-12 | US-07 thêm tiêu chí builder đang mở mà form lên bản mới (tech-debt N25), kèm dòng truy vết (sửa lỗi, không ticket) |
+| 0.29 | 2026-11-13 | Thêm US-15 "Xem lịch sử sửa phiếu" (Could, không ticket, Dương duyệt 2026-11-13) cùng dòng truy vết; K2 thêm US-15 |

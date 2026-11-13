@@ -8,6 +8,7 @@ import { formTone, latestForms } from '../formDisplay';
 import { FormRenderer } from '../components/FormRenderer';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { RecordErrorBox } from '../components/RecordErrorBox';
+import { RecordHistory } from '../components/RecordHistory';
 import { Icon } from '../components/Icon';
 import { RecordDeletedError, RecordInConflictError, deleteRecordLocally, saveRecordLocally } from '../sync/outbox';
 import { syncNow } from '../sync/engine';
@@ -418,6 +419,10 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
         <p className="field-error" role="alert" data-testid="copy-error">
           Không nhân bản được phiếu. Thử lại sau.
         </p>
+      )}
+      {/* Chỉ phiếu đã lên server mới có lịch sử (design §4.1 "Lịch sử sửa"); chỉ đọc nên có cả khi phiếu khoá */}
+      {record && record.baseVersion > 0 && project && (
+        <RecordHistory key={id} projectId={project.id} record={record} form={form} forms={forms} />
       )}
       {/* Hàng nút dính đáy màn hình để phiếu dài vẫn bấm Lưu bằng ngón cái (ui.md màn hình 4, TV1-12 b2) */}
       {!readOnly && !asking && (
