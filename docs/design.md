@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.78 (2026-11-12)
+- **Phiên bản:** 0.5.79 (2026-11-13)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -112,6 +112,7 @@
 | 0.5.76 | 2026-11-12 | Tự lưu bản đang sửa của builder ở màn hình 5 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-12): §1 thêm dòng MoSCoW; §4.1 mục "Tự lưu bản đang sửa" (meta `builder:<mã form>` / `builder-new`, ghi sau 1 s ngừng sửa và khi ẩn/rời trang, mở lại hỏi [Khôi phục] / [Bỏ] trước khi dựng builder, trùng bản mới nhất thì bỏ không hỏi, form đã lên bản mới thì thêm trường mới vào cuối và báo, Lưu bản mới thành công hoặc [Bỏ] thì xoá, "← Quay lại" giữ, không chặn Đăng xuất); §4.2 dòng `meta`; §4.3 [Tải lại] ở trang khác trang nhập phiếu cũng ghi nốt bản tự lưu trước |
 | 0.5.77 | 2026-11-12 | Gợi ý giá trị đã nhập ở màn hình 4 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-12): §1 thêm dòng MoSCoW; §4.1 mục "Gợi ý giá trị đã nhập" (ô `text` không ẩn có `<datalist>` giá trị ở phiếu khác cùng form trên máy, mọi phiên bản theo mã trường; bỏ phiếu đã xoá, phiếu đang mở, bộ đệm đang nhập; bỏ trùng không phân biệt hoa thường, khoảng trắng, cách gõ dấu; mới trước, tối đa 50; đọc một lần khi mở trang). Chỉ client; không đổi API, mã lỗi, schema. Dòng "Phiên bản" đầu file sửa cho khớp (trước ghi 0.5.75) |
 | 0.5.78 | 2026-11-12 | Builder đang mở mà vòng đồng bộ tải bản form mới hơn (tech-debt N25, sửa lỗi, không ticket): §4.1 "Tự lưu bản đang sửa" thêm ý đưa phần đang sửa lên bản mới ngay lúc đang sửa (chưa sửa gì thì nạp nguyên bản mới, không báo; đã sửa thì thêm trường mới vào cuối, có dải báo; hộp tóm tắt đang mở thì đóng; đang lưu dở thì chờ kết quả). Chỉ client; không đổi API, mã lỗi, schema |
+| 0.5.79 | 2026-11-13 | Lịch sử sửa của phiếu ở màn hình 4 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-13): §1 thêm dòng MoSCoW; §4.1 mục "Lịch sử sửa" (nút [Lịch sử sửa] chỉ ở phiếu đã lên server, bấm thì gọi `GET P/records/:id/history`, mới trước, ai sửa, giờ server, trường nào đổi so với bản trước; ngoại lệ cần mạng của màn hình 4, cũng thêm vào bất biến 7 ở `CLAUDE.md`, `client/CLAUDE.md`); §7 dòng history ghi nơi dùng; §8 thêm dòng. Chỉ client; không đổi API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -181,6 +182,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Cảnh báo dung lượng gần đầy (§4.2) | Màn hình 8 cảnh báo khi đã dùng từ 80% hạn mức bộ nhớ mà trình duyệt báo. | Could (Dương duyệt 2026-11-11, ngoài MVP, cắt được) |
 | Tự lưu bản đang sửa của builder (§4.1) | Phần chưa bấm "Lưu bản mới" ở màn hình 5 được giữ trên máy; tải lại, rời trang hay app bị tắt thì mở lại builder hỏi khôi phục. | Could (Dương duyệt 2026-11-12, ngoài MVP, cắt được) |
 | Gợi ý giá trị đã nhập (§4.1) | Ô chữ ở màn hình 4 gợi ý các giá trị đã nhập ở phiếu khác cùng form trên máy (`<datalist>` của trình duyệt). | Could (Dương duyệt 2026-11-12, ngoài MVP, cắt được) |
+| Lịch sử sửa của phiếu (§4.1) | Nút ở màn hình 4 hiện phiếu đã sửa những lần nào: ai sửa, lúc nào, trường nào đổi. Cần mạng (đọc lịch sử trên server). | Could (Dương duyệt 2026-11-13, ngoài MVP, cắt được) |
 | Tóm tắt thay đổi khi lưu form (§4.1) | Sửa form đã có rồi bấm "Lưu bản mới" ở màn hình 5 thì hộp hỏi lại nêu bản mới khác bản đang dùng thế nào. | Could (Dương duyệt 2026-11-10, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
@@ -455,6 +457,12 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
   - Nguồn: phiếu trong `records` (§4.2, index `formId`) cùng mã form, mọi phiên bản, ghép theo mã trường; gồm phiếu ở mọi trạng thái kể cả nháp và `conflict` (lấy `data` trên máy) và phiếu người khác đã có trên máy (giám sát viên). Không lấy phiếu `deleted`, chính phiếu đang mở, bộ đệm đang nhập.
   - Cắt khoảng trắng hai đầu, gộp khoảng trắng liền nhau; rỗng thì bỏ. Bỏ trùng không phân biệt hoa thường, khoảng trắng và cách gõ dấu (so theo NFC), giữ cách viết của phiếu sửa gần nhất. Mới trước theo `updatedAt` (giờ máy, chỉ để hiển thị như §4.8), tối đa 50 giá trị mỗi trường (`SUGGESTION_LIMIT`). Không bỏ giá trị dài.
   - Đọc một lần khi mở trang, không theo dõi thay đổi (khỏi đọc lại cả nghìn phiếu sau mỗi vòng đồng bộ); chưa đọc xong thì ô vẫn gõ được. Chỉ đọc IndexedDB, không gọi API, không ghi gì.
+- **Lịch sử sửa** (Could, Dương duyệt 2026-11-13, cắt được; hàm thuần `client/src/recordHistory.ts`, khối `client/src/components/RecordHistory.tsx`): ở màn hình 4 người dùng xem phiếu đã sửa những lần nào. Câu chữ ở ui.md màn hình 4.
+  - **Ngoại lệ cần mạng của màn hình 4** (bất biến 7 ở `CLAUDE.md`): lịch sử chỉ có trên server (`record_history`, ADR 0001 quy tắc 1), máy không lưu. Gọi `GET P/records/:id/history` qua `fetchRecordHistory` ở `client/src/sync/api.ts` (`cache: 'no-store'`, để dữ liệu phiếu không nằm lại trong cache HTTP sau khi Đăng xuất), chỉ khi bấm nút, không gọi lúc mở phiếu. Chỉ đọc: không ghi IndexedDB, không tạo op. Không tự thử lại, không tự tải lại sau vòng đồng bộ; đóng rồi mở lại là tải lại.
+  - Nút chỉ có ở phiếu đã lên server (`baseVersion > 0`), ở mọi trạng thái kể cả nháp, Lỗi, `conflict` và phiếu đã xoá còn trên máy. Phiếu mới, bản sao chưa Lưu, phiếu chưa từng gửi được (tạo khi offline, nháp chưa gửi) không có nút.
+  - Mỗi bản server một mục, mới trước: tên người sửa (`updatedByName`, rỗng thì `updatedBy`, như màn hình xung đột §6.2), giờ theo `updatedAt` của server (bất biến 4), loại (tạo phiếu, sửa, xoá phiếu, khôi phục phiếu). Bản đầu chỉ ghi tạo phiếu, không liệt kê giá trị. Bản sửa liệt kê trường khác bản liền trước, "nhãn: cũ → mới"; ô rỗng (`''`, `[]`, `null`, thiếu) coi như nhau, mảng so như tập (`valuesEqual`). Giá trị hiện như màn hình xung đột (`formatValue`): ảnh theo số lượng (cùng số mà khác ảnh thì "đã thay ảnh"), vị trí theo toạ độ.
+  - Lịch sử không ghi `formVersion`, nên nhãn lấy theo bản form của phiếu; trường ẩn kèm "(đã ẩn)"; trường không có ở bản đó thì lấy nhãn ở bản form khác trên máy, không có ở đâu thì hiện mã trường.
+  - Phiếu có thay đổi chưa gửi (`syncState` khác `synced`) thì khối báo phần đó chưa có trong lịch sử. Lỗi theo §8.
 
 **Tiêu chí chấp nhận**
 - Giám sát viên tạo form 7 loại trường, lưu, điều tra viên thấy form sau lần đồng bộ kế tiếp.
@@ -931,7 +939,7 @@ Base `/api`, JSON. Mọi request trừ `/health` cần `Authorization: Bearer <t
 | GET | `P/forms/:id/versions/:v` | Một phiên bản form | thành viên | Có |
 | POST | `P/forms` | Lưu form từ builder. Thân `SaveFormRequest` (`{ id, title, fields }`; `version` client gửi bị bỏ qua), server đặt `version` = bản mới nhất + 1 trong cùng transaction, trả `201` + `FormSchema`. Sai kiểu `400 invalid_body`, sai luật §4.1 `400 invalid_form` | supervisor (owner đi qua theo thứ hạng) | Có |
 | GET | `P/records?since=&limit=` | Pull theo cursor, lọc theo phạm vi §5.5; trả thêm `scope` | thành viên | Có (chưa có `hasMore`) |
-| GET | `P/records/:id/history` | Lịch sử phiên bản | thành viên (trong phạm vi) | Có |
+| GET | `P/records/:id/history` | Lịch sử phiên bản; client gọi khi bấm [Lịch sử sửa] ở màn hình 4 (§4.1) | thành viên (trong phạm vi) | Có |
 | PUT | `P/records/:id` | Ghi có điều kiện, cần `Idempotency-Key` | thành viên (trong phạm vi) | Có |
 | GET | `P/attachments/:id/status` | Chunk đã nhận: `{ received: number[] }` (ảnh đã ghép thì đủ mọi chỉ số) | thành viên (trong phạm vi) | Có |
 | PUT | `P/attachments/:id/chunks/:i` | Upload một chunk (`application/octet-stream`, ≤ 256 KB, `i` < 40). Chunk mới `201`, đã có `200` không ghi lại | thành viên | Có |
@@ -1076,6 +1084,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | Phiếu dùng form version chưa có trên máy | Trang điền phiếu gọi `syncNow()`, bước 5 tải form version đó (§5.3) | Đang tải: "Đang tải biểu mẫu…"; offline hoặc tải không được: "Cần kết nối để mở phiếu này", có mạng lại thì tự thử lại |
 | Mở lại phiếu đã xoá (§5.7) | Chỉ đọc, không tạo op; bấm Lưu đúng lúc phiếu vừa bị xoá thì tầng dữ liệu từ chối, không ghi gì | "Phiếu này đã bị xoá nên không sửa được nữa." |
 | Nhân bản phiếu mà không ghi được vào máy (§4.1), vd. IndexedDB đầy | Ở lại phiếu gốc, không đổi gì, không có phiếu và op; bấm lại được | "Không nhân bản được phiếu. Thử lại sau." dưới nút; bấm lại mà được thì hết |
+| Xem lịch sử sửa (§4.1) mà không tải được | Không ghi gì, không tự thử lại; bấm lại nút để tải lại | Offline, timeout, mất kết nối: "Cần kết nối để xem lịch sử sửa". `404` (phiếu chưa có trên server hoặc ngoài phạm vi, không phân biệt): "Máy chủ không có lịch sử của phiếu này hoặc bạn không được xem." `5xx` và mã khác: "Máy chủ đang lỗi, thử lại sau". `403 not_member`: "Bạn không còn thuộc tổ chức này". `401`: như dòng `401` |
 | Phiếu chưa đồng bộ quá 24 giờ | Không đổi hành vi | Cảnh báo đầu trang (§5.2) |
 | Bấm "Lấy vị trí" mà không lấy được (từ chối quyền, không lấy được, quá 30 s, trình duyệt không có geolocation) | Không đổi giá trị trường; chờ tối đa 30 s; bấm lại thì thử lại (`client/src/gps.ts`) | Lúc chờ: "Đang lấy vị trí…". Từ chối quyền: "Chưa được phép lấy vị trí. Bật quyền vị trí cho trang này trong cài đặt trình duyệt rồi bấm lại." Không lấy được hoặc quá giờ: "Không lấy được vị trí. Ra chỗ thoáng rồi bấm lại." Không có geolocation: "Trình duyệt này không lấy được vị trí." |
 

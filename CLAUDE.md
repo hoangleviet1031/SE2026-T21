@@ -41,7 +41,7 @@ docs/     design.md (spec), requirements.md (user story, truy vết), ui.md (ph�
 4. **Server quyết định version và thời gian.** Không dùng đồng hồ thiết bị để so sánh thứ tự; pull dùng `seq`.
 5. **`projectId` chỉ lấy từ đường dẫn đã qua middleware thành viên** (`req.ctx`), không bao giờ từ body hay query. Mọi truy vấn dữ liệu dự án có `project_id = ?`. Id thuộc dự án khác trả `404`.
 6. **`updatedBy`, `created_by` lấy từ token**, không tin client.
-7. **UI chỉ đọc/ghi IndexedDB**, không gọi API trực tiếp từ component (trừ màn hình cần online: Thành viên, Dự án, Xuất, builder lưu form).
+7. **UI chỉ đọc/ghi IndexedDB**, không gọi API trực tiếp từ component (trừ màn hình cần online: Thành viên, Dự án, Xuất, builder lưu form, Lịch sử sửa ở màn 4).
 8. **Không sửa ADR** (`docs/adr/*`) và không đổi ngữ nghĩa `shared/src/merge.ts` nếu người dùng chưa đồng ý rõ ràng.
 
 ## Quy ước code
