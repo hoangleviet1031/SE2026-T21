@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.80 (2026-11-13)
+- **Phiên bản:** 0.5.81 (2026-11-14)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -114,6 +114,7 @@
 | 0.5.78 | 2026-11-12 | Builder đang mở mà vòng đồng bộ tải bản form mới hơn (tech-debt N25, sửa lỗi, không ticket): §4.1 "Tự lưu bản đang sửa" thêm ý đưa phần đang sửa lên bản mới ngay lúc đang sửa (chưa sửa gì thì nạp nguyên bản mới, không báo; đã sửa thì thêm trường mới vào cuối, có dải báo; hộp tóm tắt đang mở thì đóng; đang lưu dở thì chờ kết quả). Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.79 | 2026-11-13 | Lịch sử sửa của phiếu ở màn hình 4 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-13): §1 thêm dòng MoSCoW; §4.1 mục "Lịch sử sửa" (nút [Lịch sử sửa] chỉ ở phiếu đã lên server, bấm thì gọi `GET P/records/:id/history`, mới trước, ai sửa, giờ server, trường nào đổi so với bản trước; ngoại lệ cần mạng của màn hình 4, cũng thêm vào bất biến 7 ở `CLAUDE.md`, `client/CLAUDE.md`); §7 dòng history ghi nơi dùng; §8 thêm dòng. Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.80 | 2026-11-13 | Mẫu form có sẵn ở màn hình 5 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-13): §1 thêm dòng MoSCoW; §4.1 mục "Mẫu có sẵn" (chỉ ở "Biểu mẫu mới", ba mẫu đóng gói trong app nên offline vẫn dùng được, nạp thành form mới chưa lưu như tạo tay, mã form gợi ý từ tiêu đề và thêm số nếu trùng, builder đã có gì thì hỏi trước khi thay; không tự lưu lên server). Chỉ client; không đổi API, mã lỗi, schema |
+| 0.5.81 | 2026-11-14 | Nút "Dọn ảnh đã tải lên" ở trang Cài đặt (tech-debt N23, hoàn thiện dòng Attachments, Must, không ticket, Dương cho phép 2026-11-14): §1 ghi thêm; §4.2 mục "Dọn ảnh đã tải lên" (mọi tổ chức đang tham gia có CSDL trên máy, nút khoá khi không có gì để dọn, hộp xác nhận ghi số ảnh và dung lượng, khối Dung lượng vẫn có khi trình duyệt không có `estimate()`), câu cảnh báo gần đầy trỏ tới nút; §4.4 trỏ tới nút; §5.6 mục "Dọn ảnh trên máy" (chỉ ảnh `done`, xoá cả dòng, không op, không khoá vòng đồng bộ, mở lại phiếu thì tải về như ảnh máy khác tạo; ảnh chưa `done` không bao giờ bị dọn); §8 thêm dòng lỗi khi dọn; §10.1 thêm O11. Chỉ client; không đổi API, mã lỗi, schema. Nút "Xoá dữ liệu trên máy" (§9) vẫn chưa có (tech-debt N27) |
 
 ## Mục lục
 
@@ -167,7 +168,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Form builder | Tạo/sửa form với 7 loại trường: text, number, select, multiselect, date, photo, gps. Form có phiên bản, thuộc một dự án. | Must; xuất/nhập form JSON: Could |
 | Offline storage | Form, phiếu, ảnh, hàng đợi đồng bộ trong IndexedDB (Dexie). App shell được service worker precache. | Must |
 | Sync queue | Outbox bền vững, retry với exponential backoff, idempotency key. | Must |
-| Attachments | Nén ảnh ở client, upload theo chunk, tiếp tục khi mất mạng giữa chừng; xem được ảnh do máy khác tạo (tải khi mở phiếu). | Must |
+| Attachments | Nén ảnh ở client, upload theo chunk, tiếp tục khi mất mạng giữa chừng; xem được ảnh do máy khác tạo (tải khi mở phiếu); dọn ảnh đã tải lên khỏi máy ở trang Cài đặt. | Must |
 | Conflict UI | Merge theo trường, hiển thị ai sửa, lúc nào, giá trị gốc/của bạn/trên máy chủ. | Must; "Gộp cả hai" cho multiselect: Could |
 | Export | CSV (UTF-8 có BOM) và JSON theo từng dự án; ảnh xuất dạng URL. | Must (CSV), Should (JSON) |
 | Đo hiệu năng (§11.2) | Đo các chỉ tiêu trên bộ dữ liệu mẫu. | Should (pull 2.000 phiếu); đo đầy đủ: Could |
@@ -503,7 +504,8 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - **Ghi nguyên tử:** lưu phiếu và thêm op vào outbox trong cùng một transaction Dexie (`saveRecordLocally`), không bao giờ có phiếu đã sửa mà thiếu op (trừ phiếu nháp, vốn không có op).
 - **Nâng cấp schema:** thêm `this.version(n+1).stores(...).upgrade(...)`, không sửa version cũ. Mọi CSDL dự án dùng chung một lớp `ProjectDb` nên được nâng cấp giống nhau khi mở. CSDL `field-survey` của khung hiện tại không chuyển dữ liệu sang (chưa có người dùng thật), chỉ xoá.
 - **Chống bị xoá dữ liệu:** gọi `navigator.storage.persist()` sau lần lưu phiếu đầu tiên, kể cả phiếu nháp (`client/src/persistStorage.ts`: gọi sau mỗi lần lưu nhưng bỏ qua khi `persisted()` đã là `true`, nên trình duyệt từ chối thì lần lưu sau xin lại; không có API thì bỏ qua); hiển thị dung lượng đã dùng qua `navigator.storage.estimate()` ở trang Cài đặt.
-- **Cảnh báo dung lượng gần đầy** (Could, Dương duyệt 2026-11-11, cắt được; `storageNearlyFull` trong `client/src/formatBytes.ts`): đã dùng từ 80% `quota` (`STORAGE_WARN_PERCENT`) thì khối Dung lượng ở trang Cài đặt có câu cảnh báo, vì hết hạn mức thì mọi lần ghi IndexedDB đều lỗi (§8 `QuotaExceededError`). Trình duyệt không báo `quota` (0 hoặc không có) hoặc không có `estimate()` thì không cảnh báo. Chỉ đọc một lần khi mở trang Cài đặt; chỉ gợi ý việc đã làm được (Đồng bộ, dọn máy), vì app chưa có nút dọn ảnh ([tech-debt](tech-debt.md) N23).
+- **Cảnh báo dung lượng gần đầy** (Could, Dương duyệt 2026-11-11, cắt được; `storageNearlyFull` trong `client/src/formatBytes.ts`): đã dùng từ 80% `quota` (`STORAGE_WARN_PERCENT`) thì khối Dung lượng ở trang Cài đặt có câu cảnh báo, vì hết hạn mức thì mọi lần ghi IndexedDB đều lỗi (§8 `QuotaExceededError`). Trình duyệt không báo `quota` (0 hoặc không có) hoặc không có `estimate()` thì không cảnh báo. Chỉ đọc một lần khi mở trang Cài đặt (và đọc lại sau khi dọn ảnh); chỉ gợi ý việc làm được ngay trên app: Đồng bộ, rồi nút "Dọn ảnh đã tải lên" ở mục dưới.
+- **Dọn ảnh đã tải lên** (trả tech-debt N23; `client/src/photoCleanup.ts`, `client/src/db/attachments.ts`): khối Dung lượng ở trang Cài đặt có nút [Dọn ảnh đã tải lên], dùng được khi offline. Đếm và dọn trên mọi tổ chức đang tham gia có CSDL trên máy, vì dung lượng là của cả máy; bỏ qua tổ chức đã rời (ảnh ở đó không tải lại được). Không có ảnh nào để dọn thì nút khoá kèm câu "Chưa có ảnh đã tải lên nào trên máy."; ảnh vừa lên server xong thì nút tự bật. Bấm thì hộp xác nhận ghi số ảnh và dung lượng (tổng kích thước blob); đồng ý thì xoá theo §5.6 "Dọn ảnh trên máy", rồi hiện "Đã dọn n ảnh (x MB)." với số thật đã xoá và đọc lại dòng "Đã dùng" (trình duyệt có thể chưa giảm ngay). Một tổ chức lỗi thì các tổ chức khác vẫn được dọn, báo số thật kèm câu lỗi (§8). Trình duyệt không có `estimate()` thì khối Dung lượng vẫn có tiêu đề và nút, chỉ không có dòng "Đã dùng" và thanh.
 - **Dữ liệu trên máy** (Could, Dương duyệt 2026-11-08, cắt được; `client/src/deviceStatus.ts`): trang Cài đặt có khối đếm cho **dự án đang chọn**: số biểu mẫu là số mã form khác nhau trong `forms` (không đếm từng phiên bản), số thay đổi chờ gửi là số op trong `outbox` kể cả op `failed` (đúng phần outbox mà `hasUnsentData` dùng để khoá Đăng xuất; nháp không có op nên không tính, ảnh chờ gửi không tính). Đọc bằng liveQuery nên đồng bộ xong số tự đổi; chỉ đọc IndexedDB, không gọi API. Máy chưa có CSDL của dự án thì không hiện khối, và khối không mở CSDL chưa có (để không tạo lại CSDL vừa bị xoá khi Đăng xuất). Không có mốc "đồng bộ lần cuối".
 
 ### 4.3 Service worker và cài đặt PWA
@@ -531,7 +533,7 @@ Dexie, định nghĩa trong `client/src/db/accountDb.ts` và `client/src/db/proj
 - `PUT .../attachments/:id/chunks/:index` idempotent: gửi lại chunk đã có thì server trả 200, không ghi lại.
 - Sau chunk cuối: `POST .../attachments/:id/complete { recordId, totalChunks, mimeType, sha256 }`; server ghép file, kiểm tra SHA-256 và magic bytes, trả `409 missing_chunks` nếu thiếu chunk, `422 checksum_mismatch` nếu sai hash.
 - Thứ tự với bản ghi và cách retry: xem §5.6.
-- Ảnh đã upload xong được giữ lại ở client cho tới khi người dùng dọn bộ nhớ, để xem offline.
+- Ảnh đã upload xong được giữ lại ở client cho tới khi người dùng dọn bộ nhớ (nút "Dọn ảnh đã tải lên" ở trang Cài đặt, §5.6), để xem offline.
 
 **Tải về để xem** (phiếu máy khác tạo): pull chỉ đem về phiếu và mã ảnh, nên mở phiếu ở màn hình 4 mà máy chưa có blob thì tải bằng `GET .../attachments/:id`. Chi tiết ở §5.6.
 
@@ -746,7 +748,12 @@ Lý do: không tải dữ liệu cá nhân (tên chủ hộ, GPS, ảnh) của n
   - **Thử lại:** mỗi ảnh thử một lần cho mỗi lần mở phiếu. Lỗi mạng thì có mạng trở lại lúc đang mở phiếu sẽ tự thử thêm một lần; `404`, `5xx` chỉ thử lại khi mở lại phiếu (§8). Không có nút Thử lại.
   - **Thời gian:** timeout 10 s của `api.ts` chỉ canh tới lúc có header; thân response có hạn riêng 60 s, cắt giữa chừng hay quá hạn đều là lỗi mạng. Không lưu vào HTTP cache (`no-store`) để đăng xuất là hết ảnh trên máy.
   - **Nút ×:** chỉ có khi máy đã có blob. Người dùng chưa thấy ảnh, và với `404` ảnh có thể đang trên đường lên server, nên không được bỏ (bất biến 1). Người tạo vẫn bỏ được trên máy của họ.
-- **Xoá ảnh khỏi phiếu:** chỉ bỏ id khỏi trường photo; blob cục bộ giữ tới khi người dùng dọn bộ nhớ.
+- **Xoá ảnh khỏi phiếu:** chỉ bỏ id khỏi trường photo; blob cục bộ giữ tới khi người dùng dọn bộ nhớ. Ảnh đã bỏ mà đã `done` thì nút dọn ảnh xoá được; ảnh đã bỏ lúc chưa `done` thì chưa có cách dọn ([tech-debt](tech-debt.md) N27).
+- **Dọn ảnh trên máy** (nút "Dọn ảnh đã tải lên" ở trang Cài đặt, §4.2; `deleteUploadedPhotos` trong `client/src/db/attachments.ts`): xoá mọi dòng `attachments` có `uploadState = 'done'`, tức ảnh máy này đã gửi xong và ảnh tải về để xem; server đã có file và không tự xoá file đã hoàn tất. Không xét trạng thái phiếu: dọn cả ảnh `done` của phiếu đang có op chờ gửi, đang xung đột, đã bị xoá (tombstone pull về) hay ảnh đã bỏ khỏi phiếu.
+  - **Không bao giờ dọn** ảnh `pending`, `uploading`, `failed`, kể cả ảnh không còn phiếu nào tham chiếu: ảnh vừa chọn ở form đang mở chưa bấm Lưu cũng ở dạng đó (CLAUDE.md bất biến 1).
+  - **Xoá cả dòng, không chỉ blob:** máy về đúng trạng thái "chưa có blob" của mục "Tải về để xem", nên mở lại phiếu khi có mạng thì ảnh tự tải về và ghi lại thành `done`; offline thì ô ảnh báo "Cần kết nối để xem ảnh này" và chưa có nút × (§8). Nhãn phiếu, hàng đợi upload và khoá Đăng xuất không đổi vì chỉ xét dòng chưa `done`.
+  - **Một transaction chỉ trên `attachments`** cho mỗi tổ chức: không đổi phiếu, không tạo op, không gửi gì lên server. Không lấy khoá vòng đồng bộ: ảnh đang gửi chưa `done` nên không nằm trong tập bị xoá; ảnh đang tải về mà ghi xong sau lúc dọn thì có lại dòng, vô hại.
+  - **Con số:** hộp xác nhận lấy số lúc bấm nút; hàm xoá đếm lại trong transaction và dòng kết quả ghi số thật.
 - **Dọn rác ở server:** chunk tạm của ảnh chưa `complete` sau 7 ngày thì xoá. File đã hoàn tất không tự xoá, vì `record_history` có thể còn tham chiếu.
 
 ### 5.7 Xoá phiếu
@@ -1080,7 +1087,8 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | Màn hình cần online (Thành viên, Tổ chức, builder lưu form, Xuất) gặp `5xx` hoặc mã lỗi màn hình không xử lý | Không tự thử lại; giữ nguyên phần đang nhập | "Máy chủ đang lỗi, thử lại sau"; Thành viên khi tải danh sách có nút "Thử lại", tải lại lỗi mà đã có danh sách thì vẫn giữ form (§4.7) (`client/src/apiErrors.ts`) |
 | `4xx` khác | Dừng op | "Lỗi" kèm chi tiết, nút "Thử lại" và "Xuất JSON phiếu này" |
 | Ảnh lỗi không retry được | Dừng ảnh đó | "Lỗi ảnh", nút "Thử lại" / "Bỏ ảnh này" |
-| IndexedDB đầy (`QuotaExceededError`) | Không lưu ảnh mới | "Bộ nhớ đầy: đồng bộ rồi dọn ảnh đã tải lên" |
+| IndexedDB đầy (`QuotaExceededError`) | Không lưu ảnh mới | "Bộ nhớ đầy: đồng bộ rồi dọn ảnh đã tải lên" (nút ở trang Cài đặt, §4.2) |
+| Dọn ảnh đã tải lên ở trang Cài đặt mà IndexedDB lỗi (§5.6) | Tổ chức lỗi giữ nguyên ảnh; tổ chức khác vẫn được dọn | "Không dọn được ảnh. Thử lại sau."; đã dọn được phần nào thì vẫn hiện "Đã dọn n ảnh (x MB)." với số thật |
 | Trình duyệt không giải mã được ảnh (vd. HEIC trên Chrome Android) | Không lưu ảnh | "Không đọc được ảnh này. Hãy chụp lại hoặc chọn ảnh JPEG/PNG" |
 | Mở phiếu mà máy chưa có blob của ảnh (§5.6) | Tải về một lần; lỗi thì không lưu gì, phiếu không đổi | Đang tải: "Đang tải…" trong ô. Offline, timeout, mất kết nối: "Cần kết nối để xem ảnh này", có mạng lại thì tự thử lại. `404` (chưa lên server hoặc ngoài phạm vi, không phân biệt): "Ảnh chưa được tải lên". `5xx`, `429`, `4xx` khác, `200` không phải ảnh: "Máy chủ đang lỗi, thử lại sau", không tự thử lại. `401`, `403 not_member`, bộ nhớ đầy: như các dòng trên ("Bạn không còn thuộc tổ chức này" ở dưới ô ảnh) |
 | File nhập form không hợp lệ | Không đổi nội dung builder, không gửi | "File không phải JSON" / "File không đúng định dạng biểu mẫu" / lỗi luật lưu form (§4.1) |
@@ -1134,6 +1142,7 @@ Phạm vi đồ án giữ đơn giản:
 | O8 | Xoá phiếu đã đồng bộ: phiếu biến khỏi danh sách, server có `deleted: true`, máy khác pull thấy tombstone; phiếu bị xoá khỏi máy sau khi op xoá được xác nhận (§5.7) | Có (`delete.spec.ts`) |
 | O9 | Mở phiếu máy khác tạo: thấy ảnh thật (giải mã được), nhãn vẫn "Đã đồng bộ", không có request upload, không có op, đăng xuất không bị chặn; mở lại khi offline vẫn thấy; lần đầu offline báo cần mạng, có mạng thì tự tải; `404`, `5xx` báo đúng câu, không gọi lặp; ảnh ngoài phạm vi không tải được; ảnh chờ gửi của máy này không bị đè (§5.6) | Có (`photo-download.spec.ts`) |
 | O10 | Mở lại phiếu đã xoá: Back sau khi xoá không về lại phiếu; op chờ gửi, op mất response, op bị `4xx`, tombstone pull về, tab khác xoá thì form khoá, không có Lưu và Xoá, không tạo op, server vẫn `deleted: true`; bộ đệm chỉ có [Bỏ], bấm xong vẫn khoá; địa chỉ cũ của phiếu đã rời máy ra form trống, Lưu thì app hỏi (§5.7) | Có (`delete.spec.ts`, `typing-buffer.spec.ts`, `delete-conflict.spec.ts`; unit `recordLock.test.ts`; chưa có E2E cho lúc bấm Lưu đúng lúc phiếu vừa bị xoá) |
+| O11 | Dọn ảnh đã tải lên ở Cài đặt: Huỷ thì còn nguyên; xác nhận thì dòng ảnh `done` mất, phiếu và outbox không đổi, không có request upload hay PUT phiếu, nhãn vẫn "Đã đồng bộ"; mở lại phiếu thì ảnh tự tải về, offline thì báo cần mạng; ảnh chưa gửi còn nguyên và vẫn lên server đúng từng byte; ảnh tải về để xem và ảnh của phiếu đã bị xoá trên server cũng dọn được (§5.6) | Có (`photo-cleanup.spec.ts`; unit `client/src/photoCleanup.test.ts`; chưa có test cho ca một tổ chức lỗi lúc dọn) |
 
 **Conflict**
 
