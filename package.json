@@ -13,7 +13,8 @@
     "test": "npm test -w shared && npm test -w server && npm test -w client",
     "test:e2e": "npm run test:e2e -w client",
     "test:perf": "npm run test:perf -w client",
-    "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client"
+    "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client",
+    "test:retry-load": "tsx scripts/vt084-load.ts"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

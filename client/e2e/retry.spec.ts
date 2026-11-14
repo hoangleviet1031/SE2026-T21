@@ -61,3 +61,23 @@ test('R3: server ghi xong nhưng kết nối bị cắt trước response: gửi
   expect(replayed).toEqual([201]);
   expect((await serverCopies(request, name)).map((r) => r.version)).toEqual([1]);
 });
+
+test('VT-084: HTTP 500 retry reuses the idempotency key and persists one record', async ({ page, request }) => {
+  await login(page);
+  await request.post(FAULTS, { data: { mode: '500', count: 1, match: '/records/' } });
+
+  const writes: { key: string; status: number }[] = [];
+  page.on('response', (response) => {
+    const req = response.request();
+    if (req.method() === 'PUT' && /\/records\//.test(new URL(req.url()).pathname)) {
+      writes.push({ key: req.headers()['idempotency-key'] ?? '', status: response.status() });
+    }
+  });
+  const name = `VT-084 ${crypto.randomUUID().slice(0, 8)}`;
+  await saveRecord(page, name);
+  await expect.poll(async () => (await serverCopies(request, name)).map((record) => record.version), { timeout: 20_000 }).toEqual([1]);
+
+  expect(writes.map(({ status }) => status)).toEqual([500, 201]);
+  expect(writes[0]?.key).toBeTruthy();
+  expect(writes[1]?.key).toBe(writes[0]?.key);
+});
