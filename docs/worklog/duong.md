@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-11-14 | — | feat | Màn 8: nút [Dọn ảnh đã tải lên] xoá ảnh server đã có khỏi máy, ảnh chưa gửi giữ nguyên, mở lại phiếu thì tự tải về (tech-debt N23, Must) | PR #(chờ số) | chờ review |
+| 2026-11-14 | — | feat | Màn 8: nút [Dọn ảnh đã tải lên] xoá ảnh server đã có khỏi máy, ảnh chưa gửi giữ nguyên, mở lại phiếu thì tự tải về (tech-debt N23, Must) | PR #141 | chờ review |
 | 2026-11-13 | — | feat | PR #140 đã merge | PR #140 | xong |
 | 2026-11-13 | — | feat | Màn 5: khối "Bắt đầu từ mẫu" ở Biểu mẫu mới, ba mẫu có sẵn (hộ gia đình, y tế, cây trồng), đã sửa thì hỏi trước khi thay (Could) | PR #140 | chờ review |
 | 2026-11-13 | — | feat | PR #139 đã merge | PR #139 | xong |
