@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { accountUsername } from '../accountDisplay';
@@ -15,15 +15,25 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
 import { UsernameActions } from '../components/UsernameActions';
 import { getAccountValue } from '../db/accountDb';
+import { deleteUploadedPhotosOnDevice, uploadedPhotoStatsOnDevice } from '../db/attachments';
 import { getCurrentProjectId, openProjectDb, projectDbExists, useCurrentProject } from '../db/current';
 import { deviceStatus } from '../deviceStatus';
 import { formatBytes, storageNearlyFull, usagePercent } from '../formatBytes';
 import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
+import {
+  CLEANUP_BUTTON,
+  CLEANUP_CONFIRM_LABEL,
+  CLEANUP_EMPTY_MSG,
+  CLEANUP_FAILED_MSG,
+  cleanupConfirmText,
+  cleanupDoneText,
+  type PhotoTotals,
+} from '../photoCleanup';
 import { apiFailure, changePassword } from '../sync/api';
 import { useOnline } from '../useOnline';
 
-// Xem docs/ui.md màn hình 8 và design §4.2, §4.7. Chỉ đọc IndexedDB, dùng được khi offline; riêng Đổi mật khẩu
-// gọi API thẳng (cần mạng, CLAUDE.md bất biến 7).
+// Xem docs/ui.md màn hình 8 và design §4.2, §4.7. Chỉ đọc IndexedDB (nút dọn ảnh thì xoá ảnh server đã có), dùng
+// được khi offline; riêng Đổi mật khẩu gọi API thẳng (cần mạng, CLAUDE.md bất biến 7).
 
 // Đang chạy như app đã cài: Android/máy tính báo qua display-mode, Safari iOS qua navigator.standalone
 // (thuộc tính riêng của Safari, không có trong kiểu DOM chuẩn nên đọc bằng Reflect)
@@ -48,16 +58,21 @@ export function SettingsPage() {
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const blockedId = useId();
 
-  useEffect(() => {
+  // Còn trên trang thì mới ghi state: lần đọc lại sau khi dọn ảnh có thể xong lúc đã rời trang
+  const alive = useRef(true);
+  const readStorage = useCallback(async () => {
     if (!navigator.storage?.estimate) return;
-    let alive = true;
-    void navigator.storage.estimate().then((e) => {
-      if (alive) setStorage({ usage: e.usage ?? 0, quota: e.quota ?? 0 });
-    });
-    return () => {
-      alive = false;
-    };
+    const e = await navigator.storage.estimate();
+    if (alive.current) setStorage({ usage: e.usage ?? 0, quota: e.quota ?? 0 });
   }, []);
+
+  useEffect(() => {
+    alive.current = true;
+    void readStorage();
+    return () => {
+      alive.current = false;
+    };
+  }, [readStorage]);
 
   async function onLogout() {
     setConfirmingLogout(false);
@@ -107,28 +122,30 @@ export function SettingsPage() {
 
       {user && <ChangePasswordCard />}
 
-      {storage && (
-        <div className="card">
-          <h3>Dung lượng</h3>
+      {/* Trình duyệt không có storage.estimate thì chỉ ẩn dòng và thanh, khối vẫn có nút dọn ảnh (ui.md màn hình 8) */}
+      <div className="card">
+        <h3>Dung lượng</h3>
+        {storage && (
           <p data-testid="settings-storage">
             Đã dùng {formatBytes(storage.usage)} / {formatBytes(storage.quota)}
           </p>
-          {/* Chữ ở trên đã nói đủ con số, thanh chỉ để nhìn nên trình đọc màn hình bỏ qua */}
-          {percent !== null && (
-            <div className="bar" aria-hidden="true" data-testid="storage-bar">
-              <i style={{ width: `${percent}%` }} />
-            </div>
-          )}
-          {/* Có sẵn ngay khi mở trang nên không cần role="alert"; chỉ gợi ý việc đã làm được: nút Đồng bộ trên
-              header và dọn máy, vì app chưa có nút dọn ảnh (tech-debt N23) */}
-          {percent !== null && storageNearlyFull(storage.usage, storage.quota) && (
-            <p className="warning" data-testid="storage-warning">
-              ⚠ Bộ nhớ gần đầy (đã dùng {Math.floor(percent)}%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm
-              Đồng bộ để gửi dữ liệu lên máy chủ, rồi xoá bớt ảnh hoặc ứng dụng khác trên điện thoại.
-            </p>
-          )}
-        </div>
-      )}
+        )}
+        {/* Chữ ở trên đã nói đủ con số, thanh chỉ để nhìn nên trình đọc màn hình bỏ qua */}
+        {percent !== null && (
+          <div className="bar" aria-hidden="true" data-testid="storage-bar">
+            <i style={{ width: `${percent}%` }} />
+          </div>
+        )}
+        {/* Có sẵn ngay khi mở trang nên không cần role="alert"; chỉ gợi ý việc làm được ngay trên app: nút Đồng
+            bộ trên header và nút dọn ảnh ngay dưới */}
+        {storage && percent !== null && storageNearlyFull(storage.usage, storage.quota) && (
+          <p className="warning" data-testid="storage-warning">
+            ⚠ Bộ nhớ gần đầy (đã dùng {Math.floor(percent)}%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm
+            Đồng bộ để gửi dữ liệu lên máy chủ, rồi bấm {CLEANUP_BUTTON}.
+          </p>
+        )}
+        <PhotoCleanup onCleaned={readStorage} />
+      </div>
 
       {project && <DeviceStatusCard projectName={project.name} />}
 
@@ -186,6 +203,84 @@ export function SettingsPage() {
         />
       )}
     </section>
+  );
+}
+
+/**
+ * Nút "Dọn ảnh đã tải lên" trong khối Dung lượng (design §4.2, §5.6; ui.md màn hình 8). Chỉ đọc/xoá IndexedDB
+ * nên offline vẫn dùng được. Đếm bằng liveQuery: ảnh vừa lên server xong thì nút tự bật.
+ */
+function PhotoCleanup({ onCleaned }: { onCleaned: () => Promise<void> }) {
+  const totals = useLiveQuery(uploadedPhotoStatsOnDevice, []);
+  // Con số chốt lúc bấm nút: hộp đang mở mà vòng đồng bộ gửi thêm ảnh thì câu hỏi không tự đổi dưới tay người dùng
+  const [asking, setAsking] = useState<PhotoTotals | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [cleaned, setCleaned] = useState<PhotoTotals | null>(null);
+  const [failed, setFailed] = useState(false);
+  const emptyId = useId();
+  const empty = totals !== undefined && totals.count === 0;
+
+  async function clean() {
+    setAsking(null);
+    setBusy(true);
+    setCleaned(null);
+    setFailed(false);
+    try {
+      const result = await deleteUploadedPhotosOnDevice();
+      // Số thật đã xoá, có thể khác số trong hộp; không xoá được ảnh nào thì không báo "đã dọn"
+      if (result.cleaned.count > 0) setCleaned(result.cleaned);
+      setFailed(result.failed);
+    } catch (e) {
+      // Không đọc được danh sách tổ chức: chưa dọn được gì, báo theo design §8
+      console.warn('không dọn được ảnh', e);
+      setFailed(true);
+    } finally {
+      setBusy(false);
+    }
+    // Đọc lại dòng "Đã dùng"; trình duyệt có thể chưa giảm ngay nên dòng kết quả mới là chỗ ghi số đã dọn
+    void onCleaned();
+  }
+
+  return (
+    <>
+      <button
+        className="wide"
+        data-testid="cleanup-photos-button"
+        onClick={() => totals && setAsking(totals)}
+        disabled={busy || totals === undefined || empty}
+        aria-describedby={empty ? emptyId : undefined}
+      >
+        {CLEANUP_BUTTON}
+      </button>
+      {empty && (
+        <p className="hint" id={emptyId} data-testid="cleanup-photos-empty">
+          {CLEANUP_EMPTY_MSG}
+        </p>
+      )}
+      {/* Vùng status luôn có, chỉ đổi chữ: vùng chèn vào cùng lúc với chữ thì có máy bỏ qua (như Đổi mật khẩu) */}
+      <p className="visually-hidden" role="status">
+        {cleaned ? cleanupDoneText(cleaned) : ''}
+      </p>
+      {cleaned && (
+        <p className="ok-line" data-testid="cleanup-photos-done">
+          <Icon name="synced" />
+          {cleanupDoneText(cleaned)}
+        </p>
+      )}
+      {failed && (
+        <p className="field-error" role="alert" data-testid="cleanup-photos-error">
+          ⚠ {CLEANUP_FAILED_MSG}
+        </p>
+      )}
+      {asking && (
+        <ConfirmDialog
+          message={cleanupConfirmText(asking)}
+          confirmLabel={CLEANUP_CONFIRM_LABEL}
+          onConfirm={() => void clean()}
+          onCancel={() => setAsking(null)}
+        />
+      )}
+    </>
   );
 }
 

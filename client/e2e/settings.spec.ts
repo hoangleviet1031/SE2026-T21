@@ -215,7 +215,7 @@ test('dung lượng từ 80% hạn mức: cảnh báo bộ nhớ gần đầy; d
   await login(page);
   await openSettings(page);
   await expect(page.getByTestId('storage-warning')).toHaveText(
-    '⚠ Bộ nhớ gần đầy (đã dùng 85%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm Đồng bộ để gửi dữ liệu lên máy chủ, rồi xoá bớt ảnh hoặc ứng dụng khác trên điện thoại.',
+    '⚠ Bộ nhớ gần đầy (đã dùng 85%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm Đồng bộ để gửi dữ liệu lên máy chủ, rồi bấm Dọn ảnh đã tải lên.',
   );
   // Nằm trong khối Dung lượng, không phải dải chung đầu trang
   await expect(page.getByTestId('settings-storage').locator('..').getByTestId('storage-warning')).toBeVisible();

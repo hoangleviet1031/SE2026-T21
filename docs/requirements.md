@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.30 (2026-11-13)
+- **Phiên bản:** 0.31 (2026-11-14)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -29,7 +29,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** còn phiếu chưa gửi, **when** tôi đóng tab rồi mở lại, **then** phiếu vẫn còn và tự đồng bộ khi có mạng.
 - **Given** còn dữ liệu chưa gửi ở bất kỳ dự án nào, **when** tôi mở Cài đặt, **then** nút Đăng xuất bị khoá và đọc kèm lý do; lúc bấm [Đăng xuất] trong hộp xác nhận mới thấy còn dữ liệu chưa gửi (vd. tab khác vừa lưu) thì báo "⚠ Còn dữ liệu chưa gửi ở dự án …", không xoá phiếu, CSDL dự án hay cache `me`/`forms`.
 - (Could) **Given** tôi đang chọn một tổ chức, **when** mở Cài đặt, **then** khối "Dữ liệu trên máy" hiện số biểu mẫu và số thay đổi chờ gửi của tổ chức đó; lưu phiếu khi offline thì số chờ gửi tăng, đồng bộ xong tự về 0.
-- (Could) **Given** bộ nhớ trình duyệt đã dùng từ 80% hạn mức, **when** mở Cài đặt, **then** khối Dung lượng có câu "⚠ Bộ nhớ gần đầy (đã dùng n%)…" gợi ý Đồng bộ và dọn máy; dưới 80% hoặc trình duyệt không báo hạn mức thì không có câu đó.
+- (Could) **Given** bộ nhớ trình duyệt đã dùng từ 80% hạn mức, **when** mở Cài đặt, **then** khối Dung lượng có câu "⚠ Bộ nhớ gần đầy (đã dùng n%)…" gợi ý Đồng bộ rồi bấm Dọn ảnh đã tải lên; dưới 80% hoặc trình duyệt không báo hạn mức thì không có câu đó.
 - **Given** đang ở trang nhập phiếu, **when** có phiên bản mới và tôi bấm [Tải lại], **then** app hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?"; Huỷ thì giữ nguyên chỗ đang nhập.
 - (Could) **Given** tôi đang gõ phiếu mà chưa bấm Lưu, **when** trang bị tải lại hoặc tôi bấm "← Quay lại" rồi mở lại phiếu, **then** app hỏi [Khôi phục] / [Bỏ]; Khôi phục thì có lại chữ đã gõ (cả ảnh đã chọn), trong lúc đó phiếu không đổi trạng thái và không có op nào; phiếu đã bị sửa ở nơi khác thì trường cả hai cùng sửa giữ bản mới và hiện chữ tôi đã gõ.
 - (Could) **Given** tôi đang gõ một phiếu mới chưa Lưu lần nào, **when** app bị tắt rồi tôi mở lại (vào trang chủ), **then** trang chủ có dải "Phiếu đang nhập dở, chưa lưu" dẫn về phiếu đó để khôi phục; Lưu xong thì dải mất.
@@ -52,6 +52,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** đang tải một ảnh thì mất mạng, **when** có mạng lại, **then** chỉ gửi phần còn thiếu, mỗi phần chỉ ghi một lần.
 - **Given** ảnh chụp 4–6 MB, **when** lưu vào phiếu, **then** ảnh sau nén ≤ 600 KB (trừ ảnh quá nhiều chi tiết, vẫn được lưu).
 - **Given** phiếu do máy khác tạo có ảnh đã lên server, **when** tôi mở phiếu lúc có mạng, **then** ảnh hiện ra, nhãn vẫn "Đã đồng bộ", không có op mới và ảnh không bị gửi lại; mở lại khi offline vẫn thấy. Lần đầu không có mạng thì báo "Cần kết nối để xem ảnh này", có mạng thì tải được; ảnh chưa lên server thì báo "Ảnh chưa được tải lên"; chưa thấy ảnh thì không bỏ được ảnh đó.
+- **Given** máy có ảnh đã lên server (ảnh tôi chụp đã gửi xong, ảnh tải về để xem), **when** tôi bấm [Dọn ảnh đã tải lên] ở Cài đặt, **then** app hỏi lại kèm số ảnh và dung lượng; Huỷ thì không đổi gì; đồng ý thì các ảnh đó rời máy, phiếu và nhãn không đổi, không có op mới, ảnh chưa gửi còn nguyên và vẫn lên server; mở lại phiếu khi có mạng thì ảnh tự tải về. Không có ảnh nào để dọn thì nút khoá kèm lý do.
 - **Given** đang offline, **when** bấm "Lấy vị trí" rồi Lưu, **then** phiếu có toạ độ; có mạng thì server nhận đúng toạ độ đó.
 - **Given** chưa cho phép quyền vị trí (hoặc máy không lấy được vị trí trong 30 s), **when** bấm "Lấy vị trí", **then** thấy câu hướng dẫn (design §8) và giá trị trường không đổi.
 
@@ -201,6 +202,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
 | US-03 | Ảnh sau nén ≤ 600 KB | `photo.spec.ts`; unit `fitWithin` (`client/src/media/compress.test.ts`) | TV3-03 (#31) |
 | US-03 | Xem ảnh của phiếu máy khác tạo | O9 `photo-download.spec.ts`; unit `client/src/sync/photoDownloadRules.test.ts` | Không ticket (#122) |
+| US-03 | Dọn ảnh đã tải lên ở Cài đặt, ảnh chưa gửi không bị đụng | O11 `photo-cleanup.spec.ts`; unit `client/src/photoCleanup.test.ts`; `settings.spec.ts` (câu cảnh báo gần đầy trỏ tới nút) | Không ticket (#141) |
 | US-03 | Lấy GPS khi offline | `gps-offline.spec.ts`; unit luật `gps` trong `recordValidation.test.ts` | TV1-05; TV3-14 |
 | US-03 | Không lấy được vị trí → câu hướng dẫn | `gps-errors.spec.ts`; unit `client/src/gps.test.ts` | TV1-12 (#69, b2 p1 #70) |
 | US-04 | 500 hai lần → một bản ghi | R1 `offline.spec.ts` | TV2-09 (#16) |
@@ -299,3 +301,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.28 | 2026-11-12 | US-07 thêm tiêu chí builder đang mở mà form lên bản mới (tech-debt N25), kèm dòng truy vết (sửa lỗi, không ticket) |
 | 0.29 | 2026-11-13 | Thêm US-15 "Xem lịch sử sửa phiếu" (Could, không ticket, Dương duyệt 2026-11-13) cùng dòng truy vết; K2 thêm US-15 |
 | 0.30 | 2026-11-13 | US-07 thêm tiêu chí mẫu form có sẵn ở "Biểu mẫu mới", kèm dòng truy vết (Could, không ticket, Dương duyệt 2026-11-13) |
+| 0.31 | 2026-11-14 | US-03 thêm tiêu chí dọn ảnh đã tải lên ở Cài đặt, kèm dòng truy vết (Must, tech-debt N23, không ticket, Dương cho phép 2026-11-14); US-01 sửa đuôi câu cảnh báo gần đầy theo nút mới |
