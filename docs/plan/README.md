@@ -127,7 +127,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Màn 5: Builder đang mở mà form lên bản mới (sửa lỗi, không ticket, Dương duyệt) | Must | N25 | ✅ PR #138 |
 | — | Màn 4: Lịch sử sửa của phiếu (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #139 |
 | — | Màn 5: Mẫu form có sẵn (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #140 |
-| — | Màn 8: Dọn ảnh đã tải lên (không ticket, Dương cho phép) | Must | N23 | ⏳ PR #141 |
+| — | Màn 8: Dọn ảnh đã tải lên (không ticket, Dương cho phép) | Must | N23 | ✅ PR #141 |
 
 ## Phụ thuộc quan trọng
 
