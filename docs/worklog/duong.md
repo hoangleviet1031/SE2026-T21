@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-16 | — | feat | PR #142 đã merge | PR #142 | xong |
+| 2026-11-16 | — | feat | Màn 8: nút [Xoá dữ liệu trên máy] xoá CSDL mọi tổ chức và cache runtime, vẫn đăng nhập, có mạng thì tải lại; khoá khi còn dữ liệu chưa gửi như Đăng xuất (design §9, tech-debt N27 phần 1) | PR #142 | chờ review |
 | 2026-11-14 | — | feat | PR #141 đã merge | PR #141 | xong |
 | 2026-11-14 | — | feat | Màn 8: nút [Dọn ảnh đã tải lên] xoá ảnh server đã có khỏi máy, ảnh chưa gửi giữ nguyên, mở lại phiếu thì tự tải về (tech-debt N23, Must) | PR #141 | chờ review |
 | 2026-11-13 | — | feat | PR #140 đã merge | PR #140 | xong |
