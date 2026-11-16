@@ -27,10 +27,24 @@ export function contrastRatio(a: string, b: string): number {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
-/** Token `--tên: giá trị` trong khối `:root { … }` đầu tiên của CSS (bỏ comment) */
+const stripComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+/** Token `--tên: giá trị` trong khối `:root { … }` đầu tiên của CSS (bỏ comment), tức bảng màu sáng */
 export function rootTokens(css: string): Record<string, string> {
-  const noComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  const block = /:root\s*\{([^}]*)\}/.exec(noComments)?.[1];
+  return parseTokens(/:root\s*\{([^}]*)\}/.exec(stripComments(css))?.[1]);
+}
+
+/** Chỉ các token khai lại trong `@media (prefers-color-scheme: dark) { :root { … } }` */
+export function darkOverrides(css: string): Record<string, string> {
+  return parseTokens(/@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*:root\s*\{([^}]*)\}/.exec(stripComments(css))?.[1]);
+}
+
+/** Bảng màu tối như trình duyệt thấy: token sáng, khai lại thì lấy bản tối (var() tính theo bảng đã gộp) */
+export function darkTokens(css: string): Record<string, string> {
+  return { ...rootTokens(css), ...darkOverrides(css) };
+}
+
+function parseTokens(block: string | undefined): Record<string, string> {
   if (block === undefined) return {};
   const tokens: Record<string, string> = {};
   // Giá trị có thể chứa ";" trong url("…"), nên cắt theo khai báo chứ không theo dấu ";"

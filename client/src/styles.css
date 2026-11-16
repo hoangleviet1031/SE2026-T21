@@ -1,5 +1,6 @@
 /* Token theo bản thiết kế của Dương (TV1-12 b2, ui.md "Hệ thống thiết kế"). Cặp chữ trên nền ≥ 4,5:1, kiểm ở theme.test.ts.
-   Mọi màu nằm ở đây, ngoài :root chỉ dùng var() (trừ bóng đổ và nền mờ sau hộp, ngăn kéo): chế độ tối (giao diện tối phần 2) chỉ cần đổi token, không sót mảng sáng.
+   Mọi màu nằm ở đây, ngoài :root chỉ dùng var() (trừ bóng đổ và nền mờ sau hộp, ngăn kéo): chế độ tối chỉ đổi token, không sót mảng sáng.
+   Giao diện tối theo hệ điều hành (prefers-color-scheme, Could, Dương duyệt 2026-11-16): khối @media ngay dưới; không có nút chuyển.
    Phông máy (Roboto trên Android, SF trên iPhone, Segoe UI trên Windows), không tải phông để chạy offline. */
 :root {
   --ink: #262522;       /* chữ chính */
@@ -53,6 +54,47 @@
   --r-btn: 10px; --r-card: 16px; --r-pill: 999px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-family: var(--font); color: var(--ink); background: var(--paper); line-height: 1.4;
+  /* Ô nhập, ô chọn, lịch chọn ngày, gợi ý, thanh cuộn của trình duyệt theo cùng chế độ với app */
+  color-scheme: light dark;
+}
+/* Giao diện tối (ui.md "Hệ thống thiết kế"): nền tối ấm cùng tông bản sáng. Nền đặc (nút chính, nút đỏ, nút trong thẻ form)
+   thành sáng, chữ trên đó tối (--on-fill); vàng nhấn giữ sáng, chữ trên vàng tối. Tỉ lệ tương phản kiểm ở theme.test.ts */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #edebe6; --btn: #edebe6; --muted: #b3afa7;
+    --paper: #181715; --sunken: #2a2825; --surface: #211f1c; --chip: #34322e;
+    --line: #33312d; --edge: #46433e; --field: #8a867e;
+    --hl: #f2d675; --hl-soft: #3b331c;
+    --red: #ff8f80; --red-soft: #3e1f1b;
+    --warn-ink: #f3c766; --warn-bg: #3a2e0f;
+    --ok: #6fcf97;
+    --disabled-ink: #8e8a83;
+    --on-fill: #1d1c1a;
+    --on-fill-faint: rgba(29, 28, 26, .35);
+    --hl-bar: var(--on-hl);
+    --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d1c1a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E");
+    --hdr-off: #6f6c66;
+    --faint: #5c5952;
+    --grip: #8a867e;
+    --slot-line: #8a7428; --slot-stripe: #332c18;
+    --st-draft: #f0a85a; --st-up: #7fb2ec;
+    --ok-soft: #1c3326;
+    --warn-line: rgba(255, 255, 255, .12);
+    --blocked-bg: #2f2610; --blocked-line: #5c4a1a;
+    --hl-line: #5c4c1e;
+    --info-bg: #1b2b3d; --info-ink: #a9cdf5;
+    --ro-bg: #2a2825; --ro-line: #3a3834;
+    --owner-bg: #2f2840; --owner-ink: #cdbff0;
+    --sup-bg: #1c2e3d; --sup-ink: #a6cdec;
+    --row-open: #2a2516;
+    --photo-btn: rgba(33, 31, 28, .92);
+    --f1: #2b261a; --b1: #3d3524; --t1: #463c26;
+    --f2: #1f281c; --b2: #2f3d2a; --t2: #344530;
+    --f3: #1b2530; --b3: #2a3846; --t3: #2f4152;
+    --f4: #2d211c; --b4: #42302a; --t4: #4a342c;
+    --f5: #24212f; --b5: #353046; --t5: #3c3550;
+    --d1: #e0c98a; --d2: #a9d39a; --d3: #9cc4e2; --d4: #eab49e; --d5: #c3b8ea;
+  }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); font-size: 16px; }

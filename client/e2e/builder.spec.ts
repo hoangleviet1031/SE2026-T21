@@ -521,7 +521,8 @@ test('nền trang trắng, theme-color trắng; gợi ý và mã khoá trong bui
 
   await login(page, 'lan');
   expect(await page.locator('body').evaluate(bg)).toBe('rgb(255, 255, 255)');
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#ffffff');
+  // Từ giao diện tối có hai thẻ theme-color theo chế độ; chế độ sáng vẫn trắng
+  await expect(page.locator('meta[name="theme-color"][media="(prefers-color-scheme: light)"]')).toHaveAttribute('content', '#ffffff');
 
   await formRow(page, 'Nền trắng').getByRole('link', { name: 'Sửa form' }).click();
   const hint = page.getByText('Bấm vào một trường để sửa nhãn, bắt buộc, ẩn, lựa chọn.');
