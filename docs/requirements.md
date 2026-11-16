@@ -189,7 +189,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Mở và nhập khi offline | O1 `offline.spec.ts` | khung ban đầu |
 | US-01 | 10 phiếu offline lên đủ, version 1 | O2 `offline-install.spec.ts` | TV1-11 (#43) |
 | US-01 | Đóng tab vẫn đồng bộ | O4 `offline-install.spec.ts` | TV1-11 (#43) |
-| US-01 | Xoá dữ liệu trên máy: khoá khi còn op hoặc nháp, đọc kèm lý do; xác nhận thì xoá mà vẫn đăng nhập, có mạng thì tải lại; tab khác vừa lưu thì không xoá gì | O12 `wipe-data.spec.ts`; unit `blockedMessage` (`client/src/wipeData.test.ts`) | không ticket (#?) |
+| US-01 | Xoá dữ liệu trên máy: khoá khi còn op hoặc nháp, đọc kèm lý do; xác nhận thì xoá mà vẫn đăng nhập, có mạng thì tải lại; tab khác vừa lưu thì không xoá gì | O12 `wipe-data.spec.ts`; unit `blockedMessage` (`client/src/wipeData.test.ts`) | không ticket (#142) |
 | US-01 | Còn dữ liệu chưa gửi → Đăng xuất bị khoá/bị chặn, không xoá gì | `settings.spec.ts` (Đăng xuất bị khoá, đồng bộ xong tự mở; nút khoá đọc kèm lý do; đang hỏi Đăng xuất mà tab khác lưu phiếu thì báo ⚠, không xoá CSDL và cache; bị chặn thì cache `me`/`forms` còn nguyên) | TV1-07 (#20, #28); TV1-12 (sau audit UI); không ticket (#102) |
 | US-01 | Có bản mới khi đang nhập → hỏi trước khi tải lại | `update.spec.ts` | TV1-07 (#27); câu hỏi đổi khi có bộ đệm (#114) |
 | US-01 | Chữ đang gõ được giữ, mở lại hỏi khôi phục, không tạo op; gộp theo trường khi phiếu bị đổi (Could) | `typing-buffer.spec.ts`; unit `needsBuffer`, `restorePlan`, `keptFieldLine` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p1 (#114) |
