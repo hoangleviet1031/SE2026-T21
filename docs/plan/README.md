@@ -128,6 +128,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Màn 4: Lịch sử sửa của phiếu (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #139 |
 | — | Màn 5: Mẫu form có sẵn (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #140 |
 | — | Màn 8: Dọn ảnh đã tải lên (không ticket, Dương cho phép) | Must | N23 | ✅ PR #141 |
+| — | Màn 8: Xoá dữ liệu trên máy (design §9, không ticket, Dương cho phép) | – | N27 phần 1 | ⏳ chờ review |
 
 ## Phụ thuộc quan trọng
 

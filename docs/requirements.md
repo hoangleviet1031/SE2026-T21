@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.31 (2026-11-14)
+- **Phiên bản:** 0.32 (2026-11-16)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -28,6 +28,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tôi đã lưu 10 phiếu khi offline, **when** có mạng trở lại, **then** server có đủ 10 phiếu, mỗi phiếu version 1, và nhãn đổi thành "Đã đồng bộ".
 - **Given** còn phiếu chưa gửi, **when** tôi đóng tab rồi mở lại, **then** phiếu vẫn còn và tự đồng bộ khi có mạng.
 - **Given** còn dữ liệu chưa gửi ở bất kỳ dự án nào, **when** tôi mở Cài đặt, **then** nút Đăng xuất bị khoá và đọc kèm lý do; lúc bấm [Đăng xuất] trong hộp xác nhận mới thấy còn dữ liệu chưa gửi (vd. tab khác vừa lưu) thì báo "⚠ Còn dữ liệu chưa gửi ở dự án …", không xoá phiếu, CSDL dự án hay cache `me`/`forms`.
+- **Given** còn dữ liệu chưa gửi (op chờ gửi, phiếu nháp) ở bất kỳ tổ chức nào, **when** tôi mở Cài đặt, **then** nút [Xoá dữ liệu trên máy] bị khoá và đọc kèm lý do như Đăng xuất; **given** không còn gì chưa gửi, **when** tôi xác nhận xoá, **then** phiếu, biểu mẫu và ảnh mất khỏi máy nhưng tôi vẫn đăng nhập, có mạng thì phiếu đã lên server tải lại; lúc bấm xác nhận mới thấy còn dữ liệu chưa gửi thì báo ⚠ và không xoá gì.
 - (Could) **Given** tôi đang chọn một tổ chức, **when** mở Cài đặt, **then** khối "Dữ liệu trên máy" hiện số biểu mẫu và số thay đổi chờ gửi của tổ chức đó; lưu phiếu khi offline thì số chờ gửi tăng, đồng bộ xong tự về 0.
 - (Could) **Given** bộ nhớ trình duyệt đã dùng từ 80% hạn mức, **when** mở Cài đặt, **then** khối Dung lượng có câu "⚠ Bộ nhớ gần đầy (đã dùng n%)…" gợi ý Đồng bộ rồi bấm Dọn ảnh đã tải lên; dưới 80% hoặc trình duyệt không báo hạn mức thì không có câu đó.
 - **Given** đang ở trang nhập phiếu, **when** có phiên bản mới và tôi bấm [Tải lại], **then** app hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?"; Huỷ thì giữ nguyên chỗ đang nhập.
@@ -188,6 +189,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Mở và nhập khi offline | O1 `offline.spec.ts` | khung ban đầu |
 | US-01 | 10 phiếu offline lên đủ, version 1 | O2 `offline-install.spec.ts` | TV1-11 (#43) |
 | US-01 | Đóng tab vẫn đồng bộ | O4 `offline-install.spec.ts` | TV1-11 (#43) |
+| US-01 | Xoá dữ liệu trên máy: khoá khi còn op hoặc nháp, đọc kèm lý do; xác nhận thì xoá mà vẫn đăng nhập, có mạng thì tải lại; tab khác vừa lưu thì không xoá gì | O12 `wipe-data.spec.ts`; unit `blockedMessage` (`client/src/wipeData.test.ts`) | không ticket (#?) |
 | US-01 | Còn dữ liệu chưa gửi → Đăng xuất bị khoá/bị chặn, không xoá gì | `settings.spec.ts` (Đăng xuất bị khoá, đồng bộ xong tự mở; nút khoá đọc kèm lý do; đang hỏi Đăng xuất mà tab khác lưu phiếu thì báo ⚠, không xoá CSDL và cache; bị chặn thì cache `me`/`forms` còn nguyên) | TV1-07 (#20, #28); TV1-12 (sau audit UI); không ticket (#102) |
 | US-01 | Có bản mới khi đang nhập → hỏi trước khi tải lại | `update.spec.ts` | TV1-07 (#27); câu hỏi đổi khi có bộ đệm (#114) |
 | US-01 | Chữ đang gõ được giữ, mở lại hỏi khôi phục, không tạo op; gộp theo trường khi phiếu bị đổi (Could) | `typing-buffer.spec.ts`; unit `needsBuffer`, `restorePlan`, `keptFieldLine` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p1 (#114) |
@@ -302,3 +304,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.29 | 2026-11-13 | Thêm US-15 "Xem lịch sử sửa phiếu" (Could, không ticket, Dương duyệt 2026-11-13) cùng dòng truy vết; K2 thêm US-15 |
 | 0.30 | 2026-11-13 | US-07 thêm tiêu chí mẫu form có sẵn ở "Biểu mẫu mới", kèm dòng truy vết (Could, không ticket, Dương duyệt 2026-11-13) |
 | 0.31 | 2026-11-14 | US-03 thêm tiêu chí dọn ảnh đã tải lên ở Cài đặt, kèm dòng truy vết (Must, tech-debt N23, không ticket, Dương cho phép 2026-11-14); US-01 sửa đuôi câu cảnh báo gần đầy theo nút mới |
+| 0.32 | 2026-11-16 | US-01 thêm tiêu chí nút "Xoá dữ liệu trên máy" ở Cài đặt, kèm dòng truy vết (tech-debt N27 phần 1, đúng design §9, không ticket, Dương cho phép 2026-11-16) |

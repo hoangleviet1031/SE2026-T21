@@ -19,7 +19,7 @@ import { deleteUploadedPhotosOnDevice, uploadedPhotoStatsOnDevice } from '../db/
 import { getCurrentProjectId, openProjectDb, projectDbExists, useCurrentProject } from '../db/current';
 import { deviceStatus } from '../deviceStatus';
 import { formatBytes, storageNearlyFull, usagePercent } from '../formatBytes';
-import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
+import { logout, projectsBlockingLogout, wipeDeviceData } from '../logout';
 import {
   CLEANUP_BUTTON,
   CLEANUP_CONFIRM_LABEL,
@@ -30,7 +30,16 @@ import {
   type PhotoTotals,
 } from '../photoCleanup';
 import { apiFailure, changePassword } from '../sync/api';
+import { syncNow } from '../sync/engine';
 import { useOnline } from '../useOnline';
+import {
+  WIPE_BUTTON,
+  WIPE_CONFIRM_LABEL,
+  WIPE_CONFIRM_MSG,
+  WIPE_DONE_MSG,
+  WIPE_FAILED_MSG,
+  blockedMessage,
+} from '../wipeData';
 
 // Xem docs/ui.md màn hình 8 và design §4.2, §4.7. Chỉ đọc IndexedDB (nút dọn ảnh thì xoá ảnh server đã có), dùng
 // được khi offline; riêng Đổi mật khẩu gọi API thẳng (cần mạng, CLAUDE.md bất biến 7).
@@ -39,11 +48,6 @@ import { useOnline } from '../useOnline';
 // (thuộc tính riêng của Safari, không có trong kiểu DOM chuẩn nên đọc bằng Reflect)
 function isInstalled(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches || Reflect.get(navigator, 'standalone') === true;
-}
-
-function blockedMessage(blocked: BlockedProject[]): string {
-  const names = blocked.map((p) => `"${p.name}"`).join(', ');
-  return `Còn dữ liệu chưa gửi ở dự án ${names}. Đồng bộ xong mới đăng xuất được.`;
 }
 
 export function SettingsPage() {
@@ -56,6 +60,9 @@ export function SettingsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [confirmingWipe, setConfirmingWipe] = useState(false);
+  const [wiped, setWiped] = useState(false);
+  const [wipeFailed, setWipeFailed] = useState(false);
   const blockedId = useId();
 
   // Còn trên trang thì mới ghi state: lần đọc lại sau khi dọn ảnh có thể xong lúc đã rời trang
@@ -87,7 +94,35 @@ export function SettingsPage() {
     }
   }
 
+  async function onWipe() {
+    setConfirmingWipe(false);
+    setBusy(true);
+    setError(null);
+    setWiped(false);
+    setWipeFailed(false);
+    try {
+      // Kiểm lại trong khoá như Đăng xuất: hộp đang mở thì tab khác có thể vừa lưu phiếu
+      const stillBlocked = await wipeDeviceData();
+      if (stillBlocked.length > 0) {
+        setError(blockedMessage(stillBlocked));
+      } else {
+        setWiped(true);
+        // Gọi sau khi đã nhả khoá; offline thì vòng đồng bộ tự chạy khi có mạng lại
+        if (navigator.onLine) void syncNow();
+      }
+    } catch (e) {
+      // Không còn gì chưa gửi nên không mất gì; phần đã xoá thì tải lại, bấm lại được (design §8)
+      console.warn('không xoá được dữ liệu trên máy', e);
+      setWipeFailed(true);
+    } finally {
+      setBusy(false);
+    }
+    void readStorage();
+  }
+
   const percent = storage ? usagePercent(storage.usage, storage.quota) : null;
+  const isBlocked = blocked === undefined || blocked.length > 0;
+  const describedBy = blocked && blocked.length > 0 ? blockedId : undefined;
 
   return (
     <section className="settings">
@@ -172,13 +207,38 @@ export function SettingsPage() {
       </div>
 
       <div className="card">
-        {/* Nút khoá thì trình đọc màn hình đọc luôn lý do khi tới nút, không phải dò xuống dòng dưới (audit C4) */}
+        {/* Hai nút cùng điều kiện khoá nên dùng chung một dòng lý do. Nút khoá thì trình đọc màn hình đọc luôn lý
+            do khi tới nút, không phải dò xuống dòng dưới (audit C4) */}
+        <button
+          className="danger-outline wide"
+          data-testid="wipe-data-button"
+          onClick={() => setConfirmingWipe(true)}
+          disabled={busy || isBlocked}
+          aria-describedby={describedBy}
+        >
+          {WIPE_BUTTON}
+        </button>
+        {/* Vùng status luôn có, chỉ đổi chữ: vùng chèn vào cùng lúc với chữ thì có máy bỏ qua (như Đổi mật khẩu) */}
+        <p className="visually-hidden" role="status">
+          {wiped ? WIPE_DONE_MSG : ''}
+        </p>
+        {wiped && (
+          <p className="ok-line" data-testid="wipe-data-done">
+            <Icon name="synced" />
+            {WIPE_DONE_MSG}
+          </p>
+        )}
+        {wipeFailed && (
+          <p className="field-error" role="alert" data-testid="wipe-data-error">
+            ⚠ {WIPE_FAILED_MSG}
+          </p>
+        )}
         <button
           className="danger-outline wide"
           data-testid="logout-button"
           onClick={() => setConfirmingLogout(true)}
-          disabled={busy || blocked === undefined || blocked.length > 0}
-          aria-describedby={blocked && blocked.length > 0 ? blockedId : undefined}
+          disabled={busy || isBlocked}
+          aria-describedby={describedBy}
         >
           Đăng xuất
         </button>
@@ -194,6 +254,14 @@ export function SettingsPage() {
           </p>
         )}
       </div>
+      {confirmingWipe && (
+        <ConfirmDialog
+          message={WIPE_CONFIRM_MSG}
+          confirmLabel={WIPE_CONFIRM_LABEL}
+          onConfirm={() => void onWipe()}
+          onCancel={() => setConfirmingWipe(false)}
+        />
+      )}
       {confirmingLogout && (
         <ConfirmDialog
           message="Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng."

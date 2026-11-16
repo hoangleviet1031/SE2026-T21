@@ -1,9 +1,9 @@
 import { clearToken, getToken } from './auth';
 import { NetworkError, logoutSession } from './sync/api';
 import { accountDb } from './db/accountDb';
-import { deleteProjectDb, openProjectDb, projectDbExists } from './db/current';
+import { deleteProjectDb, openProjectDb, projectDbExists, resetProjectDb } from './db/current';
 import { SYNC_LOCK } from './sync/engine';
-import { hasUnsentData } from './sync/membership';
+import { forgetProject, hasUnsentData } from './sync/membership';
 import { RUNTIME_CACHES } from './swCaches';
 
 // Đăng xuất (design §4.7, ui.md màn hình 8): chỉ khi mọi dự án không còn dữ liệu chưa gửi, rồi xoá
@@ -55,6 +55,34 @@ export async function clearLocalAccountData(): Promise<void> {
   });
 }
 
+/** Chạy trong SYNC_LOCK như vòng đồng bộ; trình duyệt thiếu Web Locks thì engine cũng chạy không khoá (engine.ts). */
+async function withSyncLock(run: () => Promise<BlockedProject[]>): Promise<BlockedProject[]> {
+  if (!('locks' in navigator)) return run();
+  return navigator.locks.request(SYNC_LOCK, run);
+}
+
+/**
+ * Nút "Xoá dữ liệu trên máy" (design §4.2, §9): như Đăng xuất nhưng giữ token, `user`, danh sách dự án và
+ * dự án đang chọn, nên vẫn đăng nhập và vòng đồng bộ sau tải lại từ đầu. Cùng điều kiện, cùng khoá, kiểm lại
+ * ngay trước khi xoá như `logout`. Còn dữ liệu chưa gửi thì không xoá gì, trả các dự án đó.
+ */
+export async function wipeDeviceData(): Promise<BlockedProject[]> {
+  return withSyncLock(async () => {
+    const blocked = await projectsBlockingLogout();
+    if (blocked.length > 0) return blocked;
+    // Xoá cache trước CSDL như clearLocalAccountData: lỗi giữa chừng thì làm lại được
+    for (const name of Object.values(RUNTIME_CACHES)) await caches.delete(name);
+    for (const p of await accountDb.projects.toArray()) {
+      if (!(await projectDbExists(p.id))) continue;
+      // Dự án đã rời không tải lại được nên bỏ hẳn khỏi máy. Dự án đang tham gia giữ đối tượng Dexie: trang
+      // đang mở dự án đó vẫn chạy trên CSDL rỗng tạo lại, pull lại từ cursor 0 (như khi bị hạ vai trò)
+      if (p.status === 'removed') await forgetProject(p.id);
+      else await resetProjectDb(p.id);
+    }
+    return [];
+  });
+}
+
 /**
  * Kiểm lại rồi xoá, trong cùng khoá với vòng đồng bộ: vòng đang chạy dở xong mới tới lượt, và
  * không vòng nào ghi vào CSDL đang bị xoá. Còn dữ liệu chưa gửi thì không xoá gì, trả các dự án đó.
@@ -78,7 +106,5 @@ export async function logout(): Promise<BlockedProject[]> {
     await clearToken();
     return [];
   };
-  // Trình duyệt thiếu Web Locks thì engine cũng chạy không khoá (engine.ts); làm giống vậy
-  if (!('locks' in navigator)) return run();
-  return navigator.locks.request(SYNC_LOCK, run);
+  return withSyncLock(run);
 }
