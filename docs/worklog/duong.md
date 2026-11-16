@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-16 | — | feat | Giao diện tối phần 2: máy đặt chế độ tối thì app và trang quản trị dùng bảng màu tối (khối `@media (prefers-color-scheme: dark)`, `color-scheme`, hai thẻ `theme-color`); `theme.test.ts` kiểm cả bảng tối và đủ token; E2E `dark-mode.spec.ts`; design 0.5.83, ui.md 0.2.59 (Could, cắt được) | nhánh feat/giao-dien-toi-bat | chờ review |
 | 2026-11-16 | — | refactor | PR #143 đã merge | PR #143 | xong |
 | 2026-11-16 | — | refactor | Giao diện tối phần 1: mọi màu cứng ngoài `:root` (styles.css, admin.css, Icon.tsx) thành token, giao diện sáng không đổi; `contrast.ts` + `theme.test.ts` kiểm cặp chữ/nền ≥ 4,5:1 và không còn màu hex ngoài `:root` (Could, cắt được, chưa bật tối) | PR #143 | chờ review |
 | 2026-11-16 | — | feat | PR #142 đã merge | PR #142 | xong |

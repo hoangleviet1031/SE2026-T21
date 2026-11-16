@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
+    <!-- Thanh trạng thái theo màu header ở từng chế độ (ui.md "Hệ thống thiết kế"); manifest không có bản tối nên giữ trắng -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#211f1c" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <!-- iOS không dùng icon trong manifest, chỉ đọc thẻ này (design §4.3) -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

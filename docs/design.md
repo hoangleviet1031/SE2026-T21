@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.82 (2026-11-16)
+- **Phiên bản:** 0.5.83 (2026-11-16)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -116,6 +116,7 @@
 | 0.5.80 | 2026-11-13 | Mẫu form có sẵn ở màn hình 5 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-13): §1 thêm dòng MoSCoW; §4.1 mục "Mẫu có sẵn" (chỉ ở "Biểu mẫu mới", ba mẫu đóng gói trong app nên offline vẫn dùng được, nạp thành form mới chưa lưu như tạo tay, mã form gợi ý từ tiêu đề và thêm số nếu trùng, builder đã có gì thì hỏi trước khi thay; không tự lưu lên server). Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.81 | 2026-11-14 | Nút "Dọn ảnh đã tải lên" ở trang Cài đặt (tech-debt N23, hoàn thiện dòng Attachments, Must, không ticket, Dương cho phép 2026-11-14): §1 ghi thêm; §4.2 mục "Dọn ảnh đã tải lên" (mọi tổ chức đang tham gia có CSDL trên máy, nút khoá khi không có gì để dọn, hộp xác nhận ghi số ảnh và dung lượng, khối Dung lượng vẫn có khi trình duyệt không có `estimate()`), câu cảnh báo gần đầy trỏ tới nút; §4.4 trỏ tới nút; §5.6 mục "Dọn ảnh trên máy" (chỉ ảnh `done`, xoá cả dòng, không op, không khoá vòng đồng bộ, mở lại phiếu thì tải về như ảnh máy khác tạo; ảnh chưa `done` không bao giờ bị dọn); §8 thêm dòng lỗi khi dọn; §10.1 thêm O11. Chỉ client; không đổi API, mã lỗi, schema. Nút "Xoá dữ liệu trên máy" (§9) vẫn chưa có (tech-debt N27) |
 | 0.5.82 | 2026-11-16 | Nút "Xoá dữ liệu trên máy" ở trang Cài đặt có code (tech-debt N27 phần 1, đúng spec §9, không ticket, Dương cho phép, A duyệt kế hoạch 2026-11-16): §4.2 mục "Xoá dữ liệu trên máy" (giữ đăng nhập; xoá CSDL mọi tổ chức và cache runtime `me`/`forms`; trong Web Lock, kiểm lại trước khi xoá; có mạng thì tải lại); §4.7 dòng khoá dùng chung với Đăng xuất; §8 thêm dòng lỗi khi xoá; §9 điều kiện bật đổi thành "không còn dữ liệu chưa gửi (như Đăng xuất)": **chặt hơn bản cũ** ("outbox rỗng và mọi ảnh đã `done`") vì tính cả phiếu nháp, xung đột, và không bị ảnh đã bỏ khỏi phiếu khoá mãi (§5.6); §10.1 thêm O12. Chỉ client; không đổi API, mã lỗi, schema. Luật nhận ra ảnh mồ côi chưa gửi vẫn chưa có (tech-debt N27) |
+| 0.5.83 | 2026-11-16 | Giao diện tối theo hệ điều hành (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-16; không ticket): §1 thêm dòng MoSCoW. Máy đặt chế độ tối (`prefers-color-scheme: dark`) thì app và trang quản trị dùng bảng màu tối, không có nút chuyển; luật tương phản §11.3 áp cho cả hai chế độ. Bảng màu, `theme-color` ở ui.md "Hệ thống thiết kế". Chỉ client; không đổi API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -188,6 +189,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Lịch sử sửa của phiếu (§4.1) | Nút ở màn hình 4 hiện phiếu đã sửa những lần nào: ai sửa, lúc nào, trường nào đổi. Cần mạng (đọc lịch sử trên server). | Could (Dương duyệt 2026-11-13, ngoài MVP, cắt được) |
 | Tóm tắt thay đổi khi lưu form (§4.1) | Sửa form đã có rồi bấm "Lưu bản mới" ở màn hình 5 thì hộp hỏi lại nêu bản mới khác bản đang dùng thế nào. | Could (Dương duyệt 2026-11-10, ngoài MVP, cắt được) |
 | Mẫu form có sẵn (§4.1) | Ở "Biểu mẫu mới" màn hình 5 chọn một mẫu đóng gói trong app để bắt đầu thay vì form trống, sửa tiếp rồi Lưu bản mới như thường. | Could (Dương duyệt 2026-11-13, ngoài MVP, cắt được) |
+| Giao diện tối (ui.md "Hệ thống thiết kế") | Máy đặt chế độ tối thì app và trang quản trị tự dùng bảng màu tối, chữ vẫn đạt tương phản §11.3; không có nút chuyển. | Could (Dương duyệt 2026-11-16, ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
 **Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).
