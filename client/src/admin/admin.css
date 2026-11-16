@@ -23,7 +23,7 @@
 
 /* Dòng kết quả ngay trên bảng; chữ trên nền ≥ 4,8:1 */
 .result { display: flex; align-items: center; gap: 8px; justify-self: start; margin: 0; padding: 10px 14px; border-radius: 12px; font-weight: 600; }
-.result.ok { background: #e4f2e8; color: var(--ok); }
+.result.ok { background: var(--ok-soft); color: var(--ok); }
 .result.bad { background: var(--red-soft); color: var(--red); }
 .result svg.icon { width: 18px; height: 18px; flex: none; }
 
@@ -44,7 +44,7 @@ table.admin-table td.when { color: var(--muted); white-space: nowrap; }
 table.admin-table td.none { color: var(--muted); font-style: italic; }
 table.admin-table .hint { font-size: 14px; }
 /* Dòng đang mở ô nhập và hàng mở rộng ngay dưới cùng nền vàng nhạt để thấy thuộc về nhau */
-table.admin-table tr.open :is(td, th), table.admin-table tr.exp td { background: #fffbef; }
+table.admin-table tr.open :is(td, th), table.admin-table tr.exp td { background: var(--row-open); }
 table.admin-table tr.open :is(td, th) { border-bottom: 0; }
 table.admin-table tr.exp td { padding-top: 0; }
 .row-actions { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
@@ -65,7 +65,7 @@ table.admin-table .st svg.icon { width: 18px; height: 18px; }
 .temp-password code { padding: 2px 8px; border-radius: 6px; background: var(--hl-soft); font-size: 17px; user-select: all; }
 
 .aempty { display: grid; justify-items: center; gap: 10px; margin: 0; padding: 48px 16px; text-align: center; color: var(--muted); font-weight: 500; }
-.aempty svg.icon { width: 40px; height: 40px; color: #b9b6ae; }
+.aempty svg.icon { width: 40px; height: 40px; color: var(--faint); }
 
 @media (max-width: 480px) {
   .abar { flex-wrap: wrap; padding: 8px 16px; }
