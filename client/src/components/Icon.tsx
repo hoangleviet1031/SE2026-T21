@@ -111,13 +111,13 @@ const ICONS = {
   synced: (
     <>
       <circle cx="12" cy="12" r="9.5" fill="currentColor" />
-      <path {...line} stroke="#fff" strokeWidth={2.4} d="m7.8 12.3 2.8 2.8 5.6-5.8" />
+      <path {...line} className="on-fill" strokeWidth={2.4} d="m7.8 12.3 2.8 2.8 5.6-5.8" />
     </>
   ),
   alert: (
     <>
       <circle cx="12" cy="12" r="9.5" fill="currentColor" />
-      <path {...line} stroke="#fff" strokeWidth={2.6} d="M12 7.3v5.6M12 16.7v.1" />
+      <path {...line} className="on-fill" strokeWidth={2.6} d="M12 7.3v5.6M12 16.7v.1" />
     </>
   ),
   cancel: (
