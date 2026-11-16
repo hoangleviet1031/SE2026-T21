@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-11-16 | — | refactor | Giao diện tối phần 1: mọi màu cứng ngoài `:root` (styles.css, admin.css, Icon.tsx) thành token, giao diện sáng không đổi; `contrast.ts` + `theme.test.ts` kiểm cặp chữ/nền ≥ 4,5:1 và không còn màu hex ngoài `:root` (Could, cắt được, chưa bật tối) | nhánh feat/giao-dien-toi-token | chờ review |
+| 2026-11-16 | — | refactor | Giao diện tối phần 1: mọi màu cứng ngoài `:root` (styles.css, admin.css, Icon.tsx) thành token, giao diện sáng không đổi; `contrast.ts` + `theme.test.ts` kiểm cặp chữ/nền ≥ 4,5:1 và không còn màu hex ngoài `:root` (Could, cắt được, chưa bật tối) | PR #143 | chờ review |
 | 2026-11-16 | — | feat | PR #142 đã merge | PR #142 | xong |
 | 2026-11-16 | — | feat | Màn 8: nút [Xoá dữ liệu trên máy] xoá CSDL mọi tổ chức và cache runtime, vẫn đăng nhập, có mạng thì tải lại; khoá khi còn dữ liệu chưa gửi như Đăng xuất (design §9, tech-debt N27 phần 1) | PR #142 | chờ review |
 | 2026-11-14 | — | feat | PR #141 đã merge | PR #141 | xong |
