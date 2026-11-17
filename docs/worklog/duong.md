@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-17 | — | docs | PR #145 đã merge | PR #145 | xong |
+| 2026-11-17 | — | docs | Ghi N28–N32 vào sổ nợ kỹ thuật: lỗi server không theo §7.1, lịch dọn không bắt lỗi, đồng bộ nuốt lỗi, phiếu lớn ghi chậm, ảnh I/O đồng bộ | PR #145 | chờ review |
 | 2026-11-16 | — | feat | PR #144 đã merge | PR #144 | xong |
 | 2026-11-16 | — | feat | Giao diện tối phần 2: máy đặt chế độ tối thì app và trang quản trị dùng bảng màu tối (khối `@media (prefers-color-scheme: dark)`, `color-scheme`, hai thẻ `theme-color`); `theme.test.ts` kiểm cả bảng tối và đủ token; E2E `dark-mode.spec.ts`; design 0.5.83, ui.md 0.2.59 (Could, cắt được) | PR #144 | chờ review |
 | 2026-11-16 | — | refactor | PR #143 đã merge | PR #143 | xong |
