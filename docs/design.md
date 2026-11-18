@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.83 (2026-11-16)
+- **Phiên bản:** 0.5.84 (2026-11-18)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -117,6 +117,7 @@
 | 0.5.81 | 2026-11-14 | Nút "Dọn ảnh đã tải lên" ở trang Cài đặt (tech-debt N23, hoàn thiện dòng Attachments, Must, không ticket, Dương cho phép 2026-11-14): §1 ghi thêm; §4.2 mục "Dọn ảnh đã tải lên" (mọi tổ chức đang tham gia có CSDL trên máy, nút khoá khi không có gì để dọn, hộp xác nhận ghi số ảnh và dung lượng, khối Dung lượng vẫn có khi trình duyệt không có `estimate()`), câu cảnh báo gần đầy trỏ tới nút; §4.4 trỏ tới nút; §5.6 mục "Dọn ảnh trên máy" (chỉ ảnh `done`, xoá cả dòng, không op, không khoá vòng đồng bộ, mở lại phiếu thì tải về như ảnh máy khác tạo; ảnh chưa `done` không bao giờ bị dọn); §8 thêm dòng lỗi khi dọn; §10.1 thêm O11. Chỉ client; không đổi API, mã lỗi, schema. Nút "Xoá dữ liệu trên máy" (§9) vẫn chưa có (tech-debt N27) |
 | 0.5.82 | 2026-11-16 | Nút "Xoá dữ liệu trên máy" ở trang Cài đặt có code (tech-debt N27 phần 1, đúng spec §9, không ticket, Dương cho phép, A duyệt kế hoạch 2026-11-16): §4.2 mục "Xoá dữ liệu trên máy" (giữ đăng nhập; xoá CSDL mọi tổ chức và cache runtime `me`/`forms`; trong Web Lock, kiểm lại trước khi xoá; có mạng thì tải lại); §4.7 dòng khoá dùng chung với Đăng xuất; §8 thêm dòng lỗi khi xoá; §9 điều kiện bật đổi thành "không còn dữ liệu chưa gửi (như Đăng xuất)": **chặt hơn bản cũ** ("outbox rỗng và mọi ảnh đã `done`") vì tính cả phiếu nháp, xung đột, và không bị ảnh đã bỏ khỏi phiếu khoá mãi (§5.6); §10.1 thêm O12. Chỉ client; không đổi API, mã lỗi, schema. Luật nhận ra ảnh mồ côi chưa gửi vẫn chưa có (tech-debt N27) |
 | 0.5.83 | 2026-11-16 | Giao diện tối theo hệ điều hành (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-16; không ticket): §1 thêm dòng MoSCoW. Máy đặt chế độ tối (`prefers-color-scheme: dark`) thì app và trang quản trị dùng bảng màu tối, không có nút chuyển; luật tương phản §11.3 áp cho cả hai chế độ. Bảng màu, `theme-color` ở ui.md "Hệ thống thiết kế". Chỉ client; không đổi API, mã lỗi, schema |
+| 0.5.84 | 2026-11-18 | CD tự deploy staging (không ticket, Dương chốt 2026-11-18): máy staging tự kéo, timer `survey-autodeploy` 2 phút một lần chạy `scripts/auto-deploy.sh`, deploy commit `main` có CI `push` xanh bằng `deploy.sh <sha>` (chỉ fast-forward tới commit đó), nhớ commit CI đỏ/deploy hỏng, log ở journal; `deploy.sh` thêm khoá `flock` chung và tham số sha tuỳ chọn, deploy tay giữ nguyên (§3.4, §10.2, §12). QS5 không diễn tập lại (§11.4). Không đổi API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -383,11 +384,14 @@ flowchart LR
     caddy["Caddy<br/>HTTPS, file tĩnh client/dist"] -- "/api → localhost:3001" --> api["survey-api (systemd)<br/>Node 22, Express"]
     api --> dbfile[("server/data/survey.db")]
     api --> up[("uploads/")]
+    timer["survey-autodeploy.timer<br/>2 phút một lần"] --> auto["scripts/auto-deploy.sh"]
+    auto -- "CI xanh" --> deploy
     deploy["scripts/deploy.sh"] -. "sao lưu trước khi khởi động lại" .-> bk[("~/backup/ (7 bản)")]
   end
+  auto -- "git fetch, hỏi CI của commit (API công khai)" --> gh["GitHub"]
 ```
 
-Một máy, một tiến trình API, cổng 3001 không mở ra ngoài. Cài đặt, deploy, sao lưu và quay lại bản trước: [deploy.md](deploy.md).
+Một máy, một tiến trình API, cổng 3001 không mở ra ngoài. Máy staging tự kéo `main` khi CI xanh (§10.2). Cài đặt, deploy, sao lưu và quay lại bản trước: [deploy.md](deploy.md).
 
 ## 4. Thành phần
 
@@ -1251,9 +1255,11 @@ Phạm vi đồ án giữ đơn giản:
 
 Playwright `context.setOffline(true|false)` để bật/tắt mạng. Các test chạy tuần tự (`workers: 1`) vì dùng chung server. Khi chạy local, Playwright dùng lại server đang chạy ở cổng 3001 nếu có (`reuseExistingServer`); tắt `npm run dev` trước khi chạy E2E để không ghi vào DB thật.
 
-### 10.2 CI
+### 10.2 CI và CD
 
 GitHub Actions: `npm ci`, `npm run typecheck`, `npm test`, `npx playwright install --with-deps chromium`, `npm run test:e2e`. Lưu `playwright-report/` làm artifact khi fail.
+
+**CD (staging):** máy staging tự kéo. Timer systemd `survey-autodeploy` (unit trong `scripts/systemd/`) chạy `scripts/auto-deploy.sh` 2 phút một lần: `origin/main` có commit chưa deploy và lượt CI `push` của đúng commit đó đã xanh (hỏi API công khai của GitHub, không token) thì chạy `deploy.sh <sha>`, chỉ fast-forward tới commit đó. Commit có CI không xanh hoặc deploy hỏng được ghi lại để không thử lại liên tục; kết quả ghi vào journal (`journalctl -u survey-autodeploy`), không đẩy lên GitHub. Deploy tay và tự deploy dùng chung một khoá `flock`. Không tự quay lại bản trước. Chọn cách kéo thay vì Actions SSH vào máy vì repo là repo cá nhân, chỉ chủ repo đặt được secret. Cài, tạm dừng, xử lý khi hỏng: [deploy.md](deploy.md) "Tự deploy".
 
 ## 11. Yêu cầu phi chức năng
 
@@ -1322,7 +1328,7 @@ Các thuộc tính chất lượng quan trọng nhất, viết theo 6 phần đ�
 | QS2 | Toàn vẹn khi sửa đồng thời | Điều tra viên và giám sát viên | Cùng sửa một phiếu, một bên offline | Hai thiết bị | Sync engine, `threeWayMerge` | Khác trường tự gộp; cùng trường hoặc xoá vs sửa thì hỏi, không chọn sẵn | 0 trường bị thay mà người dùng không được hỏi | C1, C2, C4, C5, C8 |
 | QS3 | Cách ly dữ liệu | Thành viên tổ chức A, hoặc admin | Gọi mọi route theo dự án của tổ chức B | Bình thường | `requireMember`, lớp `repo` theo `ctx` | Từ chối; id thuộc tổ chức khác trả `404` | 0 route trả `2xx` | T1–T5, Q7 |
 | QS4 | Hiệu năng mở offline | Điều tra viên | Mở app đã cài | Không có mạng, máy tầm trung (CPU throttle 4×) | Service worker, IndexedDB | Hiện danh sách phiếu, nhập được | ≤ 3 s | Chưa đo (TV2-11) |
-| QS5 | Khôi phục được | Người vận hành | Bản deploy mới làm hỏng việc chính | Staging | `deploy.sh`, bản sao lưu CSDL | Quay lại bản trước theo [deploy.md](deploy.md) "Quay lại bản trước" | Quay lại nhánh 2a (CSDL không đổi `user_version`) ≤ 5 phút, tính từ lúc quyết định quay lại tới khi `/api/health` trả `200` ở bản cũ (Dương chốt 2026-10-22). Nhánh 2b chưa đặt mục tiêu | Đạt (lần đo 2026-10-22: 19 s chạy lệnh quay lại; 21 s quay về `main` bằng `deploy.sh`). Diễn tập tay trên staging (8d93233 → f5dba4f → 8d93233), làm lại khi đổi cách deploy. Nhánh khôi phục CSDL (2b) chưa diễn tập |
+| QS5 | Khôi phục được | Người vận hành | Bản deploy mới làm hỏng việc chính | Staging | `deploy.sh`, bản sao lưu CSDL | Quay lại bản trước theo [deploy.md](deploy.md) "Quay lại bản trước" | Quay lại nhánh 2a (CSDL không đổi `user_version`) ≤ 5 phút, tính từ lúc quyết định quay lại tới khi `/api/health` trả `200` ở bản cũ (Dương chốt 2026-10-22). Nhánh 2b chưa đặt mục tiêu | Đạt (lần đo 2026-10-22: 19 s chạy lệnh quay lại; 21 s quay về `main` bằng `deploy.sh`). Diễn tập tay trên staging (8d93233 → f5dba4f → 8d93233), làm lại khi đổi cách deploy. Tự deploy (0.5.84) chỉ đổi cách kích hoạt `deploy.sh`, các bước quay lại giữ nguyên (thêm bước dừng timer), nên không diễn tập lại. Nhánh khôi phục CSDL (2b) chưa diễn tập |
 
 ## 12. Triển khai
 
@@ -1354,6 +1360,7 @@ Người dùng thường tự tạo tài khoản trên app; CLI để tạo admi
 | `npm run seed:perf -w server -- --project <id> --user <username> [--count 5000]` | Thêm phiếu mẫu vào một dự án có sẵn để đo hiệu năng ([perf.md](perf.md)); ghi như `PUT` thật trong một transaction. Từ chối khi `NODE_ENV=production` |
 | ~~`user:rotate-token`~~ | Đã bỏ (không còn token theo người dùng) |
 
+- **Triển khai lại:** tự động khi `main` có commit CI xanh (timer `survey-autodeploy` trên máy staging, §10.2); deploy tay bằng `deploy.sh` vẫn dùng được. Dừng timer trước khi merge PR có migration kèm điều kiện dừng ([deploy.md](deploy.md) "Tạm dừng, gỡ").
 - **Log và theo dõi:** server ghi ra stdout, systemd giữ trong `journalctl -u survey-api`; middleware trong `app.ts` ghi mỗi request một dòng JSON gồm method, path không có query string, status, `durationMs` và `userId` (hoặc `null` nếu chưa xác thực). Không ghi token hay thân request. Có `GET /api/health` cho `deploy.sh` và kiểm tra sau deploy; chưa có hệ thống tổng hợp số liệu lỗi sau deploy.
 - **Sao lưu:** mỗi ngày `scripts/backup-daily.mjs` (systemd timer) tạo `backup/daily/<ngày giờ>/` gồm `survey.db` và `uploads/`; giữ 7 bản. CSDL chép trước bằng `VACUUM INTO`, ảnh đã ghép chép sau (bỏ chunk `.part`): server ghi file ảnh trước khi ghi dòng `attachments`, nên thứ tự này bảo đảm mọi ảnh bản sao CSDL nhắc tới đều có trong bản sao. Script kiểm từng ảnh đúng cỡ và SHA-256; không qua thì không tạo bản, bản cũ giữ nguyên. `deploy.sh` vẫn sao lưu riêng CSDL trước mỗi lần khởi động lại. Bản sao lưu nằm cùng ổ đĩa, bản ngoài máy là bản kéo tay hằng tuần ([tech-debt.md](tech-debt.md) N9). Cài và khôi phục: [deploy.md](deploy.md) "Sao lưu và khôi phục".
 - **Migration CSDL server:** đánh số trong `db.ts` (`PRAGMA user_version`), chỉ thêm cột/bảng, không sửa câu lệnh cũ. Ngoại lệ đã được nhóm chấp nhận: migration 2 (tạo lại bảng dữ liệu, ADR 0002) và migration 4 (tạo lại `memberships` có chép dữ liệu, ADR 0003 §5).
