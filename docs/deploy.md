@@ -4,7 +4,7 @@ Staging là bản chạy thật của `main` trên HTTPS, dùng để thử app 
 
 - **Địa chỉ:** https://se2026-t21.koreacentral.cloudapp.azure.com
 - **Người quản lý:** Dương (giữ khoá SSH, tài khoản Azure)
-- **Triển khai lại sau mỗi lần merge `main`:** SSH vào máy rồi chạy `~/app/scripts/deploy.sh` (mục [Triển khai lại](#triển-khai-lại-sau-mỗi-lần-merge-main))
+- **Triển khai lại sau mỗi lần merge `main`:** tự động. Timer trên máy staging thấy `main` có commit mới mà CI đã xanh thì tự chạy `deploy.sh` (mục [Tự deploy](#tự-deploy-sau-mỗi-lần-merge-main)). Deploy tay vẫn dùng được (mục [Deploy tay](#deploy-tay))
 
 ## Chọn gì và vì sao
 
@@ -176,7 +176,80 @@ sudo systemctl reload caddy
 
 Caddy tự xin chứng chỉ trong vài chục giây đầu (cần cổng 80 và 443 mở) và tự chuyển `http://` sang `https://`.
 
-## Triển khai lại sau mỗi lần merge `main`
+## Tự deploy sau mỗi lần merge `main`
+
+Timer `survey-autodeploy` trên máy staging chạy [`scripts/auto-deploy.sh`](../scripts/auto-deploy.sh) 2 phút một lần (tính từ lúc lần trước chạy xong). Mọi commit trên `main` có CI xanh đều tự lên staging, không ai phải SSH (Dương chốt 2026-11-18). Từ lúc merge tới lúc staging chạy bản mới mất khoảng thời gian chạy CI cộng tối đa 2 phút.
+
+Chọn cách máy staging tự kéo thay vì để GitHub Actions SSH vào máy: repo là repo cá nhân của Hoàng, người khác không đặt được secret chứa khoá SSH, cũng không đăng ký được runner riêng. Máy staging chỉ đọc API công khai của GitHub, không cần token.
+
+Mỗi lần chạy, script:
+
+1. Lấy khoá chung `~/.survey-deploy.lock` (`flock`, không chờ). Deploy tay đang chạy thì nhường, lần sau thử lại.
+2. Bỏ qua nếu `~/app` không ở `main` (đang [quay lại bản trước](#quay-lại-bản-trước)).
+3. `git fetch origin main`. `origin/main` trùng bản đã deploy thành công gần nhất (`~/.local/state/survey-deploy/deployed-sha`, do `deploy.sh` ghi) thì thôi. So với file này chứ không so `HEAD`, vì `deploy.sh` có thể đã pull xong rồi mới hỏng lúc khởi động lại.
+4. Bỏ qua nếu commit đó có trong `~/.local/state/survey-deploy/skip-sha` (đã biết CI không xanh hoặc deploy hỏng), để không thử lại mỗi 2 phút.
+5. Hỏi API GitHub lượt chạy workflow CI (event `push`, nhánh `main`) của đúng commit đó. Chưa có lượt hoặc chưa xong thì lần sau hỏi lại. Xong mà không xanh thì ghi `skip-sha`. Không hỏi được GitHub (mạng lỗi, hết 60 lần/giờ) thì ghi log và lần sau hỏi lại. Chỉ gọi API khi có commit mới, mỗi commit vài lần trong lúc chờ CI.
+6. CI xanh thì chạy `deploy.sh <sha>`: chỉ fast-forward tới đúng commit đó, kể cả khi `main` đã có thêm commit chưa qua CI (commit sau sẽ được deploy khi CI của nó xanh). Hỏng thì ghi `skip-sha` và unit báo lỗi.
+
+CI trên `main` huỷ lượt cũ khi có push mới (`cancel-in-progress` ở `ci.yml`). Hai lần merge sát nhau thì commit cũ ra `cancelled`, nhưng lúc đó `origin/main` đã là commit mới nên script chờ CI của commit mới rồi deploy commit mới; commit cũ không được deploy riêng, và không cần.
+
+**Mọi kết quả nằm ở journal**, mỗi lần deploy có một dòng `auto-deploy: deploy <sha> xong (CI run <id>)` hoặc `auto-deploy: deploy <sha> HỎNG`:
+
+```bash
+journalctl -u survey-autodeploy --since today --no-pager      # các lần kiểm và deploy hôm nay
+journalctl -u survey-autodeploy -o cat --no-pager | grep -E 'deploy [0-9a-f]{7} (xong|HỎNG)' | tail   # lịch sử deploy
+systemctl list-timers survey-autodeploy                       # lần chạy kế tiếp
+cat ~/.local/state/survey-deploy/deployed-sha ~/.local/state/survey-deploy/skip-sha
+```
+
+Kết quả không đẩy lên GitHub (commit status, Deployments): việc đó cần token có quyền ghi vào repo của Hoàng, mà token cá nhân dạng classic có quyền trên mọi repo của người tạo, để trên máy ảo thì lộ máy là lộ hết. Vì vậy deploy hỏng chỉ thấy ở journal và `systemctl --failed` (tới lần chạy kế tiếp); xem journal sau mỗi lần merge.
+
+**Deploy hỏng:** đọc các dòng ngay trên dòng `HỎNG` (cùng thông báo như khi chạy `deploy.sh` tay), sửa theo mục [Deploy tay](#deploy-tay). Sửa trên `main` thì commit mới tự deploy. Không cần sửa code (vd. lỗi mạng lúc `npm ci`) thì chạy `~/app/scripts/deploy.sh` tay, hoặc `rm ~/.local/state/survey-deploy/skip-sha` để timer thử lại. Script không tự quay lại bản trước; quay lại làm tay theo [mục dưới](#quay-lại-bản-trước).
+
+### Cài timer (một lần)
+
+File unit nằm trong repo: [`scripts/systemd/survey-autodeploy.service`](../scripts/systemd/survey-autodeploy.service), [`scripts/systemd/survey-autodeploy.timer`](../scripts/systemd/survey-autodeploy.timer). Chạy trên máy staging, sau khi `main` đã có các file này:
+
+```bash
+~/app/scripts/deploy.sh                       # deploy tay một lần: lấy script mới, tạo deployed-sha
+AUTO_DEPLOY_DRY_RUN=1 ~/app/scripts/auto-deploy.sh   # chạy thử, không deploy; phải ra "[thử] đã chạy bản mới nhất ..."
+sudo install -m 644 ~/app/scripts/systemd/survey-autodeploy.service ~/app/scripts/systemd/survey-autodeploy.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now survey-autodeploy.timer
+sudo systemctl start survey-autodeploy        # chạy một lần ngay
+journalctl -u survey-autodeploy -n 5 --no-pager   # không có dòng lỗi
+systemctl list-timers survey-autodeploy       # cột NEXT trong vòng 2 phút
+```
+
+Sau đó kiểm ở lần merge `main` kế tiếp: `journalctl -u survey-autodeploy -f` thấy "CI của … chưa xong" rồi "deploy … xong", `git -C ~/app log --oneline -1` đúng commit đó, rồi kiểm như mục [Kiểm tra sau khi triển khai](#kiểm-tra-sau-khi-triển-khai).
+
+Sửa file unit trong repo thì chạy lại dòng `sudo install` và `sudo systemctl daemon-reload`; timer không tự cài lại unit.
+
+### Tạm dừng, gỡ
+
+Chỉ dùng một cách tạm dừng là dừng timer:
+
+```bash
+sudo systemctl stop survey-autodeploy.timer    # tạm dừng tới lần khởi động lại máy
+sudo systemctl disable --now survey-autodeploy.timer   # tạm dừng cả qua khởi động lại
+sudo systemctl enable --now survey-autodeploy.timer    # chạy lại
+```
+
+Dừng timer khi:
+- **Sắp merge PR có migration kèm điều kiện dừng** (vd. [migration 4](#nâng-cấp-lên-migration-4-tv2-14)): dừng timer trước khi merge, kiểm điều kiện, deploy tay, rồi chạy lại timer. Không dừng thì bản mới tự lên và migration chạy ngay khi CI xanh.
+- **Quay lại bản trước** (mục dưới).
+
+Gỡ hẳn (deploy tay vẫn dùng được như trước):
+
+```bash
+sudo systemctl disable --now survey-autodeploy.timer
+sudo rm /etc/systemd/system/survey-autodeploy.service /etc/systemd/system/survey-autodeploy.timer
+sudo systemctl daemon-reload
+```
+
+## Deploy tay
+
+Dùng khi timer đang dừng hoặc chưa cài, khi vừa sửa lỗi lúc deploy, hoặc để thử lại nhanh.
 
 ```bash
 ssh -i "$HOME\.ssh\se2026-staging_key.pem" azureuser@se2026-t21.koreacentral.cloudapp.azure.com
@@ -185,11 +258,11 @@ ssh -i "$HOME\.ssh\se2026-staging_key.pem" azureuser@se2026-t21.koreacentral.clo
 
 [`scripts/deploy.sh`](../scripts/deploy.sh) làm lần lượt (khoảng 20 giây):
 
-1. Dừng nếu không ở `main` hoặc có file sửa tay trong `~/app`.
-2. `git pull --ff-only`, `npm ci`, `npm run build`.
+1. Dừng nếu đang có lần deploy khác chạy (cùng khoá với tự deploy, báo ngay chứ không chờ), không ở `main`, hoặc có file sửa tay trong `~/app`.
+2. `git pull --ff-only` (có tham số `<sha>` thì chỉ fast-forward tới commit đó, phải nằm trên `origin/main`; tự deploy dùng cách này), `npm ci`, `npm run build`.
 3. Sao lưu CSDL vào `~/backup/survey-<ngày giờ>-<commit cũ>.db` (giữ 7 bản mới nhất), vì bản mới có thể chạy migration khi khởi động.
 4. `sudo systemctl restart survey-api`, chờ `/api/health` trả lời (tối đa 30 giây).
-5. Kiểm tra `/api/__test/faults` trả `404`.
+5. Kiểm tra `/api/__test/faults` trả `404`, rồi ghi commit đang chạy vào `~/.local/state/survey-deploy/deployed-sha` để tự deploy biết bản này đã lên.
 
 Lỗi ở bước nào thì script dừng và in lý do. Lỗi trước bước 4 thì server chưa khởi động lại (API vẫn là bản cũ), nhưng nếu build đã xong thì `client/dist` đã là bản mới; sửa lỗi rồi chạy lại script.
 
@@ -225,6 +298,8 @@ Có lỗi lặp lại, server tự khởi động lại nhiều lần, hoặc m�
 ## Quay lại bản trước
 
 Dùng khi bản vừa deploy làm hỏng việc chính (đăng nhập, lưu hay đồng bộ phiếu) mà không sửa nhanh được. `deploy.sh` chỉ chạy trên `main`, nên quay lại làm tay. Diễn tập lần đầu 2026-10-22 (8d93233 → f5dba4f, nhánh 2a): quay lại mất 19 giây, quay về `main` bằng `deploy.sh` mất 21 giây, phần lớn là `npm ci` và build (design §11.4 QS5).
+
+**0. Dừng tự deploy:** `sudo systemctl stop survey-autodeploy.timer`. Khi `~/app` đang ở HEAD detached thì timer cũng tự bỏ qua, nhưng dừng hẳn thì không có lần nào chạy chen vào giữa các bước dưới. Quay về `main` xong (cuối mục) thì `sudo systemctl start survey-autodeploy.timer`.
 
 **1. Xem bản mới có nâng CSDL không.** Tên file sao lưu cuối cùng có commit cũ: `ls -1t ~/backup | head -1` → `survey-<ngày giờ>-<commit cũ>.db`. So `user_version` của file đó với CSDL đang chạy (lệnh `node -e` ở mục "Nâng cấp lên migration 4", đổi đường dẫn file).
 
@@ -265,6 +340,7 @@ Vì hai hậu quả này, chỉ làm 2b khi CSDL mới bị hỏng thật, và *
 
 Migration 4 chạy khi server khởi động lần đầu với bản mới. Nó **dừng và server không khởi động** nếu còn tài khoản admin là thành viên tổ chức nào (ADR 0003 §5); CSDL giữ nguyên ở `user_version = 3`.
 
+0. Timer tự deploy đã cài thì dừng nó **trước khi merge** PR có migration này (mục [Tạm dừng, gỡ](#tạm-dừng-gỡ)), chạy lại sau bước 2.
 1. **Trước khi chạy `deploy.sh`**, kiểm tra trên máy staging:
    ```bash
    cd ~/app && node --no-warnings -e "const {DatabaseSync}=require('node:sqlite');const db=new DatabaseSync('server/data/survey.db',{readOnly:true});console.log(db.prepare('PRAGMA user_version').get(), db.prepare(\"SELECT u.id,u.name,m.project_id,m.role FROM users u JOIN memberships m ON m.user_id=u.id WHERE u.is_admin=1\").all())"
@@ -490,6 +566,7 @@ journalctl -u survey-api -o cat --since "15 min ago" --no-pager | grep '"status"
 | API lỗi, trang báo mất kết nối | `journalctl -u survey-api -n 50 --no-pager` |
 | HTTPS lỗi, chứng chỉ | `journalctl -u caddy -n 50 --no-pager` |
 | Trạng thái hai dịch vụ | `systemctl status survey-api caddy` |
+| Bản mới chưa lên staging | `journalctl -u survey-autodeploy -n 20 --no-pager`, `systemctl list-timers survey-autodeploy` (mục [Tự deploy](#tự-deploy-sau-mỗi-lần-merge-main)) |
 | Build bị `Killed` | `free -h`, kiểm tra swap còn bật |
 | Khởi động lại tay | `sudo systemctl restart survey-api` / `sudo systemctl reload caddy` |
 
