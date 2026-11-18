@@ -14,7 +14,7 @@ test('tiêu đề trang ở Builder, Thành viên, Cài đặt, Tổ chức cùn
   expect(await page.getByRole('heading', { level: 2, name: 'Biểu mẫu' }).evaluate(style)).toBe('22px 800');
 
   for (const [hash, name] of [
-    ['#/builder/new', 'Biểu mẫu mới'],
+    ['#/builder', 'Biểu mẫu mới'],
     ['#/members', /^Thành viên · /],
     ['#/settings', 'Cài đặt'],
     ['#/orgs', 'Tổ chức'],

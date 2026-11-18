@@ -3,7 +3,8 @@ import type { ProjectDb } from './projectDb';
 
 // Bản tự lưu của builder nằm trong bảng `meta` của CSDL dự án (design §4.1, §4.2), như bộ đệm đang nhập của
 // màn hình 4: không đổi schema; Đăng xuất hay "Xoá khỏi máy" xoá CSDL thì mất theo. Form mới dùng khoá riêng
-// `builder-new` vì mã form được phép là "new".
+// `builder-new` vì mã form được phép là "new". Khoá này giữ nguyên khi "Biểu mẫu mới" chuyển sang `#/builder`
+// (tech-debt N26): bản tự lưu của bản app trước vẫn mở lại được.
 
 const key = (formId: string | undefined) => (formId === undefined ? 'builder-new' : `builder:${formId}`);
 

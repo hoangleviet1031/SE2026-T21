@@ -13,6 +13,7 @@ describe('currentNavId', () => {
     expect(currentNavId(['fill', 'f1'], true)).toBeNull();
     expect(currentNavId(['fill', 'f1', 'r1'], true)).toBeNull();
     expect(currentNavId(['conflict', 'r1'], true)).toBeNull();
+    expect(currentNavId(['builder'], true)).toBeNull();
     expect(currentNavId(['builder', 'new'], true)).toBeNull();
     expect(currentNavId(['builder', 'f1'], true)).toBeNull();
   });
