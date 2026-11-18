@@ -109,6 +109,30 @@ test('biểu mẫu mới gõ dở, ← Quay lại rồi mở lại: hỏi khôi 
   await expect(restoreBanner(page)).toHaveCount(0);
 });
 
+// Tech-debt N26: "Biểu mẫu mới" chuyển sang #/builder nhưng khoá `builder-new` giữ nguyên, nên bản tự lưu từ
+// bản app trước vẫn mở lại được. Địa chỉ cũ #/builder/new giờ là form mã `new`: không có thì báo không tìm thấy,
+// không đụng bản tự lưu.
+test('địa chỉ cũ #/builder/new: báo không tìm thấy, bản tự lưu builder-new còn nguyên, mở + Biểu mẫu mới thì khôi phục được', async ({
+  page,
+}) => {
+  await login(page, 'lan');
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  await page.getByLabel('Tiêu đề').fill('Trạm y tế');
+  await addField(page, 'Chữ', 'Tên trạm');
+  await expect.poll(() => draftKeys(page)).toEqual(['builder-new']);
+
+  await page.goto('/#/builder/new');
+  await expect(page.getByText('Không tìm thấy biểu mẫu.')).toBeVisible();
+  expect(await draftKeys(page)).toEqual(['builder-new']);
+
+  await page.getByRole('link', { name: '← Quay lại' }).click();
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  await restoreBanner(page).getByRole('button', { name: 'Khôi phục' }).click();
+  await expect(page.getByLabel('Tiêu đề')).toHaveValue('Trạm y tế');
+  await expect(rows(page)).toHaveCount(1);
+  await expect(rows(page).first()).toContainText('Tên trạm');
+});
+
 test('form đã lên bản mới trong lúc sửa: Khôi phục thêm trường mới vào cuối, có dải báo; lưu được version mới', async ({
   page,
   request,

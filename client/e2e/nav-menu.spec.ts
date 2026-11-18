@@ -87,7 +87,7 @@ test('điện thoại 360px: rời trang khi ngăn kéo đang mở (Back, sang b
   // màn hình không có menu (builder), "← Quay lại" về trang chủ
   await menuButton(page).click();
   await expect(nav(page)).toBeVisible();
-  await page.evaluate(() => (location.hash = '#/builder/new'));
+  await page.evaluate(() => (location.hash = '#/builder'));
   await expect(page.getByRole('textbox', { name: 'Tiêu đề' })).toBeVisible();
   await page.getByRole('link', { name: '← Quay lại' }).click();
   await expect(page.getByRole('heading', { name: 'Biểu mẫu' })).toBeVisible();

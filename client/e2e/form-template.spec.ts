@@ -157,6 +157,6 @@ test('sửa form đã có thì không có khối chọn mẫu', async ({ page, r
   await page.getByRole('listitem').filter({ hasText: 'Hộ dân' }).getByRole('link', { name: 'Sửa form' }).click();
   await expect(page.getByRole('heading', { name: 'Sửa form: Hộ dân' })).toBeVisible();
   await expect(page.getByTestId('builder-template')).toHaveCount(0);
-  await page.goto('/#/builder/new');
+  await page.goto('/#/builder');
   await expect(page.getByTestId('builder-template')).toBeVisible();
 });

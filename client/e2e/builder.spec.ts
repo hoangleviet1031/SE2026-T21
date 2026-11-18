@@ -173,7 +173,7 @@ test('điều tra viên không thấy nút sửa form và không mở được b
   await expect(page.getByText('Khảo sát hộ gia đình', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Sửa form' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toHaveCount(0);
-  await page.goto('/#/builder/new');
+  await page.goto('/#/builder');
   await expect(page.getByText('Chỉ giám sát viên và Owner được sửa biểu mẫu.')).toBeVisible();
   // Audit C9: không đủ quyền vẫn có lối về, không thành ngõ cụt
   await page.getByRole('link', { name: '← Quay lại' }).click();
@@ -413,7 +413,7 @@ test('đổi thẳng địa chỉ giữa hai builder: hiện đúng form theo đ
   await expect(rows).toHaveCount(1);
   await expect(rows.first()).toContainText('Trường của B');
 
-  await go('#/builder/new');
+  await go('#/builder');
   await expect(page.getByRole('heading', { name: 'Biểu mẫu mới' })).toBeVisible();
   await expect(page.getByLabel('Tiêu đề')).toHaveValue('');
   await expect(page.getByLabel('Mã biểu mẫu')).toHaveValue('');
@@ -426,7 +426,7 @@ test('đổi thẳng địa chỉ giữa hai builder: hiện đúng form theo đ
   await expect(rows.first()).toContainText('Trường của A');
 
   // A → new rồi tạo form mới: server có form mới, form A không thêm version
-  await go('#/builder/new');
+  await go('#/builder');
   await expect(page.getByRole('heading', { name: 'Biểu mẫu mới' })).toBeVisible();
   await page.getByLabel('Tiêu đề').fill('Form C');
   await addField(page, 'Chữ', 'Trường của C');
@@ -479,6 +479,43 @@ test('mở #/builder/<mã không có>: báo không tìm thấy, có ← Quay l�
   await expect(page.getByText('Không tìm thấy biểu mẫu.')).toBeVisible();
   await page.getByRole('link', { name: '← Quay lại' }).click();
   await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toBeVisible();
+});
+
+// Tech-debt N26: "Biểu mẫu mới" là #/builder không tham số, nên form có mã `new` mở được ở #/builder/new.
+// Đổi thẳng giữa hai địa chỉ này không được dựng builder từ form của địa chỉ trước (khoá React riêng).
+test('form mã new: Sửa form mở #/builder/new; đổi thẳng sang #/builder là Biểu mẫu mới trống', async ({
+  page,
+  request,
+}) => {
+  const res = await request.post(api('/forms'), {
+    headers: authHeaders(TOKENS.lan),
+    data: { id: 'new', title: 'Form new', fields: [{ id: 'ten', type: 'text', label: 'Trường của new' }] },
+  });
+  expect(res.status()).toBe(201);
+  await login(page, 'lan');
+  const go = (hash: string) => page.evaluate((h) => (location.hash = h), hash);
+  const rows = page.getByTestId('builder-fields').getByRole('listitem');
+
+  await formRow(page, 'Form new').getByRole('link', { name: 'Sửa form' }).click();
+  await expect(page).toHaveURL(/#\/builder\/new$/);
+  await expect(page.getByRole('heading', { name: 'Sửa form: Form new' })).toBeVisible();
+  await expect(page.getByTestId('builder-form-id-locked')).toContainText('new');
+  await expect(rows.first()).toContainText('Trường của new');
+
+  await go('#/builder');
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu mới' })).toBeVisible();
+  await expect(page.getByLabel('Tiêu đề')).toHaveValue('');
+  await expect(page.getByLabel('Mã biểu mẫu')).toHaveValue('');
+  await expect(rows).toHaveCount(0);
+
+  await go('#/builder/new');
+  await expect(page.getByRole('heading', { name: 'Sửa form: Form new' })).toBeVisible();
+  await expect(page.getByLabel('Tiêu đề')).toHaveValue('Form new');
+
+  await page.getByRole('link', { name: '← Quay lại' }).click();
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  await expect(page).toHaveURL(/#\/builder$/);
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu mới' })).toBeVisible();
 });
 
 // Critique K3: bỏ trống mã báo câu ngắn và tô đúng ô; danh sách trường rỗng có câu hướng dẫn

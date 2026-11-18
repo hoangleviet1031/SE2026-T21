@@ -84,8 +84,9 @@ export function BuilderPage({ formId }: { formId?: string }) {
   }
   if (formId && !prev) return <BuilderMessage text="Không tìm thấy biểu mẫu." />;
   // key chỉ theo form: vòng đồng bộ tải bản mới hơn trong lúc sửa không được xoá phần đang sửa;
-  // `prev` mới vẫn được dùng để kiểm luật khi lưu (nhóm chốt: bản lưu sau thành version mới)
-  return <DraftGate key={formId ?? 'new'} db={db} prev={prev ?? undefined} formIds={formIds ?? new Set()} />;
+  // `prev` mới vẫn được dùng để kiểm luật khi lưu (nhóm chốt: bản lưu sau thành version mới).
+  // Khoá của form mới không được trùng khoá của form nào, kể cả form mã `new` (tech-debt N26)
+  return <DraftGate key={formId === undefined ? 'new-form' : `form:${formId}`} db={db} prev={prev ?? undefined} formIds={formIds ?? new Set()} />;
 }
 
 const warnDraft = (e: unknown) => console.warn('không ghi được bản tự lưu của builder', e);

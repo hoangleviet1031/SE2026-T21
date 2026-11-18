@@ -25,7 +25,8 @@ const ITEMS: readonly NavItem[] = [
  */
 export function currentNavId(route: readonly string[], hasProject: boolean): NavId | null {
   const [page, arg] = route;
-  if ((page === 'fill' || page === 'conflict' || page === 'builder') && arg) return null;
+  // #/builder không tham số là "Biểu mẫu mới" (tech-debt N26) nên builder không cần mã form
+  if (page === 'builder' || ((page === 'fill' || page === 'conflict') && arg)) return null;
   if (page === 'members' || page === 'orgs' || page === 'settings') return page;
   return hasProject ? 'home' : 'orgs';
 }

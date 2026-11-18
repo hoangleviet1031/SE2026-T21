@@ -145,7 +145,7 @@ function ProjectHome({ db }: { db: ProjectDb }) {
           ))}
         </ul>
         {canManage && (
-          <a className="add-row" href="#/builder/new">
+          <a className="add-row" href="#/builder">
             + Biểu mẫu mới
           </a>
         )}
