@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-18 | — | docs | deploy.md "Cài timer": lần deploy tay đầu sau #146 chưa tạo `deployed-sha` (bash chạy bản `deploy.sh` cũ), auto-deploy lấy HEAD | PR #147 | chờ review |
 | 2026-11-18 | — | feat | CD: timer trên staging tự deploy commit `main` có CI xanh (`auto-deploy.sh`, unit systemd); `deploy.sh` có khoá chung và tham số sha; design 0.5.84 | PR #146 | chờ review |
 | 2026-11-17 | — | docs | PR #145 đã merge | PR #145 | xong |
 | 2026-11-17 | — | docs | Ghi N28–N32 vào sổ nợ kỹ thuật: lỗi server không theo §7.1, lịch dọn không bắt lỗi, đồng bộ nuốt lỗi, phiếu lớn ghi chậm, ảnh I/O đồng bộ | PR #145 | chờ review |
