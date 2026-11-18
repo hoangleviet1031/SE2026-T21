@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-11-18 | — | fix | Tech-debt N26: "Biểu mẫu mới" chuyển sang `#/builder` không tham số, form mã `new` sửa được ở `#/builder/new`; khoá tự lưu `builder-new` giữ nguyên; E2E builder.spec, builder-draft.spec mỗi file 1 ca, unit navMenu | PR #? | chờ review |
+| 2026-11-18 | — | fix | Tech-debt N26: "Biểu mẫu mới" chuyển sang `#/builder` không tham số, form mã `new` sửa được ở `#/builder/new`; khoá tự lưu `builder-new` giữ nguyên; E2E builder.spec, builder-draft.spec mỗi file 1 ca, unit navMenu | PR #148 | chờ review |
 | 2026-11-18 | — | docs | deploy.md "Cài timer": lần deploy tay đầu sau #146 chưa tạo `deployed-sha` (bash chạy bản `deploy.sh` cũ), auto-deploy lấy HEAD | PR #147 | chờ review |
 | 2026-11-18 | — | feat | CD: timer trên staging tự deploy commit `main` có CI xanh (`auto-deploy.sh`, unit systemd); `deploy.sh` có khoá chung và tham số sha; design 0.5.84 | PR #146 | chờ review |
 | 2026-11-17 | — | docs | PR #145 đã merge | PR #145 | xong |
