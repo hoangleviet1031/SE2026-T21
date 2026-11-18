@@ -211,8 +211,8 @@ Kết quả không đẩy lên GitHub (commit status, Deployments): việc đó 
 File unit nằm trong repo: [`scripts/systemd/survey-autodeploy.service`](../scripts/systemd/survey-autodeploy.service), [`scripts/systemd/survey-autodeploy.timer`](../scripts/systemd/survey-autodeploy.timer). Chạy trên máy staging, sau khi `main` đã có các file này:
 
 ```bash
-~/app/scripts/deploy.sh                       # deploy tay một lần: lấy script mới, tạo deployed-sha
-AUTO_DEPLOY_DRY_RUN=1 ~/app/scripts/auto-deploy.sh   # chạy thử, không deploy; phải ra "[thử] đã chạy bản mới nhất ..."
+~/app/scripts/deploy.sh                       # deploy tay một lần: lấy script mới (xem ghi chú dưới về deployed-sha)
+AUTO_DEPLOY_DRY_RUN=1 ~/app/scripts/auto-deploy.sh   # chạy thử, không deploy; phải ra "[thử] đã chạy bản mới nhất <commit đang chạy>"
 sudo install -m 644 ~/app/scripts/systemd/survey-autodeploy.service ~/app/scripts/systemd/survey-autodeploy.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now survey-autodeploy.timer
@@ -220,6 +220,8 @@ sudo systemctl start survey-autodeploy        # chạy một lần ngay
 journalctl -u survey-autodeploy -n 5 --no-pager   # không có dòng lỗi
 systemctl list-timers survey-autodeploy       # cột NEXT trong vòng 2 phút
 ```
+
+Lần deploy tay đầu tiên sau khi merge #146 **chưa tạo** `~/.local/state/survey-deploy/deployed-sha`: bash đã nạp bản `deploy.sh` cũ trước khi `git pull` thay file, nên chạy hết bản cũ, chưa có bước ghi file này (staging 2026-11-18, 8161223). Không sao: chưa có file thì `auto-deploy.sh` lấy `HEAD` làm bản đã deploy. File được tạo từ lần deploy kế tiếp, tay hay tự động.
 
 Sau đó kiểm ở lần merge `main` kế tiếp: `journalctl -u survey-autodeploy -f` thấy "CI của … chưa xong" rồi "deploy … xong", `git -C ~/app log --oneline -1` đúng commit đó, rồi kiểm như mục [Kiểm tra sau khi triển khai](#kiểm-tra-sau-khi-triển-khai).
 
