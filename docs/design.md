@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.85 (2026-11-18)
+- **Phiên bản:** 0.5.86 (2026-11-19)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -119,6 +119,7 @@
 | 0.5.83 | 2026-11-16 | Giao diện tối theo hệ điều hành (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-16; không ticket): §1 thêm dòng MoSCoW. Máy đặt chế độ tối (`prefers-color-scheme: dark`) thì app và trang quản trị dùng bảng màu tối, không có nút chuyển; luật tương phản §11.3 áp cho cả hai chế độ. Bảng màu, `theme-color` ở ui.md "Hệ thống thiết kế". Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.84 | 2026-11-18 | CD tự deploy staging (không ticket, Dương chốt 2026-11-18): máy staging tự kéo, timer `survey-autodeploy` 2 phút một lần chạy `scripts/auto-deploy.sh`, deploy commit `main` có CI `push` xanh bằng `deploy.sh <sha>` (chỉ fast-forward tới commit đó), nhớ commit CI đỏ/deploy hỏng, log ở journal; `deploy.sh` thêm khoá `flock` chung và tham số sha tuỳ chọn, deploy tay giữ nguyên (§3.4, §10.2, §12). QS5 không diễn tập lại (§11.4). Không đổi API, mã lỗi, schema |
 | 0.5.85 | 2026-11-18 | "Biểu mẫu mới" chuyển route sang `#/builder` không tham số, `#/builder/new` là sửa form mã `new` (tech-debt N26, sửa lỗi, không ticket, Dương cho phép 2026-11-18): §4.1 câu tự lưu ghi route; khoá tự lưu `builder-new` giữ nguyên. Không đổi API, mã lỗi, schema |
+| 0.5.86 | 2026-11-19 | Chọn giao diện Theo máy / Sáng / Tối ở màn hình 8 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-19; không ticket): §1 dòng Giao diện tối. Lựa chọn là tuỳ chọn hiển thị của máy, lưu `localStorage` (không phải dữ liệu nghiệp vụ), Đăng xuất/Xoá dữ liệu không xoá; trang quản trị theo cùng lựa chọn. Câu chữ ở ui.md màn hình 8. Chỉ client; không đổi API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -191,7 +192,7 @@ Mức theo MoSCoW: **Must** thiếu thì không đạt tiêu chí thành công d
 | Lịch sử sửa của phiếu (§4.1) | Nút ở màn hình 4 hiện phiếu đã sửa những lần nào: ai sửa, lúc nào, trường nào đổi. Cần mạng (đọc lịch sử trên server). | Could (Dương duyệt 2026-11-13, ngoài MVP, cắt được) |
 | Tóm tắt thay đổi khi lưu form (§4.1) | Sửa form đã có rồi bấm "Lưu bản mới" ở màn hình 5 thì hộp hỏi lại nêu bản mới khác bản đang dùng thế nào. | Could (Dương duyệt 2026-11-10, ngoài MVP, cắt được) |
 | Mẫu form có sẵn (§4.1) | Ở "Biểu mẫu mới" màn hình 5 chọn một mẫu đóng gói trong app để bắt đầu thay vì form trống, sửa tiếp rồi Lưu bản mới như thường. | Could (Dương duyệt 2026-11-13, ngoài MVP, cắt được) |
-| Giao diện tối (ui.md "Hệ thống thiết kế") | Máy đặt chế độ tối thì app và trang quản trị tự dùng bảng màu tối, chữ vẫn đạt tương phản §11.3; không có nút chuyển. | Could (Dương duyệt 2026-11-16, ngoài MVP, cắt được) |
+| Giao diện tối (ui.md "Hệ thống thiết kế", màn hình 8) | Mặc định theo máy: máy đặt chế độ tối thì app và trang quản trị tự dùng bảng màu tối, chữ vẫn đạt tương phản §11.3. Màn hình 8 chọn được Theo máy / Sáng / Tối, nhớ trên máy (2026-11-19). | Could (Dương duyệt 2026-11-16, chọn tay 2026-11-19; ngoài MVP, cắt được) |
 | Vận hành staging (§12, [deploy.md](deploy.md)) | Sao lưu hằng ngày CSDL và ảnh; quay lại bản trước có diễn tập. | Must (sao lưu hằng ngày, TV3-13); Should (quay lại bản trước, TV1-19) |
 
 **Ngoài phạm vi (Won't trong MVP):** đăng nhập SSO, email (xác nhận tài khoản, quên mật khẩu, mời qua email), xin tham gia tổ chức trong app, tìm kiếm và mô tả tổ chức, tổ chức nhiều cấp, phân quyền chi tiết hơn các vai trò ở §2, logic điều kiện trong form, nhóm lặp (danh sách dòng trong phiếu), báo cáo/biểu đồ, cộng tác thời gian thực, ứng dụng native, nhiều tài khoản trên một máy, so sánh ảnh trong màn hình xung đột, xoá hoặc ngừng dùng form (form cũ vẫn hiện trong danh sách).

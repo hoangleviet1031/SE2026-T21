@@ -34,7 +34,7 @@ describe('rootTokens', () => {
 
   it('bảng tối lấy token sáng, khai lại thì lấy bản tối; var() tính theo bảng đã gộp', () => {
     const css = `:root { --a: #fff; --b: #000; --c: var(--b); }
-      @media (prefers-color-scheme: dark) { :root { --b: #111; } }`;
+      :root[data-theme="dark"] { --b: #111; }`;
     expect(rootTokens(css)).toEqual({ a: '#fff', b: '#000', c: 'var(--b)' });
     expect(darkOverrides(css)).toEqual({ b: '#111' });
     expect(resolveToken(darkTokens(css), 'c')).toBe('#111');
@@ -91,7 +91,7 @@ describe('bảng màu tối đủ token', () => {
 
 // Màu chỉ khai ở :root (sáng và tối), nơi khác dùng var(): bảng màu tối đổi token là đủ, không sót mảng sáng
 describe('không có màu hex ngoài :root', () => {
-  const outsideRoot = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/:root\s*\{[^}]*\}/g, '');
+  const outsideRoot = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/:root(\[data-theme="dark"\])?\s*\{[^}]*\}/g, '');
 
   it.each([
     ['styles.css', styles],

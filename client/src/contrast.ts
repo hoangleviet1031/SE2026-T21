@@ -34,9 +34,9 @@ export function rootTokens(css: string): Record<string, string> {
   return parseTokens(/:root\s*\{([^}]*)\}/.exec(stripComments(css))?.[1]);
 }
 
-/** Chỉ các token khai lại trong `@media (prefers-color-scheme: dark) { :root { … } }` */
+/** Chỉ các token khai lại trong khối `:root[data-theme="dark"] { … }` */
 export function darkOverrides(css: string): Record<string, string> {
-  return parseTokens(/@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*:root\s*\{([^}]*)\}/.exec(stripComments(css))?.[1]);
+  return parseTokens(/:root\[data-theme="dark"\]\s*\{([^}]*)\}/.exec(stripComments(css))?.[1]);
 }
 
 /** Bảng màu tối như trình duyệt thấy: token sáng, khai lại thì lấy bản tối (var() tính theo bảng đã gộp) */

@@ -3,9 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Thanh trạng thái theo màu header ở từng chế độ (ui.md "Hệ thống thiết kế"); manifest không có bản tối nên giữ trắng -->
+    <!-- Thanh trạng thái theo màu header ở từng chế độ (ui.md "Hệ thống thiết kế"); chọn tay Sáng/Tối thì theme.ts đổi cả hai thẻ. Manifest không có bản tối nên giữ trắng -->
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#211f1c" media="(prefers-color-scheme: dark)" />
+    <!-- Đặt giao diện trước khi vẽ trang để không nháy sáng rồi tối; cùng luật với resolveTheme trong src/theme.ts -->
+    <script>
+      (function () {
+        var choice = null;
+        try { choice = localStorage.getItem('theme'); } catch (e) { /* bị chặn bộ nhớ: theo máy, theme.ts ghi cảnh báo */ }
+        var dark = choice === 'dark' || (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      })();
+    </script>
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <!-- iOS không dùng icon trong manifest, chỉ đọc thẻ này (design §4.3) -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

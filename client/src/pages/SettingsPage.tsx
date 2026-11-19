@@ -32,6 +32,7 @@ import {
 import { apiFailure, changePassword } from '../sync/api';
 import { syncNow } from '../sync/engine';
 import { useOnline } from '../useOnline';
+import { readThemeChoice, saveThemeChoice, type ThemeChoice } from '../theme';
 import {
   WIPE_BUTTON,
   WIPE_CONFIRM_LABEL,
@@ -183,6 +184,8 @@ export function SettingsPage() {
       </div>
 
       {project && <DeviceStatusCard projectName={project.name} />}
+
+      <ThemeCard />
 
       <div className="card">
         <h3>Cài lên màn hình chính</h3>
@@ -356,6 +359,38 @@ function PhotoCleanup({ onCleaned }: { onCleaned: () => Promise<void> }) {
  * Khối "Dữ liệu trên máy" (ui.md màn hình 8; Could, cắt được): số biểu mẫu và thay đổi chờ gửi của dự
  * án đang chọn. Chỉ đọc IndexedDB qua liveQuery nên offline vẫn đúng, đồng bộ xong số tự đổi.
  */
+const THEME_OPTIONS: { id: ThemeChoice; label: string }[] = [
+  { id: 'system', label: 'Theo máy' },
+  { id: 'light', label: 'Sáng' },
+  { id: 'dark', label: 'Tối' },
+];
+
+/**
+ * Chọn giao diện (ui.md màn hình 8 "Giao diện"; Could, Dương duyệt 2026-11-19). Đổi ngay khi chọn, không có nút Lưu.
+ * Chỉ là tuỳ chọn hiển thị của máy nên lưu ở localStorage, offline vẫn dùng được.
+ */
+function ThemeCard() {
+  const [choice, setChoice] = useState<ThemeChoice>(readThemeChoice);
+  const headingId = useId();
+
+  function choose(next: ThemeChoice) {
+    saveThemeChoice(next);
+    setChoice(next);
+  }
+
+  return (
+    <div className="card" role="radiogroup" aria-labelledby={headingId} data-testid="settings-theme">
+      <h3 id={headingId}>Giao diện</h3>
+      {THEME_OPTIONS.map((o) => (
+        <label key={o.id} className="opt">
+          <input type="radio" name="theme" checked={choice === o.id} onChange={() => choose(o.id)} />
+          {o.label}
+        </label>
+      ))}
+    </div>
+  );
+}
+
 function DeviceStatusCard({ projectName }: { projectName: string }) {
   const status = useLiveQuery(readDeviceStatus, []);
   // Chưa đọc xong, hoặc máy chưa có CSDL của dự án, thì chưa vẽ, để không nháy số 0 trước số thật
