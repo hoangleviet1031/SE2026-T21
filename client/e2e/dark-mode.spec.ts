@@ -59,8 +59,9 @@ test('màn đăng nhập tối: nền, ô nhập, nút chính, vòng focus vàng
   const username = page.getByLabel('Tên đăng nhập');
   await expect(username).toHaveCSS('background-color', SURFACE);
   await expect(username).toHaveCSS('color', INK);
-  // Ô nhập gốc của trình duyệt (lịch chọn ngày, gợi ý, thanh cuộn) theo chế độ tối
-  expect(await username.evaluate((el) => getComputedStyle(el).colorScheme)).toBe('light dark');
+  // Ô nhập gốc của trình duyệt (lịch chọn ngày, gợi ý, thanh cuộn) theo chế độ tối. Từ khi có lựa chọn Sáng/Tối
+  // (2026-11-19) color-scheme theo chế độ đang dùng, không còn "light dark" (để chọn Sáng trên máy tối không ra ô tối)
+  expect(await username.evaluate((el) => getComputedStyle(el).colorScheme)).toBe('dark');
   await page.getByRole('tab', { name: 'Tạo tài khoản' }).focus();
   await page.keyboard.press('Tab');
   await expect(username).toBeFocused();
@@ -158,5 +159,60 @@ test.describe('chế độ sáng', () => {
     await page.getByLabel('Tên đăng nhập').fill('lan');
     await page.getByLabel('Mật khẩu').fill(DEMO_PASSWORD);
     await expect(page.getByRole('button', { name: 'Tiếp tục' })).toHaveCSS('color', 'rgb(255, 255, 255)');
+  });
+});
+
+// Chọn giao diện ở màn hình 8 (ui.md màn hình 8 "Giao diện"; Could, Dương duyệt 2026-11-19): chọn tay thắng chế độ
+// của máy, tải lại vẫn giữ, trang quản trị theo cùng lựa chọn; Theo máy thì về như cũ.
+async function openSettings(page: Page) {
+  await page.getByRole('navigation', { name: 'Menu' }).getByRole('link', { name: 'Cài đặt' }).click();
+  await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
+}
+
+const theme = (page: Page) => page.evaluate(() => document.documentElement.dataset.theme);
+
+test('máy tối mà chọn Sáng: app và trang quản trị sáng, tải lại vẫn sáng; Theo máy thì tối lại', async ({ page }) => {
+  await login(page);
+  await openSettings(page);
+  const group = page.getByRole('radiogroup', { name: 'Giao diện' });
+  await expect(group.getByRole('radio', { name: 'Theo máy' })).toBeChecked();
+  expect(await page.locator('body').evaluate(bg)).toBe(PAPER);
+
+  await group.getByRole('radio', { name: 'Sáng' }).check();
+  expect(await page.locator('body').evaluate(bg)).toBe('rgb(255, 255, 255)');
+  expect(await themeColor(page)).toBe('#ffffff');
+  expect(await page.locator('body').evaluate((el) => getComputedStyle(el).colorScheme)).toBe('light');
+
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'Sáng' })).toBeChecked();
+  expect(await theme(page)).toBe('light');
+  expect(await page.locator('body').evaluate(bg)).toBe('rgb(255, 255, 255)');
+
+  await page.goto('/admin/');
+  await expect(page.getByTestId('admin-username')).toBeVisible();
+  expect(await page.locator('body').evaluate(bg)).toBe('rgb(255, 255, 255)');
+
+  await page.goto('/#/settings');
+  await page.getByRole('radio', { name: 'Theo máy' }).check();
+  expect(await page.locator('body').evaluate(bg)).toBe(PAPER);
+  expect(await themeColor(page)).toBe('#211f1c');
+  expect(await page.evaluate(() => localStorage.getItem('theme'))).toBeNull();
+});
+
+test.describe('máy sáng chọn Tối', () => {
+  test.use({ colorScheme: 'light' });
+
+  test('chọn Tối thì đổi ngay sang bảng màu tối, theme-color tối, tải lại vẫn tối', async ({ page }) => {
+    await login(page);
+    await openSettings(page);
+    await page.getByRole('radio', { name: 'Tối' }).check();
+    expect(await page.locator('body').evaluate(bg)).toBe(PAPER);
+    expect(await page.locator('body').evaluate((el) => getComputedStyle(el).color)).toBe(INK);
+    expect(await themeColor(page)).toBe('#211f1c');
+    await expectReadable(page.getByRole('heading', { name: 'Cài đặt' }));
+
+    await page.reload();
+    await expect(page.getByRole('radio', { name: 'Tối' })).toBeChecked();
+    expect(await page.locator('body').evaluate(bg)).toBe(PAPER);
   });
 });

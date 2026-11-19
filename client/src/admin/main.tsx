@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { AdminApp } from './AdminApp';
 import '../styles.css';
 import './admin.css';
+import { startTheme } from '../theme';
+
+// Trước khi vẽ: áp lựa chọn Sáng / Tối / Theo máy đã lưu (màn hình 8), theo máy đổi chế độ khi đang Theo máy
+startTheme();
 
 // Trang quản trị: không đăng ký service worker, không IndexedDB, không sync engine (design §4.9).
 // Không import gì từ src/db, src/sync (trừ kiểu) hay virtual:pwa-register.

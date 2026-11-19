@@ -1,6 +1,7 @@
 /* Token theo bản thiết kế của Dương (TV1-12 b2, ui.md "Hệ thống thiết kế"). Cặp chữ trên nền ≥ 4,5:1, kiểm ở theme.test.ts.
    Mọi màu nằm ở đây, ngoài :root chỉ dùng var() (trừ bóng đổ và nền mờ sau hộp, ngăn kéo): chế độ tối chỉ đổi token, không sót mảng sáng.
-   Giao diện tối theo hệ điều hành (prefers-color-scheme, Could, Dương duyệt 2026-11-16): khối @media ngay dưới; không có nút chuyển.
+   Giao diện tối (Could, Dương duyệt 2026-11-16): khối :root[data-theme="dark"] ngay dưới. data-theme do theme.ts và script trong
+   index.html đặt theo lựa chọn ở màn hình 8 (Theo máy / Sáng / Tối, Dương duyệt 2026-11-19).
    Phông máy (Roboto trên Android, SF trên iPhone, Segoe UI trên Windows), không tải phông để chạy offline. */
 :root {
   --ink: #262522;       /* chữ chính */
@@ -54,13 +55,14 @@
   --r-btn: 10px; --r-card: 16px; --r-pill: 999px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-family: var(--font); color: var(--ink); background: var(--paper); line-height: 1.4;
-  /* Ô nhập, ô chọn, lịch chọn ngày, gợi ý, thanh cuộn của trình duyệt theo cùng chế độ với app */
-  color-scheme: light dark;
+  /* Ô nhập, ô chọn, lịch chọn ngày, gợi ý, thanh cuộn của trình duyệt theo cùng chế độ với app (bản tối khai lại) */
+  color-scheme: light;
 }
 /* Giao diện tối (ui.md "Hệ thống thiết kế"): nền tối ấm cùng tông bản sáng. Nền đặc (nút chính, nút đỏ, nút trong thẻ form)
    thành sáng, chữ trên đó tối (--on-fill); vàng nhấn giữ sáng, chữ trên vàng tối. Tỉ lệ tương phản kiểm ở theme.test.ts */
-@media (prefers-color-scheme: dark) {
-  :root {
+/* Không dùng @media: chọn Sáng trên máy đặt tối (hoặc ngược lại) thì phải thắng chế độ của máy */
+:root[data-theme="dark"] {
+    color-scheme: dark;
     --ink: #edebe6; --btn: #edebe6; --muted: #b3afa7;
     --paper: #181715; --sunken: #2a2825; --surface: #211f1c; --chip: #34322e;
     --line: #33312d; --edge: #46433e; --field: #8a867e;
@@ -94,7 +96,6 @@
     --f4: #2d211c; --b4: #42302a; --t4: #4a342c;
     --f5: #24212f; --b5: #353046; --t5: #3c3550;
     --d1: #e0c98a; --d2: #a9d39a; --d3: #9cc4e2; --d4: #eab49e; --d5: #c3b8ea;
-  }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); font-size: 16px; }

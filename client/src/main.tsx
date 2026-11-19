@@ -6,6 +6,10 @@ import { UnsupportedBrowser } from './components/UnsupportedBrowser';
 import { startSyncLoop } from './sync/engine';
 import { deleteLegacyDb } from './db/current';
 import './styles.css';
+import { startTheme } from './theme';
+
+// Trước khi vẽ: áp lựa chọn Sáng / Tối / Theo máy đã lưu (màn hình 8), theo máy đổi chế độ khi đang Theo máy
+startTheme();
 
 const root = createRoot(document.getElementById('root')!);
 const missing = missingFeatures(window);
