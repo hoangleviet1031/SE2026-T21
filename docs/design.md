@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.86 (2026-11-19)
+- **Phiên bản:** 0.5.87 (2026-11-19)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -120,6 +120,7 @@
 | 0.5.84 | 2026-11-18 | CD tự deploy staging (không ticket, Dương chốt 2026-11-18): máy staging tự kéo, timer `survey-autodeploy` 2 phút một lần chạy `scripts/auto-deploy.sh`, deploy commit `main` có CI `push` xanh bằng `deploy.sh <sha>` (chỉ fast-forward tới commit đó), nhớ commit CI đỏ/deploy hỏng, log ở journal; `deploy.sh` thêm khoá `flock` chung và tham số sha tuỳ chọn, deploy tay giữ nguyên (§3.4, §10.2, §12). QS5 không diễn tập lại (§11.4). Không đổi API, mã lỗi, schema |
 | 0.5.85 | 2026-11-18 | "Biểu mẫu mới" chuyển route sang `#/builder` không tham số, `#/builder/new` là sửa form mã `new` (tech-debt N26, sửa lỗi, không ticket, Dương cho phép 2026-11-18): §4.1 câu tự lưu ghi route; khoá tự lưu `builder-new` giữ nguyên. Không đổi API, mã lỗi, schema |
 | 0.5.86 | 2026-11-19 | Chọn giao diện Theo máy / Sáng / Tối ở màn hình 8 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-19; không ticket): §1 dòng Giao diện tối. Lựa chọn là tuỳ chọn hiển thị của máy, lưu `localStorage` (không phải dữ liệu nghiệp vụ), Đăng xuất/Xoá dữ liệu không xoá; trang quản trị theo cùng lựa chọn. Câu chữ ở ui.md màn hình 8. Chỉ client; không đổi API, mã lỗi, schema |
+| 0.5.87 | 2026-11-19 | §5.1 thêm dòng trỏ tới ma trận test chuyển trạng thái phiếu (`client/e2e/record-states.spec.ts`, việc cải thiện 10, không ticket, Dương cho phép 2026-11-19). Chỉ thêm test; không đổi hành vi, API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -683,6 +684,7 @@ stateDiagram-v2
 - Nhãn hiển thị tách khỏi `syncState`: phiếu `synced` nhưng còn ảnh chưa lên hiện "Đang tải ảnh (n)" (§5.6).
 - Bộ đệm đang nhập (§4.1) không phải một trạng thái: phiếu giữ nguyên `syncState` cho tới khi người dùng bấm Lưu.
 - Bản sao chưa Lưu (§4.1 "Nhân bản phiếu") cũng chỉ là bộ đệm: chưa có phiếu nên chưa có `syncState`; bấm Lưu thì vào `draft` hoặc `pending` như phiếu mới.
+- Ma trận test của sơ đồ này (mỗi mũi tên và mỗi đường không được đi, kèm test kiểm nó) ở đầu `client/e2e/record-states.spec.ts`.
 
 ### 5.2 Outbox
 

@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.33 (2026-11-18)
+- **Phiên bản:** 0.34 (2026-11-19)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -200,6 +200,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Gợi ý giá trị đã nhập ở ô chữ màn hình 4: chỉ trường chữ không ẩn, bỏ phiếu đã xoá và phiếu đang mở, bỏ trùng, mới trước, tối đa 50 (Could) | `field-suggestions.spec.ts`; unit `fieldSuggestions` (`client/src/fieldSuggestions.test.ts`) | không ticket (#137) |
 | US-01 | Lưu phiếu thì xin giữ bộ nhớ; thiếu Web Locks → "Trình duyệt không được hỗ trợ" | `browser-support.spec.ts`; unit `browserSupport.test.ts` | TV1-07 (#28) |
 | US-02 | Nháp không lên server; sửa đủ thì đồng bộ | O5 `draft.spec.ts`; unit `shared/src/recordValidation.test.ts` | TV1-05 (#7, #17) |
+| US-02 | Phiếu đã đồng bộ sửa thành chưa hợp lệ → Nháp, không op, server giữ bản cũ; sửa tiếp vẫn nháp; điền đủ thì lên bản mới (design §5.1) | `record-states.spec.ts` (ca "Đã đồng bộ → Nháp…") | Không ticket (việc cải thiện 10) |
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
 | US-03 | Ảnh sau nén ≤ 600 KB | `photo.spec.ts`; unit `fitWithin` (`client/src/media/compress.test.ts`) | TV3-03 (#31) |
@@ -210,6 +211,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-04 | 500 hai lần → một bản ghi | R1 `offline.spec.ts` | TV2-09 (#16) |
 | US-04 | Cắt kết nối sau khi ghi → replay | R3 `server/test/idempotency.test.ts`, `retry.spec.ts`; R2 timeout `retry.spec.ts`; R6 `records.test.ts` | TV2-08 (#15) |
 | US-04 | Hai tab không gửi trùng | O6 `tabs.spec.ts` | TV2-06 (#13) |
+| US-04 | Pull không ghi đè phiếu Chờ đồng bộ (5xx đang thử lại) hay phiếu Lỗi; đã đồng bộ thì nhận bản mới, không sinh op (design §5.1, ADR 0001 quy tắc 8); ma trận mọi đường chuyển trạng thái ở đầu file | `record-states.spec.ts` | Không ticket (việc cải thiện 10) |
 | US-04 | `400` → "Lỗi", không thử lại vô hạn | R5 `errors.spec.ts`; nhãn và [Thử lại], [Xuất JSON phiếu này] ở trang điền phiếu `fill-status.spec.ts` | TV2-09 (#16); tech-debt N12 |
 | US-05 | Khác trường tự gộp | C1 unit `merge.test.ts`, `conflict.spec.ts`; C3 unit | TV2-10 (#34) |
 | US-05 | Cùng trường → màn hình xung đột, không chọn sẵn | C2 `conflict.spec.ts` (cả ca bấm chỗ trống trong ô lựa chọn) | TV3-07 (#41); ô lựa chọn TV1-12 (b2 p3) |
@@ -306,3 +308,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.31 | 2026-11-14 | US-03 thêm tiêu chí dọn ảnh đã tải lên ở Cài đặt, kèm dòng truy vết (Must, tech-debt N23, không ticket, Dương cho phép 2026-11-14); US-01 sửa đuôi câu cảnh báo gần đầy theo nút mới |
 | 0.32 | 2026-11-16 | US-01 thêm tiêu chí nút "Xoá dữ liệu trên máy" ở Cài đặt, kèm dòng truy vết (tech-debt N27 phần 1, đúng design §9, không ticket, Dương cho phép 2026-11-16) |
 | 0.33 | 2026-11-18 | US-07 dòng truy vết "Tạo form 7 loại trường" thêm ca route "Biểu mẫu mới" `#/builder` và form mã `new` (tech-debt N26, sửa lỗi, không ticket) |
+| 0.34 | 2026-11-19 | US-02, US-04 thêm dòng truy vết chuyển trạng thái phiếu theo design §5.1 (`record-states.spec.ts`, việc cải thiện 10) |
