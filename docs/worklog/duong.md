@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-11-20 | — | test | Việc cải thiện 9: thử đột biến tay phần lõi (`scripts/mutation.mjs`, 25 đột biến ở merge, backoff, lỗi upload ảnh); lần đầu bắt 17/25, thêm 8 ca unit (merge.test, attachmentRules.test) bắt 25/25; `docs/mutation.md`, design 0.5.89 §10 | nhánh `test/dot-bien-loi` | chờ review |
+| 2026-11-20 | — | test | Việc cải thiện 9: thử đột biến tay phần lõi (`scripts/mutation.mjs`, 25 đột biến ở merge, backoff, lỗi upload ảnh); lần đầu bắt 17/25, thêm 8 ca unit (merge.test, attachmentRules.test) bắt 25/25; `docs/mutation.md`, design 0.5.89 §10 | PR #153 | chờ review |
 | 2026-11-20 | — | docs | PR #152 đã merge | PR #152 | xong |
 | 2026-11-20 | — | docs | perf.md sửa ghi chú ở #151: lần bộ đo pull đỏ trên `main` là do máy chậm lúc đo, không phải code chậm đi (đo lại cùng `main` khi máy nhanh: đạt); ghi số đo xen kẽ CPU ×4, thử `memo` danh sách không cải thiện nên bỏ | PR #152 | chờ review |
 | 2026-11-20 | — | test | PR #151 đã merge | PR #151 | xong |
