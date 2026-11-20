@@ -12,6 +12,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-20 | TV3-11 | docs | Merge `main` vào nhánh (gộp §7 của Dương); `test-report.md` 0.4 viết lại: §6 thêm QS4 1,1 s ở CPU ×4 và lưu phiếu 33 ms (PR #151), 6/10 chỉ tiêu đạt, N33 máy yếu; QS1–QS5 đạt; §2.3 thử đột biến (PR #153); §8.1 theo tech-debt (N9, N28–N30, N33…) | nhánh `docs/tv3-11-perf` | chờ review |
 | 2026-11-12 | TV3-11 | docs | `test-report.md` bản 0.4: §6 điền từ `perf.md` (pull 5.000 phiếu 2,3 s, danh sách 2.000 phiếu 211 ms, đổi dự án 246 ms, đều đạt); 5 chỉ tiêu không ticket nào nhận ghi "Chưa đo", gồm QS4; §1, §8.2, §9 theo đó; plan: TV3-16 ✅ PR #128 | nhánh `docs/tv3-11-perf` | chờ review |
 | 2026-11-05 | TV3-16 | docs | `docs/user-guide.md`: điều tra viên, giám sát viên/Owner, quản trị; 17 ảnh từ bản build `main` 152303c, chữ UI đã kiểm với code; README trỏ tới | nhánh `docs/tv3-16-user-guide` | chờ review |
 | 2026-11-05 | — | docs | Plan: TV3-14 ✅ PR #83, TV3-15 ✅ PR #104 (trước còn ghi "chờ PR" và tên nhánh) | nhánh `docs/plan-trang-thai-tv3` | chờ review |
