@@ -44,6 +44,7 @@ Mạng chập chờn không chờ được nó tự xảy ra, nên server có AP
 Test xanh chỉ có nghĩa khi nó đỏ được lúc code sai:
 
 - **Thử phá code có chủ đích:** R4 được thử bằng cách tạm sửa client gửi lại mọi chunk; test đỏ, khôi phục code thì xanh (TV3-10).
+- **Thử đột biến phần lõi** ([mutation.md](mutation.md), PR #153): script `scripts/mutation.mjs` lần lượt cài 25 lỗi nhỏ vào `threeWayMerge`, `valuesEqual`, `detectDeleteConflict`, `nextRetryDelay` và luật upload ảnh, rồi chạy unit test của chỗ đó. Lần đầu test bắt 17/25; 8 đột biến còn sống (vd. `null` coi khác trường không có, trần backoff 50 phút, mọi `409` đều gửi bù chunk) cho thấy chỗ test hở, thêm 8 ca thì bắt 25/25. Không chạy trong CI.
 - **Không để dữ liệu chuẩn bị che lỗi:** T5 tạo dữ liệu mẫu thẳng qua lớp `repo` thay vì gọi HTTP trong `beforeAll`, vì nếu chính route đang kiểm bị hỏng thì bước chuẩn bị đã lỗi theo và ca kiểm thật không chạy tới (TV3-04).
 - **Khẳng định tiền điều kiện:** R4 kiểm ảnh nén > 256 KB (nhiều hơn một chunk) trước khi kiểm việc gửi tiếp; nếu ảnh nhỏ thì ca này vô nghĩa và test báo lỗi.
 - **T5 tự liệt kê route** từ router Express thay vì danh sách viết tay, nên thêm route mới mà quên middleware thì test tự bắt.
@@ -233,7 +234,7 @@ Mục tiêu do nhóm tự đặt theo thiết bị tham chiếu (máy Android t�
 
 ## 7. Thử trên điện thoại thật
 
-⏳ Chưa làm. Thử trên staging `https://se2026-t21.koreacentral.cloudapp.azure.com` sau lần deploy cuối trước đóng băng. E2E chỉ chạy Chromium trên máy tính, nên phần này là bằng chứng duy nhất cho camera, GPS, cài PWA và Safari iOS.
+⏳ Mới có M4 (laptop, Playwright giả lập, §7.3); chưa thử trên điện thoại thật. Thử trên staging `https://se2026-t21.koreacentral.cloudapp.azure.com` sau lần deploy cuối trước đóng băng. E2E chỉ chạy Chromium trên máy tính, nên phần này là bằng chứng duy nhất cho camera, GPS, cài PWA và Safari iOS.
 
 ### 7.1 Thiết bị
 
@@ -276,16 +277,23 @@ Riêng iOS: ghi thêm phiên bản Safari, có cần "Thêm vào màn hình chí
 
 ### 8.1 Lỗi và nợ còn tồn
 
-Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma trận. Những chỗ người dùng có thể thấy sai hoặc vận hành còn hở, lấy từ [tech-debt.md](tech-debt.md):
+Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma trận. Những chỗ người dùng có thể thấy sai, vận hành còn hở hoặc code lệch spec ở nhánh chưa có ca kiểm, lấy từ [tech-debt.md](tech-debt.md) (2026-11-20):
 
-| # | Vấn đề | Ảnh hưởng tới người dùng hoặc kiểm chứng | Ưu tiên | Trạng thái |
+| # | Vấn đề | Ảnh hưởng tới người dùng hoặc kiểm chứng | Ưu tiên | Người giữ |
 |---|---|---|---|---|
-| N2 | Chưa sao lưu hằng ngày, ảnh chưa có trong bản sao lưu | Hỏng đĩa staging thì mất phiếu và ảnh | Cao | ⏳ TV3-13, TV1-19 |
-| N1 | Server không ghi log theo request | Sự cố staging khó dò, không có tỉ lệ 5xx sau deploy | Vừa | ⏳ TV2-19 |
-| N6 | Danh sách phiếu chưa lọc theo người tạo, chưa có ô tìm | Supervisor khó tìm phiếu khi dự án lớn | Thấp | ⏳ TV2-18 |
-| N8 | Chưa kiểm khả năng tiếp cận | Nắng khó đọc, trình đọc màn hình chưa thử | Thấp | ⏳ TV3-15 |
+| N9 | Bản sao lưu nằm cùng ổ đĩa với server staging | Mất ổ đĩa hoặc máy ảo thì mất tới một tuần phiếu và ảnh | Cao | Đại + Dương |
+| N28 | Server không có bộ xử lý lỗi cuối, lỗi lạ trả HTML thay vì `500 internal_error` | Lệch design §7.1; chưa có ca kiểm vì không ca nào gây lỗi lạ ở server | Vừa | Hoàng |
+| N29 | Lịch dọn key idempotency và chunk ảnh không bắt lỗi | Lỗi thư mục upload có thể làm server khởi động lại liên tục | Vừa | Hoàng |
+| N30 | Đồng bộ không phân loại lỗi `5xx` ở `/me`, pull, forms | Lệch design §8: không hiện "Máy chủ đang lỗi"; một tổ chức lỗi chặn các tổ chức sau trong vòng đó. Không mất dữ liệu. R1 chỉ kiểm `5xx` ở bước gửi phiếu | Vừa | Hoàng |
+| N13 | Chưa thử trên iPhone thật (VoiceOver, safe-area, kéo thả trên Safari) | Trùng phần M2 ở §7 | Vừa | Dương |
+| N15 | Builder cho lưu biểu mẫu không có trường nào | Điều tra viên thấy form rỗng; không mất dữ liệu | Vừa | Dương |
+| N33 | Danh sách và đổi dự án 2.000 phiếu vượt 1 s ở CPU ×4 | Điện thoại tầm trung nhiều phiếu chờ lâu (§6) | Thấp | Dương |
+| N1 | Chưa xác minh log request trên staging | Khó xem xu hướng lỗi sau deploy | Thấp | Hoàng |
+| N6 | Danh sách phiếu chưa lọc theo người tạo, chưa có ô tìm | Supervisor khó tìm phiếu khi dự án lớn | Thấp | Hoàng |
 
-Đã trả từ bản 0.1: N3 diễn tập quay lại bản trước (PR #64), N5 báo "Phiên đăng nhập hết hạn" khi `401` (PR #62, kiểm bằng `api-errors.spec.ts`), N7 `seed:demo` bỏ token cố định (PR #60).
+Nợ thấp còn lại không ảnh hưởng ca kiểm: N24 (địa chỉ cũ của phiếu đã xoá ra form trống, có ca E2E), N27 (ảnh mồ côi chưa gửi chưa dọn được), N31 (phiếu lớn ghi chậm), N32 (lưu ảnh dùng I/O đồng bộ).
+
+Đã trả từ bản 0.2: N2 sao lưu hằng ngày (TV3-13 PR #66, bật trên staging PR #67); N8 rà khả năng tiếp cận (TV3-15 PR #104), các chỗ chưa đạt N16–N22 đã sửa ở PR #106–#111; N10–N12, N14, N23, N25, N26 và phần 1 của N27 (xem "Đã trả" trong tech-debt.md). Trước đó: N3, N5, N7.
 
 ### 8.2 Phần chưa có kiểm thử tự động
 
@@ -296,7 +304,7 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 | Nhiều người dùng cùng lúc, tải cao | Ngoài phạm vi đồ án; server SQLite một tiến trình | Pull 5.000 phiếu ở TV2-11 (một người dùng, §6) |
 | Hiệu năng: đồng bộ qua mạng chậm, dung lượng mỗi máy | Không ticket nào nhận đo (§6) | O2 trên staging qua mạng thật (§7.3), không giới hạn băng thông |
 | Hiệu năng nói chung | Bộ đo `client/e2e/perf/` không chạy trong CI (máy CI dao động, đo lâu) | Chạy tay `npm run test:perf` trước khi chốt (§6) |
-| Khả năng tiếp cận (tương phản, cỡ nút) | Chưa có công cụ kiểm trong E2E (N8, TV3-15) | E2E chọn ô theo nhãn nên các ô có E2E đều có nhãn; P13 |
+| Khả năng tiếp cận (tương phản, cỡ nút) | Chưa có công cụ kiểm tự động toàn trang | Rà tay theo design §11.3 (TV3-15); E2E có ca riêng cho đích bấm 44px, giữ con trỏ (N16–N22); tương phản bảng màu sáng và tối kiểm bằng unit `theme.test.ts`; E2E chọn ô theo nhãn nên các ô có E2E đều có nhãn; P13 |
 | Quay lại bản trước trên staging | Làm tay theo `deploy.md`, không tự động được trong CI | Diễn tập nhánh 2a ngày 2026-10-22 (QS5); nhánh 2b (khôi phục CSDL) chưa diễn tập |
 
 ## 9. Việc còn lại để chốt báo cáo
@@ -306,7 +314,7 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 - [ ] Thử P1–P13 trên điện thoại thật, điền §7 (Đại, cần staging bản cuối).
 - [x] Đưa ca của TV3-14 (GPS, điều tra viên thấy form) vào §3, §4 khi ticket đó xong (bản 0.3).
 - [ ] Sau đóng băng tính năng: chạy lại toàn bộ test trên commit cuối, cập nhật số ở §1, §3, §5.
-- [ ] Cập nhật §8 theo tech-debt và lỗi tìm được khi thử tay.
+- [ ] Cập nhật §8 theo tech-debt và lỗi tìm được khi thử tay (bản 0.4 đã cập nhật theo tech-debt 2026-11-20; còn phần thử tay).
 
 ## Lịch sử
 
@@ -316,4 +324,4 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 | 0.2 | 2026-10-22 | Chạy lại trên `5db0c36` (sau PR #64): số test, số CI; thêm `api-errors.spec.ts` (US-10, US-11 thêm tiêu chí); QS5 đạt theo diễn tập TV1-19; N3, N5, N7 đã trả; nợ và phần chưa kiểm trỏ tới ticket mới (TV2-18, TV2-19, TV3-13..15). §6, §7 vẫn chờ |
 | 0.3 | 2026-10-24 | TV3-14: thêm `gps-offline.spec.ts` (US-03) và `form-sync.spec.ts` (US-07) vào §3.7, §4, bỏ hai dòng ở §8.2; US-03 thêm tiêu chí lấy vị trí khi offline (requirements 0.4) và tính cả tiêu chí lỗi GPS của TV1-12 b1. Số test ở §1, §5 vẫn là của `5db0c36`, chạy lại trước đóng băng |
 | 0.3.1 | 2026-11-20 | §7: thêm thiết bị M4 (laptop, Playwright tới staging qua HTTPS) và kết quả: 10 phiếu offline có ảnh và GPS giả lập đồng bộ đủ, không trùng (Dương, phiên A). Chưa đổi phần khác |
-| 0.4 | 2026-11-20 | §6 điền từ `perf.md`: pull 5.000 phiếu, danh sách 2.000 phiếu, đổi dự án (TV2-11, đo 2026-10-25), mở app offline QS4 và lưu một phiếu (PR #151, đo 2026-11-20), cả 6 đạt; ở CPU ×4 danh sách và đổi dự án 2.000 phiếu vượt 1 s (N33). Ba chỉ tiêu không ticket nào nhận ghi "Chưa đo". §1, §4: QS1–QS5 đạt. §8.2, §9 theo đó. Số test ở §1, §5 vẫn là của `5db0c36` |
+| 0.4 | 2026-11-20 | §6 điền từ `perf.md`: pull 5.000 phiếu, danh sách 2.000 phiếu, đổi dự án (TV2-11, đo 2026-10-25), mở app offline QS4 và lưu một phiếu (PR #151, đo 2026-11-20), cả 6 đạt; ở CPU ×4 danh sách và đổi dự án 2.000 phiếu vượt 1 s (N33). Ba chỉ tiêu không ticket nào nhận ghi "Chưa đo". §1, §4: QS1–QS5 đạt. §2.3 thêm thử đột biến (PR #153). §8.1 theo tech-debt 2026-11-20 (N9, N28–N30, N33…; N2, N8 đã trả). §8.2, §9 theo đó. Số test ở §1, §5 vẫn là của `5db0c36` |
