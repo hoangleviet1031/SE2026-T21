@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.87 (2026-11-19)
+- **Phiên bản:** 0.5.88 (2026-11-20)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -121,6 +121,7 @@
 | 0.5.85 | 2026-11-18 | "Biểu mẫu mới" chuyển route sang `#/builder` không tham số, `#/builder/new` là sửa form mã `new` (tech-debt N26, sửa lỗi, không ticket, Dương cho phép 2026-11-18): §4.1 câu tự lưu ghi route; khoá tự lưu `builder-new` giữ nguyên. Không đổi API, mã lỗi, schema |
 | 0.5.86 | 2026-11-19 | Chọn giao diện Theo máy / Sáng / Tối ở màn hình 8 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-19; không ticket): §1 dòng Giao diện tối. Lựa chọn là tuỳ chọn hiển thị của máy, lưu `localStorage` (không phải dữ liệu nghiệp vụ), Đăng xuất/Xoá dữ liệu không xoá; trang quản trị theo cùng lựa chọn. Câu chữ ở ui.md màn hình 8. Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.87 | 2026-11-19 | §5.1 thêm dòng trỏ tới ma trận test chuyển trạng thái phiếu (`client/e2e/record-states.spec.ts`, việc cải thiện 10, không ticket, Dương cho phép 2026-11-19). Chỉ thêm test; không đổi hành vi, API, mã lỗi, schema |
+| 0.5.88 | 2026-11-20 | Đo hai chỉ tiêu §11.2 phía máy ([perf.md](perf.md), `client/e2e/perf/client.spec.ts`): mở app đã cài khi offline tới khi nhập được 310 ms (CPU ×4: 1,1 s), lưu một phiếu 33 ms (CPU ×4: 91 ms), đều đạt; §11.4 QS4 thành đạt; §1 Giả định ghi chỉ tiêu nào đã đo. Không đổi hành vi |
 
 ## Mục lục
 
@@ -158,7 +159,7 @@
 **Giả định** (chưa có bằng chứng; Lecture 03 yêu cầu ghi rõ):
 - Chưa phỏng vấn hay thử với nhóm khảo sát thật (§14 câu 1). Người dùng, nhu cầu và mâu thuẫn ở §2 là giả định của nhóm; `demo-yte`, `demo-nongnghiep` là dự án mẫu tự đặt.
 - Chưa có số liệu quy trình hiện tại (thời gian nhập lại, tỉ lệ mất phiếu) nên K1–K4 đo bằng test chứ chưa so được với trước.
-- Chỉ tiêu §11.2 là mục tiêu nhóm tự đặt theo thiết bị tham chiếu, chưa đo (TV2-11).
+- Chỉ tiêu §11.2 là mục tiêu nhóm tự đặt theo thiết bị tham chiếu. Đã đo 6/10 trên máy tính có giả lập máy yếu (CPU ×4, [perf.md](perf.md)), chưa đo trên điện thoại thật.
 - **Giả định rủi ro nhất:** điện thoại giữ được dữ liệu trong trình duyệt nhiều ngày khi offline (iOS có thể xoá, §13) và điều tra viên chịu dùng PWA thay app native. Bằng chứng đã có: 3 thành viên cài và chạy offline trên Android và iPhone thật (TV1-01). Bằng chứng còn thiếu: một đợt thử thật nhiều ngày.
 
 **Mục tiêu:** một hệ thống dùng chung cho **nhiều nhóm thuộc các tổ chức khác nhau** (y tế, nông nghiệp, giáo dục, ...). Mỗi nhóm tự tạo form cho lĩnh vực của mình; điều tra viên thu thập phiếu ở nơi không có mạng, dữ liệu tự đồng bộ khi có kết nối, và khi hai nơi cùng sửa một phiếu thì hệ thống giải thích rõ chuyện gì xảy ra để người dùng tự quyết. Dữ liệu của các nhóm tách biệt hoàn toàn (ADR 0002).
@@ -1282,8 +1283,8 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 
 | Chỉ tiêu | Mục tiêu | Đo bằng |
 |---|---|---|
-| Mở app offline (đã cài) tới khi nhập được | ≤ 3 s trên thiết bị tham chiếu | Playwright, CPU throttle 4× |
-| Lưu một phiếu | ≤ 200 ms | Playwright |
+| Mở app offline (đã cài) tới khi nhập được | ≤ 3 s trên thiết bị tham chiếu | Playwright, CPU throttle 4× (`client/e2e/perf/client.spec.ts`, [perf.md](perf.md)) |
+| Lưu một phiếu | ≤ 200 ms | Playwright (`client/e2e/perf/client.spec.ts`, [perf.md](perf.md)) |
 | Danh sách 2.000 phiếu | Cuộn mượt, hiển thị ≤ 1 s | Hiển thị: Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); cuộn mượt: thủ công, chưa thử |
 | Đồng bộ 100 phiếu không ảnh | ≤ 10 s ở mạng "Slow 3G" | Playwright network throttle |
 | Đồng bộ 50 ảnh đã nén | ≤ 3 phút ở mạng 3G (1,6 Mbps) | Playwright network throttle |
@@ -1293,7 +1294,7 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 | Số dự án mỗi người dùng | Tối đa 10 | Thiết kế |
 | Kích thước ảnh sau nén | ≤ 600 KB | E2E `photo.spec.ts` (canvas chỉ có trong trình duyệt); unit test `fitWithin` |
 
-Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chiếu (§11.1), chưa có số đo trước để so (§1 "Giả định"). Đã có số đo: kích thước ảnh, đổi dự án (`project-switcher.spec.ts`); các dòng khác đo ở TV2-11.
+Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chiếu (§11.1), chưa có số đo trước để so (§1 "Giả định"). Đã có số đo: kích thước ảnh, đổi dự án (`project-switcher.spec.ts`); pull lần đầu, danh sách 2.000 phiếu hiển thị, đổi dự án 2.000 phiếu (TV2-11); mở app offline, lưu một phiếu (2026-11-20). Chưa đo: hai dòng đồng bộ qua mạng chậm, dung lượng mỗi máy, danh sách cuộn mượt.
 
 ### 11.3 Khả năng tiếp cận
 
@@ -1331,7 +1332,7 @@ Các thuộc tính chất lượng quan trọng nhất, viết theo 6 phần đ�
 | QS1 | Tin cậy đồng bộ | Điện thoại điều tra viên | Gửi phiếu; server trả 500, giữ request quá 10 s, hoặc cắt kết nối sau khi đã ghi | Mạng chập chờn | Outbox, `PUT P/records/:id`, bảng `idempotency` | Thử lại với cùng `opId`; server trả lại kết quả đã lưu | Mỗi phiếu đúng một bản trên server, version 1; 0 bản trùng | R1, R2, R3, O2 |
 | QS2 | Toàn vẹn khi sửa đồng thời | Điều tra viên và giám sát viên | Cùng sửa một phiếu, một bên offline | Hai thiết bị | Sync engine, `threeWayMerge` | Khác trường tự gộp; cùng trường hoặc xoá vs sửa thì hỏi, không chọn sẵn | 0 trường bị thay mà người dùng không được hỏi | C1, C2, C4, C5, C8 |
 | QS3 | Cách ly dữ liệu | Thành viên tổ chức A, hoặc admin | Gọi mọi route theo dự án của tổ chức B | Bình thường | `requireMember`, lớp `repo` theo `ctx` | Từ chối; id thuộc tổ chức khác trả `404` | 0 route trả `2xx` | T1–T5, Q7 |
-| QS4 | Hiệu năng mở offline | Điều tra viên | Mở app đã cài | Không có mạng, máy tầm trung (CPU throttle 4×) | Service worker, IndexedDB | Hiện danh sách phiếu, nhập được | ≤ 3 s | Chưa đo (TV2-11) |
+| QS4 | Hiệu năng mở offline | Điều tra viên | Mở app đã cài | Không có mạng, máy tầm trung (CPU throttle 4×) | Service worker, IndexedDB | Hiện danh sách phiếu, nhập được | ≤ 3 s | Đạt: 310 ms, CPU ×4 1,1 s (`client/e2e/perf/client.spec.ts`, [perf.md](perf.md)) |
 | QS5 | Khôi phục được | Người vận hành | Bản deploy mới làm hỏng việc chính | Staging | `deploy.sh`, bản sao lưu CSDL | Quay lại bản trước theo [deploy.md](deploy.md) "Quay lại bản trước" | Quay lại nhánh 2a (CSDL không đổi `user_version`) ≤ 5 phút, tính từ lúc quyết định quay lại tới khi `/api/health` trả `200` ở bản cũ (Dương chốt 2026-10-22). Nhánh 2b chưa đặt mục tiêu | Đạt (lần đo 2026-10-22: 19 s chạy lệnh quay lại; 21 s quay về `main` bằng `deploy.sh`). Diễn tập tay trên staging (8d93233 → f5dba4f → 8d93233), làm lại khi đổi cách deploy. Tự deploy (0.5.84) chỉ đổi cách kích hoạt `deploy.sh`, các bước quay lại giữ nguyên (thêm bước dừng timer), nên không diễn tập lại. Nhánh khôi phục CSDL (2b) chưa diễn tập |
 
 ## 12. Triển khai
