@@ -1,4 +1,4 @@
-import express, { type ErrorRequestHandler, type RequestHandler } from 'express';
+import express, { type RequestHandler } from 'express';
 import cors from 'cors';
 import type { Db } from './db';
 import { createAuth } from './auth';
@@ -15,6 +15,7 @@ import { createUploadStore } from './uploads';
 import { exportRouter } from './routes/export';
 import { faultInjector, faultsRouter, requestLogger as testRequestLogger } from './routes/faults';
 import { testMembershipsRouter } from './routes/testMemberships';
+import { finalErrorHandler } from './errorHandler';
 
 const requestLogger: RequestHandler = (req, res, next) => {
   const startedAt = process.hrtime.bigint();
@@ -41,13 +42,6 @@ const requestLogger: RequestHandler = (req, res, next) => {
   // Kết nối bị ngắt không có mã HTTP cuối cùng, nhưng vẫn cần một dòng log.
   res.once('close', () => logRequest(res.writableFinished ? res.statusCode : 0));
   next();
-};
-
-const jsonParseErrorHandler: ErrorRequestHandler = (error: unknown, _req, res, next) => {
-  if (typeof error === 'object' && error !== null && 'type' in error && error.type === 'entity.parse.failed') {
-    return void res.status(400).json({ error: 'invalid_body' });
-  }
-  next(error);
 };
 
 // Bật chủ động: quên cấu hình thì route tiêm lỗi tắt, kể cả khi quên đặt NODE_ENV. Xem docs/design.md §9.
@@ -108,6 +102,7 @@ export function createApp(
     requireMember('supervisor'),
     exportRouter(db, opts.publicBaseUrl ?? 'http://localhost:3001'),
   );
-  app.use(jsonParseErrorHandler);
+  // JSON hỏng → 400 invalid_body, thân quá 2 MB → 413 payload_too_large, còn lại 500 internal_error.
+  app.use(finalErrorHandler);
   return app;
 }
