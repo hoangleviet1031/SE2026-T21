@@ -563,6 +563,12 @@ journalctl -u survey-api -o cat --since "15 min ago" --no-pager | grep '"path"' 
 journalctl -u survey-api -o cat --since "15 min ago" --no-pager | grep '"status":5[0-9][0-9]'
 ```
 
+Request trả `500 internal_error` (lỗi không lường trước, design §7.1) có thêm một dòng `"level":"error"` ghi `message` và `stack` của lỗi, cũng không có header hay thân request:
+
+```bash
+journalctl -u survey-api -o cat --since "1 hour ago" --no-pager | grep '"level":"error"'
+```
+
 | Triệu chứng | Lệnh xem |
 |---|---|
 | API lỗi, trang báo mất kết nối | `journalctl -u survey-api -n 50 --no-pager` |

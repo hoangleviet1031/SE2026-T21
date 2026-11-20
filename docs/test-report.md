@@ -1,6 +1,6 @@
 # Báo cáo kiểm thử
 
-- **Phiên bản:** 0.4 (2026-11-20)
+- **Phiên bản:** 0.4.1 (2026-11-20)
 - **Người viết:** Đại (TV3, Quality owner), ticket [TV3-11](plan/tv3-conflict-media-test.md)
 - **Bản được kiểm:** `main` ở commit `5db0c36` (sau PR #64)
 - **Liên quan:** ma trận ca ở [design.md §10.1](design.md#101-ma-trận-e2e-bắt-buộc), ca cách ly ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng), chỉ tiêu ở [§11.2](design.md#112-chỉ-tiêu), story ở [requirements.md](requirements.md), nợ ở [tech-debt.md](tech-debt.md)
@@ -282,7 +282,6 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 | # | Vấn đề | Ảnh hưởng tới người dùng hoặc kiểm chứng | Ưu tiên | Người giữ |
 |---|---|---|---|---|
 | N9 | Bản sao lưu nằm cùng ổ đĩa với server staging | Mất ổ đĩa hoặc máy ảo thì mất tới một tuần phiếu và ảnh | Cao | Đại + Dương |
-| N28 | Server không có bộ xử lý lỗi cuối, lỗi lạ trả HTML thay vì `500 internal_error` | Lệch design §7.1; chưa có ca kiểm vì không ca nào gây lỗi lạ ở server | Vừa | Hoàng |
 | N29 | Lịch dọn key idempotency và chunk ảnh không bắt lỗi | Lỗi thư mục upload có thể làm server khởi động lại liên tục | Vừa | Hoàng |
 | N30 | Đồng bộ không phân loại lỗi `5xx` ở `/me`, pull, forms | Lệch design §8: không hiện "Máy chủ đang lỗi"; một tổ chức lỗi chặn các tổ chức sau trong vòng đó. Không mất dữ liệu. R1 chỉ kiểm `5xx` ở bước gửi phiếu | Vừa | Hoàng |
 | N13 | Chưa thử trên iPhone thật (VoiceOver, safe-area, kéo thả trên Safari) | Trùng phần M2 ở §7 | Vừa | Dương |
@@ -293,7 +292,7 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 
 Nợ thấp còn lại không ảnh hưởng ca kiểm: N24 (địa chỉ cũ của phiếu đã xoá ra form trống, có ca E2E), N27 (ảnh mồ côi chưa gửi chưa dọn được), N31 (phiếu lớn ghi chậm), N32 (lưu ảnh dùng I/O đồng bộ).
 
-Đã trả từ bản 0.2: N2 sao lưu hằng ngày (TV3-13 PR #66, bật trên staging PR #67); N8 rà khả năng tiếp cận (TV3-15 PR #104), các chỗ chưa đạt N16–N22 đã sửa ở PR #106–#111; N10–N12, N14, N23, N25, N26 và phần 1 của N27 (xem "Đã trả" trong tech-debt.md). Trước đó: N3, N5, N7.
+Đã trả từ bản 0.2: N28 bộ xử lý lỗi cuối trả `500 internal_error` (bản 0.4.1); N2 sao lưu hằng ngày (TV3-13 PR #66, bật trên staging PR #67); N8 rà khả năng tiếp cận (TV3-15 PR #104), các chỗ chưa đạt N16–N22 đã sửa ở PR #106–#111; N10–N12, N14, N23, N25, N26 và phần 1 của N27 (xem "Đã trả" trong tech-debt.md). Trước đó: N3, N5, N7.
 
 ### 8.2 Phần chưa có kiểm thử tự động
 
@@ -325,3 +324,4 @@ Nợ thấp còn lại không ảnh hưởng ca kiểm: N24 (địa chỉ cũ c�
 | 0.3 | 2026-10-24 | TV3-14: thêm `gps-offline.spec.ts` (US-03) và `form-sync.spec.ts` (US-07) vào §3.7, §4, bỏ hai dòng ở §8.2; US-03 thêm tiêu chí lấy vị trí khi offline (requirements 0.4) và tính cả tiêu chí lỗi GPS của TV1-12 b1. Số test ở §1, §5 vẫn là của `5db0c36`, chạy lại trước đóng băng |
 | 0.3.1 | 2026-11-20 | §7: thêm thiết bị M4 (laptop, Playwright tới staging qua HTTPS) và kết quả: 10 phiếu offline có ảnh và GPS giả lập đồng bộ đủ, không trùng (Dương, phiên A). Chưa đổi phần khác |
 | 0.4 | 2026-11-20 | §6 điền từ `perf.md`: pull 5.000 phiếu, danh sách 2.000 phiếu, đổi dự án (TV2-11, đo 2026-10-25), mở app offline QS4 và lưu một phiếu (PR #151, đo 2026-11-20), cả 6 đạt; ở CPU ×4 danh sách và đổi dự án 2.000 phiếu vượt 1 s (N33). Ba chỉ tiêu không ticket nào nhận ghi "Chưa đo". §1, §4: QS1–QS5 đạt. §2.3 thêm thử đột biến (PR #153). §8.1 theo tech-debt 2026-11-20 (N9, N28–N30, N33…; N2, N8 đã trả). §8.2, §9 theo đó. Số test ở §1, §5 vẫn là của `5db0c36` |
+| 0.4.1 | 2026-11-20 | §8.1: N28 đã trả (bộ xử lý lỗi cuối ở server), bỏ khỏi bảng nợ |

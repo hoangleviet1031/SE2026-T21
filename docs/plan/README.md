@@ -83,7 +83,7 @@ Từ 2026-10-12, [ADR 0003](../adr/0003-accounts-and-owner-role.md) thay một p
 | TV3-08 | Xoá vs sửa | ✅ PR #47 |
 | TV3-09 | Export CSV/JSON | ✅ PR #48 |
 | TV3-10 | E2E O3, R4 | ✅ PR #40 |
-| TV3-11 | Báo cáo kiểm thử | ⏳ bản 0.4: §6 hiệu năng xong (gồm QS4, PR #151), §8 theo tech-debt; còn §7 điện thoại thật và chạy lại trên commit cuối |
+| TV3-11 | Báo cáo kiểm thử | ⏳ bản 0.4 ✅ PR #135: §6 hiệu năng xong (gồm QS4, PR #151), §8 theo tech-debt; còn §7 điện thoại thật và chạy lại trên commit cuối |
 
 ### Theo ADR 0003 (bản mới)
 
@@ -130,6 +130,7 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Màn 8: Dọn ảnh đã tải lên (không ticket, Dương cho phép) | Must | N23 | ✅ PR #141 |
 | — | Màn 8: Xoá dữ liệu trên máy (design §9, không ticket, Dương cho phép) | – | N27 phần 1 | ✅ PR #142 |
 | — | Giao diện tối theo hệ điều hành (không ticket, Dương duyệt 2026-11-16) · **Cắt được** | Could | – | ✅ PR #143 (phần 1: gom màu về token); ✅ PR #144 (phần 2: bật chế độ tối) |
+| — | N28: bộ xử lý lỗi cuối ở server trả `500 internal_error` (không ticket) | – | N28 | ⏳ `fix/n28-internal-error` |
 
 ## Phụ thuộc quan trọng
 
