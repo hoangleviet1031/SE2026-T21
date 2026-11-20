@@ -49,6 +49,10 @@ describe('classifyUploadError', () => {
     expect(classifyUploadError(409, 'missing_chunks', 0)).toEqual({ kind: 'resync' });
   });
 
+  it('409 với mã khác không phải thiếu chunk thì không gửi bù (bổ sung sau thử đột biến M21, docs/mutation.md)', () => {
+    expect(classifyUploadError(409, 'conflict', 0).kind).toBe('failed');
+  });
+
   it('sai SHA-256 lần đầu gửi lại từ đầu, lần hai thì failed', () => {
     expect(classifyUploadError(422, 'checksum_mismatch', 0)).toEqual({ kind: 'restart' });
     expect(classifyUploadError(422, 'checksum_mismatch', 1)).toMatchObject({ kind: 'failed' });
