@@ -11,6 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-20 | — | test | Việc cải thiện 7: bộ đo `client/e2e/perf/client.spec.ts` cho hai chỉ tiêu §11.2 phía máy: mở app đã cài khi offline tới khi nhập được (QS4) 310 ms, CPU ×4 1,1 s; lưu một phiếu 33 ms, CPU ×4 91 ms; đều đạt. perf.md mục mới, design 0.5.88 (§1, §11.2, §11.4) | nhánh `feat/do-hieu-nang-client` | chờ review |
 | 2026-11-19 | — | test | Việc cải thiện 10: ma trận chuyển trạng thái phiếu theo design §5.1 (mọi mũi tên + đường cấm, trỏ test có sẵn) và 4 ca E2E mới `record-states.spec.ts` (đã đồng bộ → nháp → nháp → chờ; pull nhận bản mới; pull không ghi đè phiếu Chờ đồng bộ, Lỗi); thử bỏ điều kiện `hasOps` ở pull thì 2 ca đỏ; design 0.5.87, requirements 0.34 | PR #150 | chờ review |
 | 2026-11-19 | — | feat | Màn 8 khối "Giao diện" chọn Theo máy / Sáng / Tối, nhớ trên máy (`localStorage`), trang quản trị theo cùng lựa chọn; khối tối đổi từ `@media` sang `:root[data-theme="dark"]`, script đặt `data-theme` trước khi vẽ; unit `themeChoice.test.ts`, E2E `dark-mode.spec.ts` 2 ca; design 0.5.86, ui.md 0.2.61 (Could, cắt được) | PR #149 | chờ review |
 | 2026-11-18 | — | fix | Tech-debt N26: "Biểu mẫu mới" chuyển sang `#/builder` không tham số, form mã `new` sửa được ở `#/builder/new`; khoá tự lưu `builder-new` giữ nguyên; E2E builder.spec, builder-draft.spec mỗi file 1 ca, unit navMenu | PR #148 | chờ review |

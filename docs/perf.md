@@ -1,6 +1,6 @@
 # Đo hiệu năng
 
-Số đo cho các chỉ tiêu ở [design.md §11.2](design.md#112-chỉ-tiêu) mà TV2-11 phụ trách: pull lần đầu, danh sách nhiều phiếu, đổi dự án. Các chỉ tiêu khác của §11.2 (mở app offline, lưu một phiếu, đồng bộ qua mạng chậm, ảnh) chưa đo ở đây.
+Số đo cho các chỉ tiêu ở [design.md §11.2](design.md#112-chỉ-tiêu): pull lần đầu, danh sách nhiều phiếu, đổi dự án (TV2-11, mục "Kết quả (2026-10-25)"); mở app offline (QS4) và lưu một phiếu (mục "Mở app offline và lưu phiếu (2026-11-20)"). Đồng bộ qua mạng chậm và dung lượng mỗi máy chưa đo ở đây; kích thước ảnh đo bằng `photo.spec.ts`.
 
 ## Kết quả (2026-10-25)
 
@@ -39,6 +39,24 @@ Cách đo từng chỉ tiêu (`client/e2e/perf/pull.spec.ts`):
 - **Đổi dự án:** offline, đang ở dự án nhỏ, chọn dự án 2.000 phiếu trong bộ chọn, đo tới khi danh sách có đủ 2.000 dòng.
 
 Dữ liệu seed: `POST /api/__test/seed-perf` (server E2E chạy CSDL `:memory:`), cùng hàm với lệnh `npm run seed:perf -w server -- --project <id> --user <username> [--count 5000]` để seed vào CSDL file (dev, staging; từ chối khi `NODE_ENV=production`). Phiếu được ghi như một lần `PUT` thật: `records` và `record_history` version 1, `seq` cấp trong cùng transaction.
+
+## Mở app offline và lưu phiếu (2026-11-20)
+
+Bộ đo `client/e2e/perf/client.spec.ts`, cùng cách chạy ở mục "Cách đo". Mỗi lượt 3 lần, bảng ghi **trung vị** (ba lần đo trong ngoặc).
+
+| Chỉ tiêu (§11.2) | Mục tiêu | Lượt A: CPU bình thường | Lượt B: CPU chậm ×4 | Đạt |
+|---|---|---|---|---|
+| Mở app đã cài khi offline tới khi nhập được (QS4, §11.4) | ≤ 3 s, CPU ×4 | **310 ms** (292 / 317 / 310) | **1.128 ms** (1.128 / 1.276 / 1.067) | Đạt |
+| *Trong đó: tới khi thấy danh sách 200 phiếu (tham khảo)* | – | 204 ms (203 / 204 / 205) | 869 ms (869 / 933 / 813) | – |
+| Lưu một phiếu | ≤ 200 ms | **33 ms** (42 / 33 / 23) | **91 ms** (81 / 93 / 91) | Đạt |
+| *Bấm Lưu tới khi phiếu hiện ở danh sách (tham khảo)* | – | 127 ms (131 / 127 / 118) | 344 ms (344 / 399 / 317) | – |
+
+Cách đo:
+- **Mở app offline:** `minh` có 200 phiếu (seed như mục trên) trong dự án `demo-yte`, đăng nhập, chờ service worker kiểm soát trang và danh sách đủ 200 dòng, đóng tab. Tắt mạng, mở **tab mới** tới `/` (đúng cảnh mở lại app đã cài, không phải tải lại tab cũ). Bấm giờ từ lúc mở trang tới khi danh sách đủ 200 dòng, nút "Tạo phiếu mới" bấm được, bấm nút đó và ô đầu tiên của phiếu gõ được. Test kiểm thêm app hiện "Ngoại tuyến" và trang do service worker phục vụ. Chỉ tiêu ghi ở CPU ×4 nên so ngưỡng ở cả hai lượt.
+- **Lưu một phiếu:** offline (để lần đồng bộ ngay sau khi lưu không chen vào số đo), điền tên chủ hộ cho phiếu mới, bấm giờ **trong trang** bằng `performance.now()` từ sự kiện click nút Lưu tới khi app chuyển về trang chủ (`hashchange`). Trang nhập chỉ chuyển trang sau khi transaction phiếu + op đã xong (`saveRecordLocally`, bất biến 2), nên số này gồm thời gian ghi IndexedDB và phần React xử lý click, không lẫn độ trễ của Playwright. Dòng "tới khi phiếu hiện ở danh sách" đo từ phía Playwright, gồm cả vẽ lại danh sách. So ngưỡng ở lượt A, giống ba chỉ tiêu của TV2-11.
+- Lượt B: Chrome DevTools Protocol `Emulation.setCPUThrottlingRate` trên tab mới mở. Phiên CDP riêng làm tab mất trạng thái offline của `context.setOffline` nên test đặt lại `Network.emulateNetworkConditions` offline trên chính phiên đó.
+
+**Máy đo hôm nay chậm hơn lúc đo 2026-10-25:** cùng máy ở mục trên, nhưng chạy lại bộ đo pull ở đúng commit đo hôm đó (c0d3169) được pull 5.000 phiếu 8–9 s (lúc đó 2,3 s), danh sách 2.000 phiếu 818–821 ms (lúc đó 211 ms). Nguyên nhân chưa rõ (chế độ nguồn, tải nền), nên số đo mục này nghiêng về phía chậm; vẫn còn dư nhiều so với chỉ tiêu. Cũng trong hôm đó, bộ đo pull trên `main` (850754d) đỏ ở dòng danh sách 2.000 phiếu: 1.042 ms, 1.135 ms (ngưỡng 1 s, lượt A), đổi dự án một lần 1.135 ms; tức là so với c0d3169 cùng máy cùng ngày danh sách chậm thêm khoảng 25–35%. Chưa tìm nguyên nhân (ngoài phạm vi việc đo này); bộ đo hiệu năng không chạy trong CI nên không ai thấy khi merge.
 
 ## Thử tay trên điện thoại (chưa làm)
 
