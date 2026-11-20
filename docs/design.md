@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.88 (2026-11-20)
+- **Phiên bản:** 0.5.89 (2026-11-20)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -122,6 +122,7 @@
 | 0.5.86 | 2026-11-19 | Chọn giao diện Theo máy / Sáng / Tối ở màn hình 8 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-19; không ticket): §1 dòng Giao diện tối. Lựa chọn là tuỳ chọn hiển thị của máy, lưu `localStorage` (không phải dữ liệu nghiệp vụ), Đăng xuất/Xoá dữ liệu không xoá; trang quản trị theo cùng lựa chọn. Câu chữ ở ui.md màn hình 8. Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.87 | 2026-11-19 | §5.1 thêm dòng trỏ tới ma trận test chuyển trạng thái phiếu (`client/e2e/record-states.spec.ts`, việc cải thiện 10, không ticket, Dương cho phép 2026-11-19). Chỉ thêm test; không đổi hành vi, API, mã lỗi, schema |
 | 0.5.88 | 2026-11-20 | Đo hai chỉ tiêu §11.2 phía máy ([perf.md](perf.md), `client/e2e/perf/client.spec.ts`): mở app đã cài khi offline tới khi nhập được 310 ms (CPU ×4: 1,1 s), lưu một phiếu 33 ms (CPU ×4: 91 ms), đều đạt; §11.4 QS4 thành đạt; §1 Giả định ghi chỉ tiêu nào đã đo. Không đổi hành vi |
+| 0.5.89 | 2026-11-20 | §10 thêm mức "Thử đột biến" ([mutation.md](mutation.md), `scripts/mutation.mjs`): 25 đột biến tay ở merge, backoff, phân loại lỗi upload ảnh; lần đầu bắt 17/25, thêm 8 ca unit thì bắt 25/25. Không đổi hành vi |
 
 ## Mục lục
 
@@ -1139,6 +1140,7 @@ Phạm vi đồ án giữ đơn giản:
 | Integration API | Vitest + `fetch` vào server chạy cổng ngẫu nhiên, SQLite in-memory | `server/test/` | `npm test` |
 | E2E | Playwright trên bản build (`vite preview`) để SW chạy như thật | `client/e2e/` | `npm run test:e2e` |
 | Hiệu năng | Script seed 2.000 phiếu + Playwright đo thời gian | `client/e2e/perf/` | thủ công, tuần 6 |
+| Thử đột biến | Script sửa sai từng chỗ trong code lõi rồi chạy unit test ([mutation.md](mutation.md)) | `scripts/mutation.mjs` | thủ công, `node scripts/mutation.mjs` |
 
 ### 10.1 Ma trận E2E bắt buộc
 
