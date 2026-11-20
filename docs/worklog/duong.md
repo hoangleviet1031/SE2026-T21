@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-20 | — | docs | Việc cải thiện 6 (phần giả lập): `test-report.md` 0.3.1 §7 ghi kết quả thử O2 trên staging qua HTTPS bằng Playwright (10 phiếu offline có ảnh, GPS, đồng bộ đủ, không trùng); `tech-debt.md` thêm N33 danh sách 2.000 phiếu vượt 1 s ở CPU ×4 | nhánh `docs/o2-staging-n33` | chờ review |
+| 2026-11-20 | — | test | PR #153 đã merge | PR #153 | xong |
 | 2026-11-20 | — | test | Việc cải thiện 9: thử đột biến tay phần lõi (`scripts/mutation.mjs`, 25 đột biến ở merge, backoff, lỗi upload ảnh); lần đầu bắt 17/25, thêm 8 ca unit (merge.test, attachmentRules.test) bắt 25/25; `docs/mutation.md`, design 0.5.89 §10 | PR #153 | chờ review |
 | 2026-11-20 | — | docs | PR #152 đã merge | PR #152 | xong |
 | 2026-11-20 | — | docs | perf.md sửa ghi chú ở #151: lần bộ đo pull đỏ trên `main` là do máy chậm lúc đo, không phải code chậm đi (đo lại cùng `main` khi máy nhanh: đạt); ghi số đo xen kẽ CPU ×4, thử `memo` danh sách không cải thiện nên bỏ | PR #152 | chờ review |
