@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.25 (2026-11-11)
+- **Phiên bản:** 0.34 (2026-11-19)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -14,7 +14,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 | Mã | Kết quả | Story phục vụ |
 |---|---|---|
 | K1 | Không mất phiếu: mọi phiếu đã lưu trên máy lên server đúng một lần | US-01, US-02, US-03, US-04, US-06 |
-| K2 | Không ghi đè âm thầm: hai nơi cùng sửa thì người dùng thấy và tự chọn | US-05, US-06, US-14 |
+| K2 | Không ghi đè âm thầm: hai nơi cùng sửa thì người dùng thấy và tự chọn | US-05, US-06, US-14, US-15 |
 | K3 | Không phải nhập lại: giám sát viên có dữ liệu dạng bảng ngay từ app | US-07, US-08 |
 | K4 | Không lẫn dữ liệu giữa các tổ chức, kể cả với người vận hành | US-09, US-10, US-11, US-12, US-13 |
 
@@ -28,12 +28,14 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tôi đã lưu 10 phiếu khi offline, **when** có mạng trở lại, **then** server có đủ 10 phiếu, mỗi phiếu version 1, và nhãn đổi thành "Đã đồng bộ".
 - **Given** còn phiếu chưa gửi, **when** tôi đóng tab rồi mở lại, **then** phiếu vẫn còn và tự đồng bộ khi có mạng.
 - **Given** còn dữ liệu chưa gửi ở bất kỳ dự án nào, **when** tôi mở Cài đặt, **then** nút Đăng xuất bị khoá và đọc kèm lý do; lúc bấm [Đăng xuất] trong hộp xác nhận mới thấy còn dữ liệu chưa gửi (vd. tab khác vừa lưu) thì báo "⚠ Còn dữ liệu chưa gửi ở dự án …", không xoá phiếu, CSDL dự án hay cache `me`/`forms`.
+- **Given** còn dữ liệu chưa gửi (op chờ gửi, phiếu nháp) ở bất kỳ tổ chức nào, **when** tôi mở Cài đặt, **then** nút [Xoá dữ liệu trên máy] bị khoá và đọc kèm lý do như Đăng xuất; **given** không còn gì chưa gửi, **when** tôi xác nhận xoá, **then** phiếu, biểu mẫu và ảnh mất khỏi máy nhưng tôi vẫn đăng nhập, có mạng thì phiếu đã lên server tải lại; lúc bấm xác nhận mới thấy còn dữ liệu chưa gửi thì báo ⚠ và không xoá gì.
 - (Could) **Given** tôi đang chọn một tổ chức, **when** mở Cài đặt, **then** khối "Dữ liệu trên máy" hiện số biểu mẫu và số thay đổi chờ gửi của tổ chức đó; lưu phiếu khi offline thì số chờ gửi tăng, đồng bộ xong tự về 0.
-- (Could) **Given** bộ nhớ trình duyệt đã dùng từ 80% hạn mức, **when** mở Cài đặt, **then** khối Dung lượng có câu "⚠ Bộ nhớ gần đầy (đã dùng n%)…" gợi ý Đồng bộ và dọn máy; dưới 80% hoặc trình duyệt không báo hạn mức thì không có câu đó.
+- (Could) **Given** bộ nhớ trình duyệt đã dùng từ 80% hạn mức, **when** mở Cài đặt, **then** khối Dung lượng có câu "⚠ Bộ nhớ gần đầy (đã dùng n%)…" gợi ý Đồng bộ rồi bấm Dọn ảnh đã tải lên; dưới 80% hoặc trình duyệt không báo hạn mức thì không có câu đó.
 - **Given** đang ở trang nhập phiếu, **when** có phiên bản mới và tôi bấm [Tải lại], **then** app hỏi "Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?"; Huỷ thì giữ nguyên chỗ đang nhập.
 - (Could) **Given** tôi đang gõ phiếu mà chưa bấm Lưu, **when** trang bị tải lại hoặc tôi bấm "← Quay lại" rồi mở lại phiếu, **then** app hỏi [Khôi phục] / [Bỏ]; Khôi phục thì có lại chữ đã gõ (cả ảnh đã chọn), trong lúc đó phiếu không đổi trạng thái và không có op nào; phiếu đã bị sửa ở nơi khác thì trường cả hai cùng sửa giữ bản mới và hiện chữ tôi đã gõ.
 - (Could) **Given** tôi đang gõ một phiếu mới chưa Lưu lần nào, **when** app bị tắt rồi tôi mở lại (vào trang chủ), **then** trang chủ có dải "Phiếu đang nhập dở, chưa lưu" dẫn về phiếu đó để khôi phục; Lưu xong thì dải mất.
 - (Could) **Given** tôi đang mở một phiếu sửa được, **when** bấm [Nhân bản phiếu], **then** tôi có phiếu mới chưa lưu điền sẵn giá trị đang hiện, theo form mới nhất, không kèm ảnh và vị trí; trước khi Lưu không có phiếu và op nào, phiếu gốc không đổi; Lưu thì lên server thành phiếu riêng, người tạo là tôi. Phiếu xung đột, đã xoá, hoặc phiếu người khác khi tôi là điều tra viên thì không có nút. Không ghi được vào máy thì ở lại phiếu gốc và báo, bấm lại được.
+- (Could) **Given** tôi đã lưu vài phiếu của một form trên máy, **when** mở phiếu khác của form đó và gõ vào ô chữ, **then** ô gợi ý các giá trị đã nhập ở phiếu khác (mới trước, không trùng lặp kể cả khác hoa thường, khoảng trắng); không gợi ý giá trị của phiếu đã xoá hay của chính phiếu đang mở; ô số, ngày, chọn, ảnh, vị trí không có gợi ý.
 - **Given** tôi lưu phiếu (kể cả nháp), **when** lưu xong, **then** app xin trình duyệt giữ bộ nhớ (`storage.persist()`); **given** trình duyệt thiếu API bắt buộc (vd. Web Locks), **when** mở app, **then** hiện "Trình duyệt không được hỗ trợ" thay cho app.
 
 ### US-02 · Lưu nháp khi phiếu chưa đủ · Must
@@ -51,6 +53,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** đang tải một ảnh thì mất mạng, **when** có mạng lại, **then** chỉ gửi phần còn thiếu, mỗi phần chỉ ghi một lần.
 - **Given** ảnh chụp 4–6 MB, **when** lưu vào phiếu, **then** ảnh sau nén ≤ 600 KB (trừ ảnh quá nhiều chi tiết, vẫn được lưu).
 - **Given** phiếu do máy khác tạo có ảnh đã lên server, **when** tôi mở phiếu lúc có mạng, **then** ảnh hiện ra, nhãn vẫn "Đã đồng bộ", không có op mới và ảnh không bị gửi lại; mở lại khi offline vẫn thấy. Lần đầu không có mạng thì báo "Cần kết nối để xem ảnh này", có mạng thì tải được; ảnh chưa lên server thì báo "Ảnh chưa được tải lên"; chưa thấy ảnh thì không bỏ được ảnh đó.
+- **Given** máy có ảnh đã lên server (ảnh tôi chụp đã gửi xong, ảnh tải về để xem), **when** tôi bấm [Dọn ảnh đã tải lên] ở Cài đặt, **then** app hỏi lại kèm số ảnh và dung lượng; Huỷ thì không đổi gì; đồng ý thì các ảnh đó rời máy, phiếu và nhãn không đổi, không có op mới, ảnh chưa gửi còn nguyên và vẫn lên server; mở lại phiếu khi có mạng thì ảnh tự tải về. Không có ảnh nào để dọn thì nút khoá kèm lý do.
 - **Given** đang offline, **when** bấm "Lấy vị trí" rồi Lưu, **then** phiếu có toạ độ; có mạng thì server nhận đúng toạ độ đó.
 - **Given** chưa cho phép quyền vị trí (hoặc máy không lấy được vị trí trong 30 s), **when** bấm "Lấy vị trí", **then** thấy câu hướng dẫn (design §8) và giá trị trường không đổi.
 
@@ -94,6 +97,9 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** file không phải JSON, sai định dạng hoặc sai luật lưu form, **when** nhập form, **then** báo "File không phải JSON", "File không đúng định dạng biểu mẫu" hoặc lỗi luật, builder giữ nguyên; **given** form mới có mã trùng form đã có trong dự án, **when** bấm "Lưu bản mới", **then** báo "Mã biểu mẫu đã có trong dự án", không gửi.
 - (Could) **Given** tôi đang sửa form và chọn một trường, **when** bấm [Nhân bản trường], **then** ngay dưới có trường mới chưa lưu cùng loại, nhãn, bắt buộc, lựa chọn, mã mới không trùng, không ẩn; sửa bản sao không đổi trường gốc; bấm "Lưu bản mới" thì form lên version mới có thêm đúng trường đó.
 - (Could) **Given** tôi sửa form đã có (vd. thêm 2 trường, ẩn 1 trường), **when** bấm "Lưu bản mới", **then** trước khi gửi có hộp hỏi lại "So với bản <n> đang dùng: thêm 2 trường, ẩn 1 trường. Lưu bản mới?"; [Huỷ] hoặc Esc thì không gửi, phần đang sửa giữ nguyên; [Lưu] thì form lên version mới; không đổi gì thì hộp nói "Không có gì khác bản <n> đang dùng" và vẫn cho lưu; form mới không hỏi.
+- (Could) **Given** tôi đang sửa form trong builder chưa bấm "Lưu bản mới", **when** tải lại trang, bấm "← Quay lại" hay app bị tắt rồi mở lại builder, **then** có dải "Có phần đang sửa chưa lưu (…)" với [Khôi phục] / [Bỏ]; [Khôi phục] nạp lại phần đang sửa, form đã lên bản mới thì trường mới của bản đó được thêm vào cuối và có dải báo; [Bỏ] hoặc Lưu bản mới thành công thì bản tự lưu bị xoá.
+- **Given** tôi đang sửa form trong builder, **when** vòng đồng bộ tải về bản form mới hơn (máy khác vừa lưu), **then** đã sửa gì thì trường mới của bản đó được thêm vào cuối, có dải "Trong lúc bạn sửa, biểu mẫu đã lên bản …", phần đang sửa giữ nguyên và "Lưu bản mới" lưu được; chưa sửa gì thì builder hiện bản mới, không có dải (tech-debt N25).
+- (Could) **Given** tôi mở "Biểu mẫu mới" (kể cả khi offline), **when** chọn một mẫu ở "Bắt đầu từ mẫu" rồi bấm [Dùng mẫu], **then** builder điền sẵn tiêu đề, mã và các trường của mẫu thành form mới chưa lưu, mã trùng form đã có thì thêm số; builder đã có gì thì hỏi "Thay phần đang sửa bằng mẫu …?" trước, [Huỷ] giữ nguyên; sửa rồi bấm "Lưu bản mới" thì thành form mới như tạo tay. Sửa form đã lưu thì không có khối mẫu.
 
 ### US-08 · Xuất dữ liệu · Must (CSV), Should (JSON)
 
@@ -165,6 +171,15 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 
 Lọc theo người tạo, tên người tạo cho giám sát viên và ô tìm kiếm (design §4.8) là TV2-18, chưa có code nên chưa có tiêu chí.
 
+### US-15 · Xem lịch sử sửa phiếu · Could
+
+*Là điều tra viên hay giám sát viên, tôi muốn xem một phiếu đã được sửa những lần nào, ai sửa, lúc nào, sửa trường gì, để biết vì sao phiếu đang có giá trị này mà không phải đi hỏi từng người.* (Dương duyệt 2026-11-13, ngoài MVP, cắt được; design §4.1 "Lịch sử sửa".)
+
+- **Given** phiếu đã lên server và đang có mạng, **when** tôi bấm [Lịch sử sửa] ở màn hình 4, **then** thấy mỗi lần ghi trên server một mục, mới trước: tên người sửa, giờ theo server, "tạo phiếu" / "sửa" / "xoá phiếu" / "khôi phục phiếu", và các trường đổi so với lần trước dạng "nhãn: cũ → mới"; người khác vừa sửa thì đóng mở lại là thấy.
+- **Given** phiếu chưa từng lên server (mới, tạo khi offline, bản sao chưa Lưu), **when** mở phiếu, **then** không có nút [Lịch sử sửa].
+- **Given** phiếu có thay đổi chưa gửi (nháp, chờ, lỗi, xung đột), **when** mở lịch sử, **then** khối báo "Thay đổi chưa đồng bộ trên máy này chưa có trong lịch sử."
+- **Given** offline, máy chủ lỗi, hoặc phiếu không có trên server / ngoài phạm vi (`404`), **when** bấm [Lịch sử sửa], **then** báo câu tương ứng ở design §8, không ghi gì; bấm lại thì thử lại.
+
 ## Truy vết
 
 Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → test chứng minh → ticket và PR. Chỗ **chưa có test** in đậm; thêm test thì sửa dòng đó.
@@ -174,6 +189,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Mở và nhập khi offline | O1 `offline.spec.ts` | khung ban đầu |
 | US-01 | 10 phiếu offline lên đủ, version 1 | O2 `offline-install.spec.ts` | TV1-11 (#43) |
 | US-01 | Đóng tab vẫn đồng bộ | O4 `offline-install.spec.ts` | TV1-11 (#43) |
+| US-01 | Xoá dữ liệu trên máy: khoá khi còn op hoặc nháp, đọc kèm lý do; xác nhận thì xoá mà vẫn đăng nhập, có mạng thì tải lại; tab khác vừa lưu thì không xoá gì | O12 `wipe-data.spec.ts`; unit `blockedMessage` (`client/src/wipeData.test.ts`) | không ticket (#142) |
 | US-01 | Còn dữ liệu chưa gửi → Đăng xuất bị khoá/bị chặn, không xoá gì | `settings.spec.ts` (Đăng xuất bị khoá, đồng bộ xong tự mở; nút khoá đọc kèm lý do; đang hỏi Đăng xuất mà tab khác lưu phiếu thì báo ⚠, không xoá CSDL và cache; bị chặn thì cache `me`/`forms` còn nguyên) | TV1-07 (#20, #28); TV1-12 (sau audit UI); không ticket (#102) |
 | US-01 | Có bản mới khi đang nhập → hỏi trước khi tải lại | `update.spec.ts` | TV1-07 (#27); câu hỏi đổi khi có bộ đệm (#114) |
 | US-01 | Chữ đang gõ được giữ, mở lại hỏi khôi phục, không tạo op; gộp theo trường khi phiếu bị đổi (Could) | `typing-buffer.spec.ts`; unit `needsBuffer`, `restorePlan`, `keptFieldLine` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p1 (#114) |
@@ -181,17 +197,21 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Nhân bản phiếu: bản sao chưa Lưu không có phiếu và op, không chép ảnh, vị trí, trường ẩn; ẩn nút theo trạng thái và vai trò (Could) | `record-copy.spec.ts`; unit `copyableData`, `copyBuffer`, `canCopyRecord` (`client/src/recordCopy.test.ts`) | không ticket (#126) |
 | US-01 | Dữ liệu trên máy ở Cài đặt: đếm biểu mẫu (mã form khác nhau) và thay đổi chờ gửi, đồng bộ xong tự về 0 (Could) | `settings.spec.ts` (ca "Dữ liệu trên máy…"); unit `deviceStatus` (`client/src/deviceStatus.test.ts`) | không ticket (#130) |
 | US-01 | Cảnh báo dung lượng gần đầy ở Cài đặt từ 80% hạn mức; không có hạn mức thì không cảnh báo (Could) | `settings.spec.ts` (ca "dung lượng từ 80% hạn mức…"); unit `storageNearlyFull` (`client/src/formatBytes.test.ts`) | không ticket (#133) |
+| US-01 | Gợi ý giá trị đã nhập ở ô chữ màn hình 4: chỉ trường chữ không ẩn, bỏ phiếu đã xoá và phiếu đang mở, bỏ trùng, mới trước, tối đa 50 (Could) | `field-suggestions.spec.ts`; unit `fieldSuggestions` (`client/src/fieldSuggestions.test.ts`) | không ticket (#137) |
 | US-01 | Lưu phiếu thì xin giữ bộ nhớ; thiếu Web Locks → "Trình duyệt không được hỗ trợ" | `browser-support.spec.ts`; unit `browserSupport.test.ts` | TV1-07 (#28) |
 | US-02 | Nháp không lên server; sửa đủ thì đồng bộ | O5 `draft.spec.ts`; unit `shared/src/recordValidation.test.ts` | TV1-05 (#7, #17) |
+| US-02 | Phiếu đã đồng bộ sửa thành chưa hợp lệ → Nháp, không op, server giữ bản cũ; sửa tiếp vẫn nháp; điền đủ thì lên bản mới (design §5.1) | `record-states.spec.ts` (ca "Đã đồng bộ → Nháp…") | Không ticket (việc cải thiện 10) |
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
 | US-03 | Ảnh sau nén ≤ 600 KB | `photo.spec.ts`; unit `fitWithin` (`client/src/media/compress.test.ts`) | TV3-03 (#31) |
 | US-03 | Xem ảnh của phiếu máy khác tạo | O9 `photo-download.spec.ts`; unit `client/src/sync/photoDownloadRules.test.ts` | Không ticket (#122) |
+| US-03 | Dọn ảnh đã tải lên ở Cài đặt, ảnh chưa gửi không bị đụng | O11 `photo-cleanup.spec.ts`; unit `client/src/photoCleanup.test.ts`; `settings.spec.ts` (câu cảnh báo gần đầy trỏ tới nút) | Không ticket (#141) |
 | US-03 | Lấy GPS khi offline | `gps-offline.spec.ts`; unit luật `gps` trong `recordValidation.test.ts` | TV1-05; TV3-14 |
 | US-03 | Không lấy được vị trí → câu hướng dẫn | `gps-errors.spec.ts`; unit `client/src/gps.test.ts` | TV1-12 (#69, b2 p1 #70) |
 | US-04 | 500 hai lần → một bản ghi | R1 `offline.spec.ts` | TV2-09 (#16) |
 | US-04 | Cắt kết nối sau khi ghi → replay | R3 `server/test/idempotency.test.ts`, `retry.spec.ts`; R2 timeout `retry.spec.ts`; R6 `records.test.ts` | TV2-08 (#15) |
 | US-04 | Hai tab không gửi trùng | O6 `tabs.spec.ts` | TV2-06 (#13) |
+| US-04 | Pull không ghi đè phiếu Chờ đồng bộ (5xx đang thử lại) hay phiếu Lỗi; đã đồng bộ thì nhận bản mới, không sinh op (design §5.1, ADR 0001 quy tắc 8); ma trận mọi đường chuyển trạng thái ở đầu file | `record-states.spec.ts` | Không ticket (việc cải thiện 10) |
 | US-04 | `400` → "Lỗi", không thử lại vô hạn | R5 `errors.spec.ts`; nhãn và [Thử lại], [Xuất JSON phiếu này] ở trang điền phiếu `fill-status.spec.ts` | TV2-09 (#16); tech-debt N12 |
 | US-05 | Khác trường tự gộp | C1 unit `merge.test.ts`, `conflict.spec.ts`; C3 unit | TV2-10 (#34) |
 | US-05 | Cùng trường → màn hình xung đột, không chọn sẵn | C2 `conflict.spec.ts` (cả ca bấm chỗ trống trong ô lựa chọn) | TV3-07 (#41); ô lựa chọn TV1-12 (b2 p3) |
@@ -202,7 +222,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-06 | Xoá vs sửa → hỏi | C4, C5 `delete-conflict.spec.ts`; unit `autoMergedNote` (`client/src/conflictView.test.ts`) | TV3-08 (#47); bỏ câu "đã được gộp" TV1-12 (b2 p3) |
 | US-06 | Điều tra viên không xoá phiếu người khác | `record-owner.spec.ts` | TV1-17 (#44, #45) |
 | US-06 | Mở lại phiếu đã xoá → khoá, không tự sống lại | O10 `delete.spec.ts`, `typing-buffer.spec.ts` (đang gõ thì tombstone về); `delete-conflict.spec.ts` (C4 mở bằng địa chỉ, "Giữ phiếu" rồi sửa được); unit `recordLock.test.ts` | không ticket, sửa lỗi (#125) |
-| US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8; đổi thẳng địa chỉ giữa hai builder hiện đúng form, lưu form mới không thêm version form cũ, TV1-04; chọn/thêm trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu" + ô Mã viền đỏ, câu danh sách trường rỗng, TV1-12 sau audit UI; nền trang trắng, theme-color trắng, gợi ý và mã khoá nền ô chìm, TV1-12 nền trắng; nút ▲▼ có tên kèm nhãn trường, design §11.3); unit `moveFieldTo`, `selectionAfterMove`, `formIdInvalid` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`; điều tra viên thấy form sau vòng đồng bộ ở máy khác: `form-sync.spec.ts`; `headings.spec.ts` (tiêu đề trang màn 5 cùng kiểu màn 2, 4, TV1-12 sau audit C10) | TV1-03 (#19), TV1-04 (#24); TV3-14; tên nút ▲▼ TV1-12 (#117) |
+| US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8; đổi thẳng địa chỉ giữa hai builder hiện đúng form, lưu form mới không thêm version form cũ, TV1-04; chọn/thêm trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu" + ô Mã viền đỏ, câu danh sách trường rỗng, TV1-12 sau audit UI; nền trang trắng, theme-color trắng, gợi ý và mã khoá nền ô chìm, TV1-12 nền trắng; nút ▲▼ có tên kèm nhãn trường, design §11.3); unit `moveFieldTo`, `selectionAfterMove`, `formIdInvalid` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`; điều tra viên thấy form sau vòng đồng bộ ở máy khác: `form-sync.spec.ts`; `headings.spec.ts` (tiêu đề trang màn 5 cùng kiểu màn 2, 4, TV1-12 sau audit C10); "Biểu mẫu mới" ở `#/builder`, form mã `new` sửa được ở `#/builder/new`, địa chỉ cũ không mất bản tự lưu: `builder.spec.ts` ca "form mã new", `builder-draft.spec.ts` ca "địa chỉ cũ #/builder/new", unit `currentNavId` (`navMenu.test.ts`) (tech-debt N26) | TV1-03 (#19), TV1-04 (#24); TV3-14; tên nút ▲▼ TV1-12 (#117) |
 | US-07 | Sửa form lên version mới, phiếu cũ mở bằng version cũ | `builder.spec.ts`, `form-version.spec.ts` | TV1-04 (#24), TV1-10 (#32) |
 | US-07 | Đổi `type`/bỏ trường → `400 invalid_form` | `server/test/forms.test.ts`; unit `formValidation.test.ts` | TV1-03 (#19) |
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |
@@ -210,6 +230,9 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-07 | File nhập hỏng/sai luật; mã form trùng → báo lỗi, không gửi | `form-import-export.spec.ts` (cả ca mã trùng); unit `formFile.test.ts` (describe `parseFormFile`) | TV1-10 (#33) |
 | US-07 | Nhân bản trường: bản sao ngay dưới, mã mới, bỏ ẩn, sửa không đổi gốc, lưu ra version mới; nút gọn ở 360px (Could) | `builder.spec.ts` (ca "nhân bản trường…", "màn 360 px: [Nhân bản trường]…"); unit `duplicateField` (`client/src/builder.test.ts`) | không ticket (#129) |
 | US-07 | Tóm tắt thay đổi khi lưu form đã có: hộp hỏi lại nêu thêm/ẩn/hiện lại/đổi nhãn/đổi Bắt buộc/thêm lựa chọn/đổi thứ tự/đổi tiêu đề; Huỷ, Esc không gửi; không đổi gì vẫn lưu được (Could) | `builder.spec.ts` (ca "sửa form rồi Lưu bản mới: hộp tóm tắt…", "sửa form mà không đổi gì…"; câu tóm tắt ở ca "sửa form tạo version mới…", "nhân bản trường có lựa chọn…"), `form-version.spec.ts` (ca ẩn trường tạo v2); unit `formChanges`, `formChangeText` (`client/src/formChanges.test.ts`) | không ticket (#131) |
+| US-07 | Tự lưu bản đang sửa của builder: tải lại / ← Quay lại rồi mở lại hỏi Khôi phục / Bỏ; Lưu bản mới hoặc Bỏ thì xoá; sửa ngược về như cũ thì xoá; form đã lên bản mới thì thêm trường mới vào cuối, có dải báo (Could) | `builder-draft.spec.ts`; unit `needsDraft`, `rebaseDraft`, `restoreDraft`, `draftIsStale`, `rebasedNote` (`client/src/builderDraft.test.ts`) | không ticket (#136) |
+| US-07 | Builder đang mở mà vòng đồng bộ tải bản form mới: đã sửa thì thêm trường mới vào cuối, có dải báo, lưu được; chưa sửa thì nạp bản mới, không báo; không có bản mới thì không báo (tech-debt N25) | `builder-draft.spec.ts` (ca "đang sửa mà form lên bản mới…", "chưa sửa gì mà form lên bản mới…", "đang sửa, Đồng bộ mà form không có bản mới…"); unit `onNewerForm`, `newerNote`, `rebaseDraft` uid mới (`client/src/builderDraft.test.ts`) | không ticket (#138) |
+| US-07 | Mẫu form có sẵn ở "Biểu mẫu mới": nạp mẫu (cả offline), mã trùng thêm số, đã sửa thì hỏi trước khi thay, tải lại khôi phục được, sửa form đã có không có khối mẫu, 360px không tràn ngang (Could) | `form-template.spec.ts`; unit ba mẫu qua luật lưu form, mã trường bằng mã gợi ý, `fromTemplate` (`client/src/formTemplates.test.ts`) | không ticket |
 | US-08 | v1 và v2 cùng file, cột đúng, BOM | `export.spec.ts`; `server/test/export.test.ts` | TV3-09 (#48); nút [Xuất ▾] TV1-12 (b2 p2 #71, mất mạng thì đóng b2 p3) |
 | US-08 | Chống CSV injection | `server/test/csv.test.ts` | TV3-09 (#48) |
 | US-08 | Điều tra viên xuất → `403` | A3 `export.test.ts` | TV3-09 (#48) |
@@ -244,6 +267,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-14 | Lọc trạng thái, "Cần xử lý (n)", nhóm rỗng ẩn | `conflict.spec.ts` (ca số "Cần xử lý" và bộ lọc); `home.spec.ts` (ca N10: lọc "Chưa đồng bộ" đếm theo lọc, ẩn nhóm rỗng); unit `recordFilter.test.ts` | TV3-07 (#41); không ticket, N10 (#105) |
 | US-14 | "Chưa có phiếu nào." ẩn bộ lọc; lọc rỗng giữ bộ lọc | `ui-states.spec.ts` (ca chưa có phiếu); `home.spec.ts` (ca lọc ra rỗng) | TV1-12 (b1, b2 p2) |
 | US-14 | Phiếu đã xoá không hiện, trừ khi đang xung đột | `delete.spec.ts` (O7, O8, xoá mềm); `conflict.spec.ts` (ca xoá vs sửa hiện ở "Cần xử lý") | TV2-13 (#35), TV1-13 (#42), TV3-08 (#47) |
+| US-15 | Xem lịch sử sửa: ai, lúc nào, trường nào đổi; không có nút ở phiếu chưa lên server; báo thay đổi chưa đồng bộ; offline, `5xx`, `404` (Could) | `record-history.spec.ts`; unit `buildHistoryView` (`client/src/recordHistory.test.ts`) | không ticket (#139) |
 
 Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --json commits`).
 
@@ -276,3 +300,12 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.23 | 2026-11-08 | US-01 thêm tiêu chí khối Dữ liệu trên máy ở Cài đặt, kèm dòng truy vết (Could, không ticket) |
 | 0.24 | 2026-11-10 | US-07 thêm tiêu chí tóm tắt thay đổi khi lưu form, kèm dòng truy vết (Could, không ticket) |
 | 0.25 | 2026-11-11 | US-01 thêm tiêu chí cảnh báo dung lượng gần đầy ở Cài đặt, kèm dòng truy vết (Could, không ticket) |
+| 0.26 | 2026-11-12 | US-07 thêm tiêu chí tự lưu bản đang sửa của builder, kèm dòng truy vết (Could, không ticket) |
+| 0.27 | 2026-11-12 | US-01 thêm tiêu chí gợi ý giá trị đã nhập ở màn hình 4, kèm dòng truy vết (Could, không ticket); dòng "Phiên bản" đầu file sửa cho khớp (trước ghi 0.25) |
+| 0.28 | 2026-11-12 | US-07 thêm tiêu chí builder đang mở mà form lên bản mới (tech-debt N25), kèm dòng truy vết (sửa lỗi, không ticket) |
+| 0.29 | 2026-11-13 | Thêm US-15 "Xem lịch sử sửa phiếu" (Could, không ticket, Dương duyệt 2026-11-13) cùng dòng truy vết; K2 thêm US-15 |
+| 0.30 | 2026-11-13 | US-07 thêm tiêu chí mẫu form có sẵn ở "Biểu mẫu mới", kèm dòng truy vết (Could, không ticket, Dương duyệt 2026-11-13) |
+| 0.31 | 2026-11-14 | US-03 thêm tiêu chí dọn ảnh đã tải lên ở Cài đặt, kèm dòng truy vết (Must, tech-debt N23, không ticket, Dương cho phép 2026-11-14); US-01 sửa đuôi câu cảnh báo gần đầy theo nút mới |
+| 0.32 | 2026-11-16 | US-01 thêm tiêu chí nút "Xoá dữ liệu trên máy" ở Cài đặt, kèm dòng truy vết (tech-debt N27 phần 1, đúng design §9, không ticket, Dương cho phép 2026-11-16) |
+| 0.33 | 2026-11-18 | US-07 dòng truy vết "Tạo form 7 loại trường" thêm ca route "Biểu mẫu mới" `#/builder` và form mã `new` (tech-debt N26, sửa lỗi, không ticket) |
+| 0.34 | 2026-11-19 | US-02, US-04 thêm dòng truy vết chuyển trạng thái phiếu theo design §5.1 (`record-states.spec.ts`, việc cải thiện 10) |

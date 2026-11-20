@@ -11,6 +11,38 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-20 | — | docs | Việc cải thiện 6 (phần giả lập): `test-report.md` 0.3.1 §7 ghi kết quả thử O2 trên staging qua HTTPS bằng Playwright (10 phiếu offline có ảnh, GPS, đồng bộ đủ, không trùng); `tech-debt.md` thêm N33 danh sách 2.000 phiếu vượt 1 s ở CPU ×4 | PR #154 | chờ review |
+| 2026-11-20 | — | test | PR #153 đã merge | PR #153 | xong |
+| 2026-11-20 | — | test | Việc cải thiện 9: thử đột biến tay phần lõi (`scripts/mutation.mjs`, 25 đột biến ở merge, backoff, lỗi upload ảnh); lần đầu bắt 17/25, thêm 8 ca unit (merge.test, attachmentRules.test) bắt 25/25; `docs/mutation.md`, design 0.5.89 §10 | PR #153 | chờ review |
+| 2026-11-20 | — | docs | PR #152 đã merge | PR #152 | xong |
+| 2026-11-20 | — | docs | perf.md sửa ghi chú ở #151: lần bộ đo pull đỏ trên `main` là do máy chậm lúc đo, không phải code chậm đi (đo lại cùng `main` khi máy nhanh: đạt); ghi số đo xen kẽ CPU ×4, thử `memo` danh sách không cải thiện nên bỏ | PR #152 | chờ review |
+| 2026-11-20 | — | test | PR #151 đã merge | PR #151 | xong |
+| 2026-11-20 | — | test | Việc cải thiện 7: bộ đo `client/e2e/perf/client.spec.ts` cho hai chỉ tiêu §11.2 phía máy: mở app đã cài khi offline tới khi nhập được (QS4) 310 ms, CPU ×4 1,1 s; lưu một phiếu 33 ms, CPU ×4 91 ms; đều đạt. perf.md mục mới, design 0.5.88 (§1, §11.2, §11.4) | PR #151 | chờ review |
+| 2026-11-19 | — | test | Việc cải thiện 10: ma trận chuyển trạng thái phiếu theo design §5.1 (mọi mũi tên + đường cấm, trỏ test có sẵn) và 4 ca E2E mới `record-states.spec.ts` (đã đồng bộ → nháp → nháp → chờ; pull nhận bản mới; pull không ghi đè phiếu Chờ đồng bộ, Lỗi); thử bỏ điều kiện `hasOps` ở pull thì 2 ca đỏ; design 0.5.87, requirements 0.34 | PR #150 | chờ review |
+| 2026-11-19 | — | feat | Màn 8 khối "Giao diện" chọn Theo máy / Sáng / Tối, nhớ trên máy (`localStorage`), trang quản trị theo cùng lựa chọn; khối tối đổi từ `@media` sang `:root[data-theme="dark"]`, script đặt `data-theme` trước khi vẽ; unit `themeChoice.test.ts`, E2E `dark-mode.spec.ts` 2 ca; design 0.5.86, ui.md 0.2.61 (Could, cắt được) | PR #149 | chờ review |
+| 2026-11-18 | — | fix | Tech-debt N26: "Biểu mẫu mới" chuyển sang `#/builder` không tham số, form mã `new` sửa được ở `#/builder/new`; khoá tự lưu `builder-new` giữ nguyên; E2E builder.spec, builder-draft.spec mỗi file 1 ca, unit navMenu | PR #148 | chờ review |
+| 2026-11-18 | — | docs | deploy.md "Cài timer": lần deploy tay đầu sau #146 chưa tạo `deployed-sha` (bash chạy bản `deploy.sh` cũ), auto-deploy lấy HEAD | PR #147 | chờ review |
+| 2026-11-18 | — | feat | CD: timer trên staging tự deploy commit `main` có CI xanh (`auto-deploy.sh`, unit systemd); `deploy.sh` có khoá chung và tham số sha; design 0.5.84 | PR #146 | chờ review |
+| 2026-11-17 | — | docs | PR #145 đã merge | PR #145 | xong |
+| 2026-11-17 | — | docs | Ghi N28–N32 vào sổ nợ kỹ thuật: lỗi server không theo §7.1, lịch dọn không bắt lỗi, đồng bộ nuốt lỗi, phiếu lớn ghi chậm, ảnh I/O đồng bộ | PR #145 | chờ review |
+| 2026-11-16 | — | feat | PR #144 đã merge | PR #144 | xong |
+| 2026-11-16 | — | feat | Giao diện tối phần 2: máy đặt chế độ tối thì app và trang quản trị dùng bảng màu tối (khối `@media (prefers-color-scheme: dark)`, `color-scheme`, hai thẻ `theme-color`); `theme.test.ts` kiểm cả bảng tối và đủ token; E2E `dark-mode.spec.ts`; design 0.5.83, ui.md 0.2.59 (Could, cắt được) | PR #144 | chờ review |
+| 2026-11-16 | — | refactor | PR #143 đã merge | PR #143 | xong |
+| 2026-11-16 | — | refactor | Giao diện tối phần 1: mọi màu cứng ngoài `:root` (styles.css, admin.css, Icon.tsx) thành token, giao diện sáng không đổi; `contrast.ts` + `theme.test.ts` kiểm cặp chữ/nền ≥ 4,5:1 và không còn màu hex ngoài `:root` (Could, cắt được, chưa bật tối) | PR #143 | chờ review |
+| 2026-11-16 | — | feat | PR #142 đã merge | PR #142 | xong |
+| 2026-11-16 | — | feat | Màn 8: nút [Xoá dữ liệu trên máy] xoá CSDL mọi tổ chức và cache runtime, vẫn đăng nhập, có mạng thì tải lại; khoá khi còn dữ liệu chưa gửi như Đăng xuất (design §9, tech-debt N27 phần 1) | PR #142 | chờ review |
+| 2026-11-14 | — | feat | PR #141 đã merge | PR #141 | xong |
+| 2026-11-14 | — | feat | Màn 8: nút [Dọn ảnh đã tải lên] xoá ảnh server đã có khỏi máy, ảnh chưa gửi giữ nguyên, mở lại phiếu thì tự tải về (tech-debt N23, Must) | PR #141 | chờ review |
+| 2026-11-13 | — | feat | PR #140 đã merge | PR #140 | xong |
+| 2026-11-13 | — | feat | Màn 5: khối "Bắt đầu từ mẫu" ở Biểu mẫu mới, ba mẫu có sẵn (hộ gia đình, y tế, cây trồng), đã sửa thì hỏi trước khi thay (Could) | PR #140 | chờ review |
+| 2026-11-13 | — | feat | PR #139 đã merge | PR #139 | xong |
+| 2026-11-13 | — | feat | Màn 4: nút [Lịch sử sửa] xem phiếu đã sửa những lần nào, ai sửa, lúc nào, trường nào đổi (Could; ngoại lệ cần mạng của bất biến 7) | PR #139 | chờ review |
+| 2026-11-12 | — | fix | PR #138 đã merge | PR #138 | xong |
+| 2026-11-12 | — | fix | Builder đang mở mà vòng đồng bộ tải bản form mới: đưa phần đang sửa lên bản mới, trường mới thêm vào cuối, có dải báo; chưa sửa thì nạp bản mới (tech-debt N25) | PR #138 | chờ review |
+| 2026-11-12 | — | feat | PR #137 đã merge | PR #137 | xong |
+| 2026-11-12 | — | feat | Màn 4: ô chữ gợi ý giá trị đã nhập ở phiếu khác cùng form bằng `<datalist>` (Could) | PR #137 | chờ review |
+| 2026-11-12 | — | feat | PR #136 đã merge | PR #136 | xong |
+| 2026-11-12 | — | feat | Builder tự lưu phần đang sửa, mở lại hỏi Khôi phục/Bỏ, form lên bản mới thì thêm trường mới vào cuối (Could); tech-debt N25, N26 | PR #136 | chờ review |
 | 2026-11-11 | — | feat | PR #133 đã merge | PR #133 | xong |
 | 2026-11-11 | — | feat | Màn 8: cảnh báo dung lượng gần đầy (Could, ngoài MVP): từ 80% hạn mức `storage.estimate()` thì khối Dung lượng có câu ⚠ gợi ý Đồng bộ và dọn máy, không có hạn mức thì không cảnh báo; chỉ sửa client; E2E settings.spec (1 ca), unit storageNearlyFull; design 0.5.75, ui 0.2.51, requirements 0.25 | PR #133 | chờ review |
 | 2026-11-10 | — | docs | PR #132 đã merge | PR #132 | xong |

@@ -240,6 +240,7 @@ Mục tiêu do nhóm tự đặt theo thiết bị tham chiếu (máy Android t�
 | M1 | ⏳ | Android ⏳ | Chrome ⏳ | | |
 | M2 | ⏳ (nếu nhóm có iPhone) | iOS ⏳ | Safari ⏳ | | |
 | M3 | Máy tính (vai giám sát viên) | ⏳ | Chrome/Edge ⏳ | | |
+| M4 | Laptop, Playwright điều khiển (thay điện thoại khi chưa có máy; GPS và ảnh giả lập) | Windows 11 | Chromium headless (Playwright 1.63) | Dương (phiên A) | 2026-11-20 |
 
 ### 7.2 Kịch bản
 
@@ -265,7 +266,9 @@ Riêng iOS: ghi thêm phiên bản Safari, có cần "Thêm vào màn hình chí
 
 ### 7.3 Kết quả
 
-⏳ Ghi tóm tắt và lỗi phát hiện (nếu có, kèm số issue/PR sửa).
+**M4, 2026-11-20 03:33 UTC, staging ở `main` f427c6c, qua HTTPS (tiêu chí thành công 2 ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi) và ca O2 chạy trên staging thật):** tài khoản thử `thu.offline`, tổ chức riêng "Thử offline O2", form ba trường (tên chủ hộ, ảnh, vị trí). Đăng nhập, chờ service worker kiểm soát trang, đóng tab, tắt mạng, mở tab mới: app lên từ service worker, hiện "Ngoại tuyến". Tạo 10 phiếu, mỗi phiếu một ảnh JPEG 2000×1500 (app nén trước khi lưu) và một toạ độ giả lập khác nhau; cả 10 "Chờ đồng bộ". Bật mạng: 10 phiếu "Đã đồng bộ" sau **7,5 s**. Hỏi API: đúng 10 phiếu, 10 id khác nhau, mỗi phiếu có toạ độ và một ảnh tải về được (tổng 2.723 KB); nhật ký `survey-api` không có lỗi. **Đạt.** Tương ứng P2, P3 (không có phiếu nháp), P6 trên M4; P4, P5 chỉ giả lập (`context.setGeolocation`, `setInputFiles`), chưa phải GPS và camera thật. Bằng chứng (ảnh chụp, trace Playwright, script) lưu ở máy Dương, không commit.
+
+⏳ M1, M2: chưa thử trên điện thoại thật.
 
 ## 8. Lỗi đã biết và phần chưa kiểm
 
@@ -309,4 +312,5 @@ Tại thời điểm viết, không có lỗi mở nào làm hỏng ca trong ma 
 | 0.1 | 2026-10-22 | Bản nháp: phương pháp, ma trận 64 ca với bằng chứng, truy vết story, số liệu CI, khung hiệu năng và kịch bản thử trên điện thoại thật |
 | 0.2 | 2026-10-22 | Chạy lại trên `5db0c36` (sau PR #64): số test, số CI; thêm `api-errors.spec.ts` (US-10, US-11 thêm tiêu chí); QS5 đạt theo diễn tập TV1-19; N3, N5, N7 đã trả; nợ và phần chưa kiểm trỏ tới ticket mới (TV2-18, TV2-19, TV3-13..15). §6, §7 vẫn chờ |
 | 0.3 | 2026-10-24 | TV3-14: thêm `gps-offline.spec.ts` (US-03) và `form-sync.spec.ts` (US-07) vào §3.7, §4, bỏ hai dòng ở §8.2; US-03 thêm tiêu chí lấy vị trí khi offline (requirements 0.4) và tính cả tiêu chí lỗi GPS của TV1-12 b1. Số test ở §1, §5 vẫn là của `5db0c36`, chạy lại trước đóng băng |
+| 0.3.1 | 2026-11-20 | §7: thêm thiết bị M4 (laptop, Playwright tới staging qua HTTPS) và kết quả: 10 phiếu offline có ảnh và GPS giả lập đồng bộ đủ, không trùng (Dương, phiên A). Chưa đổi phần khác |
 | 0.4 | 2026-11-12 | §6 điền từ `perf.md` (TV2-11, đo 2026-10-25): pull 5.000 phiếu, danh sách 2.000 phiếu, đổi dự án 2.000 phiếu, đều đạt; danh sách ở CPU ×4 sát ngưỡng. Năm chỉ tiêu không ticket nào nhận ghi "Chưa đo" thay cho "Chờ TV2-11", kể cả QS4 (§1, §8.2); §9 thêm đề xuất đo QS4. Số test ở §1, §5 vẫn là của `5db0c36` |

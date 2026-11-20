@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MeResponse } from '@field-survey/shared';
 import { accountUsername } from '../accountDisplay';
@@ -15,25 +15,40 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
 import { UsernameActions } from '../components/UsernameActions';
 import { getAccountValue } from '../db/accountDb';
+import { deleteUploadedPhotosOnDevice, uploadedPhotoStatsOnDevice } from '../db/attachments';
 import { getCurrentProjectId, openProjectDb, projectDbExists, useCurrentProject } from '../db/current';
 import { deviceStatus } from '../deviceStatus';
 import { formatBytes, storageNearlyFull, usagePercent } from '../formatBytes';
-import { logout, projectsBlockingLogout, type BlockedProject } from '../logout';
+import { logout, projectsBlockingLogout, wipeDeviceData } from '../logout';
+import {
+  CLEANUP_BUTTON,
+  CLEANUP_CONFIRM_LABEL,
+  CLEANUP_EMPTY_MSG,
+  CLEANUP_FAILED_MSG,
+  cleanupConfirmText,
+  cleanupDoneText,
+  type PhotoTotals,
+} from '../photoCleanup';
 import { apiFailure, changePassword } from '../sync/api';
+import { syncNow } from '../sync/engine';
 import { useOnline } from '../useOnline';
+import { readThemeChoice, saveThemeChoice, type ThemeChoice } from '../theme';
+import {
+  WIPE_BUTTON,
+  WIPE_CONFIRM_LABEL,
+  WIPE_CONFIRM_MSG,
+  WIPE_DONE_MSG,
+  WIPE_FAILED_MSG,
+  blockedMessage,
+} from '../wipeData';
 
-// Xem docs/ui.md màn hình 8 và design §4.2, §4.7. Chỉ đọc IndexedDB, dùng được khi offline; riêng Đổi mật khẩu
-// gọi API thẳng (cần mạng, CLAUDE.md bất biến 7).
+// Xem docs/ui.md màn hình 8 và design §4.2, §4.7. Chỉ đọc IndexedDB (nút dọn ảnh thì xoá ảnh server đã có), dùng
+// được khi offline; riêng Đổi mật khẩu gọi API thẳng (cần mạng, CLAUDE.md bất biến 7).
 
 // Đang chạy như app đã cài: Android/máy tính báo qua display-mode, Safari iOS qua navigator.standalone
 // (thuộc tính riêng của Safari, không có trong kiểu DOM chuẩn nên đọc bằng Reflect)
 function isInstalled(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches || Reflect.get(navigator, 'standalone') === true;
-}
-
-function blockedMessage(blocked: BlockedProject[]): string {
-  const names = blocked.map((p) => `"${p.name}"`).join(', ');
-  return `Còn dữ liệu chưa gửi ở dự án ${names}. Đồng bộ xong mới đăng xuất được.`;
 }
 
 export function SettingsPage() {
@@ -46,18 +61,26 @@ export function SettingsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [confirmingWipe, setConfirmingWipe] = useState(false);
+  const [wiped, setWiped] = useState(false);
+  const [wipeFailed, setWipeFailed] = useState(false);
   const blockedId = useId();
 
-  useEffect(() => {
+  // Còn trên trang thì mới ghi state: lần đọc lại sau khi dọn ảnh có thể xong lúc đã rời trang
+  const alive = useRef(true);
+  const readStorage = useCallback(async () => {
     if (!navigator.storage?.estimate) return;
-    let alive = true;
-    void navigator.storage.estimate().then((e) => {
-      if (alive) setStorage({ usage: e.usage ?? 0, quota: e.quota ?? 0 });
-    });
-    return () => {
-      alive = false;
-    };
+    const e = await navigator.storage.estimate();
+    if (alive.current) setStorage({ usage: e.usage ?? 0, quota: e.quota ?? 0 });
   }, []);
+
+  useEffect(() => {
+    alive.current = true;
+    void readStorage();
+    return () => {
+      alive.current = false;
+    };
+  }, [readStorage]);
 
   async function onLogout() {
     setConfirmingLogout(false);
@@ -72,7 +95,35 @@ export function SettingsPage() {
     }
   }
 
+  async function onWipe() {
+    setConfirmingWipe(false);
+    setBusy(true);
+    setError(null);
+    setWiped(false);
+    setWipeFailed(false);
+    try {
+      // Kiểm lại trong khoá như Đăng xuất: hộp đang mở thì tab khác có thể vừa lưu phiếu
+      const stillBlocked = await wipeDeviceData();
+      if (stillBlocked.length > 0) {
+        setError(blockedMessage(stillBlocked));
+      } else {
+        setWiped(true);
+        // Gọi sau khi đã nhả khoá; offline thì vòng đồng bộ tự chạy khi có mạng lại
+        if (navigator.onLine) void syncNow();
+      }
+    } catch (e) {
+      // Không còn gì chưa gửi nên không mất gì; phần đã xoá thì tải lại, bấm lại được (design §8)
+      console.warn('không xoá được dữ liệu trên máy', e);
+      setWipeFailed(true);
+    } finally {
+      setBusy(false);
+    }
+    void readStorage();
+  }
+
   const percent = storage ? usagePercent(storage.usage, storage.quota) : null;
+  const isBlocked = blocked === undefined || blocked.length > 0;
+  const describedBy = blocked && blocked.length > 0 ? blockedId : undefined;
 
   return (
     <section className="settings">
@@ -107,30 +158,34 @@ export function SettingsPage() {
 
       {user && <ChangePasswordCard />}
 
-      {storage && (
-        <div className="card">
-          <h3>Dung lượng</h3>
+      {/* Trình duyệt không có storage.estimate thì chỉ ẩn dòng và thanh, khối vẫn có nút dọn ảnh (ui.md màn hình 8) */}
+      <div className="card">
+        <h3>Dung lượng</h3>
+        {storage && (
           <p data-testid="settings-storage">
             Đã dùng {formatBytes(storage.usage)} / {formatBytes(storage.quota)}
           </p>
-          {/* Chữ ở trên đã nói đủ con số, thanh chỉ để nhìn nên trình đọc màn hình bỏ qua */}
-          {percent !== null && (
-            <div className="bar" aria-hidden="true" data-testid="storage-bar">
-              <i style={{ width: `${percent}%` }} />
-            </div>
-          )}
-          {/* Có sẵn ngay khi mở trang nên không cần role="alert"; chỉ gợi ý việc đã làm được: nút Đồng bộ trên
-              header và dọn máy, vì app chưa có nút dọn ảnh (tech-debt N23) */}
-          {percent !== null && storageNearlyFull(storage.usage, storage.quota) && (
-            <p className="warning" data-testid="storage-warning">
-              ⚠ Bộ nhớ gần đầy (đã dùng {Math.floor(percent)}%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm
-              Đồng bộ để gửi dữ liệu lên máy chủ, rồi xoá bớt ảnh hoặc ứng dụng khác trên điện thoại.
-            </p>
-          )}
-        </div>
-      )}
+        )}
+        {/* Chữ ở trên đã nói đủ con số, thanh chỉ để nhìn nên trình đọc màn hình bỏ qua */}
+        {percent !== null && (
+          <div className="bar" aria-hidden="true" data-testid="storage-bar">
+            <i style={{ width: `${percent}%` }} />
+          </div>
+        )}
+        {/* Có sẵn ngay khi mở trang nên không cần role="alert"; chỉ gợi ý việc làm được ngay trên app: nút Đồng
+            bộ trên header và nút dọn ảnh ngay dưới */}
+        {storage && percent !== null && storageNearlyFull(storage.usage, storage.quota) && (
+          <p className="warning" data-testid="storage-warning">
+            ⚠ Bộ nhớ gần đầy (đã dùng {Math.floor(percent)}%). Đầy rồi thì không lưu được phiếu và ảnh mới. Bấm
+            Đồng bộ để gửi dữ liệu lên máy chủ, rồi bấm {CLEANUP_BUTTON}.
+          </p>
+        )}
+        <PhotoCleanup onCleaned={readStorage} />
+      </div>
 
       {project && <DeviceStatusCard projectName={project.name} />}
+
+      <ThemeCard />
 
       <div className="card">
         <h3>Cài lên màn hình chính</h3>
@@ -155,13 +210,38 @@ export function SettingsPage() {
       </div>
 
       <div className="card">
-        {/* Nút khoá thì trình đọc màn hình đọc luôn lý do khi tới nút, không phải dò xuống dòng dưới (audit C4) */}
+        {/* Hai nút cùng điều kiện khoá nên dùng chung một dòng lý do. Nút khoá thì trình đọc màn hình đọc luôn lý
+            do khi tới nút, không phải dò xuống dòng dưới (audit C4) */}
+        <button
+          className="danger-outline wide"
+          data-testid="wipe-data-button"
+          onClick={() => setConfirmingWipe(true)}
+          disabled={busy || isBlocked}
+          aria-describedby={describedBy}
+        >
+          {WIPE_BUTTON}
+        </button>
+        {/* Vùng status luôn có, chỉ đổi chữ: vùng chèn vào cùng lúc với chữ thì có máy bỏ qua (như Đổi mật khẩu) */}
+        <p className="visually-hidden" role="status">
+          {wiped ? WIPE_DONE_MSG : ''}
+        </p>
+        {wiped && (
+          <p className="ok-line" data-testid="wipe-data-done">
+            <Icon name="synced" />
+            {WIPE_DONE_MSG}
+          </p>
+        )}
+        {wipeFailed && (
+          <p className="field-error" role="alert" data-testid="wipe-data-error">
+            ⚠ {WIPE_FAILED_MSG}
+          </p>
+        )}
         <button
           className="danger-outline wide"
           data-testid="logout-button"
           onClick={() => setConfirmingLogout(true)}
-          disabled={busy || blocked === undefined || blocked.length > 0}
-          aria-describedby={blocked && blocked.length > 0 ? blockedId : undefined}
+          disabled={busy || isBlocked}
+          aria-describedby={describedBy}
         >
           Đăng xuất
         </button>
@@ -177,6 +257,14 @@ export function SettingsPage() {
           </p>
         )}
       </div>
+      {confirmingWipe && (
+        <ConfirmDialog
+          message={WIPE_CONFIRM_MSG}
+          confirmLabel={WIPE_CONFIRM_LABEL}
+          onConfirm={() => void onWipe()}
+          onCancel={() => setConfirmingWipe(false)}
+        />
+      )}
       {confirmingLogout && (
         <ConfirmDialog
           message="Đăng xuất khỏi máy này? Đăng nhập lại cần có mạng."
@@ -190,9 +278,119 @@ export function SettingsPage() {
 }
 
 /**
+ * Nút "Dọn ảnh đã tải lên" trong khối Dung lượng (design §4.2, §5.6; ui.md màn hình 8). Chỉ đọc/xoá IndexedDB
+ * nên offline vẫn dùng được. Đếm bằng liveQuery: ảnh vừa lên server xong thì nút tự bật.
+ */
+function PhotoCleanup({ onCleaned }: { onCleaned: () => Promise<void> }) {
+  const totals = useLiveQuery(uploadedPhotoStatsOnDevice, []);
+  // Con số chốt lúc bấm nút: hộp đang mở mà vòng đồng bộ gửi thêm ảnh thì câu hỏi không tự đổi dưới tay người dùng
+  const [asking, setAsking] = useState<PhotoTotals | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [cleaned, setCleaned] = useState<PhotoTotals | null>(null);
+  const [failed, setFailed] = useState(false);
+  const emptyId = useId();
+  const empty = totals !== undefined && totals.count === 0;
+
+  async function clean() {
+    setAsking(null);
+    setBusy(true);
+    setCleaned(null);
+    setFailed(false);
+    try {
+      const result = await deleteUploadedPhotosOnDevice();
+      // Số thật đã xoá, có thể khác số trong hộp; không xoá được ảnh nào thì không báo "đã dọn"
+      if (result.cleaned.count > 0) setCleaned(result.cleaned);
+      setFailed(result.failed);
+    } catch (e) {
+      // Không đọc được danh sách tổ chức: chưa dọn được gì, báo theo design §8
+      console.warn('không dọn được ảnh', e);
+      setFailed(true);
+    } finally {
+      setBusy(false);
+    }
+    // Đọc lại dòng "Đã dùng"; trình duyệt có thể chưa giảm ngay nên dòng kết quả mới là chỗ ghi số đã dọn
+    void onCleaned();
+  }
+
+  return (
+    <>
+      <button
+        className="wide"
+        data-testid="cleanup-photos-button"
+        onClick={() => totals && setAsking(totals)}
+        disabled={busy || totals === undefined || empty}
+        aria-describedby={empty ? emptyId : undefined}
+      >
+        {CLEANUP_BUTTON}
+      </button>
+      {empty && (
+        <p className="hint" id={emptyId} data-testid="cleanup-photos-empty">
+          {CLEANUP_EMPTY_MSG}
+        </p>
+      )}
+      {/* Vùng status luôn có, chỉ đổi chữ: vùng chèn vào cùng lúc với chữ thì có máy bỏ qua (như Đổi mật khẩu) */}
+      <p className="visually-hidden" role="status">
+        {cleaned ? cleanupDoneText(cleaned) : ''}
+      </p>
+      {cleaned && (
+        <p className="ok-line" data-testid="cleanup-photos-done">
+          <Icon name="synced" />
+          {cleanupDoneText(cleaned)}
+        </p>
+      )}
+      {failed && (
+        <p className="field-error" role="alert" data-testid="cleanup-photos-error">
+          ⚠ {CLEANUP_FAILED_MSG}
+        </p>
+      )}
+      {asking && (
+        <ConfirmDialog
+          message={cleanupConfirmText(asking)}
+          confirmLabel={CLEANUP_CONFIRM_LABEL}
+          onConfirm={() => void clean()}
+          onCancel={() => setAsking(null)}
+        />
+      )}
+    </>
+  );
+}
+
+/**
  * Khối "Dữ liệu trên máy" (ui.md màn hình 8; Could, cắt được): số biểu mẫu và thay đổi chờ gửi của dự
  * án đang chọn. Chỉ đọc IndexedDB qua liveQuery nên offline vẫn đúng, đồng bộ xong số tự đổi.
  */
+const THEME_OPTIONS: { id: ThemeChoice; label: string }[] = [
+  { id: 'system', label: 'Theo máy' },
+  { id: 'light', label: 'Sáng' },
+  { id: 'dark', label: 'Tối' },
+];
+
+/**
+ * Chọn giao diện (ui.md màn hình 8 "Giao diện"; Could, Dương duyệt 2026-11-19). Đổi ngay khi chọn, không có nút Lưu.
+ * Chỉ là tuỳ chọn hiển thị của máy nên lưu ở localStorage, offline vẫn dùng được.
+ */
+function ThemeCard() {
+  const [choice, setChoice] = useState<ThemeChoice>(readThemeChoice);
+  const headingId = useId();
+
+  function choose(next: ThemeChoice) {
+    saveThemeChoice(next);
+    setChoice(next);
+  }
+
+  return (
+    <div className="card" role="radiogroup" aria-labelledby={headingId} data-testid="settings-theme">
+      <h3 id={headingId}>Giao diện</h3>
+      {THEME_OPTIONS.map((o) => (
+        <label key={o.id} className="opt">
+          <input type="radio" name="theme" checked={choice === o.id} onChange={() => choose(o.id)} />
+          {o.label}
+        </label>
+      ))}
+    </div>
+  );
+}
+
 function DeviceStatusCard({ projectName }: { projectName: string }) {
   const status = useLiveQuery(readDeviceStatus, []);
   // Chưa đọc xong, hoặc máy chưa có CSDL của dự án, thì chưa vẽ, để không nháy số 0 trước số thật

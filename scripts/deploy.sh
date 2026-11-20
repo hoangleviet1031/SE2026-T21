@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Triển khai lại staging theo main mới nhất. Chạy trên máy staging:
-#   ~/app/scripts/deploy.sh
+#   ~/app/scripts/deploy.sh          # deploy tay: main mới nhất
+#   ~/app/scripts/deploy.sh <sha>    # chỉ tới đúng commit này (auto-deploy.sh dùng)
 # Các bước cài lần đầu và cách xử lý sự cố: docs/deploy.md
 set -euo pipefail
 
@@ -10,6 +11,24 @@ BACKUP_DIR="${BACKUP_DIR:-$HOME/backup}"
 DB_FILE=server/data/survey.db
 KEEP_BACKUPS=7
 API=http://localhost:3001
+STATE_DIR="${DEPLOY_STATE_DIR:-$HOME/.local/state/survey-deploy}"
+LOCK_FILE="${DEPLOY_LOCK_FILE:-$HOME/.survey-deploy.lock}"
+target="${1:-}"
+
+# Deploy tay và tự deploy không được chạy chồng. auto-deploy.sh đã giữ khoá này
+# rồi mới gọi script, nên nó báo DEPLOY_LOCK_HELD=1 để không xin lại.
+if [ "${DEPLOY_LOCK_HELD:-}" != 1 ]; then
+  exec 9>"$LOCK_FILE"
+  if ! flock -n 9; then
+    echo "Đang có lần deploy khác chạy (có thể là tự deploy, xem journalctl -u survey-autodeploy). Thử lại sau." >&2
+    exit 1
+  fi
+fi
+
+if [ -n "$target" ] && ! [[ "$target" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "Tham số phải là sha đủ 40 ký tự, nhận được: $target" >&2
+  exit 1
+fi
 
 branch=$(git rev-parse --abbrev-ref HEAD)
 if [ "$branch" != main ]; then
@@ -24,7 +43,17 @@ fi
 
 before=$(git rev-parse --short HEAD)
 echo "== Lấy code mới (đang ở $before)"
-git pull --ff-only
+if [ -z "$target" ]; then
+  git pull --ff-only
+else
+  # Chỉ tới đúng commit đã qua CI, không kéo thêm commit main mới hơn chưa kiểm.
+  git fetch origin main
+  if ! git merge-base --is-ancestor "$target" origin/main; then
+    echo "Commit $target không nằm trên origin/main." >&2
+    exit 1
+  fi
+  git merge --ff-only "$target"
+fi
 
 echo "== Cài thư viện, build client"
 npm ci
@@ -58,5 +87,10 @@ if [ "$test_status" != 404 ]; then
   echo "/api/__test/faults trả $test_status, phải là 404. Kiểm tra ENABLE_TEST_ROUTES trong survey-api.service." >&2
   exit 1
 fi
+
+# auto-deploy.sh so với file này để biết server đã chạy bản nào (HEAD có thể mới hơn
+# bản đang chạy nếu lần trước hỏng sau bước pull).
+mkdir -p "$STATE_DIR"
+git rev-parse HEAD > "$STATE_DIR/deployed-sha"
 
 echo "== Xong: $(git log --oneline -1)"

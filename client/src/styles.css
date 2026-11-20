@@ -1,5 +1,8 @@
-/* Token theo bản thiết kế của Dương (TV1-12 b2, ui.md "Hệ thống thiết kế"). Mọi cặp chữ trên nền ≥ 4,9:1.
-   Không có chế độ tối; phông máy (Roboto trên Android, SF trên iPhone, Segoe UI trên Windows), không tải phông để chạy offline. */
+/* Token theo bản thiết kế của Dương (TV1-12 b2, ui.md "Hệ thống thiết kế"). Cặp chữ trên nền ≥ 4,5:1, kiểm ở theme.test.ts.
+   Mọi màu nằm ở đây, ngoài :root chỉ dùng var() (trừ bóng đổ và nền mờ sau hộp, ngăn kéo): chế độ tối chỉ đổi token, không sót mảng sáng.
+   Giao diện tối (Could, Dương duyệt 2026-11-16): khối :root[data-theme="dark"] ngay dưới. data-theme do theme.ts và script trong
+   index.html đặt theo lựa chọn ở màn hình 8 (Theo máy / Sáng / Tối, Dương duyệt 2026-11-19).
+   Phông máy (Roboto trên Android, SF trên iPhone, Segoe UI trên Windows), không tải phông để chạy offline. */
 :root {
   --ink: #262522;       /* chữ chính */
   --btn: #34322e;       /* nút chính, nhạt hơn chữ một chút cho bớt nặng (12,6:1 với chữ trắng) */
@@ -17,6 +20,31 @@
   --warn-ink: #7a4300; --warn-bg: #fff1c2;
   --ok: #17773f;
   --disabled-ink: #75726b;
+  /* Chữ, nét trên nền màu đặc (nút chính, nút đỏ, nút trong thẻ form, biểu tượng trạng thái tô đặc). Tách token vì
+     ở chế độ tối nền đặc thành sáng, chữ trên đó phải tối */
+  --on-fill: #fff;
+  --on-fill-faint: rgba(255, 255, 255, .4);
+  /* Chữ trên vàng nhấn: luôn tối, kể cả chế độ tối (vàng giữ sáng) */
+  --on-hl: #262522;
+  /* Vạch trái mục menu đang ở, trên nền vàng */
+  --hl-bar: var(--btn);
+  /* Dấu tích ô đánh dấu đã chọn, cùng màu --on-fill (url() không nhận var() bên trong) */
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E");
+  --hdr-off: #8a8780;   /* nút header bị khoá */
+  --faint: #b9b6ae;     /* biểu tượng mờ lớn (trống, giữa trang), ▲▼ khoá */
+  --grip: #9a978f;      /* tay nắm kéo ở builder */
+  --slot-line: #e9c75b; --slot-stripe: #faefca;   /* chỗ thả khi kéo trường */
+  --st-draft: #985300; --st-up: #1a5ea8;           /* trạng thái Nháp, Đang gửi (≥ 5,8:1 trên trắng) */
+  --ok-soft: #e4f2e8;
+  --warn-line: rgba(31, 30, 27, .12);              /* kẻ giữa các dòng trên nền vàng */
+  --blocked-bg: #fff8e0; --blocked-line: #f1dc95;
+  --hl-line: #f0dfa2;                              /* viền khối vàng nhạt (chào mừng, tên đăng nhập) */
+  --info-bg: #e8f1fb; --info-ink: #1a4f8a;         /* dải "Đang xem trước" */
+  --ro-bg: #f1efea; --ro-line: #e0ddd6;            /* ô khoá chỉ đọc */
+  --owner-bg: #ece4f7; --owner-ink: #4b3a78;
+  --sup-bg: #dcebf6; --sup-ink: #1f4f78;
+  --row-open: #fffbef;                             /* dòng bảng quản trị đang mở ô nhập */
+  --photo-btn: rgba(255, 255, 255, .92);           /* nút × nằm trên ảnh */
   /* Thẻ biểu mẫu "Dịu ấm" xoay vòng 5 màu (f nền, b viền, t ô biểu tượng, d nút trong thẻ); dùng từ phần trang chủ */
   --f1: #f7f1e3; --b1: #ebdfc3; --t1: #ecdcb4;
   --f2: #eaf1e6; --b2: #d5e3cd; --t2: #cfe0c4;
@@ -27,6 +55,47 @@
   --r-btn: 10px; --r-card: 16px; --r-pill: 999px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-family: var(--font); color: var(--ink); background: var(--paper); line-height: 1.4;
+  /* Ô nhập, ô chọn, lịch chọn ngày, gợi ý, thanh cuộn của trình duyệt theo cùng chế độ với app (bản tối khai lại) */
+  color-scheme: light;
+}
+/* Giao diện tối (ui.md "Hệ thống thiết kế"): nền tối ấm cùng tông bản sáng. Nền đặc (nút chính, nút đỏ, nút trong thẻ form)
+   thành sáng, chữ trên đó tối (--on-fill); vàng nhấn giữ sáng, chữ trên vàng tối. Tỉ lệ tương phản kiểm ở theme.test.ts */
+/* Không dùng @media: chọn Sáng trên máy đặt tối (hoặc ngược lại) thì phải thắng chế độ của máy */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --ink: #edebe6; --btn: #edebe6; --muted: #b3afa7;
+    --paper: #181715; --sunken: #2a2825; --surface: #211f1c; --chip: #34322e;
+    --line: #33312d; --edge: #46433e; --field: #8a867e;
+    --hl: #f2d675; --hl-soft: #3b331c;
+    --red: #ff8f80; --red-soft: #3e1f1b;
+    --warn-ink: #f3c766; --warn-bg: #3a2e0f;
+    --ok: #6fcf97;
+    --disabled-ink: #8e8a83;
+    --on-fill: #1d1c1a;
+    --on-fill-faint: rgba(29, 28, 26, .35);
+    --hl-bar: var(--on-hl);
+    --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d1c1a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E");
+    --hdr-off: #6f6c66;
+    --faint: #5c5952;
+    --grip: #8a867e;
+    --slot-line: #8a7428; --slot-stripe: #332c18;
+    --st-draft: #f0a85a; --st-up: #7fb2ec;
+    --ok-soft: #1c3326;
+    --warn-line: rgba(255, 255, 255, .12);
+    --blocked-bg: #2f2610; --blocked-line: #5c4a1a;
+    --hl-line: #5c4c1e;
+    --info-bg: #1b2b3d; --info-ink: #a9cdf5;
+    --ro-bg: #2a2825; --ro-line: #3a3834;
+    --owner-bg: #2f2840; --owner-ink: #cdbff0;
+    --sup-bg: #1c2e3d; --sup-ink: #a6cdec;
+    --row-open: #2a2516;
+    --photo-btn: rgba(33, 31, 28, .92);
+    --f1: #2b261a; --b1: #3d3524; --t1: #463c26;
+    --f2: #1f281c; --b2: #2f3d2a; --t2: #344530;
+    --f3: #1b2530; --b3: #2a3846; --t3: #2f4152;
+    --f4: #2d211c; --b4: #42302a; --t4: #4a342c;
+    --f5: #24212f; --b5: #353046; --t5: #3c3550;
+    --d1: #e0c98a; --d2: #a9d39a; --d3: #9cc4e2; --d4: #eab49e; --d5: #c3b8ea;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); font-size: 16px; }
@@ -38,25 +107,27 @@ body { margin: 0; background: var(--paper); font-size: 16px; }
 a, a:visited { color: inherit; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 svg.icon { width: 20px; height: 20px; flex: none; }
+/* Nét khoét trên biểu tượng tô đặc (tích, chấm than). Thuộc tính stroke của SVG không nhận var() nên đặt ở đây */
+svg.icon .on-fill { stroke: var(--on-fill); }
 
 /* Nút: cao ≥ 44px, bo 10px. Class cũ giữ nguyên tên (primary, danger) để không phải sửa từng trang */
 button { min-height: 44px; padding: 0 16px; border: 1px solid var(--edge); border-radius: var(--r-btn); background: var(--surface); color: var(--ink);
          box-shadow: 0 1px 2px rgba(31, 30, 27, .06); font: inherit; font-weight: 600; cursor: pointer;
          display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 /* Đặt màu chữ rõ ràng: Safari iOS dùng màu mặc định của hệ thống cho nút, có lúc trùng màu nền trắng (nút "Tiếp tục" trống chữ trên iPhone) */
-button.primary { background: var(--btn); color: #fff; border-color: transparent; }
+button.primary { background: var(--btn); color: var(--on-fill); border-color: transparent; }
 button.soft { background: var(--chip); border-color: transparent; box-shadow: none; }
 /* Đỏ đặc chỉ cho nút xác nhận cuối cùng (trong hộp xác nhận); nút trong trang chỉ mở hộp thì viền đỏ */
-button.danger { background: var(--red); color: #fff; border-color: transparent; }
+button.danger { background: var(--red); color: var(--on-fill); border-color: transparent; }
 button.danger-outline { background: var(--surface); color: var(--red); border-color: var(--red); }
 /* Đứng sau các kiểu trên để nút khoá nào cũng một kiểu, kể cả nút viền đỏ (Đăng xuất bị khoá) */
 button:disabled { background: var(--chip); color: var(--disabled-ink); border-color: transparent; box-shadow: none; cursor: not-allowed; }
 /* Đang gửi: giữ màu nút, chỉ thêm vòng xoay; chữ trên nút không đổi (ui.md "Đang gửi") */
 button[aria-busy="true"] { background: var(--surface); color: var(--ink); border-color: var(--edge); cursor: progress; }
-button.primary[aria-busy="true"] { background: var(--btn); color: #fff; border-color: transparent; }
+button.primary[aria-busy="true"] { background: var(--btn); color: var(--on-fill); border-color: transparent; }
 button[aria-busy="true"]::before { content: ""; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--chip); border-top-color: var(--btn);
                                    animation: spin .8s linear infinite; }
-button.primary[aria-busy="true"]::before { border-color: rgba(255, 255, 255, .4); border-top-color: #fff; }
+button.primary[aria-busy="true"]::before { border-color: var(--on-fill-faint); border-top-color: var(--on-fill); }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { button[aria-busy="true"]::before { animation-duration: 2.4s; } }
 .busy-note { color: var(--muted); font-size: 14px; font-weight: 600; }
@@ -65,7 +136,7 @@ button.primary[aria-busy="true"]::before { border-color: rgba(255, 255, 255, .4)
 header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
 .brand { font-weight: 800; }
 .hdr { gap: 2px; padding: 8px 8px 8px 14px; }
-.logo { width: 34px; height: 34px; border-radius: 10px; background: var(--hl); display: grid; place-items: center; flex: none; }
+.logo { width: 34px; height: 34px; border-radius: 10px; background: var(--hl); color: var(--on-hl); display: grid; place-items: center; flex: none; }
 .hdr .logo { margin-right: 10px; }
 .hdr .brand { flex: 1; min-width: 0; display: grid; gap: 1px; }
 /* Chữ cao 24px; padding 11px trên dưới nới vùng bấm lên 44px (design §11.3, tech-debt N21), margin âm bù lại để header không cao thêm.
@@ -75,7 +146,7 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .hdr .hbtn { display: grid; justify-items: center; gap: 1px; min-width: 56px; min-height: 48px; padding: 4px; border: 0; background: none; box-shadow: none;
              font-size: 12px; font-weight: 600; border-radius: var(--r-btn); text-decoration: none; }
 .hdr .hbtn svg.icon { width: 22px; height: 22px; }
-.hdr .hbtn:disabled { background: none; color: #8a8780; }
+.hdr .hbtn:disabled { background: none; color: var(--hdr-off); }
 /* Menu điều hướng (ui.md "Menu điều hướng"): điện thoại là ngăn kéo trượt từ trái, đóng thì ẩn hẳn (không nằm trong
    thứ tự Tab); ≥1024px là thanh bên luôn hiện, không có nút Menu */
 .hdr .menu-btn { margin-left: -10px; margin-right: 4px; }
@@ -87,7 +158,7 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .sidenav a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 14px; border-radius: var(--r-btn); font-weight: 600; text-decoration: none; }
 .sidenav a:hover { background: var(--sunken); }
 /* Vạch trái và chữ đậm như dòng đang chọn ở builder, để không chỉ phân biệt bằng màu nền (design §11.3, tech-debt N20) */
-.sidenav a[aria-current="page"] { background: var(--hl); box-shadow: inset 4px 0 0 var(--btn); font-weight: 700; }
+.sidenav a[aria-current="page"] { background: var(--hl); color: var(--on-hl); box-shadow: inset 4px 0 0 var(--hl-bar); font-weight: 700; }
 @keyframes nav-in { from { transform: translateX(-100%); } }
 @media (prefers-reduced-motion: reduce) { .sidenav.open { animation: none; } }
 @media (min-width: 1024px) {
@@ -104,8 +175,8 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .net.off::before { background: none; border: 2px solid currentColor; width: 9px; height: 9px; }
 
 /* Dải "Có phiên bản mới": nằm trên header, nền tối để khác hẳn banner cảnh báo */
-.update-prompt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 16px; background: var(--btn); color: #fff; font-weight: 600; }
-.update-prompt > button { background: #fff; color: var(--ink); border-color: transparent; min-height: 44px; }
+.update-prompt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 16px; background: var(--btn); color: var(--on-fill); font-weight: 600; }
+.update-prompt > button { background: var(--on-fill); color: var(--ink); border-color: transparent; min-height: 44px; }
 
 /* Bộ chọn tổ chức: ô chữ cái + tên; một tổ chức thì kèm "Tổ chức khác…", nhiều thì danh sách mở ngay dưới */
 .org-one, .org-switcher { margin: 12px 16px 0; background: var(--surface); border: 1px solid var(--edge); border-radius: 12px; }
@@ -139,6 +210,18 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .warning { background: var(--warn-bg); color: var(--warn-ink); font-weight: 600; padding: 12px 14px; border-radius: 12px; line-height: 1.4; }
 .draft-notice { padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn-ink); font-weight: 600; }
 .record-copy { width: 100%; margin-top: 16px; }
+/* Lịch sử sửa ở màn hình 4 (design §4.1): nút rộng như Nhân bản phiếu, khối mở ngay dưới nút */
+.record-history { margin-top: 12px; }
+.record-history > button { width: 100%; }
+.history-panel { display: grid; gap: 10px; margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; }
+.history-panel p { margin: 0; }
+.history-note { color: var(--muted); font-size: 14px; }
+.history-loading { display: flex; align-items: center; gap: 10px; }
+.history-loading .spin { width: 20px; height: 20px; border-width: 2.5px; }
+.history-list { list-style: none; margin: 0; padding: 0; }
+.history-list li { padding: 8px 0; }
+.history-list li + li { border-top: 1px solid var(--line); }
+.history-change { font-size: 15px; overflow-wrap: anywhere; }
 /* Bộ đệm đang nhập (design §4.1): hỏi khôi phục hoặc báo trường giữ bản mới, nền như dải nháp */
 .typing-note { display: grid; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn-ink); font-weight: 600; }
 .typing-note ul { margin: 0; padding-left: 20px; font-weight: 500; }
@@ -147,7 +230,7 @@ header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; backg
 .unsaved { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn-ink); }
 .unsaved h2 { margin: 0 0 6px; font-size: 16px; font-weight: 700; }
 .unsaved ul { list-style: none; margin: 0; padding: 0; }
-.unsaved li + li { border-top: 1px solid rgba(31, 30, 27, .12); }
+.unsaved li + li { border-top: 1px solid var(--warn-line); }
 .unsaved a { display: grid; grid-template-columns: 1fr 20px; column-gap: 8px; align-items: center; min-height: 48px; padding: 6px 0; color: var(--ink);
              text-decoration: none; }
 .unsaved .t { font-weight: 700; overflow-wrap: anywhere; }
@@ -224,17 +307,17 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
                         border-radius: var(--r-pill); background: var(--surface); font-weight: 600; font-size: 15px; cursor: pointer; }
 .record-filters input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .record-filters svg.icon { display: none; width: 16px; height: 16px; }
-.record-filters label:has(input:checked) { background: var(--hl); border-color: var(--hl); }
+.record-filters label:has(input:checked) { background: var(--hl); border-color: var(--hl); color: var(--on-hl); }
 .record-filters label:has(input:checked) svg.icon { display: block; }
 .record-filters label:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
 /* Trống: khối trắng có biểu tượng mờ */
 .empty { display: grid; justify-items: center; gap: 10px; margin: 0; padding: 28px 16px; text-align: center; color: var(--muted); font-weight: 500;
          background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
-.empty svg.icon { width: 40px; height: 40px; color: #b9b6ae; }
+.empty svg.icon { width: 40px; height: 40px; color: var(--faint); }
 /* Dòng phiếu: biểu tượng + chữ cùng màu trạng thái (≥ 5,6:1 trên trắng) */
-.st-draft { --c: #985300; }
+.st-draft { --c: var(--st-draft); }
 .st-pending { --c: var(--muted); }
-.st-uploading { --c: #1a5ea8; }
+.st-uploading { --c: var(--st-up); }
 .st-synced { --c: var(--ok); }
 .st-conflict, .st-error, .st-photo-error { --c: var(--red); }
 /* Nhóm phiếu theo form (design §4.8): vạch màu cùng tông thẻ form; mục form không có trên máy vạch xám */
@@ -307,8 +390,7 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
       background: var(--surface); font-weight: 500; cursor: pointer; overflow-wrap: anywhere; }
 .ck input, .opt input { appearance: none; flex: none; width: 22px; height: 22px; margin: 0; border: 2px solid var(--field); background: var(--surface); cursor: pointer; }
 .ck input { border-radius: 6px; }
-.ck input:checked { border-color: var(--btn); background: var(--btn) no-repeat center / 15px
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E"); }
+.ck input:checked { border-color: var(--btn); background: var(--btn) no-repeat center / 15px var(--check); }
 .ck:has(input:checked) { border-color: var(--btn); }
 /* Ô đánh dấu đã bỏ kiểu mặc định nên mất vòng focus: vẽ vòng đậm quanh cả ô như bộ lọc ở trang chủ */
 .ck input:focus-visible, .opt input:focus-visible { outline: none; }
@@ -326,10 +408,10 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
 .photo-thumb .photo-missing > span { display: contents; }
 .photo-thumb .photo-missing .spin { display: block; width: 20px; height: 20px; border-width: 2.5px; }
 .photo-thumb button { position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; min-height: 0; padding: 0; border: 0; border-radius: 50%;
-                      background: rgba(255, 255, 255, .92); color: var(--ink); font-size: 22px; line-height: 1; box-shadow: 0 1px 3px rgba(31, 30, 27, .25); }
-.photo-thumb .photo-state { position: absolute; left: 6px; bottom: 6px; padding: 2px 8px; border-radius: var(--r-pill); background: #fff; color: var(--muted);
+                      background: var(--photo-btn); color: var(--ink); font-size: 22px; line-height: 1; box-shadow: 0 1px 3px rgba(31, 30, 27, .25); }
+.photo-thumb .photo-state { position: absolute; left: 6px; bottom: 6px; padding: 2px 8px; border-radius: var(--r-pill); background: var(--surface); color: var(--muted);
                             font-size: 12px; font-weight: 700; }
-.photo-thumb .photo-state.uploading { color: #1a5ea8; }
+.photo-thumb .photo-state.uploading { color: var(--st-up); }
 .photo-thumb .photo-state.failed { color: var(--red); }
 .photo-add { position: relative; aspect-ratio: 1; display: grid; place-content: center; justify-items: center; gap: 4px; padding: 4px; border: 2px dashed var(--field);
              border-radius: 12px; background: var(--surface); font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
@@ -339,13 +421,13 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
 .photo-add:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
 /* Chỉ đọc (đang xung đột, trường đã ẩn): ô khoá nhưng chữ vẫn đậm, đọc rõ; không có nút bỏ ảnh, ô chụp */
 .form-fieldset:disabled .field :is(input, select), fieldset.readonly :is(input, select), fieldset.preview:disabled .field :is(input, select) {
-  background-color: #f1efea; border-color: #e0ddd6; color: var(--ink); -webkit-text-fill-color: var(--ink); opacity: 1; }
-.form-fieldset:disabled .ck, fieldset.readonly .ck, fieldset.preview:disabled .ck { background: #f1efea; border-color: #e0ddd6; cursor: default; }
+  background-color: var(--ro-bg); border-color: var(--ro-line); color: var(--ink); -webkit-text-fill-color: var(--ink); opacity: 1; }
+.form-fieldset:disabled .ck, fieldset.readonly .ck, fieldset.preview:disabled .ck { background: var(--ro-bg); border-color: var(--ro-line); cursor: default; }
 .form-fieldset:disabled .ck input:checked, fieldset.readonly .ck input:checked, fieldset.preview:disabled .ck input:checked { background-color: var(--btn); border-color: var(--btn); }
 .form-fieldset:disabled :is(.photo-thumb button, .photo-add), fieldset.readonly :is(.photo-thumb button, .photo-add) { display: none; }
 .ro-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--red-soft);
              color: var(--red); font-weight: 600; line-height: 1.4; }
-.ro-banner a { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: var(--r-btn); background: var(--red); color: #fff;
+.ro-banner a { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: var(--r-btn); background: var(--red); color: var(--on-fill);
                text-decoration: none; white-space: nowrap; }
 /* Hàng nút dính đáy màn hình; nằm trong luồng trang nên cuộn hết cỡ thì trường cuối vẫn ở trên hàng nút */
 .actionbar { position: sticky; bottom: 0; z-index: 1; display: flex; gap: 8px; margin: 20px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
@@ -357,7 +439,7 @@ fieldset.readonly { border: 0; padding: 0; margin: 0; min-width: 0; }
 /* Ô được focus hay cuộn tới không nằm dưới hàng nút */
 html:has(.actionbar) { scroll-padding-bottom: 88px; }
 .center-msg { display: grid; justify-items: center; gap: 12px; margin: 0; padding: 72px 16px; text-align: center; color: var(--muted); font-weight: 500; }
-.center-msg svg.icon { width: 44px; height: 44px; color: #b9b6ae; }
+.center-msg svg.icon { width: 44px; height: 44px; color: var(--faint); }
 .spin { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--chip); border-top-color: var(--btn); animation: spin .8s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } }
 
@@ -400,9 +482,9 @@ button.wide { width: 100%; min-height: 48px; }
 .frow.hid .field-name { color: var(--muted); }
 /* ▲▼ hẹp để chừa chỗ cho tên trường, vẫn cao 44 px cho dễ bấm */
 .frow .mv { width: 34px; min-width: 34px; height: 44px; padding: 0; font-size: 13px; flex: none; }
-.frow .mv:disabled { background: var(--surface); color: #b9b6ae; border-color: var(--line); }
+.frow .mv:disabled { background: var(--surface); color: var(--faint); border-color: var(--line); }
 /* Tay nắm kéo thả (TV1-12 b2 p8, khung 5f): vùng bấm 44×44, chỉ ở đây chặn cử chỉ cuộn của trình duyệt */
-.frow .grip { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -8px; margin-right: -8px; flex: none; color: #9a978f;
+.frow .grip { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -8px; margin-right: -8px; flex: none; color: var(--grip);
               cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
 .frow .grip svg.icon { width: 20px; height: 20px; }
 .frows { position: relative; }
@@ -412,12 +494,14 @@ button.wide { width: 100%; min-height: 48px; }
 .frows.dragging .frow.drag { position: relative; z-index: 2; transition: none; border-radius: 10px;
                              box-shadow: 0 10px 24px rgba(31, 30, 27, .22), inset 4px 0 0 var(--btn); }
 .frows.dragging .frow.drag .grip { color: var(--ink); cursor: grabbing; }
-.frows .slot { position: absolute; left: 4px; right: 4px; z-index: 0; list-style: none; border: 2px dashed #e9c75b; border-radius: 10px;
-               background: repeating-linear-gradient(45deg, var(--hl-soft) 0 10px, #faefca 10px 20px); }
+.frows .slot { position: absolute; left: 4px; right: 4px; z-index: 0; list-style: none; border: 2px dashed var(--slot-line); border-radius: 10px;
+               background: repeating-linear-gradient(45deg, var(--hl-soft) 0 10px, var(--slot-stripe) 10px 20px); }
 /* Giảm chuyển động: dòng nhảy thẳng tới chỗ mới, không trượt */
 @media (prefers-reduced-motion: reduce) { .frows.dragging .frow { transition: none; } }
 .addrow { display: flex; gap: 8px; align-items: end; }
 .addrow .field { flex: 1; min-width: 0; }
+/* Ô chọn co theo chỗ còn lại: tên mẫu dài không được đẩy trang tràn ngang ở 360px (ô "Bắt đầu từ mẫu") */
+.addrow select { width: 100%; min-width: 0; }
 .addrow > button { min-height: 48px; }
 /* Chưa có trường thì chỉ có câu hướng dẫn, không vẽ khung danh sách rỗng; chưa chọn trường thì chỗ cuộn tới
    khối Thuộc tính (critique K2) không chiếm thêm một khoảng của lưới */
@@ -431,11 +515,11 @@ button.toggle[aria-expanded="true"] { background: var(--hl-soft); border-color: 
 /* Khung xem trước: viền nét đứt, mọi ô khoá; legend nổi để nằm trong khung */
 fieldset.preview { display: grid; gap: 14px; margin: 0; padding: 14px; min-width: 0; background: var(--surface); border: 2px dashed var(--edge); border-radius: var(--r-card); }
 fieldset.preview legend { float: left; width: 100%; padding: 0; font-size: 15px; font-weight: 800; color: var(--muted); letter-spacing: .02em; }
-.pv-banner { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; background: #e8f1fb; color: #1a4f8a; border-radius: 12px;
+.pv-banner { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; background: var(--info-bg); color: var(--info-ink); border-radius: 12px;
              font-weight: 600; line-height: 1.45; }
 .pv-banner svg.icon { width: 22px; height: 22px; margin-top: 1px; }
 /* Ô chụp ảnh trong xem trước: vẫn hiện để thấy biểu mẫu trông thế nào, nhưng không còn dáng ô bấm */
-fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f1efea; color: var(--disabled-ink); cursor: default; }
+fieldset.preview:disabled .photo-add { border: 1px solid var(--ro-line); background: var(--ro-bg); color: var(--disabled-ink); cursor: default; }
 
 /* Thành viên (ui.md màn hình 6, TV1-12 b2): vòng chữ cái, tên và vai trò hai dòng, thao tác dòng dưới */
 .load-err { display: grid; gap: 12px; justify-items: start; margin-top: 12px; }
@@ -449,8 +533,8 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 .mrow .who .un { color: var(--muted); }
 /* Nhãn vai trò: chữ trên nền nhạt cùng tông, đều ≥ 7:1 */
 .role { justify-self: start; padding: 2px 10px; border-radius: var(--r-pill); background: var(--chip); color: var(--ink); font-size: 13px; font-weight: 700; }
-.role.owner { background: #ece4f7; color: #4b3a78; }
-.role.sup { background: #dcebf6; color: #1f4f78; }
+.role.owner { background: var(--owner-bg); color: var(--owner-ink); }
+.role.sup { background: var(--sup-bg); color: var(--sup-ink); }
 /* [ô chọn][Đổi][Rút]; ô chọn không hẹp hơn chữ "Đổi vai trò…", chật thì [Rút] xuống dòng */
 .mrow .acts { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; }
 .mrow .acts select { flex: 1 1 9.5rem; min-width: 0; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--field); border-radius: var(--r-btn); background: var(--surface);
@@ -461,11 +545,11 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 .members > .card, .orgs > .card, .orgs > .welcome { margin-top: 14px; }
 
 /* Tổ chức (ui.md màn hình 9, TV1-12 b2) */
-.welcome { display: grid; gap: 10px; padding: 18px 16px; background: var(--hl-soft); border: 1px solid #f0dfa2; border-radius: var(--r-card); }
+.welcome { display: grid; gap: 10px; padding: 18px 16px; background: var(--hl-soft); border: 1px solid var(--hl-line); border-radius: var(--r-card); }
 .welcome p, .card > p { margin: 0; line-height: 1.5; }
 .welcome .big { font-size: 19px; font-weight: 800; }
 /* Tên đăng nhập phông đều, nền vàng nhạt: dễ đọc to qua điện thoại cho người khác chép */
-.ucode { font-family: ui-monospace, Consolas, "Roboto Mono", monospace; font-size: 16px; font-weight: 600; background: var(--hl-soft); border: 1px solid #f0dfa2;
+.ucode { font-family: ui-monospace, Consolas, "Roboto Mono", monospace; font-size: 16px; font-weight: 600; background: var(--hl-soft); border: 1px solid var(--hl-line);
          border-radius: 8px; padding: 2px 8px; overflow-wrap: anywhere; }
 .ucode.big { display: inline-block; font-size: 20px; padding: 6px 12px; }
 /* Kết quả thêm nhiều người (màn hình 6): tên dán vào có thể dài bất kỳ, phải ngắt dòng để không tràn 360px */
@@ -475,7 +559,7 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 .add-results li { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; overflow-wrap: anywhere; }
 .add-results li b { min-width: 0; }
 .add-results li svg.icon { width: 20px; height: 20px; flex: none; }
-.add-results li.added span { color: #17773f; }
+.add-results li.added span { color: var(--ok); }
 .add-results li.failed span { color: var(--red); }
 .add-results li.unsent span { color: var(--muted); }
 .uname-actions { display: grid; gap: 8px; }
@@ -508,7 +592,7 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 /* Link giữa câu thì gạch chân để thấy bấm được */
 .login .field-error a { color: inherit; text-decoration: underline; }
 /* Khối bị chặn nổi hơn lỗi thường: nhạt hơn banner một bậc vì nhiều chữ (chữ 8,1:1) */
-.blocked { display: grid; gap: 12px; padding: 14px; background: #fff8e0; color: var(--warn-ink); border: 1.5px solid #f1dc95; border-radius: 14px; }
+.blocked { display: grid; gap: 12px; padding: 14px; background: var(--blocked-bg); color: var(--warn-ink); border: 1.5px solid var(--blocked-line); border-radius: 14px; }
 .blocked p { margin: 0; font-weight: 600; line-height: 1.45; }
 .blocked button { justify-self: start; }
 .blocked .result { font-weight: 500; color: var(--ink); }
@@ -523,5 +607,5 @@ fieldset.preview:disabled .photo-add { border: 1px solid #e0ddd6; background: #f
 .bar { height: 8px; border-radius: var(--r-pill); background: var(--chip); overflow: hidden; }
 /* Dùng ít vẫn thấy một chấm để biết thanh có tồn tại */
 .bar i { display: block; height: 100%; min-width: 8px; background: var(--btn); border-radius: var(--r-pill); }
-.ok-line { display: flex; align-items: center; gap: 8px; color: #17773f; font-weight: 600; }
+.ok-line { display: flex; align-items: center; gap: 8px; color: var(--ok); font-weight: 600; }
 .ok-line svg.icon { width: 20px; height: 20px; flex: none; }

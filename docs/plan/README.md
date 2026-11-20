@@ -122,6 +122,14 @@ Việc chưa ai nhận, chia theo mức MoSCoW ([design §1](../design.md#1-mụ
 | — | Màn 5: Nhân bản trường (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #129 |
 | — | Màn 8: Dữ liệu trên máy (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #130 |
 | — | Màn 8: Cảnh báo dung lượng gần đầy (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #133 |
+| — | Màn 5: Tự lưu bản đang sửa của builder (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #136 |
+| — | Màn 4: Gợi ý giá trị đã nhập (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #137 |
+| — | Màn 5: Builder đang mở mà form lên bản mới (sửa lỗi, không ticket, Dương duyệt) | Must | N25 | ✅ PR #138 |
+| — | Màn 4: Lịch sử sửa của phiếu (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #139 |
+| — | Màn 5: Mẫu form có sẵn (không ticket, Dương duyệt) · **Cắt được** | Could | – | ✅ PR #140 |
+| — | Màn 8: Dọn ảnh đã tải lên (không ticket, Dương cho phép) | Must | N23 | ✅ PR #141 |
+| — | Màn 8: Xoá dữ liệu trên máy (design §9, không ticket, Dương cho phép) | – | N27 phần 1 | ✅ PR #142 |
+| — | Giao diện tối theo hệ điều hành (không ticket, Dương duyệt 2026-11-16) · **Cắt được** | Could | – | ✅ PR #143 (phần 1: gom màu về token); ✅ PR #144 (phần 2: bật chế độ tối) |
 
 ## Phụ thuộc quan trọng
 

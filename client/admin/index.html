@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Đặt giao diện trước khi vẽ trang để không nháy sáng rồi tối; cùng luật với resolveTheme trong src/theme.ts -->
+    <script>
+      (function () {
+        var choice = null;
+        try { choice = localStorage.getItem('theme'); } catch (e) { /* bị chặn bộ nhớ: theo máy, theme.ts ghi cảnh báo */ }
+        var dark = choice === 'dark' || (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      })();
+    </script>
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <!-- Trang quản trị: không manifest, không service worker, luôn online (design §4.9) -->
     <title>Quản trị · Khảo sát thực địa</title>

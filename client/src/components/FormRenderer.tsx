@@ -16,9 +16,11 @@ interface Props {
   onChange: (next: RecordData) => void;
   /** Lỗi validate theo id trường (design §4.1), hiện ngay dưới trường đó */
   errors?: Record<string, string>;
+  /** Giá trị đã nhập ở phiếu khác theo id trường chữ (design §4.1 "Gợi ý giá trị đã nhập"); xem trước ở builder không có */
+  suggestions?: Record<string, string[]>;
 }
 
-export function FormRenderer({ db, form, recordId, value, onChange, errors = {} }: Props) {
+export function FormRenderer({ db, form, recordId, value, onChange, errors = {}, suggestions = {} }: Props) {
   // Đọc bản mới nhất lúc ghi: vị trí GPS về sau tới 30 s, trong lúc đó người dùng có thể đã sửa ô khác;
   // ghép vào `value` lúc bấm nút thì mất phần vừa sửa.
   const latest = useRef(value);
@@ -30,7 +32,14 @@ export function FormRenderer({ db, form, recordId, value, onChange, errors = {} 
         const mode = fieldMode(f, value[f.id], errors[f.id] !== undefined);
         if (mode === 'hidden') return null;
         const input = (
-          <FieldInput db={db} field={f} recordId={recordId} value={value[f.id] ?? null} onChange={(v) => set(f.id, v)} />
+          <FieldInput
+            db={db}
+            field={f}
+            recordId={recordId}
+            value={value[f.id] ?? null}
+            onChange={(v) => set(f.id, v)}
+            suggestions={suggestions[f.id]}
+          />
         );
         // Trường có nhiều điều khiển bên trong (ảnh, GPS, chọn nhiều): bọc bằng <label> thì bấm vào tên trường
         // sẽ bấm nhầm điều khiển đầu tiên, và ô đánh dấu đầu bị đọc kèm tên trường cùng mọi lựa chọn.
@@ -70,16 +79,30 @@ function FieldInput({
   recordId,
   value,
   onChange,
+  suggestions,
 }: {
   db: ProjectDb;
   field: FieldDef;
   recordId: string;
   value: FieldValue;
   onChange: (v: FieldValue) => void;
+  suggestions?: string[];
 }) {
   switch (field.type) {
-    case 'text':
-      return <input name={field.id} value={(value as string) ?? ''} onChange={(e) => onChange(e.target.value)} />;
+    case 'text': {
+      // <datalist> có sẵn của trình duyệt: không thêm thư viện, không có chữ mới trên màn hình
+      const listId = suggestions?.length ? `suggest-${field.id}` : undefined;
+      return (
+        <>
+          <input name={field.id} list={listId} value={(value as string) ?? ''} onChange={(e) => onChange(e.target.value)} />
+          {listId && (
+            <datalist id={listId} data-testid={listId}>
+              {suggestions?.map((s) => <option key={s} value={s} />)}
+            </datalist>
+          )}
+        </>
+      );
+    }
     case 'number':
       return (
         <input

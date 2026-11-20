@@ -93,9 +93,10 @@ export function App() {
               <FillPage key={args[1]} formId={args[0]} recordId={args[1]} />
             ) : page === 'conflict' && args[0] ? (
               <ConflictPage recordId={args[0]} />
-            ) : page === 'builder' && args[0] ? (
-              // #/builder/new: form mới; #/builder/<formId>: sửa form đã có (ui.md màn hình 5)
-              <BuilderPage formId={args[0] === 'new' ? undefined : args[0]} />
+            ) : page === 'builder' ? (
+              // #/builder: form mới; #/builder/<formId>: sửa form đã có (ui.md màn hình 5). Form mới không có
+              // tham số để không trùng mã form nào, kể cả mã `new` (tech-debt N26)
+              <BuilderPage formId={args[0]} />
             ) : page === 'members' ? (
               <MembersPage />
             ) : page === 'orgs' ? (

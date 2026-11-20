@@ -42,7 +42,19 @@ export function UpdatePrompt({ inert = false }: { inert?: boolean }) {
       <span>Có phiên bản mới</span>
       {/* Trang nhập phiếu: chữ đang gõ được giữ ở bộ đệm, mở lại phiếu thì hỏi khôi phục (design §4.1); vẫn hỏi
           trước để người dùng biết, và ghi nốt phần chưa kịp tự lưu rồi mới tải lại */}
-      <button onClick={() => (location.hash.startsWith('#/fill/') ? setConfirming(true) : reload())}>Tải lại</button>
+      {/* Trang khác tải lại luôn, không hỏi; builder có bản tự lưu nên cũng ghi nốt trước (design §4.1). Tên
+          flushTyping giữ nguyên: builder đăng ký hàm ghi vào cùng chỗ đó, mỗi lúc chỉ một trang mở */}
+      <button
+        onClick={() =>
+          location.hash.startsWith('#/fill/')
+            ? setConfirming(true)
+            : void flushTyping()
+                .catch((e) => console.warn('không ghi được bản tự lưu', e))
+                .then(reload)
+        }
+      >
+        Tải lại
+      </button>
       {confirming && (
         <ConfirmDialog
           message="Nội dung đang nhập sẽ được giữ, mở lại phiếu để khôi phục. Tải lại?"

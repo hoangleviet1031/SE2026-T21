@@ -1,0 +1,11 @@
+# Cài: docs/deploy.md "Tự deploy". Tạm dừng: sudo systemctl stop survey-autodeploy.timer
+[Unit]
+Description=Kiểm main mỗi 2 phút để tự deploy staging
+
+[Timer]
+OnBootSec=2min
+# Tính từ lúc lần trước chạy xong, nên hai lần không bao giờ chồng nhau.
+OnUnitInactiveSec=2min
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,13 @@
+# Tự deploy staging khi main có commit mới đã qua CI. Cài: docs/deploy.md "Tự deploy".
+[Unit]
+Description=Tự deploy staging khi main có commit đã qua CI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=azureuser
+WorkingDirectory=/home/azureuser/app
+ExecStart=/home/azureuser/app/scripts/auto-deploy.sh
+# npm ci + build trên máy 1 GiB RAM mất khoảng 20 giây; để rộng phòng lúc mạng chậm.
+TimeoutStartSec=10min

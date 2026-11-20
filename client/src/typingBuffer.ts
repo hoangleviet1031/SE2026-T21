@@ -22,7 +22,7 @@ export interface TypingBuffer {
 }
 
 /** Ô rỗng: chưa nhập, xoá trống ô số hay ô chọn (null), chuỗi rỗng, chưa chọn ảnh nào */
-function isEmpty(v: FieldValue | undefined): boolean {
+export function isEmpty(v: FieldValue | undefined): boolean {
   return v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0);
 }
 

@@ -9,8 +9,8 @@ import {
   duplicateField,
   emptyBuilder,
   formIdInvalid,
-  fromForm,
   fromImport,
+  fromTemplate,
   moveField,
   moveFieldTo,
   removeField,
@@ -28,6 +28,7 @@ import { FormRenderer } from '../components/FormRenderer';
 import { Icon } from '../components/Icon';
 import { formChangeText, formChanges } from '../formChanges';
 import { formFileName, formFileText, parseFormFile } from '../formFile';
+import { FORM_TEMPLATES, type FormTemplate } from '../formTemplates';
 import { useCurrentProject, useCurrentProjectDb } from '../db/current';
 import { formKey, type ProjectDb } from '../db/projectDb';
 import { canManageProject } from '../projects';
@@ -35,6 +36,18 @@ import { apiFailureText } from '../apiErrors';
 import { apiFailure, saveForm } from '../sync/api';
 import { useFieldDrag } from '../useFieldDrag';
 import { navigate } from '../useHashRoute';
+import {
+  draftBase,
+  draftIsStale,
+  needsDraft,
+  onNewerForm,
+  rebasedNote,
+  restoreDraft,
+  type BuilderDraft,
+} from '../builderDraft';
+import { deleteBuilderDraft, getBuilderDraft, putBuilderDraft } from '../db/builderDraft';
+import { setTypingFlush } from '../db/typingBuffer';
+import { formatEditedAt } from '../recordList';
 
 const OFFLINE_MSG = 'Cần kết nối để lưu form';
 const PREVIEW_MSG = 'Đang xem trước, chưa sửa được. Bấm lại Xem trước để sửa tiếp.';
@@ -71,8 +84,97 @@ export function BuilderPage({ formId }: { formId?: string }) {
   }
   if (formId && !prev) return <BuilderMessage text="Không tìm thấy biểu mẫu." />;
   // key chỉ theo form: vòng đồng bộ tải bản mới hơn trong lúc sửa không được xoá phần đang sửa;
-  // `prev` mới vẫn được dùng để kiểm luật khi lưu (nhóm chốt: bản lưu sau thành version mới)
-  return <Builder key={formId ?? 'new'} db={db} prev={prev ?? undefined} formIds={formIds ?? new Set()} />;
+  // `prev` mới vẫn được dùng để kiểm luật khi lưu (nhóm chốt: bản lưu sau thành version mới).
+  // Khoá của form mới không được trùng khoá của form nào, kể cả form mã `new` (tech-debt N26)
+  return <DraftGate key={formId === undefined ? 'new-form' : `form:${formId}`} db={db} prev={prev ?? undefined} formIds={formIds ?? new Set()} />;
+}
+
+const warnDraft = (e: unknown) => console.warn('không ghi được bản tự lưu của builder', e);
+
+/**
+ * Builder bắt đầu từ đâu: bản gốc hay bản tự lưu, kèm dải báo sau khi khôi phục. `base` là bản form mà `initial`
+ * dựng theo: vòng đồng bộ có thể tải bản mới hơn trong lúc đọc bản tự lưu, khi đó Builder phải biết để đưa lên
+ */
+type Start = { initial: BuilderState; base?: FormSchema; hasDraft: boolean; note: string | null };
+
+/**
+ * Có bản tự lưu thì hỏi [Khôi phục] / [Bỏ] trước khi dựng builder (design §4.1 "Tự lưu bản đang sửa"): không tự
+ * nạp, và builder chưa có thì không có gì để sửa hay tự lưu đè lên bản cũ trong lúc đang hỏi.
+ */
+function DraftGate({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; formIds: ReadonlySet<string> }) {
+  const formId = prev?.id;
+  const [asking, setAsking] = useState<BuilderDraft | null>(null);
+  const [start, setStart] = useState<Start | null>(null);
+  // Đọc một lần lúc mở (key theo form) và so với bản form lúc đó; Khôi phục thì so lại với bản lúc bấm
+  const prevAtOpen = useRef(prev);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fresh = (): Start => ({
+      initial: draftBase(prevAtOpen.current),
+      base: prevAtOpen.current,
+      hasDraft: false,
+      note: null,
+    });
+    void (async () => {
+      const draft = await getBuilderDraft(db, formId);
+      if (cancelled) return;
+      if (!draft) return setStart(fresh());
+      if (draftIsStale(draft, prevAtOpen.current)) {
+        await deleteBuilderDraft(db, formId);
+        if (!cancelled) setStart(fresh());
+        return;
+      }
+      setAsking(draft);
+    })().catch((e: unknown) => {
+      // Không đọc được thì vẫn cho sửa như chưa có bản tự lưu; lần tự lưu sau ghi đè nếu CSDL ghi lại được
+      console.warn('không đọc được bản tự lưu của builder', e);
+      if (!cancelled) setStart(fresh());
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [db, formId]);
+
+  if (start) return <Builder db={db} prev={prev} formIds={formIds} start={start} />;
+  if (!asking) return null;
+  const draft = asking;
+
+  // Theo bản form lúc bấm: vòng đồng bộ có thể vừa tải bản mới hơn trong lúc đang hỏi
+  const restore = () => {
+    const { state, newer } = restoreDraft(draft, prev);
+    setStart({ initial: state, base: prev, hasDraft: true, note: newer ? rebasedNote(newer) : null });
+  };
+
+  const discard = async () => {
+    let hasDraft = false;
+    try {
+      await deleteBuilderDraft(db, formId);
+    } catch (e) {
+      // Còn bản cũ trên máy: lần tự lưu sau ghi đè hoặc xoá lại
+      warnDraft(e);
+      hasDraft = true;
+    }
+    setStart({ initial: draftBase(prev), base: prev, hasDraft, note: null });
+  };
+
+  return (
+    <section className="form builder">
+      <a href="#/" className="back">
+        ← Quay lại
+      </a>
+      <h2>{prev ? `Sửa form: ${prev.title}` : 'Biểu mẫu mới'}</h2>
+      <div className="typing-note" role="status" data-testid="builder-restore">
+        <span>Có phần đang sửa chưa lưu ({formatEditedAt(draft.savedAt, new Date())}).</span>
+        <div className="acts">
+          <button className="primary" onClick={restore}>
+            Khôi phục
+          </button>
+          <button onClick={() => void discard()}>Bỏ</button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 /** Không mở được builder: vẫn có "← Quay lại" đầu trang như lúc mở được, không thành ngõ cụt (audit C9) */
@@ -87,8 +189,31 @@ function BuilderMessage({ text }: { text: string }) {
   );
 }
 
-function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; formIds: ReadonlySet<string> }) {
-  const [state, setState] = useState<BuilderState>(() => (prev ? fromForm(prev) : emptyBuilder()));
+function Builder({
+  db,
+  prev,
+  formIds,
+  start,
+}: {
+  db: ProjectDb;
+  prev?: FormSchema;
+  formIds: ReadonlySet<string>;
+  start: Start;
+}) {
+  const [state, setState] = useState<BuilderState>(start.initial);
+  // Gốc để biết có gì cần tự lưu: bản form mà phần đang sửa dựng theo. Vòng đồng bộ tải bản mới hơn thì đưa phần
+  // đang sửa lên bản đó và đổi gốc theo (effect bên dưới, tech-debt N25)
+  const [base, setBase] = useState(() => ({
+    form: start.base,
+    state: draftBase(start.base),
+    version: start.base?.version ?? null,
+    formId: start.base?.id,
+  }));
+  const [note, setNote] = useState(start.note);
+  // Ghi bản tự lưu đang chờ (debounce); gọi để ghi ngay khi ẩn trang, rời trang hay trước khi Tải lại
+  const pendingWrite = useRef<(() => Promise<void>) | null>(null);
+  // Trên máy đang có bản tự lưu của form này, để sửa ngược về như cũ thì xoá đi
+  const hasDraft = useRef(start.hasDraft);
   const [selected, setSelected] = useState<number | null>(null);
   const [newType, setNewType] = useState<FieldType>('text');
   const [errors, setErrors] = useState<string[]>([]);
@@ -96,6 +221,9 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const [saving, setSaving] = useState(false);
   // Câu tóm tắt trong hộp hỏi lại trước khi lưu bản mới của form đã có; null là không hỏi
   const [confirm, setConfirm] = useState<string | null>(null);
+  // Mẫu đang chọn trong ô "Bắt đầu từ mẫu" (chỉ số trong FORM_TEMPLATES, "" là chưa chọn) và mẫu đang chờ hỏi thay
+  const [templateIndex, setTemplateIndex] = useState('');
+  const [replaceWith, setReplaceWith] = useState<FormTemplate | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLFieldSetElement>(null);
   const errorsRef = useRef<HTMLUListElement>(null);
@@ -111,6 +239,11 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   const [reveal, setReveal] = useState(0);
   // Đã bấm Lưu hoặc nhập form mà có lỗi thì mới tô ô Mã, không tô lúc đang gõ dở form mới
   const [checked, setChecked] = useState(false);
+  // Đã lưu thành công: bản server trả về ghi vào máy làm `prev` lên bản mới, không được coi là bản của máy khác
+  const saved = useRef(false);
+  const saveButton = useRef<HTMLButtonElement>(null);
+  // Tăng khi hộp tóm tắt bị đóng vì form lên bản mới: hộp gỡ bằng code không tự trả con trỏ (tech-debt N18)
+  const [focusSave, setFocusSave] = useState(0);
   const previewId = useId();
   // Thả xong thì dòng vừa kéo thành dòng đang chọn (ui.md màn hình 5, khung 5f)
   const onDrop = useCallback((from: number, to: number) => {
@@ -139,6 +272,68 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
   useEffect(() => {
     if (focusLabel > 0) labelRef.current?.focus({ preventScroll: true });
   }, [focusLabel]);
+
+  // Tự lưu sau 1 s ngừng sửa, như bộ đệm đang nhập ở màn hình 4 (design §4.1 "Tự lưu bản đang sửa")
+  useEffect(() => {
+    const write = async () => {
+      pendingWrite.current = null;
+      if (needsDraft(state, base.state)) {
+        await putBuilderDraft(db, base.formId, {
+          formId: base.formId ?? null,
+          baseVersion: base.version,
+          state,
+          savedAt: new Date().toISOString(),
+        });
+        hasDraft.current = true;
+      } else if (hasDraft.current) {
+        await deleteBuilderDraft(db, base.formId);
+        hasDraft.current = false;
+      }
+    };
+    pendingWrite.current = write;
+    // Lưu vừa bỏ lần ghi này (pendingWrite đã đổi) thì không ghi lại
+    const timer = setTimeout(() => {
+      if (pendingWrite.current === write) void write().catch(warnDraft);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [db, state, base]);
+
+  // Ẩn trang (chuyển app, khoá máy: Android hay tắt app lúc này) hoặc rời trang thì ghi ngay phần đang chờ
+  useEffect(() => {
+    const flush = () => pendingWrite.current?.() ?? Promise.resolve();
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') void flush().catch(warnDraft);
+    };
+    // Dùng chung chỗ đăng ký với màn hình 4 (mỗi lúc chỉ một trang mở): dải cập nhật ghi nốt rồi mới tải lại
+    setTypingFlush(flush);
+    document.addEventListener('visibilitychange', onHide);
+    return () => {
+      document.removeEventListener('visibilitychange', onHide);
+      setTypingFlush(null);
+      void flush().catch(warnDraft);
+    };
+  }, []);
+
+  // Đang sửa mà vòng đồng bộ tải bản mới hơn: đưa phần đang sửa lên bản đó, không thì Lưu bị báo "Thiếu trường …
+  // của phiên bản trước" mà không thêm lại được (design §4.1 "Tự lưu bản đang sửa"). Đang lưu dở thì chờ kết quả
+  useEffect(() => {
+    if (saved.current || saving || !prev || !base.form || prev.version <= base.form.version) return;
+    const next = onNewerForm(state, base.form, prev);
+    setState(next.state);
+    setBase({ form: prev, state: draftBase(prev), version: prev.version, formId: prev.id });
+    if (next.note) setNote(next.note);
+    setErrors([]);
+    // Tóm tắt trong hộp so với bản cũ, không còn đúng: đóng để bấm Lưu lại xem tóm tắt mới
+    if (confirm !== null) {
+      setConfirm(null);
+      setFocusSave((n) => n + 1);
+    }
+  }, [prev, saving, base, state, confirm]);
+
+  // Chạy sau khi hộp đã gỡ: lúc hộp còn mở thì phần trang phía sau bị khoá, không nhận con trỏ
+  useEffect(() => {
+    if (focusSave > 0) saveButton.current?.focus();
+  }, [focusSave]);
 
   // Trường đang chọn bị xoá thì bỏ chọn
   useEffect(() => {
@@ -205,8 +400,13 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
     try {
       const result = await saveForm(db.projectId, toSaveRequest(state));
       if (!result.ok) return setErrors(result.errors);
+      saved.current = true;
       // Ghi luôn bản server trả về để trang chủ thấy form ngay, không chờ vòng đồng bộ
       await db.forms.put({ ...result.form, key: formKey(result.form.id, result.form.version) });
+      // Đã lưu thì bỏ bản tự lưu. Xoá lỗi thì để lại: mở lại thấy trùng bản mới nhất nên tự bỏ, không hỏi
+      pendingWrite.current = null;
+      hasDraft.current = false;
+      await deleteBuilderDraft(db, base.formId).catch(warnDraft);
       navigate();
     } catch (err) {
       // Mất mạng, 5xx, 401, không còn thành viên: báo rồi giữ nguyên phần đang sửa để bấm Lưu lại
@@ -241,17 +441,62 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
     setChecked(found.length > 0);
   };
 
+  // Nạp mẫu như Nhập form: thay hẳn phần đang sửa, xoá lỗi cũ (design §4.1 "Mẫu có sẵn")
+  const applyTemplate = (template: FormTemplate) => {
+    setState(fromTemplate(template, formIds));
+    setSelected(null);
+    setErrors([]);
+    setChecked(false);
+  };
+
+  // Builder còn trống thì nạp luôn; đã có gì thì hỏi trước vì phần đang sửa sẽ mất (bất biến 1)
+  const pickTemplate = () => {
+    const template = FORM_TEMPLATES[Number(templateIndex)];
+    if (templateIndex === '' || !template) return;
+    if (needsDraft(state, emptyBuilder())) setReplaceWith(template);
+    else applyTemplate(template);
+  };
+
   const idBad = checked && formIdInvalid(state, formIds);
 
   const previewForm: FormSchema = { ...toSaveRequest(state), version: (prev?.version ?? 0) + 1 };
 
   return (
     <section className="form builder">
-      {/* Thoát không lưu, giống trang điền phiếu: phần chưa bấm Lưu bản mới không được giữ */}
+      {/* Rời trang chưa bấm Lưu bản mới: phần đang sửa nằm trong bản tự lưu, mở lại thì hỏi khôi phục (design §4.1) */}
       <a href="#/" className="back">
         ← Quay lại
       </a>
       <h2>{prev ? `Sửa form: ${prev.title}` : 'Biểu mẫu mới'}</h2>
+      {note && (
+        <div className="typing-note" role="status" data-testid="builder-rebased">
+          <span>{note}</span>
+          <div className="acts">
+            <button onClick={() => setNote(null)}>Đóng</button>
+          </div>
+        </div>
+      )}
+      {/* Chỉ ở "Biểu mẫu mới": form đã lưu không thay được bằng mẫu vì mã trường đã khoá (design §4.1) */}
+      {!prev && (
+        <div className="card" data-testid="builder-template">
+          <div className="addrow">
+            <label className="field">
+              <span>Bắt đầu từ mẫu</span>
+              <select value={templateIndex} onChange={(e) => setTemplateIndex(e.target.value)}>
+                <option value="">Chọn mẫu…</option>
+                {FORM_TEMPLATES.map((t, i) => (
+                  <option key={t.title} value={String(i)}>
+                    {t.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button disabled={templateIndex === ''} onClick={pickTemplate}>
+              Dùng mẫu
+            </button>
+          </div>
+        </div>
+      )}
       {/* Ba khối tách rõ: thông tin biểu mẫu, danh sách trường, thuộc tính trường đang chọn (ui.md màn hình 5) */}
       <div className="card">
         <label className="field">
@@ -413,11 +658,22 @@ function Builder({ db, prev, formIds }: { db: ProjectDb; prev?: FormSchema; form
           <Icon name="eye" />
           Xem trước
         </button>
-        <button className="primary" disabled={saving} aria-busy={saving} onClick={save}>
+        <button ref={saveButton} className="primary" disabled={saving} aria-busy={saving} onClick={save}>
           Lưu bản mới
         </button>
         <BusyNote busy={saving} text="Đang lưu…" />
       </div>
+      {replaceWith && (
+        <ConfirmDialog
+          message={`Thay phần đang sửa bằng mẫu "${replaceWith.title}"? Phần đang sửa sẽ mất.`}
+          confirmLabel="Thay"
+          onConfirm={() => {
+            applyTemplate(replaceWith);
+            setReplaceWith(null);
+          }}
+          onCancel={() => setReplaceWith(null)}
+        />
+      )}
       {confirm !== null && (
         <ConfirmDialog
           message={confirm}

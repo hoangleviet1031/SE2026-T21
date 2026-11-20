@@ -2,7 +2,7 @@
 
 React 19 + Vite + Dexie + vite-plugin-pwa. Spec: design §4, §5; ADR 0001; ADR 0002 §4–6.
 
-- **Local-first:** component đọc dữ liệu bằng `useLiveQuery` trên Dexie, ghi qua hàm trong `src/sync/` hoặc `src/db/`. Không `fetch` trong component, trừ màn hình bắt buộc online (Thành viên, Dự án, Xuất, lưu form) và phải hiện thông báo rõ khi offline.
+- **Local-first:** component đọc dữ liệu bằng `useLiveQuery` trên Dexie, ghi qua hàm trong `src/sync/` hoặc `src/db/`. Không `fetch` trong component, trừ màn hình bắt buộc online (Thành viên, Dự án, Xuất, lưu form, Lịch sử sửa ở màn 4) và phải hiện thông báo rõ khi offline.
 - **Ghi phiếu** chỉ qua `saveRecordLocally` (transaction phiếu + outbox). Không `db.records.put` trực tiếp ở UI.
 - **Mạng chỉ đi qua `src/sync/api.ts`** (timeout, token, tiền tố dự án, phân loại `NetworkError`).
 - **Đổi schema Dexie:** thêm `this.version(n+1)`, không sửa version cũ. Chỉ TV2 nâng version (team-plan).
