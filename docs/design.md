@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.89 (2026-11-20)
+- **Phiên bản:** 0.5.90 (2026-11-20)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -122,6 +122,7 @@
 | 0.5.86 | 2026-11-19 | Chọn giao diện Theo máy / Sáng / Tối ở màn hình 8 (Could, ngoài MVP, cắt được, Dương duyệt 2026-11-19; không ticket): §1 dòng Giao diện tối. Lựa chọn là tuỳ chọn hiển thị của máy, lưu `localStorage` (không phải dữ liệu nghiệp vụ), Đăng xuất/Xoá dữ liệu không xoá; trang quản trị theo cùng lựa chọn. Câu chữ ở ui.md màn hình 8. Chỉ client; không đổi API, mã lỗi, schema |
 | 0.5.87 | 2026-11-19 | §5.1 thêm dòng trỏ tới ma trận test chuyển trạng thái phiếu (`client/e2e/record-states.spec.ts`, việc cải thiện 10, không ticket, Dương cho phép 2026-11-19). Chỉ thêm test; không đổi hành vi, API, mã lỗi, schema |
 | 0.5.88 | 2026-11-20 | Đo hai chỉ tiêu §11.2 phía máy ([perf.md](perf.md), `client/e2e/perf/client.spec.ts`): mở app đã cài khi offline tới khi nhập được 310 ms (CPU ×4: 1,1 s), lưu một phiếu 33 ms (CPU ×4: 91 ms), đều đạt; §11.4 QS4 thành đạt; §1 Giả định ghi chỉ tiêu nào đã đo. Không đổi hành vi |
+| 0.5.90 | 2026-11-20 | N28: server có bộ xử lý lỗi cuối (`server/src/errorHandler.ts`): lỗi không lường trước trả `500 internal_error` dạng JSON thay cho trang HTML của Express và ghi một dòng log lỗi (§7.1, §12); thân JSON quá 2 MB trả `413 payload_too_large`, lỗi đọc thân 4xx khác của body-parser (vd. charset lạ) trả `400 invalid_body`. Không thêm mã lỗi mới; client không đổi (vẫn xếp loại theo mã HTTP) |
 | 0.5.89 | 2026-11-20 | §10 thêm mức "Thử đột biến" ([mutation.md](mutation.md), `scripts/mutation.mjs`): 25 đột biến tay ở merge, backoff, phân loại lỗi upload ảnh; lần đầu bắt 17/25, thêm 8 ca unit thì bắt 25/25. Không đổi hành vi |
 
 ## Mục lục
@@ -1060,7 +1061,7 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 
 | HTTP | `error` | Khi nào | Client xử lý |
 |---|---|---|---|
-| 400 | `invalid_body` | Thân request sai kiểu | op `failed` |
+| 400 | `invalid_body` | Thân request sai kiểu, JSON hỏng hoặc không đọc được (vd. charset lạ) | op `failed` |
 | 400 | `missing_idempotency_key` | Thiếu header | lỗi lập trình, op `failed` |
 | 400 | `invalid_form` | Form không qua validate (`details`: danh sách lỗi) | hiện lỗi trong builder |
 | 401 | `unauthorized` | Thiếu hoặc sai token, phiên đã bị huỷ hoặc tài khoản bị khoá | dừng đồng bộ, yêu cầu đăng nhập lại |
@@ -1078,14 +1079,14 @@ Dạng chung: `{ "error": "<mã>", "message"?: "<mô tả cho người phát tri
 | 409 | `self_action` | Admin tự khoá hoặc tự thu hồi phiên của chính mình (`/admin/users/:id/…`) | hiện lỗi ở A3 |
 | 409 | `version_conflict` | `baseVersion` lệch | merge (§5.3) |
 | 409 | `missing_chunks` | `complete` khi còn thiếu chunk (`details`: chỉ số thiếu) | upload phần thiếu |
-| 413 | `payload_too_large` | Chunk hoặc ảnh quá giới hạn | ảnh `failed` |
+| 413 | `payload_too_large` | Chunk hoặc ảnh quá giới hạn; thân JSON quá 2 MB | ảnh `failed`; phiếu: op `failed` |
 | 415 | `unsupported_media_type` | Không phải JPEG/PNG/WebP | ảnh `failed` |
 | 422 | `idempotency_key_reused` | Xem trên | op `failed` (lỗi lập trình) |
 | 422 | `checksum_mismatch` | SHA-256 không khớp | upload lại từ đầu một lần, sau đó `failed` |
 | 429 | `too_many_requests` | Quá giới hạn đăng nhập sai hoặc đăng ký (ADR 0003 §1) | "Thử lại sau ít phút" |
 | 501 | `not_implemented` | Route chưa làm | – |
 | 500 / 400 | `injected_fault` | Lỗi do route tiêm lỗi tạo ra (§10.1), chỉ khi `ENABLE_TEST_ROUTES=1` | như mã HTTP tương ứng |
-| 5xx | `internal_error` | Lỗi server | retry theo backoff |
+| 5xx | `internal_error` | Lỗi server không lường trước: bộ xử lý lỗi cuối ở `app.ts` trả `500`, kèm một dòng log lỗi (§12) | retry theo backoff |
 
 ## 8. Xử lý lỗi
 
@@ -1368,7 +1369,7 @@ Người dùng thường tự tạo tài khoản trên app; CLI để tạo admi
 | ~~`user:rotate-token`~~ | Đã bỏ (không còn token theo người dùng) |
 
 - **Triển khai lại:** tự động khi `main` có commit CI xanh (timer `survey-autodeploy` trên máy staging, §10.2); deploy tay bằng `deploy.sh` vẫn dùng được. Dừng timer trước khi merge PR có migration kèm điều kiện dừng ([deploy.md](deploy.md) "Tạm dừng, gỡ").
-- **Log và theo dõi:** server ghi ra stdout, systemd giữ trong `journalctl -u survey-api`; middleware trong `app.ts` ghi mỗi request một dòng JSON gồm method, path không có query string, status, `durationMs` và `userId` (hoặc `null` nếu chưa xác thực). Không ghi token hay thân request. Có `GET /api/health` cho `deploy.sh` và kiểm tra sau deploy; chưa có hệ thống tổng hợp số liệu lỗi sau deploy.
+- **Log và theo dõi:** server ghi ra stdout, systemd giữ trong `journalctl -u survey-api`; middleware trong `app.ts` ghi mỗi request một dòng JSON gồm method, path không có query string, status, `durationMs` và `userId` (hoặc `null` nếu chưa xác thực). Không ghi token hay thân request. Lỗi không lường trước (`500 internal_error`, §7.1) ghi thêm một dòng JSON ra stderr: `level: "error"`, method, path, `message` và `stack` của lỗi, cũng không có header hay thân request. Có `GET /api/health` cho `deploy.sh` và kiểm tra sau deploy; chưa có hệ thống tổng hợp số liệu lỗi sau deploy.
 - **Sao lưu:** mỗi ngày `scripts/backup-daily.mjs` (systemd timer) tạo `backup/daily/<ngày giờ>/` gồm `survey.db` và `uploads/`; giữ 7 bản. CSDL chép trước bằng `VACUUM INTO`, ảnh đã ghép chép sau (bỏ chunk `.part`): server ghi file ảnh trước khi ghi dòng `attachments`, nên thứ tự này bảo đảm mọi ảnh bản sao CSDL nhắc tới đều có trong bản sao. Script kiểm từng ảnh đúng cỡ và SHA-256; không qua thì không tạo bản, bản cũ giữ nguyên. `deploy.sh` vẫn sao lưu riêng CSDL trước mỗi lần khởi động lại. Bản sao lưu nằm cùng ổ đĩa, bản ngoài máy là bản kéo tay hằng tuần ([tech-debt.md](tech-debt.md) N9). Cài và khôi phục: [deploy.md](deploy.md) "Sao lưu và khôi phục".
 - **Migration CSDL server:** đánh số trong `db.ts` (`PRAGMA user_version`), chỉ thêm cột/bảng, không sửa câu lệnh cũ. Ngoại lệ đã được nhóm chấp nhận: migration 2 (tạo lại bảng dữ liệu, ADR 0002) và migration 4 (tạo lại `memberships` có chép dữ liệu, ADR 0003 §5).
 - **Trang quản trị** `/admin/` được build cùng `client/dist` (`dist/admin/index.html`); Caddy phục vụ như file tĩnh qua khối `handle /admin/*` riêng (không `try_files`) cùng `redir /admin /admin/ 308`, đặt trước khối PWA: kiểm trên staging (Caddy 2.11.7) cho thấy `try_files {path} /index.html` đưa cả `/admin/` về `/index.html` của PWA dù `admin/index.html` có sẵn. Caddyfile ở [deploy.md](deploy.md) §7. Sau mỗi lần deploy kiểm theo [deploy.md](deploy.md) "Kiểm tra sau khi triển khai".
