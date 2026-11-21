@@ -75,6 +75,22 @@ export function restorePlan(
   return { kind: 'restore', data: merged, kept: conflicts.map((c) => ({ field: c.field, typed: c.local })) };
 }
 
+/**
+ * Bấm Lưu khi form đang mở mà phiếu đã bị đổi ở nền (đồng bộ tải bản máy khác về, 409 tự gộp): lưu nguyên
+ * chữ trên form sẽ ghi đè phần nơi khác vừa sửa (tech-debt N34). Gộp theo trường như `restorePlan`, gốc là
+ * bản đã nạp vào form. `kept` khác rỗng thì không được lưu: trường cả hai cùng sửa giữ bản mới, người dùng
+ * xem lại rồi bấm Lưu lần nữa (bất biến 1, không tự chọn hộ).
+ */
+export function mergeOnSave(
+  loaded: RecordData,
+  typed: RecordData,
+  current: RecordData,
+): { data: RecordData; kept: KeptField[] } {
+  if (sameData(loaded, current)) return { data: typed, kept: [] };
+  const { merged, conflicts } = threeWayMerge(withoutEmpty(loaded), withoutEmpty(typed), withoutEmpty(current));
+  return { data: merged, kept: conflicts.map((c) => ({ field: c.field, typed: c.local })) };
+}
+
 /** Một dòng báo trường giữ bản mới (ui.md màn hình 4) */
 export function keptFieldLine(form: FormSchema, kept: KeptField): string {
   const field = form.fields.find((f) => f.id === kept.field);

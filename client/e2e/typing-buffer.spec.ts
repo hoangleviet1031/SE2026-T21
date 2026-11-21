@@ -159,6 +159,62 @@ test('phiếu bị sửa ở máy khác trong lúc gõ: trường chỉ mình s�
   expect(await opsOf(page, id)).toHaveLength(0);
 });
 
+// Tech-debt N34: form đang mở mà vòng đồng bộ đổi phiếu ở nền, bấm Lưu thì gộp theo trường, không ghi đè.
+
+test('N34: form đang mở, máy khác sửa trường khác và kéo về: Lưu giữ cả hai phần', async ({ page, request }) => {
+  await login(page);
+  const id = await createSynced(page, 'Hộ N34 gộp');
+  await recordRow(page, 'Hộ N34 gộp').getByTestId('record-title').click();
+  await membersInput(page).fill('5');
+
+  await serverPut(request, id, 1, { householdName: 'Hộ N34 gộp', members: 3, waterSource: 'Giếng' });
+  await page.getByRole('button', { name: 'Đồng bộ' }).click();
+  await expect.poll(async () => (await localRecord(page, id))?.data.waterSource).toBe('Giếng');
+
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await expect(recordRow(page, 'Hộ N34 gộp').getByTestId('sync-state')).toHaveText('Đã đồng bộ', { timeout: 15_000 });
+  const pulled = await (await request.get(`${API}/records?since=0`, { headers: authHeaders(TOKENS.minh) })).json();
+  const saved = pulled.records.find((r: { id: string }) => r.id === id);
+  expect(saved.version).toBe(3);
+  expect(saved.data).toMatchObject({ householdName: 'Hộ N34 gộp', members: 5, waterSource: 'Giếng' });
+});
+
+test('N34: form đang mở, máy khác sửa cùng trường: Lưu chưa lưu, giữ bản mới và báo; Lưu lần nữa thì lên', async ({
+  page,
+  request,
+}) => {
+  await login(page);
+  const id = await createSynced(page, 'Hộ N34 cùng sửa');
+  await recordRow(page, 'Hộ N34 cùng sửa').getByTestId('record-title').click();
+  await membersInput(page).fill('9');
+
+  await serverPut(request, id, 1, { householdName: 'Hộ N34 cùng sửa', members: 7, waterSource: 'Giếng' });
+  await page.getByRole('button', { name: 'Đồng bộ' }).click();
+  await expect.poll(async () => (await localRecord(page, id))?.data.members).toBe(7);
+
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  const kept = page.getByTestId('typing-kept');
+  await expect(kept).toContainText(
+    'Chưa lưu. Phiếu vừa được sửa ở nơi khác, trường sau giữ bản mới. Nhập lại nếu cần rồi bấm Lưu:',
+  );
+  await expect(kept.getByRole('listitem')).toHaveText(['Số thành viên: bạn đã nhập "9"']);
+  await expect(membersInput(page)).toHaveValue('7');
+  await expect(page.locator('select[name=waterSource]')).toHaveValue('Giếng');
+  expect(await opsOf(page, id)).toHaveLength(0);
+  expect((await serverVersion(request, id))?.version).toBe(2);
+
+  // Người dùng chọn giữ số của mình: nhập lại rồi Lưu
+  await membersInput(page).fill('9');
+  await page.getByRole('button', { name: 'Lưu' }).click();
+  await expect(recordRow(page, 'Hộ N34 cùng sửa').getByTestId('sync-state')).toHaveText('Đã đồng bộ', {
+    timeout: 15_000,
+  });
+  const pulled = await (await request.get(`${API}/records?since=0`, { headers: authHeaders(TOKENS.minh) })).json();
+  const saved = pulled.records.find((r: { id: string }) => r.id === id);
+  expect(saved.version).toBe(3);
+  expect(saved.data).toMatchObject({ householdName: 'Hộ N34 cùng sửa', members: 9, waterSource: 'Giếng' });
+});
+
 test('phiếu đang xung đột (chỉ đọc) không ghi bộ đệm', async ({ page, context, request }) => {
   await login(page);
   const id = await createSynced(page, 'Hộ xung đột dở');

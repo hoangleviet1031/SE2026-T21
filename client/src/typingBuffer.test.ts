@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FormSchema } from '@field-survey/shared';
-import { keptFieldLine, needsBuffer, restorePlan, unsavedNewRecords, type TypingBuffer } from './typingBuffer';
+import { keptFieldLine, mergeOnSave, needsBuffer, restorePlan, unsavedNewRecords, type TypingBuffer } from './typingBuffer';
 
 const buffer = (data: TypingBuffer['data'], base: TypingBuffer['base'] = {}): TypingBuffer => ({
   formId: 'household-survey',
@@ -73,6 +73,38 @@ describe('restorePlan', () => {
       deleted: false,
     });
     expect(plan).toEqual({ kind: 'restore', data: { name: 'Bình', members: 4 }, kept: [{ field: 'name', typed: 'An' }] });
+  });
+});
+
+describe('mergeOnSave', () => {
+  it('phiếu không đổi từ lúc nạp: lưu nguyên chữ trên form, kể cả ô vừa xoá trống', () => {
+    const loaded = { householdName: 'A', members: 3 };
+    expect(mergeOnSave(loaded, { householdName: '', members: 4 }, { members: 3, householdName: 'A' })).toEqual({
+      data: { householdName: '', members: 4 },
+      kept: [],
+    });
+  });
+
+  it('nơi khác sửa trường khác: gộp, giữ cả hai phần', () => {
+    const r = mergeOnSave({ householdName: 'A', members: 3 }, { householdName: 'A', members: 5 }, { householdName: 'A', members: 3, waterSource: 'Giếng' });
+    expect(r).toEqual({ data: { householdName: 'A', members: 5, waterSource: 'Giếng' }, kept: [] });
+  });
+
+  it('chưa gõ gì mà phiếu đổi ở nền: lấy bản mới, không ghi đè bằng bản cũ', () => {
+    const r = mergeOnSave({ householdName: 'A' }, { householdName: 'A' }, { householdName: 'B' });
+    expect(r).toEqual({ data: { householdName: 'B' }, kept: [] });
+  });
+
+  it('cả hai cùng sửa một trường: giữ bản mới, trả chữ đã gõ để báo', () => {
+    const r = mergeOnSave({ householdName: 'A', members: 3 }, { householdName: 'A', members: 9 }, { householdName: 'A', members: 7 });
+    expect(r.data).toEqual({ householdName: 'A', members: 7 });
+    expect(r.kept).toEqual([{ field: 'members', typed: 9 }]);
+  });
+
+  it('xoá trống trường mà nơi khác sửa trường đó: giữ bản mới, báo đã để trống', () => {
+    const r = mergeOnSave({ householdName: 'A' }, { householdName: '' }, { householdName: 'B' });
+    expect(r.data).toEqual({ householdName: 'B' });
+    expect(r.kept).toEqual([{ field: 'householdName', typed: undefined }]);
   });
 });
 

@@ -19,13 +19,17 @@ import { navigate, navigateReplace } from '../useHashRoute';
 import { useOnline } from '../useOnline';
 import { formatEditedAt } from '../recordList';
 import { recordLock } from '../recordLock';
-import { keptFieldLine, needsBuffer, restorePlan, withoutEmpty, type RestorePlan } from '../typingBuffer';
+import { keptFieldLine, mergeOnSave, needsBuffer, restorePlan, withoutEmpty, type RestorePlan } from '../typingBuffer';
 import { deleteTypingBuffer, getTypingBuffer, putTypingBuffer, setTypingFlush } from '../db/typingBuffer';
 import { canCopyRecord, copyBuffer } from '../recordCopy';
 import { fieldSuggestions, type SuggestionSource } from '../fieldSuggestions';
 
 /** Dải bộ đệm đang nhập (ui.md màn hình 4): đang hỏi khôi phục, phiếu đã bị xoá, hay báo trường giữ bản mới */
-type TypingPrompt = { kind: 'ask'; savedAt: string } | { kind: 'gone' } | { kind: 'kept'; lines: string[] };
+/** `kept.onSave`: dải hiện vì bấm Lưu mà phiếu vừa đổi ở nền (chưa lưu); không có thì sau [Khôi phục]. */
+type TypingPrompt =
+  | { kind: 'ask'; savedAt: string }
+  | { kind: 'gone' }
+  | { kind: 'kept'; lines: string[]; onSave?: boolean };
 
 export function FillPage({ formId, recordId }: { formId: string; recordId?: string }) {
   const db = useCurrentProjectDb();
@@ -244,12 +248,27 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
   };
 
   const save = async () => {
+    // Phiếu có thể đã đổi ở nền từ lúc nạp vào form (pull, 409 tự gộp): gộp theo trường thay vì ghi đè
+    // (tech-debt N34, design §4.1). Đọc và lưu là hai bước, nhưng vòng đồng bộ chen vào giữa chỉ trong vài
+    // mili giây; phiếu đang xung đột hay đã xoá thì `saveRecordLocally` vẫn chặn như cũ.
+    const current = base === null ? undefined : await db.records.get(id);
+    const plan = current && base !== null ? mergeOnSave(base, data, current.data) : { data, kept: [] };
+    if (current && plan.kept.length > 0) {
+      setBase(current.data);
+      setData(plan.data);
+      setTypingPrompt({ kind: 'kept', lines: plan.kept.map((k) => keptFieldLine(form, k)), onSave: true });
+      return;
+    }
+    const toSave = plan.data;
     const errors = await unlessLocked(() =>
-      saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data }),
+      saveRecordLocally(db, { id, formId: form.id, formVersion: form.version, data: toSave }),
     );
     if (!errors) return;
     await dropBuffer();
-    setBase(data);
+    setData(toSave);
+    setBase(toSave);
+    // Đã lưu: dải "Chưa lưu…" không còn đúng (phiếu nháp ở lại trang)
+    if (typingPrompt?.kind === 'kept') setTypingPrompt(null);
     // Phiếu đã nằm trên máy (kể cả nháp); xin giữ bộ nhớ không chặn việc lưu hay chuyển trang
     requestPersistentStorage().catch((e) => console.warn('không xin được bộ nhớ lâu dài', e));
     // Còn lỗi thì ở lại để người dùng thấy trường nào cần sửa; phiếu đã lưu thành nháp
@@ -372,7 +391,11 @@ export function FillPage({ formId, recordId }: { formId: string; recordId?: stri
       )}
       {typingPrompt?.kind === 'kept' && (
         <div className="typing-note" role="status" data-testid="typing-kept">
-          <span>Đã khôi phục. Trường sau đã được sửa ở nơi khác nên giữ bản mới, nhập lại nếu cần:</span>
+          <span>
+            {typingPrompt.onSave
+              ? 'Chưa lưu. Phiếu vừa được sửa ở nơi khác, trường sau giữ bản mới. Nhập lại nếu cần rồi bấm Lưu:'
+              : 'Đã khôi phục. Trường sau đã được sửa ở nơi khác nên giữ bản mới, nhập lại nếu cần:'}
+          </span>
           <ul>
             {typingPrompt.lines.map((line) => (
               <li key={line}>{line}</li>
