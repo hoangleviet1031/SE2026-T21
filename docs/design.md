@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.91 (2026-11-21)
+- **Phiên bản:** 0.5.92 (2026-11-21)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -125,6 +125,7 @@
 | 0.5.90 | 2026-11-20 | N28: server có bộ xử lý lỗi cuối (`server/src/errorHandler.ts`): lỗi không lường trước trả `500 internal_error` dạng JSON thay cho trang HTML của Express và ghi một dòng log lỗi (§7.1, §12); thân JSON quá 2 MB trả `413 payload_too_large`, lỗi đọc thân 4xx khác của body-parser (vd. charset lạ) trả `400 invalid_body`. Không thêm mã lỗi mới; client không đổi (vẫn xếp loại theo mã HTTP) |
 | 0.5.89 | 2026-11-20 | §10 thêm mức "Thử đột biến" ([mutation.md](mutation.md), `scripts/mutation.mjs`): 25 đột biến tay ở merge, backoff, phân loại lỗi upload ảnh; lần đầu bắt 17/25, thêm 8 ca unit thì bắt 25/25. Không đổi hành vi |
 | 0.5.91 | 2026-11-21 | Sửa lỗi phiếu nháp còn op hợp lệ cũ chờ gửi (phiếu Chờ đồng bộ hay Lỗi sửa thành chưa hợp lệ; không ticket, Dương cho phép 2026-11-21, chọn phương án gộp vào nháp): op cũ gặp `409` thì trước đây bản gộp từ dữ liệu **nháp** được gửi lên server (server không validate), nay gộp vào nháp trên máy, bỏ op cũ, phiếu vẫn `draft`, không gửi; còn trường xung đột thì `conflict`, giải xong mà chưa hợp lệ thì về `draft` không op. Op cũ gặp `4xx` thì op `failed` nhưng phiếu vẫn `draft` (trước đây thành `error`, "Thử lại" đưa về `synced` rồi pull có thể ghi đè nháp). §5.1 sơ đồ thêm `pending → draft`, `error → draft`, `draft → draft` (409 tự gộp), `draft → conflict`, `conflict → draft`; §5.3 bước Push. Ca E2E ở `draft.spec.ts` |
+| 0.5.92 | 2026-11-21 | Tech-debt N34 (không ticket, Dương cho phép 2026-11-21, duyệt câu chữ): §4.1 "Bộ đệm đang nhập" thêm mục bấm Lưu khi phiếu đã đổi ở nền từ lúc nạp vào form (pull bản máy khác, 409 tự gộp): gộp theo trường với gốc là bản đã nạp thay vì ghi đè; trường cả hai cùng sửa thì chưa lưu, form giữ bản mới và báo chữ đã gõ, người dùng bấm Lưu lần nữa (bất biến 1, ADR 0001 quy tắc 5) |
 
 ## Mục lục
 
@@ -463,6 +464,7 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
   - Chỉ ghi khi chữ khác bản đã nạp vào form; ô rỗng (`''`, `[]`, `null`, thiếu) coi như nhau, xoá một giá trị cũ vẫn là thay đổi. Phiếu đang `conflict` (chỉ đọc) không ghi thêm; phần đã gõ trước lúc phiếu thành chỉ đọc (đồng bộ chạy nền) vẫn được ghi khi ẩn hay rời trang.
   - Mở lại phiếu có bộ đệm thì hỏi [Khôi phục] / [Bỏ], form khoá tới khi chọn; không tự điền. Bộ đệm trùng phiếu (máy tắt giữa lúc Lưu và lúc xoá bộ đệm) thì bỏ, không hỏi. Phiếu đã bị xoá thì chỉ có [Bỏ], bấm xong trang báo đã xoá và form vẫn khoá (§5.7).
   - Phiếu bị đổi trong lúc chưa Lưu (pull bản của máy khác): [Khôi phục] gộp theo trường bằng `threeWayMerge` với gốc là bản đã nạp lúc gõ (ADR 0001 quy tắc 5). Trường cả hai cùng sửa giữ bản mới và hiện chữ đã gõ để người dùng nhập lại nếu cần, không tự chọn hộ (bất biến 1).
+  - Bấm Lưu khi form đang mở mà phiếu đã bị đổi ở nền từ lúc nạp (vòng đồng bộ kéo bản máy khác về, 409 tự gộp; tech-debt N34): gộp theo trường như trên, gốc là bản đã nạp vào form, không ghi đè cả phiếu. Không có trường cả hai cùng sửa thì lưu bản gộp như thường. Có thì **chưa lưu**: form nhận bản gộp (trường đó giữ bản mới) và hiện dải báo chữ đã gõ; người dùng nhập lại nếu cần rồi bấm Lưu lần nữa (`client/src/typingBuffer.ts` `mergeOnSave`).
   - Phiếu mới chưa Lưu lần nào không có trong danh sách: trang chủ có dải dẫn về (§4.8), để app bị tắt rồi mở lại vẫn tìm được.
   - Lưu (cả nháp) hay Xoá phiếu thì xoá bộ đệm; "← Quay lại" giữ. Ảnh đã chọn nằm sẵn trong `attachments` (§5.6) nên bộ đệm chỉ giữ id ảnh. Bấm [Tải lại] ở dải cập nhật (§4.3) thì ghi nốt bộ đệm rồi mới tải lại.
 - **Nhân bản phiếu** (Could, Dương duyệt 2026-11-04, cắt được; `client/src/recordCopy.ts`): nút "Nhân bản phiếu" ở màn hình 4 tạo một phiếu mới chưa Lưu, điền sẵn giá trị đang hiện trên form (ui.md màn hình 4).

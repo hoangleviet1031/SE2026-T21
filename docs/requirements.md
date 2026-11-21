@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.35 (2026-11-21)
+- **Phiên bản:** 0.36 (2026-11-21)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -193,6 +193,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Còn dữ liệu chưa gửi → Đăng xuất bị khoá/bị chặn, không xoá gì | `settings.spec.ts` (Đăng xuất bị khoá, đồng bộ xong tự mở; nút khoá đọc kèm lý do; đang hỏi Đăng xuất mà tab khác lưu phiếu thì báo ⚠, không xoá CSDL và cache; bị chặn thì cache `me`/`forms` còn nguyên) | TV1-07 (#20, #28); TV1-12 (sau audit UI); không ticket (#102) |
 | US-01 | Có bản mới khi đang nhập → hỏi trước khi tải lại | `update.spec.ts` | TV1-07 (#27); câu hỏi đổi khi có bộ đệm (#114) |
 | US-01 | Chữ đang gõ được giữ, mở lại hỏi khôi phục, không tạo op; gộp theo trường khi phiếu bị đổi (Could) | `typing-buffer.spec.ts`; unit `needsBuffer`, `restorePlan`, `keptFieldLine` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p1 (#114) |
+| US-01 | Form đang mở mà phiếu đổi ở nền: Lưu gộp theo trường, không ghi đè phần nơi khác sửa; trường cả hai cùng sửa thì chưa lưu, giữ bản mới và báo chữ đã gõ (tech-debt N34) | `typing-buffer.spec.ts` (hai ca "N34"); unit `mergeOnSave` (`client/src/typingBuffer.test.ts`) | không ticket (#PR) |
 | US-01 | Phiếu mới gõ dở có dải ở trang chủ dẫn về; phiếu đã có không lên dải (Could) | `typing-buffer.spec.ts` (ca "mở lại app vào trang chủ", "không lên dải"); unit `unsavedNewRecords` (`client/src/typingBuffer.test.ts`) | không ticket, tự lưu p2 (#115) |
 | US-01 | Nhân bản phiếu: bản sao chưa Lưu không có phiếu và op, không chép ảnh, vị trí, trường ẩn; ẩn nút theo trạng thái và vai trò (Could) | `record-copy.spec.ts`; unit `copyableData`, `copyBuffer`, `canCopyRecord` (`client/src/recordCopy.test.ts`) | không ticket (#126) |
 | US-01 | Dữ liệu trên máy ở Cài đặt: đếm biểu mẫu (mã form khác nhau) và thay đổi chờ gửi, đồng bộ xong tự về 0 (Could) | `settings.spec.ts` (ca "Dữ liệu trên máy…"); unit `deviceStatus` (`client/src/deviceStatus.test.ts`) | không ticket (#130) |
@@ -311,3 +312,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.33 | 2026-11-18 | US-07 dòng truy vết "Tạo form 7 loại trường" thêm ca route "Biểu mẫu mới" `#/builder` và form mã `new` (tech-debt N26, sửa lỗi, không ticket) |
 | 0.34 | 2026-11-19 | US-02, US-04 thêm dòng truy vết chuyển trạng thái phiếu theo design §5.1 (`record-states.spec.ts`, việc cải thiện 10) |
 | 0.35 | 2026-11-21 | US-02 thêm dòng truy vết phiếu nháp còn op cũ gặp 409 / 4xx (design 0.5.91 §5.1) |
+| 0.36 | 2026-11-21 | US-01 thêm dòng truy vết Lưu khi phiếu đổi ở nền lúc form đang mở (tech-debt N34, design 0.5.92) |

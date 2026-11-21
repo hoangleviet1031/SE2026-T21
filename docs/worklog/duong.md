@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-21 | — | fix | Tech-debt N34: màn 4 bấm Lưu khi phiếu đã đổi ở nền từ lúc mở form thì gộp theo trường (`mergeOnSave`), trường cả hai cùng sửa thì chưa lưu, giữ bản mới, dải `typing-kept` "Chưa lưu. …"; 2 ca E2E `typing-buffer.spec.ts` (đỏ trước khi sửa), 5 unit; design 0.5.92 §4.1, ui.md 0.2.62, requirements 0.36, N34 Đã trả | (#PR) | chờ review |
+| 2026-11-21 | — | fix | PR #156 đã merge | PR #156 | xong |
 | 2026-11-21 | — | fix | Phiếu nháp còn op hợp lệ cũ (Chờ đồng bộ sửa thành chưa hợp lệ) gặp 409 thì dữ liệu nháp bị gửi lên server, gặp 4xx thì thành Lỗi rồi có thể mất nháp: `engine.ts` gộp vào nháp trên máy, giữ `draft`, giải xung đột chưa hợp lệ về `draft`; 3 ca E2E `draft.spec.ts` (đỏ trước khi sửa); design 0.5.91 §5.1, §5.3; requirements 0.35; tech-debt N34 (form đang mở ghi đè bản gộp nền) | PR #156 | chờ review |
 | 2026-11-20 | — | docs | Việc cải thiện 6 (phần giả lập): `test-report.md` 0.3.1 §7 ghi kết quả thử O2 trên staging qua HTTPS bằng Playwright (10 phiếu offline có ảnh, GPS, đồng bộ đủ, không trùng); `tech-debt.md` thêm N33 danh sách 2.000 phiếu vượt 1 s ở CPU ×4 | PR #154 | chờ review |
 | 2026-11-20 | — | test | PR #153 đã merge | PR #153 | xong |
