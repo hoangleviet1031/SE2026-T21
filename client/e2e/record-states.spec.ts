@@ -23,12 +23,15 @@ import { API, TOKENS, authHeaders, login, readStore } from './helpers';
 // | synced → synced            | pull nhận bản mới hơn                    | ★ "Đã đồng bộ nhận bản mới khi pull…"                       |
 // | conflict → pending         | người dùng chọn xong                     | conflict.spec ca đầu; delete-conflict.spec C4, C5           |
 // | error → pending            | bấm Thử lại / sửa phiếu                  | errors.spec "R5…", "sửa phiếu đang Lỗi…"                    |
-// | error → draft              | sửa thành chưa hợp lệ (code có, sơ đồ chưa vẽ) | draft.spec "phiếu Lỗi sửa thành nháp giữ op failed…" |
+// | error → draft              | sửa thành chưa hợp lệ                    | draft.spec "phiếu Lỗi sửa thành nháp giữ op failed…"        |
+// | pending → draft            | sửa thành chưa hợp lệ (op cũ giữ)        | draft.spec "phiếu nháp còn op cũ…" (helper pendingThenDraft) |
+// | draft → draft              | op cũ gặp 409 tự gộp, hoặc 4xx           | draft.spec "…gặp 409 tự gộp…", "…op cũ bị 400…"             |
+// | draft → conflict → draft   | 409 có trường xung đột, giữ giá trị nháp | draft.spec "phiếu nháp gặp 409 có trường xung đột…"         |
 //
 // Đường bị cấm (không được xảy ra):
 // | Đường cấm                                   | Vì sao                               | Test                                               |
 // |---------------------------------------------|--------------------------------------|----------------------------------------------------|
-// | draft gửi lên server / có op                | dữ liệu chưa qua validate            | draft.spec "O5…"; ★ ca synced → draft              |
+// | draft gửi lên server / có op                | dữ liệu chưa qua validate            | draft.spec "O5…"; ★ ca synced → draft; draft.spec ba ca "phiếu nháp … op cũ / 409" |
 // | conflict sửa, xoá được / sinh op            | ADR 0001 quy tắc 7                   | conflict.spec "C7…"; delete.spec "phiếu đang xung đột không xoá được…" |
 // | pull ghi đè draft                           | ADR 0001 quy tắc 8                   | conflict.spec "pull không ghi đè phiếu nháp…"      |
 // | pull ghi đè pending (còn op chưa gửi)       | ADR 0001 quy tắc 8, bất biến 1       | ★ "pull không ghi đè phiếu Chờ đồng bộ…"           |

@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.90 (2026-11-20)
+- **Phiên bản:** 0.5.91 (2026-11-21)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -124,6 +124,7 @@
 | 0.5.88 | 2026-11-20 | Đo hai chỉ tiêu §11.2 phía máy ([perf.md](perf.md), `client/e2e/perf/client.spec.ts`): mở app đã cài khi offline tới khi nhập được 310 ms (CPU ×4: 1,1 s), lưu một phiếu 33 ms (CPU ×4: 91 ms), đều đạt; §11.4 QS4 thành đạt; §1 Giả định ghi chỉ tiêu nào đã đo. Không đổi hành vi |
 | 0.5.90 | 2026-11-20 | N28: server có bộ xử lý lỗi cuối (`server/src/errorHandler.ts`): lỗi không lường trước trả `500 internal_error` dạng JSON thay cho trang HTML của Express và ghi một dòng log lỗi (§7.1, §12); thân JSON quá 2 MB trả `413 payload_too_large`, lỗi đọc thân 4xx khác của body-parser (vd. charset lạ) trả `400 invalid_body`. Không thêm mã lỗi mới; client không đổi (vẫn xếp loại theo mã HTTP) |
 | 0.5.89 | 2026-11-20 | §10 thêm mức "Thử đột biến" ([mutation.md](mutation.md), `scripts/mutation.mjs`): 25 đột biến tay ở merge, backoff, phân loại lỗi upload ảnh; lần đầu bắt 17/25, thêm 8 ca unit thì bắt 25/25. Không đổi hành vi |
+| 0.5.91 | 2026-11-21 | Sửa lỗi phiếu nháp còn op hợp lệ cũ chờ gửi (phiếu Chờ đồng bộ hay Lỗi sửa thành chưa hợp lệ; không ticket, Dương cho phép 2026-11-21, chọn phương án gộp vào nháp): op cũ gặp `409` thì trước đây bản gộp từ dữ liệu **nháp** được gửi lên server (server không validate), nay gộp vào nháp trên máy, bỏ op cũ, phiếu vẫn `draft`, không gửi; còn trường xung đột thì `conflict`, giải xong mà chưa hợp lệ thì về `draft` không op. Op cũ gặp `4xx` thì op `failed` nhưng phiếu vẫn `draft` (trước đây thành `error`, "Thử lại" đưa về `synced` rồi pull có thể ghi đè nháp). §5.1 sơ đồ thêm `pending → draft`, `error → draft`, `draft → draft` (409 tự gộp), `draft → conflict`, `conflict → draft`; §5.3 bước Push. Ca E2E ở `draft.spec.ts` |
 
 ## Mục lục
 
@@ -669,20 +670,26 @@ stateDiagram-v2
   [*] --> pending: lưu, hợp lệ
   draft --> draft: sửa, vẫn chưa hợp lệ
   draft --> pending: sửa thành hợp lệ (tạo op)
+  draft --> draft: op cũ gặp 409 tự gộp, hoặc 4xx
+  draft --> conflict: op cũ gặp 409 có trường xung đột
   pending --> synced: push 200/201, không còn op
   pending --> pending: lỗi mạng / 5xx (backoff)
   pending --> pending: người dùng sửa tiếp
   pending --> pending: 409, tự gộp được
   pending --> conflict: 409, có trường xung đột hoặc xoá vs sửa
   pending --> error: 4xx khác (dữ liệu sai)
+  pending --> draft: người dùng sửa, chưa hợp lệ
   synced --> pending: người dùng sửa, hợp lệ
   synced --> draft: người dùng sửa, chưa hợp lệ
   synced --> synced: pull nhận bản mới hơn
   conflict --> pending: người dùng chọn xong
+  conflict --> draft: chọn xong, kết quả chưa hợp lệ
   error --> pending: người dùng bấm "Thử lại" hoặc sửa phiếu
+  error --> draft: người dùng sửa, chưa hợp lệ
 ```
 
 - `conflict`: phiếu chỉ đọc cho tới khi giải quyết (§4.5).
+- `draft` còn op cũ: phiếu `pending` hay `error` sửa thành chưa hợp lệ thì op hợp lệ cũ vẫn giữ (§4.1), nên vẫn có thể được gửi. Dữ liệu nháp không bao giờ lên server: op cũ gặp `409` thì bản gộp (base, nháp, server) ở lại máy, op cũ bị bỏ (nội dung đã nằm trong nháp), phiếu vẫn `draft` với base là bản server; có trường cả hai cùng sửa thì `conflict` như thường, giải xong mà chưa hợp lệ thì về `draft`, không tạo op. Op cũ gặp `4xx` khác thì op `failed`, phiếu vẫn `draft` (không thành `error`); sửa đủ thì op `failed` được thay như ở `error`.
 - `error`: op ở trạng thái `failed` (lần bị `4xx` tính là một lần gửi, `attempts + 1`). Sửa phiếu thì op `failed` bị bỏ và dữ liệu mới đi trong một op mới với `opId` mới, không dùng lại key cho dữ liệu khác (CLAUDE.md bất biến 3; an toàn vì server không lưu key cho response lỗi). Bấm "Thử lại" thì gửi lại đúng op đó (cùng `opId`, cùng dữ liệu, giữ `attempts`).
 - Nhãn hiển thị tách khỏi `syncState`: phiếu `synced` nhưng còn ảnh chưa lên hiện "Đang tải ảnh (n)" (§5.6).
 - Bộ đệm đang nhập (§4.1) không phải một trạng thái: phiếu giữ nguyên `syncState` cho tới khi người dùng bấm Lưu.
@@ -719,6 +726,7 @@ Không còn trạng thái `blocked` (TV2-10): phiếu đang `conflict` không s�
    - `409`: gộp mọi op của phiếu, three-way merge (base = `baseData`, local = `data` mới nhất, remote = bản server). Không xung đột thì thay bằng một op mới chứa bản gộp, cập nhật base và **gửi lại ngay trong cùng vòng** (tối đa 3 lần 409 liên tiếp cho một phiếu, quá thì để vòng sau); có xung đột thì lưu `conflicts`, phiếu thành `conflict`. Sau khi người dùng giải quyết, base là bản server họ đã thấy, nên 409 lặp lại đi đúng quy tắc 5 (ADR 0001 quy tắc 7).
    - Lỗi mạng, timeout 10s, `5xx`, `408`, `429`: `attempts++`, `nextAttemptAt = now + nextRetryDelay(attempts)`.
    - `4xx` khác: op `failed`, phiếu `error`, hiển thị lỗi cho người dùng.
+   - Phiếu đang `draft` (op là bản hợp lệ cũ): `200/201` và `4xx` giữ `draft`; `409` gộp vào nháp trên máy, không gửi (§5.1).
 3. **Upload ảnh** (§5.6).
    - `403 not_member`: dừng dự án đó, đánh dấu `removed` (ADR 0002 §6).
 4. **Pull:** `GET .../records?since=<cursor>` theo trang tới khi `hasMore = false` (§7); nếu `scope` trong response khác `scope` đã lưu thì đặt cursor về 0 trước; phiếu không có op chờ, không `draft` và không `conflict` thì ghi đè bằng bản server; lưu cursor mới.
