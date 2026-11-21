@@ -2,6 +2,7 @@ import {
   detectDeleteConflict,
   nextRetryDelay,
   threeWayMerge,
+  validateRecord,
   type ConflictResponse,
   type MeResponse,
   type RecordData,
@@ -292,6 +293,11 @@ async function pushOne(db: ProjectDb, op: OutboxOp): Promise<PushResult> {
       attempts: op.attempts + 1,
       lastError: `HTTP ${res.status}`,
     });
+    // Op vừa bị từ chối là bản hợp lệ cũ; phiếu đã sửa thành nháp sau đó thì vẫn là nháp. Ghi
+    // `error` đè lên thì "Thử lại" sẽ đưa phiếu về `synced` dù dữ liệu nháp chưa gửi, rồi pull ghi
+    // đè mất (bất biến 1). Op failed vẫn giữ, sửa nháp thành hợp lệ thì bị thay (design §5.1).
+    const record = await db.records.get(op.recordId);
+    if (record?.syncState === 'draft') return;
     await db.records.update(op.recordId, { syncState: 'error', lastError: `HTTP ${res.status}` });
   });
   return 'stop';
@@ -338,15 +344,29 @@ async function onPushed(db: ProjectDb, op: OutboxOp, saved: ServerRecord) {
   });
 }
 
+/** Lỗi validate của dữ liệu phiếu theo bản form của phiếu, như `saveRecordLocally`; xoá thì không validate. */
+async function recordErrors(
+  db: ProjectDb,
+  record: LocalRecord,
+  data: RecordData,
+  deleted: boolean,
+): Promise<Record<string, string>> {
+  if (deleted) return {};
+  const form = await db.forms.get(formKey(record.formId, record.formVersion));
+  if (!form) throw new Error(`Không có biểu mẫu ${record.formId} phiên bản ${record.formVersion} trên máy`);
+  return validateRecord(form, data);
+}
+
 /**
  * 409: gộp toàn bộ các op của bản ghi thành một, three-way merge
  *   base = record.baseData, local = record.data (mới nhất), remote = server.current.
  * Không có trường xung đột -> tự gộp, trả true để gửi lại ngay. Có -> chờ người dùng, trả false.
+ * Phiếu nháp gộp xong vẫn chưa hợp lệ -> giữ nháp trên máy, không có gì để gửi, cũng trả false.
  * Sau `resolveConflict`, base là bản server người dùng đã thấy, nên 409 lặp lại cũng đi qua đây
  * đúng quy tắc 5 (ADR 0001 quy tắc 7, ca C8).
  */
 async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictResponse): Promise<boolean> {
-  return db.transaction('rw', db.outbox, db.records, db.conflicts, async () => {
+  return db.transaction('rw', db.outbox, db.records, db.conflicts, db.forms, async () => {
     const record = (await db.records.get(op.recordId))!;
     const remote = conflict.current;
     const merge = threeWayMerge(record.baseData, record.data, remote.data);
@@ -361,6 +381,23 @@ async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictRespons
 
     if (merge.conflicts.length === 0 && recordLevel === 'none') {
       const deleted = record.deleted || remote.deleted;
+      // Phiếu đã sửa thành nháp sau op vừa gửi: `record.data` là dữ liệu nháp, bản gộp vẫn chưa hợp
+      // lệ thì giữ trên máy, không tạo op (nháp không đồng bộ, design §4.1, §5.1). Op cũ bỏ được:
+      // nội dung của nó đã nằm trong nháp, người dùng sửa đủ thì đi trong op mới.
+      if (record.syncState === 'draft') {
+        const errors = await recordErrors(db, record, merge.merged, deleted);
+        if (Object.keys(errors).length > 0) {
+          await db.records.update(record.id, {
+            ...creatorOf(remote),
+            data: merge.merged,
+            deleted,
+            baseData: remote.data,
+            baseVersion: remote.version,
+            validationErrors: errors,
+          });
+          return false;
+        }
+      }
       await db.records.update(record.id, {
         ...creatorOf(remote),
         data: merge.merged,
@@ -368,6 +405,7 @@ async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictRespons
         baseData: remote.data,
         baseVersion: remote.version,
         syncState: 'pending',
+        validationErrors: undefined,
       });
       await db.outbox.add(newOp(record.id, merge.merged, deleted, earliestCreatedAt(replaced)));
       return true;
@@ -391,19 +429,26 @@ async function onConflict(db: ProjectDb, op: OutboxOp, conflict: ConflictRespons
  * dùng đã thấy (`conflict.server`), để nếu server đổi tiếp thì 409 kế tiếp merge với đúng base đó.
  */
 export async function resolveConflict(db: ProjectDb, recordId: string, resolved: RecordData, deleted: boolean) {
-  await db.transaction('rw', db.outbox, db.records, db.conflicts, async () => {
+  await db.transaction('rw', db.outbox, db.records, db.conflicts, db.forms, async () => {
     const c = await db.conflicts.get(recordId);
-    if (!c) return;
+    const record = await db.records.get(recordId);
+    if (!c || !record) return;
+    // Phiếu nháp gặp 409 (còn `validationErrors` từ lúc lưu nháp) thì người dùng có thể giữ giá trị
+    // nháp: kết quả chưa hợp lệ thì về nháp, không gửi (design §5.1 "conflict → draft"). Phiếu
+    // thường thì hai bản đều hợp lệ, chọn theo từng trường vẫn hợp lệ, nên không validate lại.
+    const errors = record.validationErrors ? await recordErrors(db, record, resolved, deleted) : {};
+    const isDraft = Object.keys(errors).length > 0;
     await db.records.update(recordId, {
       ...creatorOf(c.server),
       data: resolved,
       deleted,
       baseData: c.server.data,
       baseVersion: c.server.version,
-      syncState: 'pending',
+      syncState: isDraft ? 'draft' : 'pending',
+      validationErrors: isDraft ? errors : undefined,
     });
     await db.outbox.where('recordId').equals(recordId).delete();
-    await db.outbox.add(newOp(recordId, resolved, deleted));
+    if (!isDraft) await db.outbox.add(newOp(recordId, resolved, deleted));
     await db.conflicts.delete(recordId);
   });
   void syncNow();

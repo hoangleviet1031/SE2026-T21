@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.34 (2026-11-19)
+- **Phiên bản:** 0.35 (2026-11-21)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -200,6 +200,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-01 | Gợi ý giá trị đã nhập ở ô chữ màn hình 4: chỉ trường chữ không ẩn, bỏ phiếu đã xoá và phiếu đang mở, bỏ trùng, mới trước, tối đa 50 (Could) | `field-suggestions.spec.ts`; unit `fieldSuggestions` (`client/src/fieldSuggestions.test.ts`) | không ticket (#137) |
 | US-01 | Lưu phiếu thì xin giữ bộ nhớ; thiếu Web Locks → "Trình duyệt không được hỗ trợ" | `browser-support.spec.ts`; unit `browserSupport.test.ts` | TV1-07 (#28) |
 | US-02 | Nháp không lên server; sửa đủ thì đồng bộ | O5 `draft.spec.ts`; unit `shared/src/recordValidation.test.ts` | TV1-05 (#7, #17) |
+| US-02 | Phiếu Chờ đồng bộ sửa thành Nháp mà op cũ gặp 409 hay 4xx: dữ liệu nháp không lên server, phiếu vẫn Nháp (gộp bản server vào nháp); xung đột giữ giá trị nháp thì về Nháp; điền đủ thì gửi bản gộp (design §5.1) | `draft.spec.ts` (ca "phiếu nháp còn op cũ gặp 409 tự gộp", "phiếu nháp gặp 409 có trường xung đột", "phiếu nháp còn op cũ bị 400") | không ticket (#PR) |
 | US-02 | Phiếu đã đồng bộ sửa thành chưa hợp lệ → Nháp, không op, server giữ bản cũ; sửa tiếp vẫn nháp; điền đủ thì lên bản mới (design §5.1) | `record-states.spec.ts` (ca "Đã đồng bộ → Nháp…") | Không ticket (việc cải thiện 10) |
 | US-03 | Ảnh lên đủ, nhãn "Đang tải ảnh" trước "Đã đồng bộ" | O3 `upload.spec.ts` | TV3-06 (#37), TV3-10 (#40) |
 | US-03 | Mất mạng giữa lúc tải ảnh | R4 `upload.spec.ts` | TV3-05 (#30), TV3-10 (#40) |
@@ -309,3 +310,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.32 | 2026-11-16 | US-01 thêm tiêu chí nút "Xoá dữ liệu trên máy" ở Cài đặt, kèm dòng truy vết (tech-debt N27 phần 1, đúng design §9, không ticket, Dương cho phép 2026-11-16) |
 | 0.33 | 2026-11-18 | US-07 dòng truy vết "Tạo form 7 loại trường" thêm ca route "Biểu mẫu mới" `#/builder` và form mã `new` (tech-debt N26, sửa lỗi, không ticket) |
 | 0.34 | 2026-11-19 | US-02, US-04 thêm dòng truy vết chuyển trạng thái phiếu theo design §5.1 (`record-states.spec.ts`, việc cải thiện 10) |
+| 0.35 | 2026-11-21 | US-02 thêm dòng truy vết phiếu nháp còn op cũ gặp 409 / 4xx (design 0.5.91 §5.1) |
