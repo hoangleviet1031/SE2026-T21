@@ -328,6 +328,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
 .rec-top .meta time, .rec-top .meta .sep { color: var(--muted); font-size: 14px; }
 .records { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; }
 .records > li { padding: 12px 14px; }
+/* Nhóm nhiều phiếu chỉ vẽ một trang (tech-debt N33): nút rộng hết danh sách, dễ bấm bằng ngón cái */
+.records-more { display: block; width: 100%; margin-top: 8px; }
 .records > li + li { border-top: 1px solid var(--line); }
 .rec-top { position: relative; display: grid; grid-template-columns: 22px 1fr 20px; column-gap: 12px; row-gap: 4px; align-items: center; }
 .rec-top .st-icon { width: 22px; height: 22px; color: var(--c); grid-row: span 2; align-self: start; margin-top: 1px; }
