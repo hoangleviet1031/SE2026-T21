@@ -96,23 +96,40 @@ test('danh sách 2.000 phiếu hiển thị ≤ 1 s; đổi dự án đã tải 
   await throttle(page);
   await login(page, 'lan');
   await expect.poll(() => localCount(page, id), { timeout: 120_000 }).toBe(2000);
-  await expect(listItems(page)).toHaveCount(2000, { timeout: 60_000 });
+  // Từ N33 mỗi nhóm chỉ vẽ trang đầu 200 phiếu kèm [Xem thêm phiếu] (design §4.8): "hiển thị" là lúc
+  // tiêu đề nhóm đếm đủ 2.000, trang đầu đã vẽ và nút đã có
+  const heading = page.getByRole('heading', { name: 'Khảo sát hộ gia đình (2000)' });
+  const more = page.getByRole('button', { name: 'Xem thêm phiếu' });
+  const firstPage = async () => {
+    await expect(heading).toBeVisible({ timeout: 60_000 });
+    await expect(listItems(page)).toHaveCount(200, { timeout: 60_000 });
+    await expect(more).toBeVisible();
+  };
+  await firstPage();
 
-  // Dữ liệu đã trên máy: rời trang chủ rồi quay lại, đo tới khi đủ 2.000 dòng
+  // Dữ liệu đã trên máy: rời trang chủ rồi quay lại, đo tới khi trang đầu hiện xong
   await page.getByRole('link', { name: 'Cài đặt' }).click();
   await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
   let started = Date.now();
   await page.getByRole('link', { name: 'Khảo sát thực địa' }).click();
-  await expect(listItems(page)).toHaveCount(2000, { timeout: 60_000 });
+  await firstPage();
   record('Danh sách 2.000 phiếu (mở lại trang chủ)', Date.now() - started, 1_000);
+
+  // Bấm [Xem thêm phiếu] tới khi có thêm 200 dòng: chỉ ghi số đo
+  started = Date.now();
+  await more.click();
+  await expect(listItems(page)).toHaveCount(400, { timeout: 60_000 });
+  const moreMs = Date.now() - started;
+  test.info().annotations.push({ type: 'perf', description: `Xem thêm 200 phiếu: ${moreMs} ms` });
+  console.log(`[perf] Xem thêm 200 phiếu: ${moreMs} ms (CPU ×${THROTTLE})`);
 
   // Tải lại cả trang (khởi động app + đọc IndexedDB): chỉ ghi số đo, §11.2 không có chỉ tiêu riêng
   started = Date.now();
   await page.reload();
-  await expect(listItems(page)).toHaveCount(2000, { timeout: 60_000 });
+  await firstPage();
   const reloadMs = Date.now() - started;
-  test.info().annotations.push({ type: 'perf', description: `Tải lại trang tới khi đủ 2.000 dòng: ${reloadMs} ms` });
-  console.log(`[perf] Tải lại trang tới khi đủ 2.000 dòng: ${reloadMs} ms (CPU ×${THROTTLE})`);
+  test.info().annotations.push({ type: 'perf', description: `Tải lại trang tới khi hiện trang đầu: ${reloadMs} ms` });
+  console.log(`[perf] Tải lại trang tới khi hiện trang đầu: ${reloadMs} ms (CPU ×${THROTTLE})`);
 
   // Đổi sang dự án nhỏ rồi quay lại dự án 2.000 phiếu khi offline
   await context.setOffline(true);
@@ -120,10 +137,10 @@ test('danh sách 2.000 phiếu hiển thị ≤ 1 s; đổi dự án đã tải 
   await expect(page.getByTestId('project-switcher').getByRole('button', { expanded: false })).toHaveAccessibleName(
     NONGNGHIEP,
   );
-  await expect(listItems(page)).not.toHaveCount(2000);
+  await expect(heading).toHaveCount(0);
   started = Date.now();
   await choose(page, name);
-  await expect(listItems(page)).toHaveCount(2000, { timeout: 60_000 });
+  await firstPage();
   record('Đổi sang dự án 2.000 phiếu (offline)', Date.now() - started, 1_000);
   await context.setOffline(false);
 });
