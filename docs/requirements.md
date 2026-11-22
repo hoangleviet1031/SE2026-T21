@@ -269,7 +269,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-14 | Tiêu đề phiếu, "Phiếu chưa có tên", giờ sửa cuối | `home.spec.ts` (ca N11); unit `recordTitle`, `formatEditedAt` (`recordList.test.ts`) | không ticket, tech-debt N11 (#105) |
 | US-14 | Lọc trạng thái, "Cần xử lý (n)", nhóm rỗng ẩn | `conflict.spec.ts` (ca số "Cần xử lý" và bộ lọc); `home.spec.ts` (ca N10: lọc "Chưa đồng bộ" đếm theo lọc, ẩn nhóm rỗng); unit `recordFilter.test.ts` | TV3-07 (#41); không ticket, N10 (#105) |
 | US-14 | "Chưa có phiếu nào." ẩn bộ lọc; lọc rỗng giữ bộ lọc | `ui-states.spec.ts` (ca chưa có phiếu); `home.spec.ts` (ca lọc ra rỗng) | TV1-12 (b1, b2 p2) |
-| US-14 | Nhóm hơn 200 phiếu: 200 đầu + [Xem thêm phiếu], đếm đủ, nhóm sau không bị che, đổi bộ lọc về trang đầu | `record-list-paging.spec.ts`; unit `pageGroups` (`recordList.test.ts`); số đo `perf/pull.spec.ts` | không ticket, tech-debt N33 |
+| US-14 | Nhóm hơn 200 phiếu: 200 đầu + [Xem thêm phiếu], đếm đủ, nhóm sau không bị che, đổi bộ lọc về trang đầu | `record-list-paging.spec.ts`; unit `pageGroups` (`recordList.test.ts`); số đo `perf/pull.spec.ts` | không ticket, tech-debt N33 (#159) |
 | US-14 | Phiếu đã xoá không hiện, trừ khi đang xung đột | `delete.spec.ts` (O7, O8, xoá mềm); `conflict.spec.ts` (ca xoá vs sửa hiện ở "Cần xử lý") | TV2-13 (#35), TV1-13 (#42), TV3-08 (#47) |
 | US-15 | Xem lịch sử sửa: ai, lúc nào, trường nào đổi; không có nút ở phiếu chưa lên server; báo thay đổi chưa đồng bộ; offline, `5xx`, `404` (Could) | `record-history.spec.ts`; unit `buildHistoryView` (`client/src/recordHistory.test.ts`) | không ticket (#139) |
 
