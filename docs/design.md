@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.93 (2026-11-22)
+- **Phiên bản:** 0.5.94 (2026-11-22)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -127,6 +127,7 @@
 | 0.5.91 | 2026-11-21 | Sửa lỗi phiếu nháp còn op hợp lệ cũ chờ gửi (phiếu Chờ đồng bộ hay Lỗi sửa thành chưa hợp lệ; không ticket, Dương cho phép 2026-11-21, chọn phương án gộp vào nháp): op cũ gặp `409` thì trước đây bản gộp từ dữ liệu **nháp** được gửi lên server (server không validate), nay gộp vào nháp trên máy, bỏ op cũ, phiếu vẫn `draft`, không gửi; còn trường xung đột thì `conflict`, giải xong mà chưa hợp lệ thì về `draft` không op. Op cũ gặp `4xx` thì op `failed` nhưng phiếu vẫn `draft` (trước đây thành `error`, "Thử lại" đưa về `synced` rồi pull có thể ghi đè nháp). §5.1 sơ đồ thêm `pending → draft`, `error → draft`, `draft → draft` (409 tự gộp), `draft → conflict`, `conflict → draft`; §5.3 bước Push. Ca E2E ở `draft.spec.ts` |
 | 0.5.92 | 2026-11-21 | Tech-debt N34 (không ticket, Dương cho phép 2026-11-21, duyệt câu chữ): §4.1 "Bộ đệm đang nhập" thêm mục bấm Lưu khi phiếu đã đổi ở nền từ lúc nạp vào form (pull bản máy khác, 409 tự gộp): gộp theo trường với gốc là bản đã nạp thay vì ghi đè; trường cả hai cùng sửa thì chưa lưu, form giữ bản mới và báo chữ đã gõ, người dùng bấm Lưu lần nữa (bất biến 1, ADR 0001 quy tắc 5) |
 | 0.5.93 | 2026-11-22 | Kiểm ranh giới kiến trúc bằng test (không ticket, Dương cho phép 2026-11-22; Lecture 04 "architecture fitness checks"): §3.2 cột "Giữ bằng" của bảng quy tắc phụ thuộc trỏ tới `client/src/architecture.test.ts` (`importRules.ts`), thêm dòng "mạng chỉ qua lớp API"; ngoại lệ cần mạng của bất biến 7 ghi đủ Đăng nhập/Tạo tài khoản và Đổi mật khẩu, Đăng xuất ở Cài đặt (code đã như vậy từ trước, chỉ ghi lại). Không đổi hành vi |
+| 0.5.94 | 2026-11-22 | Tech-debt N33 (không ticket, Dương cho phép 2026-11-22, duyệt chữ "Xem thêm phiếu"): §4.8 "Hiệu năng" có code: mỗi nhóm form vẽ 200 phiếu mới nhất, nút [Xem thêm phiếu] thêm 200; số trong tiêu đề nhóm vẫn đếm đủ; đổi bộ lọc hoặc dự án thì về trang đầu. §11.2 "Danh sách 2.000 phiếu" đo tới khi trang đầu hiện xong. Không đổi API, kiểu dùng chung, schema |
 
 ## Mục lục
 
@@ -636,6 +637,7 @@ Trang chủ của dự án đang chọn. Đọc từ IndexedDB (`liveQuery`), kh
   - Có code (TV3-07, `client/src/recordFilter.ts`): lọc theo nhãn hiển thị (§5.6) chứ không theo `syncState` thô. "Cần xử lý" = xung đột, lỗi, lỗi ảnh; "Chưa đồng bộ" = chờ đồng bộ, đang tải ảnh; "Nháp"; "Lỗi" = lỗi, lỗi ảnh. Số "Cần xử lý (n)" đầu danh sách, bấm vào thì bật bộ lọc đó. Lọc theo người tạo và ô tìm kiếm: chưa có code (TV2-18).
 - **Phiếu đã xoá** (`deleted`) không hiện trong danh sách mặc định, **trừ khi đang `conflict`** (vd. xoá ở máy này, sửa ở máy kia): người dùng phải thấy để xử lý.
 - **Hiệu năng:** 2.000 phiếu phải cuộn mượt; nếu không đạt thì chỉ render phần đang thấy (tự viết, không thêm thư viện nếu chưa hỏi).
+  - Có code (tech-debt N33, `pageGroups` ở `client/src/recordList.ts`): vẽ theo trang thay vì vẽ hết. Mỗi nhóm form vẽ 200 phiếu đầu (mới trước), còn phiếu chưa vẽ thì cuối nhóm có nút [Xem thêm phiếu], bấm thêm 200. Giới hạn tính riêng từng nhóm để form nhiều phiếu không che các form sau. Số trong tiêu đề nhóm vẫn đếm mọi phiếu khớp bộ lọc. Đổi bộ lọc hoặc đổi dự án thì mọi nhóm về trang đầu.
 - Đầu trang: số "Cần xử lý" (§4.5) và cảnh báo phiếu tồn lâu (§5.2).
 - **Phiếu đang nhập dở** (Could, Dương chốt 2026-10-30; `unsavedNewRecords` ở `client/src/typingBuffer.ts`): phiếu mới có bộ đệm đang nhập (§4.1) mà chưa Lưu lần nào thì không có trong danh sách; trang chủ có dải "Phiếu đang nhập dở, chưa lưu" (dưới banner dự án đã rời và cảnh báo, trên mục Biểu mẫu), mỗi phiếu một dòng dẫn tới màn hình 4, ở đó hỏi Khôi phục / Bỏ. Phiếu đã có trên máy thì mở từ danh sách như thường, không lên dải. Tiêu đề theo luật ở trên với bản form của bộ đệm; bộ đệm có form không còn trên máy thì ẩn. Sắp bộ đệm mới gõ lên trên theo giờ máy, chỉ để hiển thị. Không có nút Bỏ ở trang chủ.
 - **Chưa có phiếu nào** (kể cả phiếu đã xoá đang ẩn): "Chưa có phiếu nào." và ẩn bộ lọc (TV1-12 b2). Có phiếu mà bộ lọc ra rỗng: giữ bộ lọc, báo "Không có phiếu nào ở trạng thái này."
@@ -1300,7 +1302,7 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 |---|---|---|
 | Mở app offline (đã cài) tới khi nhập được | ≤ 3 s trên thiết bị tham chiếu | Playwright, CPU throttle 4× (`client/e2e/perf/client.spec.ts`, [perf.md](perf.md)) |
 | Lưu một phiếu | ≤ 200 ms | Playwright (`client/e2e/perf/client.spec.ts`, [perf.md](perf.md)) |
-| Danh sách 2.000 phiếu | Cuộn mượt, hiển thị ≤ 1 s | Hiển thị: Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); cuộn mượt: thủ công, chưa thử |
+| Danh sách 2.000 phiếu | Cuộn mượt, hiển thị ≤ 1 s | Hiển thị (từ N33: tới khi trang đầu 200 phiếu và nút [Xem thêm phiếu] hiện xong, §4.8): Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); cuộn mượt: thủ công, chưa thử |
 | Đồng bộ 100 phiếu không ảnh | ≤ 10 s ở mạng "Slow 3G" | Playwright network throttle |
 | Đồng bộ 50 ảnh đã nén | ≤ 3 phút ở mạng 3G (1,6 Mbps) | Playwright network throttle |
 | Pull lần đầu 5.000 phiếu (supervisor) | ≤ 30 s | Seed (`seed:perf`) + Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); truy vấn theo index có test `server/test/queryPlan.test.ts` |

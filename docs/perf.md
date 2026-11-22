@@ -58,6 +58,19 @@ Cách đo:
 
 **Tốc độ máy đo dao động mạnh, số đo trên là lúc máy chậm:** cùng máy ở mục trên, sáng 2026-11-20 chạy lại bộ đo pull ở commit đo 2026-10-25 (c0d3169) được pull 5.000 phiếu 8–9 s (lúc đó 2,3 s), danh sách 2.000 phiếu 818–821 ms (lúc đó 211 ms); bộ đo pull trên `main` (850754d) lúc đó đỏ ở danh sách 2.000 phiếu (1.042 / 1.135 ms). Khoảng một giờ sau, cùng `main`, máy nhanh trở lại: pull khoảng 3,9 s, danh sách 175–311 ms, đổi dự án 319–364 ms, đều đạt. Vì vậy lần đỏ là do máy chậm lúc đo, **không phải code chậm đi**; hai bộ số chạy ở hai thời điểm không so được với nhau. Khi chạy xen kẽ ở CPU ×4 (chỉ ghi số đo), danh sách 2.000 phiếu trên `main` là 1.410 / 1.620 ms, đổi dự án 1.829 / 1.613 ms, chậm hơn số đo 2026-10-25 (880 / 559 ms) và vượt 1 s; tách danh sách thành component `memo` không cải thiện (1.408 / 2.011 ms), nên đã bỏ. Muốn so hai bản code phải chạy xen kẽ trong cùng một lúc. Máy yếu thật vẫn có thể vượt 1 s ở 2.000 phiếu: xem mục "Chỗ có thể chậm" bên dưới.
 
+## Danh sách vẽ theo trang (2026-11-22, tech-debt N33)
+
+Trước đó trang chủ vẽ hết mọi phiếu: 2.000 phiếu ở CPU ×4 vượt 1 s. Từ N33 mỗi nhóm form chỉ vẽ 200 phiếu mới nhất kèm nút [Xem thêm phiếu] (design §4.8). Bộ đo `perf/pull.spec.ts` đổi theo: "hiển thị" tính tới khi tiêu đề nhóm đếm đủ 2.000, trang đầu 200 dòng đã vẽ và nút đã có; thêm số đo bấm [Xem thêm phiếu]. Cùng máy, cùng buổi tối, `npm run test:perf -- -g "danh sách 2.000"`: trước là `main` 48c83eb (một lần mỗi mức), sau là nhánh N33 (hai lần mỗi mức).
+
+| Số đo (2.000 phiếu) | Trước, CPU ×1 | Sau, CPU ×1 | Trước, CPU ×4 | Sau, CPU ×4 |
+|---|---|---|---|---|
+| Mở lại trang chủ (chỉ tiêu ≤ 1 s) | 872 ms | 124 / 115 ms | 1.099 ms | 727 / 447 ms |
+| Đổi sang dự án 2.000 phiếu, offline (≤ 1 s) | 924 ms | 166 / 161 ms | 1.652 ms | 463 / 458 ms |
+| Tải lại cả trang (chỉ ghi số) | 1.094 ms | 172 / 156 ms | 1.848 ms | 1.031 / 856 ms |
+| Bấm [Xem thêm phiếu], thêm 200 dòng (chỉ ghi số) | – | 84 / 70 ms | – | 473 / 335 ms |
+
+Máy đo dao động mạnh (xem trên), nên chỉ so được cỡ: ở CPU ×4 cả hai chỉ tiêu đã dưới 1 s, đổi dự án nhanh khoảng 3,5 lần. Tải lại cả trang ở CPU ×4 vẫn khoảng 1 s vì phần lớn là khởi động app và đọc IndexedDB, không phải vẽ danh sách.
+
 ## Thử tay trên điện thoại (chưa làm)
 
 §11.2 ghi "thủ công" cho "danh sách 2.000 phiếu cuộn mượt". Cách thử trên staging:
@@ -69,5 +82,5 @@ Cách đo:
 ## Chỗ có thể chậm khi dữ liệu lớn hơn
 
 Chưa vượt chỉ tiêu nên chưa sửa; ghi lại để biết chỗ cần xem khi số phiếu tăng:
-- **Danh sách** (`client/src/pages/HomePage.tsx`) đọc toàn bộ `records` rồi vẽ hết, không ảo hoá. Thời gian tăng tuyến tính theo số phiếu. Giao diện mới (TV1-12 b2) vẽ mỗi dòng nặng hơn: ở 2.000 phiếu với CPU ×4 từ khoảng 0,5 s lên khoảng 0,9 s, một lần đo 991 ms, tức là máy yếu đã sát chỉ tiêu 1 s ngay ở 2.000 phiếu. TV2-18 (danh sách 2.000 phiếu) nên xem chỗ này trước: vẽ theo trang hoặc chỉ vẽ phần đang thấy.
+- **Danh sách** (`client/src/pages/HomePage.tsx`): từ N33 (2026-11-22) chỉ vẽ 200 phiếu mỗi nhóm, nhưng vẫn đọc toàn bộ `records` và tính nhãn cho mọi phiếu; đoạn dưới là ghi chép trước N33. Trước đó đọc toàn bộ `records` rồi vẽ hết, không ảo hoá. Thời gian tăng tuyến tính theo số phiếu. Giao diện mới (TV1-12 b2) vẽ mỗi dòng nặng hơn: ở 2.000 phiếu với CPU ×4 từ khoảng 0,5 s lên khoảng 0,9 s, một lần đo 991 ms, tức là máy yếu đã sát chỉ tiêu 1 s ngay ở 2.000 phiếu. TV2-18 (danh sách 2.000 phiếu) nên xem chỗ này trước: vẽ theo trang hoặc chỉ vẽ phần đang thấy.
 - **Pull** (`pullAll` trong `client/src/sync/engine.ts`): mỗi phiếu đọc `records.get` và đếm `outbox` riêng trong transaction của trang. Server chưa trả `hasMore` (design §7), client dừng khi gặp trang rỗng nên tốn thêm một request.
