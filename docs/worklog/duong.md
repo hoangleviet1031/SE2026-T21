@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-22 | — | test | Kiểm ranh giới kiến trúc design §3.2 bằng unit test (Lecture 04 "fitness checks"): `client/src/importRules.ts` (đọc import, luật thuần) + `architecture.test.ts` đọc mã nguồn thật: `shared/` thuần (không gói ngoài, không I/O, không đọc giờ), client không với sang server/shared bằng đường dẫn tương đối, mạng chỉ qua `sync/api.ts`/`admin/adminApi.ts`, bất biến 7 (UI chỉ màn `ONLINE_UI` dùng module cần mạng, kể cả qua module trung gian), admin không dùng `db/`/`sync/`; mỗi luật có ca vi phạm giả để chứng minh bắt được; thử chèn import api vào FillPage thì đỏ. Ghi đủ ngoại lệ bất biến 7 (Đăng nhập, Đổi mật khẩu, Đăng xuất) ở `CLAUDE.md`, `client/CLAUDE.md`; design 0.5.93 | PR #158 | chờ merge |
+| 2026-11-22 | — | fix | PR #157 đã merge | PR #157 | xong |
 | 2026-11-21 | — | fix | Tech-debt N34: màn 4 bấm Lưu khi phiếu đã đổi ở nền từ lúc mở form thì gộp theo trường (`mergeOnSave`), trường cả hai cùng sửa thì chưa lưu, giữ bản mới, dải `typing-kept` "Chưa lưu. …"; 2 ca E2E `typing-buffer.spec.ts` (đỏ trước khi sửa), 5 unit; design 0.5.92 §4.1, ui.md 0.2.62, requirements 0.36, N34 Đã trả | PR #157 | chờ review |
 | 2026-11-21 | — | fix | PR #156 đã merge | PR #156 | xong |
 | 2026-11-21 | — | fix | Phiếu nháp còn op hợp lệ cũ (Chờ đồng bộ sửa thành chưa hợp lệ) gặp 409 thì dữ liệu nháp bị gửi lên server, gặp 4xx thì thành Lỗi rồi có thể mất nháp: `engine.ts` gộp vào nháp trên máy, giữ `draft`, giải xung đột chưa hợp lệ về `draft`; 3 ca E2E `draft.spec.ts` (đỏ trước khi sửa); design 0.5.91 §5.1, §5.3; requirements 0.35; tech-debt N34 (form đang mở ghi đè bản gộp nền) | PR #156 | chờ review |

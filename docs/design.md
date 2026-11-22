@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.92 (2026-11-21)
+- **Phiên bản:** 0.5.93 (2026-11-22)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -126,6 +126,7 @@
 | 0.5.89 | 2026-11-20 | §10 thêm mức "Thử đột biến" ([mutation.md](mutation.md), `scripts/mutation.mjs`): 25 đột biến tay ở merge, backoff, phân loại lỗi upload ảnh; lần đầu bắt 17/25, thêm 8 ca unit thì bắt 25/25. Không đổi hành vi |
 | 0.5.91 | 2026-11-21 | Sửa lỗi phiếu nháp còn op hợp lệ cũ chờ gửi (phiếu Chờ đồng bộ hay Lỗi sửa thành chưa hợp lệ; không ticket, Dương cho phép 2026-11-21, chọn phương án gộp vào nháp): op cũ gặp `409` thì trước đây bản gộp từ dữ liệu **nháp** được gửi lên server (server không validate), nay gộp vào nháp trên máy, bỏ op cũ, phiếu vẫn `draft`, không gửi; còn trường xung đột thì `conflict`, giải xong mà chưa hợp lệ thì về `draft` không op. Op cũ gặp `4xx` thì op `failed` nhưng phiếu vẫn `draft` (trước đây thành `error`, "Thử lại" đưa về `synced` rồi pull có thể ghi đè nháp). §5.1 sơ đồ thêm `pending → draft`, `error → draft`, `draft → draft` (409 tự gộp), `draft → conflict`, `conflict → draft`; §5.3 bước Push. Ca E2E ở `draft.spec.ts` |
 | 0.5.92 | 2026-11-21 | Tech-debt N34 (không ticket, Dương cho phép 2026-11-21, duyệt câu chữ): §4.1 "Bộ đệm đang nhập" thêm mục bấm Lưu khi phiếu đã đổi ở nền từ lúc nạp vào form (pull bản máy khác, 409 tự gộp): gộp theo trường với gốc là bản đã nạp thay vì ghi đè; trường cả hai cùng sửa thì chưa lưu, form giữ bản mới và báo chữ đã gõ, người dùng bấm Lưu lần nữa (bất biến 1, ADR 0001 quy tắc 5) |
+| 0.5.93 | 2026-11-22 | Kiểm ranh giới kiến trúc bằng test (không ticket, Dương cho phép 2026-11-22; Lecture 04 "architecture fitness checks"): §3.2 cột "Giữ bằng" của bảng quy tắc phụ thuộc trỏ tới `client/src/architecture.test.ts` (`importRules.ts`), thêm dòng "mạng chỉ qua lớp API"; ngoại lệ cần mạng của bất biến 7 ghi đủ Đăng nhập/Tạo tài khoản và Đổi mật khẩu, Đăng xuất ở Cài đặt (code đã như vậy từ trước, chỉ ghi lại). Không đổi hành vi |
 
 ## Mục lục
 
@@ -343,10 +344,11 @@ flowchart TB
 
 | Quy tắc phụ thuộc | Vì sao | Giữ bằng |
 |---|---|---|
-| `shared/` không import gì của client/server, không I/O | Client và server dùng chung một bản merge/validate, test được bằng unit | CLAUDE.md "Cấu trúc"; review |
-| UI chỉ đọc/ghi IndexedDB, không gọi API (trừ màn hình cần online) | Local-first: UI không chờ mạng | CLAUDE.md bất biến 7; review |
+| `shared/` không import gì của client/server hay gói ngoài, không I/O, không đọc giờ hệ thống | Client và server dùng chung một bản merge/validate, test được bằng unit | CLAUDE.md "Cấu trúc"; `architecture.test.ts` |
+| UI chỉ đọc/ghi IndexedDB, không gọi API (trừ màn hình cần online) | Local-first: UI không chờ mạng | CLAUDE.md bất biến 7; `architecture.test.ts`: `pages/`, `components/`, `App.tsx` không dùng `sync/api.ts` hay module ngoài `sync/` gọi nó (vd. `members.ts`), trừ danh sách `ONLINE_UI`; danh sách không được thừa |
+| Mạng chỉ đi qua `sync/api.ts` (app) và `admin/adminApi.ts` (trang quản trị); client không với sang `server/`, `shared/` bằng đường dẫn tương đối | Timeout, token, tiền tố dự án, phân loại lỗi ở một chỗ (§8) | `client/CLAUDE.md`; `architecture.test.ts` |
 | Route không viết SQL dữ liệu dự án, đi qua `repo/` với `ctx` | Không truy vấn nào quên `project_id` | CLAUDE.md bất biến 5; T5 tự duyệt mọi route |
-| `admin/` không dùng `db/`, `sync/` | Trang quản trị không giữ dữ liệu trên máy (§4.9) | Q10 kiểm không có IndexedDB |
+| `admin/` không dùng `db/`, `sync/` lúc chạy (`import type` được) | Trang quản trị không giữ dữ liệu trên máy (§4.9) | Q10 kiểm không có IndexedDB; `architecture.test.ts` |
 
 Ai sở hữu dữ liệu nào: §6.3.
 
