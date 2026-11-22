@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { FieldDef } from '@field-survey/shared';
-import { MISSING_FORM_TITLE, UNTITLED, formatEditedAt, groupRecordsByForm, recordTitle } from './recordList';
+import {
+  MISSING_FORM_TITLE,
+  RECORD_PAGE_SIZE,
+  UNTITLED,
+  formatEditedAt,
+  groupKey,
+  groupRecordsByForm,
+  pageGroups,
+  recordTitle,
+  type RecordGroup,
+} from './recordList';
 
 // Danh sách phiếu trên trang chủ (design §4.8, tech-debt N10, N11).
 
@@ -103,5 +113,58 @@ describe('groupRecordsByForm', () => {
       ['a', 'Hộ gia đình v2', 0, ['a1']],
       [null, MISSING_FORM_TITLE, -1, ['y1', 'x1']],
     ]);
+  });
+});
+
+// Vẽ theo trang (tech-debt N33): mỗi nhóm 200 phiếu đầu, bấm "Xem thêm phiếu" thì thêm một trang.
+describe('pageGroups', () => {
+  const group = (formId: string | null, n: number): RecordGroup<number> => ({
+    formId,
+    title: formId ?? MISSING_FORM_TITLE,
+    formIndex: formId === null ? -1 : 0,
+    rows: Array.from({ length: n }, (_, i) => i),
+  });
+
+  it('mặc định mỗi nhóm vẽ một trang 200 phiếu đầu, đếm số còn lại, rows giữ đủ', () => {
+    const [g] = pageGroups([group('hh', 450)], new Map());
+    expect(RECORD_PAGE_SIZE).toBe(200);
+    expect(g?.visible).toHaveLength(200);
+    expect(g?.visible[0]).toBe(0);
+    expect(g?.visible[199]).toBe(199);
+    expect(g?.hidden).toBe(250);
+    expect(g?.rows).toHaveLength(450);
+  });
+
+  it('nhóm ít hơn một trang thì vẽ hết, không còn phiếu ẩn; đúng 200 cũng vậy', () => {
+    const [small, exact] = pageGroups([group('a', 3), group('b', 200)], new Map());
+    expect(small?.visible).toEqual([0, 1, 2]);
+    expect(small?.hidden).toBe(0);
+    expect(exact?.hidden).toBe(0);
+  });
+
+  it('giới hạn tính riêng từng nhóm: nhóm đầu nhiều phiếu không che nhóm sau', () => {
+    const paged = pageGroups([group('a', 500), group('b', 300), group(null, 250)], new Map([['b', 400]]));
+    expect(paged.map((g) => [g.formId, g.visible.length, g.hidden])).toEqual([
+      ['a', 200, 300],
+      ['b', 300, 0],
+      [null, 200, 50],
+    ]);
+  });
+
+  it('mục "Biểu mẫu chưa có trên máy" có khoá riêng', () => {
+    expect(groupKey({ formId: null })).toBe('');
+    const [g] = pageGroups([group(null, 450)], new Map([['', 400]]));
+    expect(g?.visible).toHaveLength(400);
+  });
+
+  it('giới hạn nhỏ hơn một trang vẫn vẽ ít nhất một trang', () => {
+    const [g] = pageGroups([group('a', 450)], new Map([['a', 5]]));
+    expect(g?.visible).toHaveLength(200);
+  });
+
+  it('cỡ trang truyền vào được', () => {
+    const [g] = pageGroups([group('a', 10)], new Map(), 4);
+    expect(g?.visible).toEqual([0, 1, 2, 3]);
+    expect(g?.hidden).toBe(6);
   });
 });
