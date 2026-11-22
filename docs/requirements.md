@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.36 (2026-11-21)
+- **Phiên bản:** 0.37 (2026-11-22)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -168,6 +168,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** có phiếu cần xử lý, **when** chọn bộ lọc trạng thái (hoặc bấm "Cần xử lý (n)"), **then** chỉ còn phiếu khớp, số trong tiêu đề nhóm đếm theo bộ lọc, nhóm không còn phiếu khớp thì ẩn.
 - **Given** dự án chưa có phiếu nào, **when** mở trang chủ, **then** báo "Chưa có phiếu nào." và ẩn bộ lọc; có phiếu mà lọc ra rỗng thì giữ bộ lọc, báo "Không có phiếu nào ở trạng thái này."
 - **Given** phiếu đã xoá, **when** mở trang chủ, **then** phiếu không hiện, trừ khi đang xung đột (xoá ở máy này, sửa ở máy kia).
+- **Given** một nhóm có hơn 200 phiếu, **when** mở trang chủ, **then** nhóm hiện 200 phiếu mới nhất và nút [Xem thêm phiếu], số trong tiêu đề nhóm vẫn đếm đủ, các nhóm sau vẫn hiện; bấm nút thì thêm 200, hết thì nút mất; đổi bộ lọc hoặc dự án thì về 200 phiếu đầu.
 
 Lọc theo người tạo, tên người tạo cho giám sát viên và ô tìm kiếm (design §4.8) là TV2-18, chưa có code nên chưa có tiêu chí.
 
@@ -268,6 +269,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-14 | Tiêu đề phiếu, "Phiếu chưa có tên", giờ sửa cuối | `home.spec.ts` (ca N11); unit `recordTitle`, `formatEditedAt` (`recordList.test.ts`) | không ticket, tech-debt N11 (#105) |
 | US-14 | Lọc trạng thái, "Cần xử lý (n)", nhóm rỗng ẩn | `conflict.spec.ts` (ca số "Cần xử lý" và bộ lọc); `home.spec.ts` (ca N10: lọc "Chưa đồng bộ" đếm theo lọc, ẩn nhóm rỗng); unit `recordFilter.test.ts` | TV3-07 (#41); không ticket, N10 (#105) |
 | US-14 | "Chưa có phiếu nào." ẩn bộ lọc; lọc rỗng giữ bộ lọc | `ui-states.spec.ts` (ca chưa có phiếu); `home.spec.ts` (ca lọc ra rỗng) | TV1-12 (b1, b2 p2) |
+| US-14 | Nhóm hơn 200 phiếu: 200 đầu + [Xem thêm phiếu], đếm đủ, nhóm sau không bị che, đổi bộ lọc về trang đầu | `record-list-paging.spec.ts`; unit `pageGroups` (`recordList.test.ts`); số đo `perf/pull.spec.ts` | không ticket, tech-debt N33 (#159) |
 | US-14 | Phiếu đã xoá không hiện, trừ khi đang xung đột | `delete.spec.ts` (O7, O8, xoá mềm); `conflict.spec.ts` (ca xoá vs sửa hiện ở "Cần xử lý") | TV2-13 (#35), TV1-13 (#42), TV3-08 (#47) |
 | US-15 | Xem lịch sử sửa: ai, lúc nào, trường nào đổi; không có nút ở phiếu chưa lên server; báo thay đổi chưa đồng bộ; offline, `5xx`, `404` (Could) | `record-history.spec.ts`; unit `buildHistoryView` (`client/src/recordHistory.test.ts`) | không ticket (#139) |
 
@@ -313,3 +315,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.34 | 2026-11-19 | US-02, US-04 thêm dòng truy vết chuyển trạng thái phiếu theo design §5.1 (`record-states.spec.ts`, việc cải thiện 10) |
 | 0.35 | 2026-11-21 | US-02 thêm dòng truy vết phiếu nháp còn op cũ gặp 409 / 4xx (design 0.5.91 §5.1) |
 | 0.36 | 2026-11-21 | US-01 thêm dòng truy vết Lưu khi phiếu đổi ở nền lúc form đang mở (tech-debt N34, design 0.5.92) |
+| 0.37 | 2026-11-22 | US-14 thêm tiêu chí và dòng truy vết vẽ theo trang, [Xem thêm phiếu] (tech-debt N33) |

@@ -17,7 +17,7 @@ import { navigate } from '../useHashRoute';
 import { RECORD_FILTERS, matchesFilter, needsAttention, type RecordFilter } from '../recordFilter';
 import { statusIcon } from '../statusIcon';
 import { formTone, latestForms } from '../formDisplay';
-import { editedAtFormatter, groupRecordsByForm, recordTitle } from '../recordList';
+import { RECORD_PAGE_SIZE, editedAtFormatter, groupKey, groupRecordsByForm, pageGroups, recordTitle } from '../recordList';
 import { Icon } from '../components/Icon';
 import { listTypingBuffers } from '../db/typingBuffer';
 import { unsavedNewRecords } from '../typingBuffer';
@@ -45,6 +45,8 @@ function NoProject() {
   return <OrgsPage home />;
 }
 
+const NO_LIMITS: ReadonlyMap<string, number> = new Map();
+
 function ProjectHome({ db }: { db: ProjectDb }) {
   const project = useCurrentProject();
   // Sửa form chỉ cho giám sát viên và Owner (ui.md màn hình 2); server cũng chặn (403 forbidden)
@@ -68,8 +70,22 @@ function ProjectHome({ db }: { db: ProjectDb }) {
     });
   const attentionCount = rows.filter((x) => needsAttention(x.state.kind)).length;
   const shown = rows.filter((x) => matchesFilter(x.state.kind, filter));
-  // Nhóm theo form sau khi lọc: số trong ngoặc là số dòng đang thấy, form không còn phiếu khớp thì ẩn
+  // Nhóm theo form sau khi lọc: số trong ngoặc là số phiếu khớp bộ lọc, form không còn phiếu khớp thì ẩn
   const groups = groupRecordsByForm(shown, forms);
+  // Mỗi nhóm chỉ vẽ một trang, bấm "Xem thêm phiếu" thì thêm (tech-debt N33): vẽ hết 2.000 dòng một lần
+  // làm máy yếu chờ quá 1 s mỗi lần về trang chủ (design §11.2). Số trang đang mở gắn với dự án và bộ lọc
+  // đang chọn: đổi một trong hai thì bỏ số trang đã mở ngay lúc render (không đợi effect), nên quay lại
+  // bộ lọc cũ cũng về trang đầu.
+  const listKey = `${db.name}|${filter}`;
+  const [opened, setOpened] = useState<{ key: string; limits: ReadonlyMap<string, number> }>({
+    key: listKey,
+    limits: NO_LIMITS,
+  });
+  if (opened.key !== listKey) setOpened({ key: listKey, limits: NO_LIMITS });
+  const limits = opened.key === listKey ? opened.limits : NO_LIMITS;
+  const paged = pageGroups(groups, limits);
+  const showMore = (key: string) =>
+    setOpened({ key: listKey, limits: new Map(limits).set(key, (limits.get(key) ?? RECORD_PAGE_SIZE) + RECORD_PAGE_SIZE) });
   // Giờ sửa chỉ tính lại khi danh sách phiếu đổi, không phải mỗi lần ảnh hay outbox đổi (design §11.2)
   const editedAt = useMemo(() => editedAtFormatter(new Date()), [records]);
   // Tính lại mỗi khi outbox đổi; giờ thiết bị chỉ để hiển thị cảnh báo (design §5.2)
@@ -193,7 +209,7 @@ function ProjectHome({ db }: { db: ProjectDb }) {
         {groups.length > 0 && (
           <div data-testid="records">
             {/* Mỗi form một nhóm, cùng màu với thẻ form; tiêu đề là heading để trình đọc màn hình nhảy giữa các nhóm */}
-            {groups.map((g, gi) => (
+            {paged.map((g, gi) => (
               <section
                 key={g.formId ?? ''}
                 className={g.formIndex < 0 ? 'rgroup' : `rgroup tone-${formTone(g.formIndex)}`}
@@ -204,7 +220,7 @@ function ProjectHome({ db }: { db: ProjectDb }) {
                   {g.title} ({g.rows.length})
                 </h3>
                 <ul className="records">
-                  {g.rows.map(({ r, photos, state }) => (
+                  {g.visible.map(({ r, photos, state }) => (
                     <li key={r.id} className={`st-${state.kind}`}>
                       {/* Link tên phủ cả phần trên của dòng (mũi tên › báo bấm được); link xung đột nằm trên lớp đó */}
                       <div className="rec-top">
@@ -251,6 +267,18 @@ function ProjectHome({ db }: { db: ProjectDb }) {
                     </li>
                   ))}
                 </ul>
+                {g.hidden > 0 && (
+                  // Mỗi nhóm có một nút cùng chữ: trình đọc màn hình đọc kèm tiêu đề nhóm (như nút Xuất ở thẻ form)
+                  <button
+                    type="button"
+                    className="records-more"
+                    aria-describedby={`record-group-${gi}`}
+                    data-testid="records-more"
+                    onClick={() => showMore(groupKey(g))}
+                  >
+                    Xem thêm phiếu
+                  </button>
+                )}
               </section>
             ))}
           </div>

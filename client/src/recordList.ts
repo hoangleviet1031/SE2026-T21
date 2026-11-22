@@ -94,3 +94,33 @@ export function groupRecordsByForm<T extends { r: Pick<LocalRecord, 'formId' | '
   if (missing.length > 0) groups.push({ formId: null, title: MISSING_FORM_TITLE, formIndex: -1, rows: newestFirst(missing) });
   return groups;
 }
+
+/** Số phiếu mỗi lần vẽ thêm trong một nhóm (tech-debt N33, design §4.8 "Hiệu năng"). */
+export const RECORD_PAGE_SIZE = 200;
+
+/** Khoá của nhóm trong bảng số dòng đang mở; `''` là mục "Biểu mẫu chưa có trên máy". */
+export const groupKey = (group: Pick<RecordGroup<unknown>, 'formId'>): string => group.formId ?? '';
+
+export interface PagedGroup<T> extends RecordGroup<T> {
+  /** Phiếu được vẽ: `limit` phiếu đầu của `rows` (mới trước) */
+  visible: T[];
+  /** Số phiếu còn chưa vẽ; > 0 thì có nút "Xem thêm phiếu" */
+  hidden: number;
+}
+
+/**
+ * Mỗi nhóm chỉ vẽ `limits[nhóm]` phiếu đầu (mặc định một trang), để danh sách 2.000 phiếu không vẽ
+ * hết mọi dòng một lần. Giới hạn theo từng nhóm chứ không chung cả danh sách: form nhiều phiếu không
+ * che mất các form sau. `rows` giữ nguyên để số trong tiêu đề nhóm vẫn đếm đủ.
+ */
+export function pageGroups<T>(
+  groups: readonly RecordGroup<T>[],
+  limits: ReadonlyMap<string, number>,
+  pageSize = RECORD_PAGE_SIZE,
+): PagedGroup<T>[] {
+  return groups.map((g) => {
+    const limit = Math.max(pageSize, limits.get(groupKey(g)) ?? pageSize);
+    const visible = g.rows.slice(0, limit);
+    return { ...g, visible, hidden: g.rows.length - visible.length };
+  });
+}
