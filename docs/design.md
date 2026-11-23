@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.95 (2026-11-23)
+- **Phiên bản:** 0.5.96 (2026-11-23)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -129,6 +129,7 @@
 | 0.5.93 | 2026-11-22 | Kiểm ranh giới kiến trúc bằng test (không ticket, Dương cho phép 2026-11-22; Lecture 04 "architecture fitness checks"): §3.2 cột "Giữ bằng" của bảng quy tắc phụ thuộc trỏ tới `client/src/architecture.test.ts` (`importRules.ts`), thêm dòng "mạng chỉ qua lớp API"; ngoại lệ cần mạng của bất biến 7 ghi đủ Đăng nhập/Tạo tài khoản và Đổi mật khẩu, Đăng xuất ở Cài đặt (code đã như vậy từ trước, chỉ ghi lại). Không đổi hành vi |
 | 0.5.94 | 2026-11-22 | Tech-debt N33 (không ticket, Dương cho phép 2026-11-22, duyệt chữ "Xem thêm phiếu"): §4.8 "Hiệu năng" có code: mỗi nhóm form vẽ 200 phiếu mới nhất, nút [Xem thêm phiếu] thêm 200; số trong tiêu đề nhóm vẫn đếm đủ; đổi bộ lọc hoặc dự án thì về trang đầu. §11.2 "Danh sách 2.000 phiếu" đo tới khi trang đầu hiện xong. Không đổi API, kiểu dùng chung, schema |
 | 0.5.95 | 2026-11-23 | §11.2 "Danh sách 2.000 phiếu cuộn mượt" có ngưỡng đo được: p95 khoảng cách khung ≤ 50 ms khi cuộn từ đầu tới cuối danh sách, đo bằng Playwright (`perf/pull.spec.ts`, không ticket, Dương cho phép 2026-11-23); bỏ khỏi danh sách "Chưa đo". Số đo ở perf.md |
+| 0.5.96 | 2026-11-23 | §1 "Giả định": trỏ tới kịch bản thử với người dùng thật `user-test.md` (mới, không ticket, Dương cho phép 2026-11-23); chưa thử với ai nên giả định giữ nguyên |
 
 ## Mục lục
 
@@ -164,7 +165,7 @@
 | K4 | Không lẫn dữ liệu giữa các tổ chức, kể cả với người vận hành app | Không route nào trả dữ liệu cho người ngoài tổ chức (T1–T5, Q7) |
 
 **Giả định** (chưa có bằng chứng; Lecture 03 yêu cầu ghi rõ):
-- Chưa phỏng vấn hay thử với nhóm khảo sát thật (§14 câu 1). Người dùng, nhu cầu và mâu thuẫn ở §2 là giả định của nhóm; `demo-yte`, `demo-nongnghiep` là dự án mẫu tự đặt.
+- Chưa phỏng vấn hay thử với nhóm khảo sát thật (§14 câu 1). Người dùng, nhu cầu và mâu thuẫn ở §2 là giả định của nhóm; `demo-yte`, `demo-nongnghiep` là dự án mẫu tự đặt. Kịch bản thử với 2–3 người ngoài nhóm đã có ở [user-test.md](user-test.md), chưa thử.
 - Chưa có số liệu quy trình hiện tại (thời gian nhập lại, tỉ lệ mất phiếu) nên K1–K4 đo bằng test chứ chưa so được với trước.
 - Chỉ tiêu §11.2 là mục tiêu nhóm tự đặt theo thiết bị tham chiếu. Đã đo 6/10 trên máy tính có giả lập máy yếu (CPU ×4, [perf.md](perf.md)), chưa đo trên điện thoại thật.
 - **Giả định rủi ro nhất:** điện thoại giữ được dữ liệu trong trình duyệt nhiều ngày khi offline (iOS có thể xoá, §13) và điều tra viên chịu dùng PWA thay app native. Bằng chứng đã có: 3 thành viên cài và chạy offline trên Android và iPhone thật (TV1-01). Bằng chứng còn thiếu: một đợt thử thật nhiều ngày.
