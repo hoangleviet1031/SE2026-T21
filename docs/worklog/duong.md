@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-11-23 | — | docs | Kịch bản thử với người dùng thật `docs/user-test.md` 0.1 (việc 11, phần chuẩn bị): mục tiêu Q1–Q4 theo giả định design §1, 8 nhiệm vụ gắn story, phiếu ghi, cách dùng kết quả; design 0.5.96 §1 trỏ tới | nhánh `docs/kich-ban-thu-nguoi-dung` | chờ review |
+| 2026-11-23 | — | docs | Kịch bản thử với người dùng thật `docs/user-test.md` 0.1 (việc 11, phần chuẩn bị): mục tiêu Q1–Q4 theo giả định design §1, 8 nhiệm vụ gắn story, phiếu ghi, cách dùng kết quả; design 0.5.96 §1 trỏ tới | PR #161 | chờ review |
 | 2026-11-23 | — | test | PR #160 đã merge | PR #160 | xong |
 | 2026-11-23 | — | test | Đo §11.2 "danh sách 2.000 phiếu cuộn mượt": ca mới trong `perf/pull.spec.ts` đo khoảng cách khung khi cuộn trang đầu 200 dòng và khi bung đủ 2.000 dòng, ngưỡng p95 ≤ 50 ms (design 0.5.95); perf.md mục "Cuộn danh sách"; test-report 0.4.2 §1, §6 thêm số đo sau N33 và cuộn | PR #160 | chờ review |
 | 2026-11-22 | — | fix | PR #159 đã merge | PR #159 | xong |
