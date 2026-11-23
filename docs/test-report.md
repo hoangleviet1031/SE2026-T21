@@ -1,6 +1,6 @@
 # Báo cáo kiểm thử
 
-- **Phiên bản:** 0.4.2 (2026-11-23)
+- **Phiên bản:** 0.4.3 (2026-11-23)
 - **Người viết:** Đại (TV3, Quality owner), ticket [TV3-11](plan/tv3-conflict-media-test.md)
 - **Bản được kiểm:** `main` ở commit `5db0c36` (sau PR #64)
 - **Liên quan:** ma trận ca ở [design.md §10.1](design.md#101-ma-trận-e2e-bắt-buộc), ca cách ly ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng), chỉ tiêu ở [§11.2](design.md#112-chỉ-tiêu), story ở [requirements.md](requirements.md), nợ ở [tech-debt.md](tech-debt.md)
@@ -17,7 +17,7 @@ File này trả lời: hệ thống đã được kiểm chứng tới đâu, b�
 | Kịch bản chất lượng §11.4 | **5/5 đạt**; QS4 mở app offline tới khi nhập được 1,1 s ở CPU ×4 (mục tiêu ≤ 3 s, §6) |
 | Chỉ tiêu hiệu năng §11.2 | 6/10 có số đo, cả 6 đạt (mở app offline 1,1 s; lưu phiếu 33 ms; pull 5.000 phiếu 2,3 s; danh sách 2.000 phiếu 211 ms, cuộn p95 33 ms; đổi dự án 246 ms; ảnh ≤ 600 KB); 3 chưa đo (đồng bộ qua mạng chậm, dung lượng mỗi máy); 1 chỉ là thiết kế. Máy yếu (CPU ×4): sau N33 danh sách và đổi dự án 2.000 phiếu đã dưới 1 s; cuộn khi bung đủ 2.000 dòng vượt ngưỡng (§6) |
 | Điện thoại thật | ⏳ chưa thử (§7) |
-| User story | 12/12 story có test; mọi tiêu chí có test (§4) |
+| User story | 15/15 story có test; mọi tiêu chí có test (§4, requirements 0.38) |
 
 ## 2. Phương pháp
 
@@ -160,22 +160,25 @@ E2E còn kiểm các luồng không có mã ca: trình duyệt thiếu API và x
 
 ## 4. Truy vết user story
 
-Bảng đầy đủ tiêu chí → test → PR ở [requirements.md "Truy vết"](requirements.md#truy-vết). Tóm tắt theo story:
+Bảng đầy đủ tiêu chí → test → PR ở [requirements.md "Truy vết"](requirements.md#truy-vết). Tóm tắt theo story, đếm lại theo requirements 0.38 (2026-11-23):
 
 | Story | Kết quả mong muốn | Ca chính | Tiêu chí | Còn thiếu |
 |---|---|---|---|---|
-| US-01 Nhập phiếu offline | K1 | O1, O2, O4 | 3/3 | |
-| US-02 Lưu nháp | K1 | O5 | 2/2 | |
-| US-03 Ảnh lên đủ | K1 | O3, R4, ảnh ≤ 600 KB, `gps-offline.spec.ts`, `gps-errors.spec.ts` | 5/5 | GPS thật trên điện thoại chỉ kiểm bằng tay (§7, P4); E2E giả vị trí bằng `setGeolocation` |
-| US-04 Không trùng khi lỗi | K1 | R1–R6, O6 | 4/4 | |
+| US-01 Nhập phiếu offline | K1 | O1, O2, O4 | 14/14 | |
+| US-02 Lưu nháp | K1 | O5 | 4/4 | |
+| US-03 Ảnh lên đủ | K1 | O3, R4, ảnh ≤ 600 KB, `gps-offline.spec.ts`, `gps-errors.spec.ts` | 7/7 | GPS thật trên điện thoại chỉ kiểm bằng tay (§7, P4); E2E giả vị trí bằng `setGeolocation` |
+| US-04 Không trùng khi lỗi | K1 | R1–R6, O6 | 5/5 | |
 | US-05 Hai nơi cùng sửa | K2 | C1–C3, C6–C8 | 4/4 | |
-| US-06 Xoá an toàn | K1, K2 | O7, O8, C4, C5 | 4/4 | |
-| US-07 Tạo, sửa form | K3 | A3, A5, `form-sync.spec.ts` | 4/4 | |
-| US-08 Xuất dữ liệu | K3 | A3, export | 3/3 | |
-| US-09 Nhiều tổ chức | K4 | T1–T10 | 3/3 | |
-| US-10 Tài khoản, mở tổ chức | K4 | U1–U7, Q1, Q2, Q8, `api-errors.spec.ts` (hết phiên) | 5/5 | |
-| US-11 Thành viên | K4 | M1–M3, A7, `api-errors.spec.ts` (máy chủ lỗi) | 5/5 | |
-| US-12 Admin không xem dữ liệu | K4 | T4, Q3, Q7, Q10, Q11 | 4/4 | |
+| US-06 Xoá an toàn | K1, K2 | O7, O8, C4, C5 | 5/5 | |
+| US-07 Tạo, sửa form | K3 | A3, A5, `form-sync.spec.ts` | 11/11 | |
+| US-08 Xuất dữ liệu | K3 | A3, export | 4/4 | |
+| US-09 Nhiều tổ chức | K4 | T1–T10 | 4/4 | |
+| US-10 Tài khoản, mở tổ chức | K4 | U1–U7, Q1, Q2, Q8, `api-errors.spec.ts` (hết phiên) | 6/6 | |
+| US-11 Thành viên | K4 | M1–M3, A7, `api-errors.spec.ts` (máy chủ lỗi) | 7/7 | |
+| US-12 Admin không xem dữ liệu | K4 | T4, Q3, Q7, Q10, Q11 | 5/5 | |
+| US-13 Tự đổi mật khẩu | K4 | U8–U10, `change-password.spec.ts` | 3/3 | |
+| US-14 Danh sách phiếu | K2 | `home.spec.ts`, O7, O8, `record-list-paging.spec.ts` | 6/6 | |
+| US-15 Lịch sử sửa phiếu | K2 | `record-history.spec.ts` | 4/4 | |
 
 Kịch bản chất lượng (design §11.4): QS1 (R1, R2, R3, O2), QS2 (C1, C2, C4, C5, C8) và QS3 (T1–T5, Q7) đã có test đạt; QS4 (mở offline ≤ 3 s) đạt bằng bộ đo `client/e2e/perf/client.spec.ts` (1,1 s ở CPU ×4, §6), bộ này không chạy trong CI. QS5 (khôi phục bản trước) không có test tự động mà kiểm bằng diễn tập tay trên staging ngày 2026-10-22 (TV1-19, PR #64): quay lại nhánh 2a mất 19 s, quay về `main` 21 s, đạt mục tiêu ≤ 5 phút; nhánh khôi phục CSDL (2b) chưa diễn tập.
 
@@ -327,3 +330,4 @@ Nợ thấp còn lại không ảnh hưởng ca kiểm: N24 (địa chỉ cũ c�
 | 0.4 | 2026-11-20 | §6 điền từ `perf.md`: pull 5.000 phiếu, danh sách 2.000 phiếu, đổi dự án (TV2-11, đo 2026-10-25), mở app offline QS4 và lưu một phiếu (PR #151, đo 2026-11-20), cả 6 đạt; ở CPU ×4 danh sách và đổi dự án 2.000 phiếu vượt 1 s (N33). Ba chỉ tiêu không ticket nào nhận ghi "Chưa đo". §1, §4: QS1–QS5 đạt. §2.3 thêm thử đột biến (PR #153). §8.1 theo tech-debt 2026-11-20 (N9, N28–N30, N33…; N2, N8 đã trả). §8.2, §9 theo đó. Số test ở §1, §5 vẫn là của `5db0c36` |
 | 0.4.1 | 2026-11-20 | §8.1: N28 đã trả (bộ xử lý lỗi cuối ở server), bỏ khỏi bảng nợ |
 | 0.4.2 | 2026-11-23 | §1, §6: số đo danh sách và đổi dự án 2.000 phiếu sau N33 (PR #159, perf.md); cuộn mượt có số đo (p95 khung, `pull.spec.ts`, design 0.5.95), dòng danh sách chuyển "Đạt" |
+| 0.4.3 | 2026-11-23 | §1, §4: đếm lại tiêu chí theo requirements 0.38, thêm US-13, US-14, US-15 (15/15 story có test, mọi tiêu chí có test) |
