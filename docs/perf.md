@@ -1,6 +1,6 @@
 # Đo hiệu năng
 
-Số đo cho các chỉ tiêu ở [design.md §11.2](design.md#112-chỉ-tiêu): pull lần đầu, danh sách nhiều phiếu, đổi dự án (TV2-11, mục "Kết quả (2026-10-25)"); mở app offline (QS4) và lưu một phiếu (mục "Mở app offline và lưu phiếu (2026-11-20)"). Đồng bộ qua mạng chậm và dung lượng mỗi máy chưa đo ở đây; kích thước ảnh đo bằng `photo.spec.ts`.
+Số đo cho các chỉ tiêu ở [design.md §11.2](design.md#112-chỉ-tiêu): pull lần đầu, danh sách nhiều phiếu, đổi dự án (TV2-11, mục "Kết quả (2026-10-25)"); mở app offline (QS4) và lưu một phiếu (mục "Mở app offline và lưu phiếu (2026-11-20)"); danh sách 2.000 phiếu cuộn mượt (mục "Cuộn danh sách (2026-11-23)"). Đồng bộ qua mạng chậm và dung lượng mỗi máy chưa đo ở đây; kích thước ảnh đo bằng `photo.spec.ts`.
 
 ## Kết quả (2026-10-25)
 
@@ -12,7 +12,7 @@ Mỗi lượt chạy 3 lần, bảng ghi **trung vị** (ba lần đo trong ngo�
 | Danh sách 2.000 phiếu hiển thị | ≤ 1 s | **211 ms** (203 / 211 / 224) | **880 ms** (679 / 991 / 880) | Đạt; lượt B sát ngưỡng | 123 ms / 498 ms |
 | Đổi dự án đã tải (offline, sang dự án 2.000 phiếu) | ≤ 1 s | **246 ms** (248 / 230 / 246) | **559 ms** (593 / 331 / 559) | Đạt | 128 ms / 316 ms |
 | *Tải lại trang tới khi đủ 2.000 dòng (tham khảo, không có chỉ tiêu riêng)* | – | 178 ms (178 / 186 / 174) | 1.152 ms (662 / 1.356 / 1.152) | – | 108 ms / 561 ms |
-| Danh sách 2.000 phiếu cuộn mượt | thủ công | chưa thử | chưa thử | Chưa đo | – |
+| Danh sách 2.000 phiếu cuộn mượt | p95 khung ≤ 50 ms | p95 17 ms (trang đầu 200 dòng) · 33 ms (đủ 2.000 dòng) | 33 ms · 67 ms | Đạt; lượt B đủ 2.000 dòng vượt (mục "Cuộn danh sách (2026-11-23)") | – |
 
 Truy vấn pull trên server đi theo index, không quét bảng: phạm vi `all` dùng `records_project_seq (project_id, seq)`, phạm vi `own` dùng `records_project_creator_seq (project_id, created_by, seq)`, ghép tên người tạo/sửa tra `users` theo khoá chính, không có bước sắp xếp tạm. Kiểm tự động trong `server/test/queryPlan.test.ts` (chạy cùng `npm test`).
 
@@ -71,9 +71,25 @@ Trước đó trang chủ vẽ hết mọi phiếu: 2.000 phiếu ở CPU ×4 v�
 
 Máy đo dao động mạnh (xem trên), nên chỉ so được cỡ: ở CPU ×4 cả hai chỉ tiêu đã dưới 1 s, đổi dự án nhanh khoảng 3,5 lần. Tải lại cả trang ở CPU ×4 vẫn khoảng 1 s vì phần lớn là khởi động app và đọc IndexedDB, không phải vẽ danh sách.
 
+## Cuộn danh sách (2026-11-23)
+
+Bộ đo `perf/pull.spec.ts` ca "danh sách 2.000 phiếu cuộn mượt", cùng cách chạy ở mục "Cách đo" (`npm run test:perf -w client -- -g "cuộn mượt"`). Mỗi lượt chạy 3 lần; bảng ghi **trung vị** của p95 (ba lần trong ngoặc).
+
+| Cảnh (2.000 phiếu trong một nhóm form) | Chỉ tiêu | Lượt A: CPU bình thường | Lượt B: CPU chậm ×4 | Đạt |
+|---|---|---|---|---|
+| Trang đầu 200 dòng (cảnh thường gặp, §4.8) | p95 khung ≤ 50 ms | **17 ms** (17 / 17 / 17); trung vị khung 17 ms; 0 khung > 50 ms | 33 ms (33 / 17 / 33); 2–3 khung > 50 ms trên 143 | Đạt |
+| Bấm [Xem thêm phiếu] tới khi vẽ đủ 2.000 dòng (cảnh nặng nhất) | p95 khung ≤ 50 ms | **33 ms** (33 / 33 / 33); 1–5 khung > 50 ms trên 1.420 | 67 ms (83 / 67 / 50); 74–153 khung > 50 ms trên 1.420 | Đạt ở lượt A; lượt B vượt |
+
+Cách đo: dự án mới seed 2.000 phiếu, `lan` (supervisor) pull xong, trang chủ hiện trang đầu. Trong trang, script cuộn cửa sổ từ đầu tới cuối, mỗi khung (`requestAnimationFrame`) xuống 100 px (khoảng 6.000 px/s, như vuốt nhanh), ghi khoảng cách giữa hai khung. Màn hình 60 Hz nên khung đều là 16,7 ms; khung 33 ms là rơi một khung. Đo trang đầu, rồi bấm [Xem thêm phiếu] 9 lần tới khi đủ 2.000 dòng và đo lại.
+
+Đọc số đo:
+- **Ngưỡng "mượt" là p95 khung ≤ 50 ms** (design §11.2, chốt 2026-11-23): 95% khung không chậm quá ba lần khung 60 Hz, tức không có khựng thấy được kéo dài. §11.2 trước đó chỉ ghi "cuộn mượt", không có số. Lượt A so ngưỡng (đỏ nếu vượt), lượt B chỉ ghi số, như các chỉ tiêu khác của bộ này.
+- Cuộn bằng script chạy trên luồng chính nên khung nào luồng chính bận đều dài ra. Cuộn bằng ngón tay trên điện thoại do compositor làm, thường mượt hơn số đo này, nên số đo là cận xấu.
+- Ở máy yếu (lượt B) trang đầu vẫn mượt. Bung hết 2.000 dòng thì khoảng 5–10% khung quá 50 ms: người dùng phải bấm [Xem thêm phiếu] 9 lần mới tới cảnh này. Nếu thử máy thật thấy giật thì hướng sửa ở mục "Chỗ có thể chậm" (chỉ vẽ phần đang thấy).
+
 ## Thử tay trên điện thoại (chưa làm)
 
-§11.2 ghi "thủ công" cho "danh sách 2.000 phiếu cuộn mượt". Cách thử trên staging:
+§11.2 có bộ đo tự động cho "danh sách 2.000 phiếu cuộn mượt" (mục trên) nhưng chưa thử trên điện thoại thật. Cách thử trên staging:
 1. Trên máy staging (không phải production): tạo dự án thử, chạy `npm run seed:perf -w server -- --project <id> --user <tên người tạo> --count 2000`, thêm tài khoản thử làm supervisor.
 2. Trên điện thoại Android tầm trung, đăng nhập tài khoản đó, chờ đồng bộ xong.
 3. Cuộn danh sách từ đầu tới cuối: ghi lại có giật không, và thời gian từ lúc mở app tới khi thấy danh sách.
