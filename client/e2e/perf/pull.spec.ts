@@ -2,7 +2,8 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 import { createProject, login, setMembership } from '../helpers';
 
 // Đo các chỉ tiêu ở design §11.2 mà TV2-11 phụ trách (docs/perf.md): pull lần đầu 5.000 phiếu
-// (supervisor) ≤ 30 s, danh sách 2.000 phiếu hiển thị ≤ 1 s, đổi dự án đã tải ≤ 1 s kể cả offline.
+// (supervisor) ≤ 30 s, danh sách 2.000 phiếu hiển thị ≤ 1 s và cuộn mượt (p95 khung ≤ 50 ms), đổi dự án đã tải
+// ≤ 1 s kể cả offline.
 // Chạy bằng `npm run test:perf`, không nằm trong `npm run test:e2e`.
 // PERF_CPU_THROTTLE=4: giả lập máy yếu bằng Chrome DevTools Protocol; chỉ ghi số đo, không so ngưỡng
 // (§11.2 không yêu cầu throttle cho ba chỉ tiêu này).
@@ -72,8 +73,58 @@ async function choose(page: Page, name: string) {
   await switcher.getByRole('listitem').getByRole('button', { name }).click();
 }
 
+/**
+ * Cuộn cả trang từ đầu tới cuối, mỗi khung xuống STEP px (~6.000 px/s, như vuốt nhanh), ghi khoảng cách
+ * giữa hai khung (requestAnimationFrame). Cuộn bằng script chạy trên luồng chính nên khung nào luồng
+ * chính bận (vẽ, layout dòng mới) sẽ dài ra; cuộn bằng ngón tay thật do compositor lo nên thường mượt hơn.
+ */
+const STEP = 100;
+function scrollFrames(page: Page): Promise<number[]> {
+  return page.evaluate(
+    (step) =>
+      new Promise<number[]>((resolve) => {
+        window.scrollTo(0, 0);
+        const gaps: number[] = [];
+        let last = 0;
+        const tick = (now: number) => {
+          gaps.push(now - last);
+          last = now;
+          const max = document.documentElement.scrollHeight - window.innerHeight;
+          if (window.scrollY >= max) return resolve(gaps);
+          window.scrollBy(0, step);
+          requestAnimationFrame(tick);
+        };
+        // Khung đầu chỉ lấy mốc thời gian, không tính
+        requestAnimationFrame((t) => {
+          last = t;
+          requestAnimationFrame(tick);
+        });
+      }),
+    STEP,
+  );
+}
+
+const percentile = (sorted: number[], p: number) =>
+  sorted[Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1)] ?? 0;
+
+/** "Mượt" theo design §11.2: 95% khung ≤ 50 ms. Ghi thêm trung vị và số khung > 50 ms. */
+function recordScroll(name: string, gaps: number[]) {
+  const sorted = [...gaps].sort((a, b) => a - b);
+  const p50 = Math.round(percentile(sorted, 50));
+  const p95 = Math.round(percentile(sorted, 95));
+  const long = gaps.filter((g) => g > 50).length;
+  const line =
+    `${name}: ${gaps.length} khung, trung vị ${p50} ms, p95 ${p95} ms, ${long} khung > 50 ms ` +
+    `(chỉ tiêu p95 ≤ 50 ms, CPU ×${THROTTLE})`;
+  test.info().annotations.push({ type: 'perf', description: line });
+  console.log(`[perf] ${line}`);
+  if (ASSERT) expect(p95, line).toBeLessThanOrEqual(50);
+}
+
 test.afterEach(async ({ request }) => {
-  for (const id of [`a-${run}-pull`, `a-${run}-list`]) await setMembership(request, id, 'u_lan', null);
+  for (const id of [`a-${run}-pull`, `a-${run}-list`, `a-${run}-scroll`]) {
+    await setMembership(request, id, 'u_lan', null);
+  }
 });
 
 test('pull lần đầu 5.000 phiếu (supervisor) ≤ 30 s', async ({ page, request }) => {
@@ -143,4 +194,27 @@ test('danh sách 2.000 phiếu hiển thị ≤ 1 s; đổi dự án đã tải 
   await firstPage();
   record('Đổi sang dự án 2.000 phiếu (offline)', Date.now() - started, 1_000);
   await context.setOffline(false);
+});
+
+test('danh sách 2.000 phiếu cuộn mượt', async ({ page, request }) => {
+  const id = `a-${run}-scroll`;
+  await seedProject(request, id, `Đo cuộn ${run}`, 2000);
+  await page.goto('/');
+  await throttle(page);
+  await login(page, 'lan');
+  await expect.poll(() => localCount(page, id), { timeout: 120_000 }).toBe(2000);
+  await expect(page.getByRole('heading', { name: 'Khảo sát hộ gia đình (2000)' })).toBeVisible({ timeout: 60_000 });
+  await expect(listItems(page)).toHaveCount(200, { timeout: 60_000 });
+
+  // Trang đầu 200 dòng: cảnh hay gặp nhất (design §4.8)
+  recordScroll('Cuộn trang đầu 200 phiếu', await scrollFrames(page));
+
+  // Bấm [Xem thêm phiếu] tới khi vẽ đủ 2.000 dòng: cảnh nặng nhất của chỉ tiêu "2.000 phiếu cuộn mượt"
+  const more = page.getByRole('button', { name: 'Xem thêm phiếu' });
+  for (let shown = 400; shown <= 2000; shown += 200) {
+    await more.click();
+    await expect(listItems(page)).toHaveCount(shown, { timeout: 60_000 });
+  }
+  await expect(more).toHaveCount(0);
+  recordScroll('Cuộn đủ 2.000 phiếu', await scrollFrames(page));
 });
