@@ -1,6 +1,6 @@
 # Báo cáo kiểm thử
 
-- **Phiên bản:** 0.4.4 (2026-11-24)
+- **Phiên bản:** 0.4.5 (2026-11-24)
 - **Người viết:** Đại (TV3, Quality owner), ticket [TV3-11](plan/tv3-conflict-media-test.md)
 - **Bản được kiểm:** `main` ở commit `5db0c36` (sau PR #64)
 - **Liên quan:** ma trận ca ở [design.md §10.1](design.md#101-ma-trận-e2e-bắt-buộc), ca cách ly ở [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng), chỉ tiêu ở [§11.2](design.md#112-chỉ-tiêu), story ở [requirements.md](requirements.md), nợ ở [tech-debt.md](tech-debt.md)
@@ -15,7 +15,7 @@ File này trả lời: hệ thống đã được kiểm chứng tới đâu, b�
 | Test tự động | 682 unit và integration (shared 130, server 379, client 173), 118 E2E trong 30 file, không ca nào `skip` |
 | CI (2026-10-07 → 2026-10-22) | 198 lần chạy: 159 xanh, 39 bị huỷ vì có push mới hơn, **0 đỏ**; trung vị 1,9 phút |
 | Kịch bản chất lượng §11.4 | **5/5 đạt**; QS4 mở app offline tới khi nhập được 1,1 s ở CPU ×4 (mục tiêu ≤ 3 s, §6) |
-| Chỉ tiêu hiệu năng §11.2 | 6/10 có số đo, cả 6 đạt (mở app offline 1,1 s; lưu phiếu 33 ms; pull 5.000 phiếu 2,3 s; danh sách 2.000 phiếu 211 ms, cuộn p95 33 ms; đổi dự án 246 ms; ảnh ≤ 600 KB); 3 chưa đo (đồng bộ qua mạng chậm, dung lượng mỗi máy); 1 chỉ là thiết kế. Máy yếu (CPU ×4): sau N33 danh sách và đổi dự án 2.000 phiếu đã dưới 1 s; cuộn khi bung đủ 2.000 dòng vượt ngưỡng (§6) |
+| Chỉ tiêu hiệu năng §11.2 | 9/10 có số đo: 7 đạt (mở app offline 1,1 s; lưu phiếu 33 ms; pull 5.000 phiếu 2,3 s; danh sách 2.000 phiếu 211 ms, cuộn p95 33 ms; đổi dự án 246 ms; ảnh ≤ 600 KB; dung lượng khoảng 142 MB), **2 không đạt** (đồng bộ 100 phiếu Slow 3G 208 s, 50 ảnh 3G 198 s; tech-debt N35, N36); 1 chỉ là thiết kế. Máy yếu (CPU ×4): sau N33 danh sách và đổi dự án 2.000 phiếu đã dưới 1 s; cuộn khi bung đủ 2.000 dòng vượt ngưỡng (§6) |
 | Điện thoại thật | ⏳ chưa thử (§7) |
 | User story | 16/16 story có test; mọi tiêu chí có test (§4, requirements 0.39) |
 
@@ -213,7 +213,7 @@ Số test trên `main` ở commit `5db0c36`:
 
 ## 6. Hiệu năng
 
-Mục tiêu do nhóm tự đặt theo thiết bị tham chiếu (máy Android tầm trung 3 GB RAM, design §11.1). Mọi số đo lấy từ [perf.md](perf.md), bộ đo `client/e2e/perf/` (`npm run test:perf`, không chạy trong CI): pull, danh sách, đổi dự án của TV2-11 (`pull.spec.ts`, đo 2026-10-25); mở app offline và lưu một phiếu (`client.spec.ts`, PR #151, đo 2026-11-20). Mỗi lượt chạy 3 lần, ghi **trung vị**. Lượt A: CPU bình thường. Lượt B: giả lập máy yếu (CPU chậm ×4). Cột "Kết quả" so với điều kiện §11.2 ghi: mở app offline so ở lượt B, các chỉ tiêu khác so ở lượt A. Máy đo: laptop i5-13500H, 16 GB, Windows 11, server và trình duyệt cùng máy, không giới hạn mạng.
+Mục tiêu do nhóm tự đặt theo thiết bị tham chiếu (máy Android tầm trung 3 GB RAM, design §11.1). Mọi số đo lấy từ [perf.md](perf.md), bộ đo `client/e2e/perf/` (`npm run test:perf`, không chạy trong CI): pull, danh sách, đổi dự án của TV2-11 (`pull.spec.ts`, đo 2026-10-25); mở app offline và lưu một phiếu (`client.spec.ts`, PR #151, đo 2026-11-20); đồng bộ qua mạng chậm và dung lượng (`network.spec.ts`, đo 2026-11-24, mỗi lượt 2 lần vì số đo do độ trễ giả lập quyết định, gần như không đổi). Còn lại mỗi lượt chạy 3 lần, ghi **trung vị**. Lượt A: CPU bình thường. Lượt B: giả lập máy yếu (CPU chậm ×4). Cột "Kết quả" so với điều kiện §11.2 ghi: mở app offline so ở lượt B, các chỉ tiêu khác so ở lượt A. Máy đo: laptop i5-13500H, 16 GB, Windows 11, server và trình duyệt cùng máy, không giới hạn mạng.
 
 | Chỉ tiêu | Mục tiêu | Số đo | Nguồn | Kết quả |
 |---|---|---|---|---|
@@ -223,13 +223,13 @@ Mục tiêu do nhóm tự đặt theo thiết bị tham chiếu (máy Android t�
 | Danh sách 2.000 phiếu | hiển thị ≤ 1 s, cuộn mượt | Hiển thị A: **211 ms** · B: 880 ms (2026-10-25), 1,4–1,6 s (2026-11-20, trước N33), 447–727 ms (2026-11-22, sau N33: vẽ trang đầu 200 phiếu). Cuộn, p95 khung (ngưỡng ≤ 50 ms): trang đầu A: **17 ms** · B: 33 ms; đủ 2.000 dòng A: **33 ms** · B: 67 ms (2026-11-23) | `pull.spec.ts`, [perf.md](perf.md) | Đạt |
 | Đổi dự án đã tải, kể cả offline | ≤ 1 s | Sang dự án 2.000 phiếu, offline: A: **246 ms** · B: 559 ms (2026-10-25), 1,6–1,8 s (2026-11-20, trước N33), 458–463 ms (2026-11-22, sau N33). Dự án ít dữ liệu: < 1 s | `pull.spec.ts`, [perf.md](perf.md); `project-switcher.spec.ts` (khẳng định bằng `timeout: 1000`) | Đạt |
 | Kích thước ảnh sau nén | ≤ 600 KB | ≤ 600 KB với ảnh 4 MB | `photo.spec.ts`; unit `fitWithin` | Đạt |
-| Đồng bộ 100 phiếu không ảnh | ≤ 10 s, Slow 3G | – | Không ticket nào nhận | **Chưa đo** |
-| Đồng bộ 50 ảnh đã nén | ≤ 3 phút, 3G 1,6 Mbps | – | Không ticket nào nhận | **Chưa đo** |
-| Dung lượng mỗi máy | 2.000 phiếu + 500 ảnh (khoảng 250 MB) | – | Không ticket nào nhận | **Chưa đo** |
+| Đồng bộ 100 phiếu không ảnh | ≤ 10 s, Slow 3G | A: **207,7 s** · B: 209,3 s (2026-11-24) | `network.spec.ts`, [perf.md](perf.md) | **Không đạt** (N35) |
+| Đồng bộ 50 ảnh đã nén | ≤ 3 phút, 3G 1,6 Mbps | A: **197,8 s** · B: 199,2 s (2026-11-24) | `network.spec.ts`, [perf.md](perf.md) | **Không đạt** (N36) |
+| Dung lượng mỗi máy | 2.000 phiếu + 500 ảnh (khoảng 250 MB) | 2.000 phiếu đo thật 2,9 MB (IndexedDB 2,4 MB); ảnh 278 KB mỗi ảnh; ngoại suy **khoảng 142 MB** (2026-11-24) | `network.spec.ts`, [perf.md](perf.md) | Đạt |
 | Số dự án mỗi người dùng | tối đa 10 | – | Thiết kế, không đo | – |
 
 Đọc số đo thế nào:
-- **Có số đo 6/10 chỉ tiêu, cả 6 đạt theo điều kiện §11.2.** Ba chỉ tiêu chưa đo không có nghĩa là không đạt, chỉ là chưa có bằng chứng. Gần nhất với "đồng bộ qua mạng" là lần thử O2 trên staging qua Internet thật (§7.3): 10 phiếu, mỗi phiếu một ảnh, đồng bộ xong sau 7,5 s; lần đó không giới hạn băng thông nên chỉ cho biết cỡ.
+- **Có số đo 9/10 chỉ tiêu: 7 đạt, 2 không đạt theo điều kiện §11.2.** Hai chỉ tiêu đồng bộ qua mạng chậm (đo 2026-11-24, mạng giả lập bằng Chrome) không đạt vì độ trễ, không phải băng thông: app gửi từng phiếu một nên 100 phiếu tốn 100 lần trễ 2 s (208 s, chỉ tiêu 10 s; tech-debt N35); 50 ảnh tốn khoảng 210 request nối tiếp, mỗi request trễ 0,56 s (198 s, chỉ tiêu 180 s; N36). Không mất dữ liệu, chỉ chờ lâu. Đồng bộ qua Internet thật: lần thử O2 trên staging (§7.3), 10 phiếu, mỗi phiếu một ảnh, xong sau 7,5 s.
 - **QS4 còn dư nhiều:** 1,1 s so với 3 s, và lượt đo này rơi vào lúc máy đo đang chậm (perf.md ghi chú cuối mục "Mở app offline và lưu phiếu"), nên số thật trên máy này có thể tốt hơn.
 - **Máy yếu, nhiều phiếu (N33):** khi chạy lại ngày 2026-11-20 ở CPU ×4, danh sách 2.000 phiếu (1,4–1,6 s) và đổi dự án sang dự án 2.000 phiếu (1,6–1,8 s) vượt 1 s. Từ PR #159 (N33) mỗi nhóm chỉ vẽ 200 phiếu mới nhất kèm nút [Xem thêm phiếu]; đo lại 2026-11-22 cùng máy: 447–727 ms và 458–463 ms, đều dưới 1 s.
 - **Cuộn mượt (2026-11-23):** §11.2 nay có ngưỡng đo được, p95 khoảng cách khung ≤ 50 ms (design 0.5.95). Đạt ở lượt A cả trang đầu lẫn khi bung đủ 2.000 dòng. Ở CPU ×4, trang đầu vẫn mượt (p95 33 ms), bung đủ 2.000 dòng (phải bấm [Xem thêm phiếu] 9 lần) thì p95 67 ms, 5–10% khung quá 50 ms. Bộ đo cuộn bằng script trên luồng chính, nên trên điện thoại (cuộn bằng compositor) thường mượt hơn; chưa thử máy thật (§7).
@@ -314,7 +314,7 @@ Nợ thấp còn lại không ảnh hưởng ca kiểm: N24 (địa chỉ cũ c�
 ## 9. Việc còn lại để chốt báo cáo
 
 - [x] Điền §6 từ `docs/perf.md` khi TV2-11 xong (Hoàng đo, Đại điền) (bản 0.4).
-- [x] Đo QS4 (mở app offline ≤ 3 s, CPU ×4) và lưu một phiếu: PR #151, điền §6 ở bản 0.4. Ba chỉ tiêu còn chưa đo (§6) để sau đồ án.
+- [x] Đo QS4 (mở app offline ≤ 3 s, CPU ×4) và lưu một phiếu: PR #151, điền §6 ở bản 0.4. Ba chỉ tiêu còn lại đo 2026-11-24 (§6, bản 0.4.5): dung lượng đạt, hai chỉ tiêu đồng bộ qua mạng chậm không đạt (N35, N36).
 - [ ] Thử P1–P13 trên điện thoại thật, điền §7 (Đại, cần staging bản cuối).
 - [x] Đưa ca của TV3-14 (GPS, điều tra viên thấy form) vào §3, §4 khi ticket đó xong (bản 0.3).
 - [ ] Sau đóng băng tính năng: chạy lại toàn bộ test trên commit cuối, cập nhật số ở §1, §3, §5.
@@ -333,3 +333,4 @@ Nợ thấp còn lại không ảnh hưởng ca kiểm: N24 (địa chỉ cũ c�
 | 0.4.2 | 2026-11-23 | §1, §6: số đo danh sách và đổi dự án 2.000 phiếu sau N33 (PR #159, perf.md); cuộn mượt có số đo (p95 khung, `pull.spec.ts`, design 0.5.95), dòng danh sách chuyển "Đạt" |
 | 0.4.3 | 2026-11-23 | §1, §4: đếm lại tiêu chí theo requirements 0.38, thêm US-13, US-14, US-15 (15/15 story có test, mọi tiêu chí có test) |
 | 0.4.4 | 2026-11-24 | §1, §4: thêm US-16 Giao diện tối theo requirements 0.39 (16/16 story có test, mọi tiêu chí có test) |
+| 0.4.5 | 2026-11-24 | §1, §6, §9: đo ba chỉ tiêu §11.2 còn lại bằng `network.spec.ts` (perf.md "Mạng chậm và dung lượng"): dung lượng đạt, đồng bộ 100 phiếu Slow 3G và 50 ảnh 3G không đạt (tech-debt N35, N36) |

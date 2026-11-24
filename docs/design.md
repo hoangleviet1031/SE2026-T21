@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.96 (2026-11-23)
+- **Phiên bản:** 0.5.97 (2026-11-24)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -130,6 +130,7 @@
 | 0.5.94 | 2026-11-22 | Tech-debt N33 (không ticket, Dương cho phép 2026-11-22, duyệt chữ "Xem thêm phiếu"): §4.8 "Hiệu năng" có code: mỗi nhóm form vẽ 200 phiếu mới nhất, nút [Xem thêm phiếu] thêm 200; số trong tiêu đề nhóm vẫn đếm đủ; đổi bộ lọc hoặc dự án thì về trang đầu. §11.2 "Danh sách 2.000 phiếu" đo tới khi trang đầu hiện xong. Không đổi API, kiểu dùng chung, schema |
 | 0.5.95 | 2026-11-23 | §11.2 "Danh sách 2.000 phiếu cuộn mượt" có ngưỡng đo được: p95 khoảng cách khung ≤ 50 ms khi cuộn từ đầu tới cuối danh sách, đo bằng Playwright (`perf/pull.spec.ts`, không ticket, Dương cho phép 2026-11-23); bỏ khỏi danh sách "Chưa đo". Số đo ở perf.md |
 | 0.5.96 | 2026-11-23 | §1 "Giả định": trỏ tới kịch bản thử với người dùng thật `user-test.md` (mới, không ticket, Dương cho phép 2026-11-23); chưa thử với ai nên giả định giữ nguyên |
+| 0.5.97 | 2026-11-24 | §11.2 có số đo ba chỉ tiêu còn lại (không ticket, Dương cho phép 2026-11-24): cột "Đo bằng" ghi thông số mạng giả lập và bộ đo `client/e2e/perf/network.spec.ts`; đồng bộ 100 phiếu Slow 3G và 50 ảnh 3G chưa đạt (tech-debt N35, N36), dung lượng đạt (khoảng 142 MB cho 2.000 phiếu + 500 ảnh). Không đổi chỉ tiêu, API, mã lỗi, schema |
 
 ## Mục lục
 
@@ -167,7 +168,7 @@
 **Giả định** (chưa có bằng chứng; Lecture 03 yêu cầu ghi rõ):
 - Chưa phỏng vấn hay thử với nhóm khảo sát thật (§14 câu 1). Người dùng, nhu cầu và mâu thuẫn ở §2 là giả định của nhóm; `demo-yte`, `demo-nongnghiep` là dự án mẫu tự đặt. Kịch bản thử với 2–3 người ngoài nhóm đã có ở [user-test.md](user-test.md), chưa thử.
 - Chưa có số liệu quy trình hiện tại (thời gian nhập lại, tỉ lệ mất phiếu) nên K1–K4 đo bằng test chứ chưa so được với trước.
-- Chỉ tiêu §11.2 là mục tiêu nhóm tự đặt theo thiết bị tham chiếu. Đã đo 6/10 trên máy tính có giả lập máy yếu (CPU ×4, [perf.md](perf.md)), chưa đo trên điện thoại thật.
+- Chỉ tiêu §11.2 là mục tiêu nhóm tự đặt theo thiết bị tham chiếu. Đã đo 9/10 trên máy tính có giả lập máy yếu và mạng chậm (CPU ×4, [perf.md](perf.md)), chưa đo trên điện thoại thật.
 - **Giả định rủi ro nhất:** điện thoại giữ được dữ liệu trong trình duyệt nhiều ngày khi offline (iOS có thể xoá, §13) và điều tra viên chịu dùng PWA thay app native. Bằng chứng đã có: 3 thành viên cài và chạy offline trên Android và iPhone thật (TV1-01). Bằng chứng còn thiếu: một đợt thử thật nhiều ngày.
 
 **Mục tiêu:** một hệ thống dùng chung cho **nhiều nhóm thuộc các tổ chức khác nhau** (y tế, nông nghiệp, giáo dục, ...). Mỗi nhóm tự tạo form cho lĩnh vực của mình; điều tra viên thu thập phiếu ở nơi không có mạng, dữ liệu tự đồng bộ khi có kết nối, và khi hai nơi cùng sửa một phiếu thì hệ thống giải thích rõ chuyện gì xảy ra để người dùng tự quyết. Dữ liệu của các nhóm tách biệt hoàn toàn (ADR 0002).
@@ -1305,15 +1306,15 @@ Các API bắt buộc: Service Worker, IndexedDB, `crypto.randomUUID`, Web Locks
 | Mở app offline (đã cài) tới khi nhập được | ≤ 3 s trên thiết bị tham chiếu | Playwright, CPU throttle 4× (`client/e2e/perf/client.spec.ts`, [perf.md](perf.md)) |
 | Lưu một phiếu | ≤ 200 ms | Playwright (`client/e2e/perf/client.spec.ts`, [perf.md](perf.md)) |
 | Danh sách 2.000 phiếu | Cuộn mượt, hiển thị ≤ 1 s | Hiển thị (từ N33: tới khi trang đầu 200 phiếu và nút [Xem thêm phiếu] hiện xong, §4.8): Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); cuộn mượt = p95 khoảng cách khung ≤ 50 ms khi cuộn từ đầu tới cuối danh sách: Playwright (cùng file) |
-| Đồng bộ 100 phiếu không ảnh | ≤ 10 s ở mạng "Slow 3G" | Playwright network throttle |
-| Đồng bộ 50 ảnh đã nén | ≤ 3 phút ở mạng 3G (1,6 Mbps) | Playwright network throttle |
+| Đồng bộ 100 phiếu không ảnh | ≤ 10 s ở mạng "Slow 3G" | Playwright network throttle (preset DevTools: 400 kbit/s, trễ 2 s; `client/e2e/perf/network.spec.ts`, [perf.md](perf.md)) |
+| Đồng bộ 50 ảnh đã nén | ≤ 3 phút ở mạng 3G (1,6 Mbps) | Playwright network throttle (1,6 Mbit/s hai chiều, trễ 562,5 ms; `network.spec.ts`, [perf.md](perf.md)) |
 | Pull lần đầu 5.000 phiếu (supervisor) | ≤ 30 s | Seed (`seed:perf`) + Playwright (`client/e2e/perf/pull.spec.ts`, [perf.md](perf.md)); truy vấn theo index có test `server/test/queryPlan.test.ts` |
-| Dung lượng mỗi máy | Thiết kế cho tổng 2.000 phiếu + 500 ảnh (khoảng 250 MB) trên mọi dự án | `storage.estimate()` |
+| Dung lượng mỗi máy | Thiết kế cho tổng 2.000 phiếu + 500 ảnh (khoảng 250 MB) trên mọi dự án | `storage.estimate()` trong Playwright: 2.000 phiếu tải về đo thật, ảnh tính theo cỡ đo được (`network.spec.ts`, [perf.md](perf.md)) |
 | Đổi dự án (đã tải) | ≤ 1 s, kể cả offline | Playwright (`project-switcher.spec.ts` với ít dữ liệu; `perf/pull.spec.ts` với 2.000 phiếu, [perf.md](perf.md)) |
 | Số dự án mỗi người dùng | Tối đa 10 | Thiết kế |
 | Kích thước ảnh sau nén | ≤ 600 KB | E2E `photo.spec.ts` (canvas chỉ có trong trình duyệt); unit test `fitWithin` |
 
-Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chiếu (§11.1), chưa có số đo trước để so (§1 "Giả định"). Đã có số đo: kích thước ảnh, đổi dự án (`project-switcher.spec.ts`); pull lần đầu, danh sách 2.000 phiếu hiển thị, đổi dự án 2.000 phiếu (TV2-11); mở app offline, lưu một phiếu (2026-11-20); danh sách 2.000 phiếu cuộn mượt (2026-11-23). Chưa đo: hai dòng đồng bộ qua mạng chậm, dung lượng mỗi máy.
+Các con số trên là mục tiêu nhóm tự đặt theo thiết bị tham chiếu (§11.1), chưa có số đo trước để so (§1 "Giả định"). Đã có số đo: kích thước ảnh, đổi dự án (`project-switcher.spec.ts`); pull lần đầu, danh sách 2.000 phiếu hiển thị, đổi dự án 2.000 phiếu (TV2-11); mở app offline, lưu một phiếu (2026-11-20); danh sách 2.000 phiếu cuộn mượt (2026-11-23); đồng bộ qua mạng chậm, dung lượng mỗi máy (2026-11-24). Chưa đạt: hai dòng đồng bộ qua mạng chậm (100 phiếu Slow 3G 208 s vì gửi từng phiếu một, 50 ảnh 3G 198 s; [tech-debt.md](tech-debt.md) N35, N36).
 
 ### 11.3 Khả năng tiếp cận
 
