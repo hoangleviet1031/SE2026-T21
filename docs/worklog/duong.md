@@ -11,7 +11,7 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
-| 2026-11-24 | — | docs | Thêm story US-16 "Giao diện tối" (Could): requirements 0.39 (3 tiêu chí, truy vết tới `dark-mode.spec.ts`, `theme.test.ts`, `themeChoice.test.ts`), test-report 0.4.4 §1, §4 (16/16 story) | nhánh `docs/story-giao-dien-toi` | chờ merge |
+| 2026-11-24 | — | docs | Thêm story US-16 "Giao diện tối" (Could): requirements 0.39 (3 tiêu chí, truy vết tới `dark-mode.spec.ts`, `theme.test.ts`, `themeChoice.test.ts`), test-report 0.4.4 §1, §4 (16/16 story) | PR #163 | chờ merge |
 | 2026-11-24 | — | docs | PR #162 đã merge | PR #162 | xong |
 | 2026-11-23 | TV1-12 | docs | Rà truy vết (Product): requirements 0.38 thêm tiêu chí cho dòng truy vết đã có test mà story chưa ghi (US-01 N34, US-02 #156 và Đã đồng bộ → Nháp, US-04 pull không ghi đè, US-11 tải lại danh sách lỗi), xếp/tách dòng cho khớp từng tiêu chí, thêm số PR thiếu; test-report 0.4.3 §1, §4 đếm lại (15/15 story); đóng TV1-12 ✅ (N13 còn là nợ) | PR #162 | chờ review |
 | 2026-11-23 | — | docs | PR #161 đã merge | PR #161 | xong |
