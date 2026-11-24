@@ -134,6 +134,17 @@ describe('builderErrors', () => {
     expect(errors.some((e) => e.includes('ít nhất một lựa chọn'))).toBe(true);
   });
 
+  it('form mới chưa có trường nào: báo lỗi (tech-debt N15)', () => {
+    const s = setFormId(setTitle(emptyBuilder(), 'Mới'), 'moi');
+    expect(builderErrors(s)).toEqual(['Biểu mẫu chưa có trường nào']);
+  });
+
+  it('ẩn hết trường của form đã lưu: báo lỗi (tech-debt N15)', () => {
+    const s = fromForm(saved);
+    const allHidden = s.fields.reduce((acc, _f, i) => updateField(acc, i, { hidden: true }), s);
+    expect(builderErrors(allHidden, saved)).toEqual(['Biểu mẫu cần ít nhất một trường không ẩn']);
+  });
+
   it('bỏ lựa chọn cũ thì báo lỗi theo luật so với bản trước', () => {
     const s = updateField(fromForm(saved), 1, { options: ['Máy'] });
     expect(builderErrors(s, saved)).not.toEqual([]);

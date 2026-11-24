@@ -64,6 +64,17 @@ describe('validateFormSchema: một phiên bản (design §4.1)', () => {
     expect(validateFormSchema({ ...form(name), title: '  ' })).toEqual(['Tên biểu mẫu không được để trống']);
   });
 
+  it('không có trường nào: lỗi (tech-debt N15)', () => {
+    expect(validateFormSchema(form())).toEqual(['Biểu mẫu chưa có trường nào']);
+  });
+
+  it('mọi trường đều ẩn: lỗi; còn một trường không ẩn thì hợp lệ (tech-debt N15)', () => {
+    expect(validateFormSchema(form({ ...name, hidden: true }, { ...water, hidden: true }))).toEqual([
+      'Biểu mẫu cần ít nhất một trường không ẩn',
+    ]);
+    expect(validateFormSchema(form({ ...name, hidden: true }, water))).toEqual([]);
+  });
+
   it('mã biểu mẫu được có dấu -, mã trường thì không', () => {
     expect(validateFormSchema({ ...form(name), id: 'household-survey' })).toEqual([]);
     expect(validateFormSchema({ ...form(name), id: '-survey' })).toEqual([expect.stringContaining('Mã biểu mẫu')]);

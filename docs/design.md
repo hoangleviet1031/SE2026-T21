@@ -1,6 +1,6 @@
 # Tài liệu thiết kế: Offline-first Field Survey PWA
 
-- **Phiên bản:** 0.5.97 (2026-11-24)
+- **Phiên bản:** 0.5.98 (2026-11-24)
 - **Nhóm:** 3 sinh viên, 8 tuần. Phân công ở [team-plan.md](team-plan.md).
 - **Quyết định kiến trúc (đã chấp nhận):** [ADR 0001 – Mô hình nhất quán](adr/0001-consistency-model.md), [ADR 0002 – Nhiều tổ chức](adr/0002-multi-tenancy.md), [ADR 0003 – Tài khoản, Owner, trang quản trị](adr/0003-accounts-and-owner-role.md) (thay một phần ADR 0002)
 - **Quy ước:** "Code chưa làm" nghĩa là spec đã chốt nhưng khung mã hiện tại chưa theo.
@@ -131,6 +131,7 @@
 | 0.5.95 | 2026-11-23 | §11.2 "Danh sách 2.000 phiếu cuộn mượt" có ngưỡng đo được: p95 khoảng cách khung ≤ 50 ms khi cuộn từ đầu tới cuối danh sách, đo bằng Playwright (`perf/pull.spec.ts`, không ticket, Dương cho phép 2026-11-23); bỏ khỏi danh sách "Chưa đo". Số đo ở perf.md |
 | 0.5.96 | 2026-11-23 | §1 "Giả định": trỏ tới kịch bản thử với người dùng thật `user-test.md` (mới, không ticket, Dương cho phép 2026-11-23); chưa thử với ai nên giả định giữ nguyên |
 | 0.5.97 | 2026-11-24 | §11.2 có số đo ba chỉ tiêu còn lại (không ticket, Dương cho phép 2026-11-24): cột "Đo bằng" ghi thông số mạng giả lập và bộ đo `client/e2e/perf/network.spec.ts`; đồng bộ 100 phiếu Slow 3G và 50 ảnh 3G chưa đạt (tech-debt N35, N36), dung lượng đạt (khoảng 142 MB cho 2.000 phiếu + 500 ảnh). Không đổi chỉ tiêu, API, mã lỗi, schema |
+| 0.5.98 | 2026-11-24 | §4.1 "Validate ở server khi lưu form": thêm luật form có ít nhất một trường không ẩn (tech-debt N15, không ticket, Dương cho phép 2026-11-24, không nhắn nhóm). Hai câu lỗi mới trong `details` của `400 invalid_form` (mã lỗi không đổi); builder và nhập form báo cùng câu trước khi gửi. Sửa `shared/src/formValidation.ts`; không đổi kiểu, API, schema |
 
 ## Mục lục
 
@@ -435,6 +436,7 @@ Form là JSON (`FormSchema` trong `shared/src/types.ts`):
   - **Mẫu có sẵn** (Could, Dương duyệt 2026-11-13, cắt được; dữ liệu `client/src/formTemplates.ts`, `fromTemplate` ở `client/src/builder.ts`): ở "Biểu mẫu mới" (không có khi sửa form đã lưu) chọn một trong ba mẫu "Khảo sát hộ gia đình", "Khảo sát y tế hộ gia đình", "Khảo sát cây trồng" (nội dung Dương chốt; mỗi mẫu qua `validateFormSchema`, chỉ dùng 7 loại trường đã có). Mẫu đóng gói trong app nên offline vẫn dùng được. Nạp mẫu là **nạp vào builder** thành form mới chưa lưu như tạo tay: mã form gợi ý từ tiêu đề, trùng form đã có trên máy trong dự án thì thêm số (`khaoSatHoGiaDinh2`); mã form và mã trường còn đi theo tiêu đề/nhãn tới khi tự sửa; trường xoá được. Builder đã có gì (khác builder rỗng, gồm cả form vừa nhập, mẫu khác, bản tự lưu vừa khôi phục) thì hỏi lại trong app trước khi thay, vì phần đang sửa sẽ mất. Không gọi API, không tự lưu lên server: người dùng sửa rồi bấm "Lưu bản mới" như thường; phần đã nạp được tự lưu như mọi phần đang sửa (mục "Tự lưu bản đang sửa"). Câu chữ ở ui.md màn hình 5.
 - **Validate ở server khi lưu form** (`POST /api/projects/:projectId/forms`, trả `400 invalid_form` kèm danh sách lỗi):
   - `id` trường duy nhất và khớp `^[a-zA-Z][a-zA-Z0-9_]*$` (là tên cột khi export); `id` form khớp `^[a-zA-Z][a-zA-Z0-9_-]*$` (thêm `-`, vd. `household-survey`), `title` không để trống.
+  - Có ít nhất một trường không ẩn, để "Tạo phiếu mới" có ô để điền (tech-debt N15): không có trường nào thì lỗi "Biểu mẫu chưa có trường nào", có trường mà ẩn hết thì "Biểu mẫu cần ít nhất một trường không ẩn". Cùng hàm `validateFormSchema` nên builder (trước khi gửi), nhập form và server đều kiểm. Form đã lưu trước luật này không bị đổi; lưu bản mới thì phải theo luật.
   - select/multiselect phải có ít nhất 1 option, option không trùng, không để trống. `options` ở trường loại khác thì bỏ qua.
   - So với phiên bản trước: mọi trường cũ vẫn còn (có thể `hidden`), không đổi `type`, không bỏ option (option bỏ đi thì giữ lại, dữ liệu cũ vẫn hiển thị được).
 - **Builder UI:** danh sách trường có nút lên/xuống để đổi thứ tự (cho bàn phím, trình đọc màn hình) và kéo thả bằng tay nắm ⠿ đầu dòng (Pointer Events, không thư viện; TV1-12 b2), panel thuộc tính cho trường đang chọn, nút xem trước dùng chính `FormRenderer`. Có code (`client/src/pages/BuilderPage.tsx`, hàm thuần ở `client/src/builder.ts`), chỉ hiện với `supervisor` và `owner`:

@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.39 (2026-11-24)
+- **Phiên bản:** 0.40 (2026-11-24)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -96,6 +96,7 @@ Story viết **sau** khi phần lớn đã có code, để truy vết lại nh�
 - **Given** tôi là supervisor hoặc Owner, **when** tạo form có đủ 7 loại trường rồi Lưu, **then** điều tra viên thấy form sau vòng đồng bộ kế tiếp.
 - **Given** form đã có phiếu, **when** tôi thêm trường hoặc ẩn trường, **then** form lên version mới và phiếu cũ vẫn mở bằng version cũ.
 - **Given** bản sửa đổi `type` hoặc bỏ trường cũ, **when** lưu, **then** server từ chối `400 invalid_form`.
+- **Given** form chưa có trường nào hoặc mọi trường đều ẩn, **when** bấm "Lưu bản mới", **then** builder báo "Biểu mẫu chưa có trường nào" / "Biểu mẫu cần ít nhất một trường không ẩn" và không gửi; gọi thẳng API thì server từ chối `400 invalid_form`.
 - **Given** tôi là điều tra viên, **when** gọi lưu form, **then** `403 forbidden`.
 - **Given** form đã lưu, **when** tôi bấm "Xuất form" (chạy được khi offline), **then** tải file `<id>-v<version>.json`; nhập file đó ở "Biểu mẫu mới" của dự án khác thì builder nạp thành form mới chưa lưu, bấm "Lưu bản mới" thì thành form mới ở dự án đó.
 - **Given** file không phải JSON, sai định dạng hoặc sai luật lưu form, **when** nhập form, **then** báo "File không phải JSON", "File không đúng định dạng biểu mẫu" hoặc lỗi luật, builder giữ nguyên; **given** form mới có mã trùng form đã có trong dự án, **when** bấm "Lưu bản mới", **then** báo "Mã biểu mẫu đã có trong dự án", không gửi.
@@ -242,6 +243,7 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-07 | Tạo form 7 loại trường | `builder.spec.ts` (cả hàng nút dính đáy, khung lỗi trong khung nhìn, Xem trước, TV1-12 b2 p4; vùng status Xem trước có sẵn trước khi bật, TV1-12 sau #80; kéo thả, huỷ kéo, tự cuộn, TV1-12 b2 p8; đổi thẳng địa chỉ giữa hai builder hiện đúng form, lưu form mới không thêm version form cũ, TV1-04; chọn/thêm trường cuộn tới Thuộc tính, ← Quay lại khi không mở được, "Nhập mã biểu mẫu" + ô Mã viền đỏ, câu danh sách trường rỗng, TV1-12 sau audit UI; nền trang trắng, theme-color trắng, gợi ý và mã khoá nền ô chìm, TV1-12 nền trắng; nút ▲▼ có tên kèm nhãn trường, design §11.3); unit `moveFieldTo`, `selectionAfterMove`, `formIdInvalid` (`builder.test.ts`), `dropIndex` (`fieldDrag.test.ts`); A5 `forms.test.ts`; điều tra viên thấy form sau vòng đồng bộ ở máy khác: `form-sync.spec.ts`; `headings.spec.ts` (tiêu đề trang màn 5 cùng kiểu màn 2, 4, TV1-12 sau audit C10); "Biểu mẫu mới" ở `#/builder`, form mã `new` sửa được ở `#/builder/new`, địa chỉ cũ không mất bản tự lưu: `builder.spec.ts` ca "form mã new", `builder-draft.spec.ts` ca "địa chỉ cũ #/builder/new", unit `currentNavId` (`navMenu.test.ts`) (tech-debt N26) | TV1-03 (#19), TV1-04 (#24); TV3-14; tên nút ▲▼ TV1-12 (#117) |
 | US-07 | Sửa form lên version mới, phiếu cũ mở bằng version cũ | `builder.spec.ts`, `form-version.spec.ts` | TV1-04 (#24), TV1-10 (#32) |
 | US-07 | Đổi `type`/bỏ trường → `400 invalid_form` | `server/test/forms.test.ts`; unit `formValidation.test.ts` | TV1-03 (#19) |
+| US-07 | Form không có trường hoặc ẩn hết trường → builder báo lỗi, không gửi; server `400 invalid_form` (tech-debt N15) | `builder.spec.ts` (ca "form không có trường nào hoặc ẩn hết trường…"); `server/test/forms.test.ts`; unit `formValidation.test.ts`, `builder.test.ts` | không ticket (#165) |
 | US-07 | Điều tra viên lưu form → `403` | A3 `forms.test.ts` | TV1-03 (#19) |
 | US-07 | Xuất form, nhập sang dự án khác thành form mới | `form-import-export.spec.ts`; unit `formFile.test.ts` (describe "xuất form") | TV1-10 (#33) |
 | US-07 | File nhập hỏng/sai luật; mã form trùng → báo lỗi, không gửi | `form-import-export.spec.ts` (cả ca mã trùng); unit `formFile.test.ts` (describe `parseFormFile`) | TV1-10 (#33) |
@@ -338,3 +340,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.37 | 2026-11-22 | US-14 thêm tiêu chí và dòng truy vết vẽ theo trang, [Xem thêm phiếu] (tech-debt N33) |
 | 0.38 | 2026-11-23 | Rà truy vết (Product): thêm tiêu chí cho dòng truy vết đã có test mà story chưa ghi (US-01 Lưu khi phiếu đổi ở nền N34; US-02 nháp gặp `409`/`4xx` #156, Đã đồng bộ → Nháp; US-04 pull không ghi đè phiếu Chờ đồng bộ/Lỗi; US-11 tải lại danh sách lỗi #124); xếp dòng truy vết US-01 theo thứ tự tiêu chí; tách dòng US-02 đầu và US-15 theo từng tiêu chí; thêm số PR còn thiếu (US-02, US-03, US-04, US-07, US-14). Không đổi hành vi |
 | 0.39 | 2026-11-24 | Thêm US-16 "Giao diện tối" (Could, đã có code và test từ #143, #144, #149 nhưng chưa có story): 3 tiêu chí và dòng truy vết tới `dark-mode.spec.ts`, `theme.test.ts`, `themeChoice.test.ts`. Không đổi hành vi |
+| 0.40 | 2026-11-24 | US-07 thêm tiêu chí form phải có ít nhất một trường không ẩn và dòng truy vết (tech-debt N15, design 0.5.98) |

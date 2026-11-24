@@ -24,6 +24,10 @@ export function validateFormSchema(next: FormSchema, prev?: FormSchema): string[
 
   if (!FORM_ID_PATTERN.test(next.id)) errors.push(`Mã biểu mẫu "${next.id}" không hợp lệ (chữ cái đầu, chỉ chữ, số, _, -)`);
   if (next.title.trim() === '') errors.push('Tên biểu mẫu không được để trống');
+  // Form không có ô nào để điền thì điều tra viên mở "Tạo phiếu mới" ra trang trống (tech-debt N15).
+  // Trường ẩn không hiện khi nhập nên cũng không tính. Xem docs/design.md §4.1.
+  if (next.fields.length === 0) errors.push('Biểu mẫu chưa có trường nào');
+  else if (next.fields.every((f) => f.hidden === true)) errors.push('Biểu mẫu cần ít nhất một trường không ẩn');
 
   const seen = new Set<string>();
   for (const field of next.fields) {
