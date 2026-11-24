@@ -1,6 +1,6 @@
 # Đo hiệu năng
 
-Số đo cho các chỉ tiêu ở [design.md §11.2](design.md#112-chỉ-tiêu): pull lần đầu, danh sách nhiều phiếu, đổi dự án (TV2-11, mục "Kết quả (2026-10-25)"); mở app offline (QS4) và lưu một phiếu (mục "Mở app offline và lưu phiếu (2026-11-20)"); danh sách 2.000 phiếu cuộn mượt (mục "Cuộn danh sách (2026-11-23)"). Đồng bộ qua mạng chậm và dung lượng mỗi máy chưa đo ở đây; kích thước ảnh đo bằng `photo.spec.ts`.
+Số đo cho các chỉ tiêu ở [design.md §11.2](design.md#112-chỉ-tiêu): pull lần đầu, danh sách nhiều phiếu, đổi dự án (TV2-11, mục "Kết quả (2026-10-25)"); mở app offline (QS4) và lưu một phiếu (mục "Mở app offline và lưu phiếu (2026-11-20)"); danh sách 2.000 phiếu cuộn mượt (mục "Cuộn danh sách (2026-11-23)"); đồng bộ qua mạng chậm và dung lượng mỗi máy (mục "Mạng chậm và dung lượng (2026-11-24)"). Kích thước ảnh đo bằng `photo.spec.ts`.
 
 ## Kết quả (2026-10-25)
 
@@ -86,6 +86,27 @@ Cách đo: dự án mới seed 2.000 phiếu, `lan` (supervisor) pull xong, tran
 - **Ngưỡng "mượt" là p95 khung ≤ 50 ms** (design §11.2, chốt 2026-11-23): 95% khung không chậm quá ba lần khung 60 Hz, tức không có khựng thấy được kéo dài. §11.2 trước đó chỉ ghi "cuộn mượt", không có số. Lượt A so ngưỡng (đỏ nếu vượt), lượt B chỉ ghi số, như các chỉ tiêu khác của bộ này.
 - Cuộn bằng script chạy trên luồng chính nên khung nào luồng chính bận đều dài ra. Cuộn bằng ngón tay trên điện thoại do compositor làm, thường mượt hơn số đo này, nên số đo là cận xấu.
 - Ở máy yếu (lượt B) trang đầu vẫn mượt. Bung hết 2.000 dòng thì khoảng 5–10% khung quá 50 ms: người dùng phải bấm [Xem thêm phiếu] 9 lần mới tới cảnh này. Nếu thử máy thật thấy giật thì hướng sửa ở mục "Chỗ có thể chậm" (chỉ vẽ phần đang thấy).
+
+## Mạng chậm và dung lượng (2026-11-24)
+
+Bộ đo `client/e2e/perf/network.spec.ts`, cùng cách chạy ở mục "Cách đo" (`npm run test:perf -w client -- network.spec.ts`, khoảng 8 phút mỗi lượt). Số đo do độ trễ mạng giả lập quyết định nên gần như không đổi giữa các lần chạy; bảng ghi trung bình lượt A (hai lần trong ngoặc) và một lần lượt B. CPU chậm ×4 gần như không đổi kết quả: chỗ nghẽn là mạng.
+
+| Chỉ tiêu (§11.2) | Mục tiêu | Lượt A: CPU bình thường | Lượt B: CPU chậm ×4 | Đạt |
+|---|---|---|---|---|
+| Đồng bộ 100 phiếu không ảnh | ≤ 10 s, Slow 3G | **207,8 s** (207,7 / 207,9) | 209,3 s | **Không đạt** (tech-debt N35) |
+| Đồng bộ 50 ảnh đã nén | ≤ 3 phút, 3G 1,6 Mbps | **197,7 s** (197,8 / 197,5) | 199,2 s | **Không đạt**, vượt khoảng 10% (tech-debt N36) |
+| Dung lượng mỗi máy | 2.000 phiếu + 500 ảnh, khoảng 250 MB | **khoảng 142 MB** (ngoại suy, cách tính dưới) | – | Đạt |
+
+Cách đo:
+- **Mạng giả lập** bằng `Network.emulateNetworkConditions` của Chrome trên tab của app. Vòng đồng bộ chạy trong tab (`client/src/sync/engine.ts`); request gửi phiếu và chunk ảnh không qua service worker nên đều bị giới hạn. Thông số theo preset của Chrome DevTools: **Slow 3G** = 400 kbit/s hai chiều, trễ 2 s mỗi request; **3G 1,6 Mbps** = 1,6 Mbit/s hai chiều, trễ 562,5 ms (độ trễ của preset "Fast 3G"). Preset "Fast 3G" của DevTools giới hạn chiều tải lên còn 675 kbit/s; bộ đo lấy 1,6 Mbit/s cả hai chiều theo đúng chữ ở §11.2, nên là trường hợp tốt.
+- **100 phiếu:** `minh` lưu 100 phiếu khi offline (chỉ điền tên chủ hộ, như một ngày ở vùng không có sóng), rồi bật Slow 3G. Bấm giờ từ lúc bật mạng tới khi outbox trên máy rỗng (đọc IndexedDB mỗi 250 ms); sau đó kiểm server có đủ 100 phiếu, 100 id khác nhau.
+- **50 ảnh:** 10 phiếu × 5 ảnh, lưu khi offline. Ảnh vẽ bằng canvas 2000×1500 có nhiễu hạt (mỗi ảnh khác nhau), app nén xuống 1600×1200 như ảnh chụp thật (§6.1): **trung bình 276 KB mỗi ảnh, tổng 13,8 MB**. Bật mạng 3G, bấm giờ tới khi outbox rỗng và mọi ảnh `done`; server có đủ 10 phiếu, 50 ảnh.
+- **Dung lượng:** dự án riêng seed 2.000 phiếu của `minh`, đăng nhập và chờ CSDL trên máy đủ 2.000 phiếu, đọc `navigator.storage.estimate()` (Chrome có `usageDetails` tách IndexedDB và Cache Storage): **IndexedDB 2,4 MB, Cache Storage (app shell) 0,5 MB, tổng 2,9 MB**. Ảnh: ở ca 50 ảnh, IndexedDB tăng **13,9 MB, 278 KB mỗi ảnh**, đúng bằng cỡ file ảnh. Ngoại suy 2.000 phiếu + 500 ảnh: 2,4 + 500 × 0,278 + 0,5 ≈ **142 MB**, dưới 250 MB §11.2 tính (§11.2 tính ảnh 500 KB; ảnh thật nhiều chi tiết có thể tới 600 KB, khi đó khoảng 300 MB). Hạn mức Chrome trên máy đo 3,2 GB; điện thoại tầm trung còn trống vài GB thì hạn mức vẫn trên 1 GB.
+
+Đọc số đo:
+- **100 phiếu mất khoảng 2,08 s mỗi phiếu, đúng bằng một lần trễ 2 s.** `pushAll` (`engine.ts`) gửi từng phiếu một, mỗi phiếu một `PUT` và chờ trả lời mới gửi phiếu sau. Băng thông không phải chỗ nghẽn (một phiếu chỉ vài trăm byte). Ở độ trễ 2 s, muốn ≤ 10 s thì cả 100 phiếu phải đi trong khoảng 5 lượt trễ: chỉ gửi theo lô (nhiều phiếu một request, đổi API §7) mới làm được; gửi song song 6 phiếu một lúc (chỉ sửa client) còn khoảng 35 s. Không mất dữ liệu: tắt app giữa chừng thì lần mở sau gửi tiếp, op đã gửi không gửi trùng (idempotency).
+- **50 ảnh: khoảng 69 s là truyền dữ liệu** (13,8 MB ở 200 KB/s), phần còn lại là trễ. Ảnh trên 256 KB tốn 4 request nối tiếp (hỏi chunk đã có, 2 chunk 256 KB, complete) cộng `PUT` phiếu, khoảng 210 request × 0,56 s ≈ 118 s. Ảnh mới chưa gửi lần nào thì bước hỏi chunk đã có là thừa: bỏ bước đó ở lượt đầu bớt khoảng 28 s, vừa đủ dưới 3 phút. Nếu chiều tải lên chỉ 675 kbit/s như preset DevTools thì riêng truyền đã khoảng 164 s, tổng khoảng 290 s.
+- Server chạy cùng máy, không qua Internet; trên staging còn thêm TLS và đường truyền thật. Lần thử O2 trên staging (test-report §7.3, 10 phiếu, mỗi phiếu một ảnh, mạng không giới hạn) xong sau 7,5 s.
 
 ## Thử tay trên điện thoại (chưa làm)
 
