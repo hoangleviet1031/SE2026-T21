@@ -1,6 +1,6 @@
 # Yêu cầu: user story, tiêu chí chấp nhận và truy vết
 
-- **Phiên bản:** 0.38 (2026-11-23)
+- **Phiên bản:** 0.39 (2026-11-24)
 - **Liên quan:** vấn đề, kết quả mong muốn và phạm vi ở [design.md §1](design.md#1-mục-tiêu-và-phạm-vi); người dùng, mâu thuẫn và kịch bản ở [§2](design.md#2-người-dùng-và-kịch-bản-chính); kịch bản chất lượng ở [§11.4](design.md#114-kịch-bản-chất-lượng); mã test ở [§10.1](design.md#101-ma-trận-e2e-bắt-buộc) và [ADR 0002](adr/0002-multi-tenancy.md#kiểm-chứng).
 
 File này nối **vấn đề → kết quả → story → tiêu chí → test → ticket/PR**, để mỗi người trả lời được "yêu cầu này vì sao có và repo chứng minh nó ở đâu" (Lecture 03). Spec chi tiết vẫn ở design.md; ở đây chỉ ghi hành vi người dùng thấy được.
@@ -186,6 +186,14 @@ Lọc theo người tạo, tên người tạo cho giám sát viên và ô tìm 
 - **Given** phiếu có thay đổi chưa gửi (nháp, chờ, lỗi, xung đột), **when** mở lịch sử, **then** khối báo "Thay đổi chưa đồng bộ trên máy này chưa có trong lịch sử."
 - **Given** offline, máy chủ lỗi, hoặc phiếu không có trên server / ngoài phạm vi (`404`), **when** bấm [Lịch sử sửa], **then** báo câu tương ứng ở design §8, không ghi gì; bấm lại thì thử lại.
 
+### US-16 · Giao diện tối · Could
+
+*Là điều tra viên hay giám sát viên hay nhập phiếu lúc trời tối hoặc trong nhà thiếu sáng, tôi muốn app theo chế độ tối của máy hoặc tự chọn Sáng/Tối, để đỡ chói mắt mà chữ vẫn đọc rõ.* (Dương duyệt 2026-11-16 theo máy, 2026-11-19 chọn tay; ngoài MVP, cắt được; design §1 dòng "Giao diện tối", ui.md "Hệ thống thiết kế" và màn hình 8.)
+
+- **Given** máy đặt chế độ tối và Cài đặt để "Theo máy" (mặc định), **when** mở app, **then** màn đăng nhập, trang chủ, menu, điền phiếu, hộp xác nhận dùng bảng màu tối, chữ và nút vẫn đạt tương phản design §11.3, màu thanh trình duyệt theo header tối; máy không đặt chế độ tối thì giữ bảng màu sáng.
+- **Given** ở màn hình 8, **when** chọn "Sáng" hoặc "Tối", **then** đổi ngay không cần Lưu, tải lại vẫn giữ lựa chọn; chọn lại "Theo máy" thì theo chế độ của máy.
+- **Given** đã có lựa chọn trên máy, **when** mở trang quản trị, **then** trang quản trị dùng cùng bảng màu và cùng lựa chọn.
+
 ## Truy vết
 
 Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → test chứng minh → ticket và PR. Chỗ **chưa có test** in đậm; thêm test thì sửa dòng đó.
@@ -281,6 +289,9 @@ Mỗi dòng: tiêu chí (theo thứ tự gạch đầu dòng trong story) → te
 | US-15 | Không có nút ở phiếu chưa lên server (Could) | `record-history.spec.ts` | không ticket (#139) |
 | US-15 | Báo thay đổi chưa đồng bộ trên máy chưa có trong lịch sử (Could) | `record-history.spec.ts`; unit `buildHistoryView` (`client/src/recordHistory.test.ts`) | không ticket (#139) |
 | US-15 | Offline, `5xx`, `404` báo câu ở design §8 (Could) | `record-history.spec.ts` | không ticket (#139) |
+| US-16 | Máy tối + Theo máy: các màn hình dùng bảng màu tối, đủ tương phản, thanh trình duyệt theo header tối; máy sáng thì giữ sáng (Could) | `dark-mode.spec.ts` (ca "màn đăng nhập tối…", "trang chủ, menu, điền phiếu, hộp xác nhận tối…", "máy không đặt chế độ tối…"); unit `contrastRatio`, `rootTokens`, "bảng màu tối đủ token" (`client/src/theme.test.ts`) | không ticket (#143, #144) |
+| US-16 | Chọn Sáng/Tối ở màn hình 8 đổi ngay, tải lại vẫn giữ; Theo máy thì theo máy (Could) | `dark-mode.spec.ts` (ca "máy tối mà chọn Sáng…", "chọn Tối thì đổi ngay…"); unit `parseThemeChoice`, `resolveTheme` (`client/src/themeChoice.test.ts`) | không ticket (#149) |
+| US-16 | Trang quản trị dùng cùng bảng màu và lựa chọn (Could) | `dark-mode.spec.ts` (ca "trang quản trị tối dùng cùng bảng màu", "máy tối mà chọn Sáng…") | không ticket (#144, #149) |
 
 Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --json commits`).
 
@@ -326,3 +337,4 @@ Commit của từng tiêu chí xem trong PR tương ứng (`gh pr view <số> --
 | 0.36 | 2026-11-21 | US-01 thêm dòng truy vết Lưu khi phiếu đổi ở nền lúc form đang mở (tech-debt N34, design 0.5.92) |
 | 0.37 | 2026-11-22 | US-14 thêm tiêu chí và dòng truy vết vẽ theo trang, [Xem thêm phiếu] (tech-debt N33) |
 | 0.38 | 2026-11-23 | Rà truy vết (Product): thêm tiêu chí cho dòng truy vết đã có test mà story chưa ghi (US-01 Lưu khi phiếu đổi ở nền N34; US-02 nháp gặp `409`/`4xx` #156, Đã đồng bộ → Nháp; US-04 pull không ghi đè phiếu Chờ đồng bộ/Lỗi; US-11 tải lại danh sách lỗi #124); xếp dòng truy vết US-01 theo thứ tự tiêu chí; tách dòng US-02 đầu và US-15 theo từng tiêu chí; thêm số PR còn thiếu (US-02, US-03, US-04, US-07, US-14). Không đổi hành vi |
+| 0.39 | 2026-11-24 | Thêm US-16 "Giao diện tối" (Could, đã có code và test từ #143, #144, #149 nhưng chưa có story): 3 tiêu chí và dòng truy vết tới `dark-mode.spec.ts`, `theme.test.ts`, `themeChoice.test.ts`. Không đổi hành vi |
