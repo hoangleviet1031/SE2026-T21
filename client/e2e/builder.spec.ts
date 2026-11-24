@@ -532,7 +532,8 @@ test('form mới: chưa có trường thì có câu hướng dẫn; bỏ trống
   await expect(id).not.toHaveAttribute('aria-invalid');
   await page.getByRole('button', { name: 'Lưu bản mới' }).click();
   const errors = page.getByTestId('builder-errors');
-  await expect(errors).toHaveText('⚠ Nhập mã biểu mẫu');
+  // Form chưa có trường cũng bị báo (tech-debt N15, design 0.5.98); câu "không hợp lệ" của shared vẫn không có
+  await expect(errors.getByRole('listitem')).toHaveText(['⚠ Nhập mã biểu mẫu', '⚠ Biểu mẫu chưa có trường nào']);
   await expect(id).toHaveAttribute('aria-invalid', 'true');
 
   // Gõ mã đúng thì hết viền đỏ ngay, gõ sai lại thì tô lại
@@ -769,4 +770,38 @@ test('sửa form mà không đổi gì: hộp nói không có gì khác, vẫn l
   await expect(page.getByRole('link', { name: '+ Biểu mẫu mới' })).toBeVisible();
   const v2 = await request.get(api('/forms/ho/versions/2'), { headers: authHeaders(TOKENS.lan) });
   expect(v2.status()).toBe(200);
+});
+
+// Tech-debt N15 (design §4.1): form không có ô nào để điền thì không lưu được, kể cả khi ẩn hết trường
+test('form không có trường nào hoặc ẩn hết trường: báo lỗi, không gửi; thêm trường thì lưu được', async ({
+  page,
+  request,
+}) => {
+  const posts: string[] = [];
+  page.on('request', (req) => {
+    if (req.method() === 'POST' && req.url().endsWith('/forms')) posts.push(req.url());
+  });
+  await login(page, 'lan');
+  await page.getByRole('link', { name: '+ Biểu mẫu mới' }).click();
+  await page.getByLabel('Tiêu đề').fill('Form rỗng');
+  const save = page.getByRole('button', { name: 'Lưu bản mới' });
+  const errors = page.getByTestId('builder-errors');
+  await save.click();
+  await expect(errors).toHaveText('⚠ Biểu mẫu chưa có trường nào');
+  expect(posts).toEqual([]);
+
+  await addField(page, 'Chữ', 'Họ tên');
+  await save.click();
+  await expect(page.getByRole('heading', { name: 'Biểu mẫu mới' })).toHaveCount(0);
+  expect((await serverForms(request)).map((f) => f.id)).toEqual(['formRong']);
+
+  // Form đã lưu: trường cũ chỉ ẩn được, ẩn hết thì cũng báo lỗi
+  await formRow(page, 'Form rỗng').getByRole('link', { name: 'Sửa form' }).click();
+  await page.getByTestId('builder-fields').getByRole('button', { name: /^Họ tên \(/ }).click();
+  await page.getByTestId('field-editor').getByLabel('Ẩn').check();
+  await save.click();
+  await expect(errors).toHaveText('⚠ Biểu mẫu cần ít nhất một trường không ẩn');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(posts).toHaveLength(1);
+  expect((await serverForms(request)).map((f) => f.version)).toEqual([1]);
 });

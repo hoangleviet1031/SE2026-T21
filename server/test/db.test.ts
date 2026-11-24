@@ -493,7 +493,8 @@ describe('migration 4: tài khoản, phiên, owner', () => {
       const save = await fetch(`${base}/api/projects/yte/forms`, {
         method: 'POST',
         headers: { Authorization: 'Bearer tok-lan', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'f', title: 'F', fields: [] }),
+        // Form cần ít nhất một trường không ẩn (tech-debt N15); ca này chỉ kiểm quyền lưu form
+        body: JSON.stringify({ id: 'f', title: 'F', fields: [{ id: 'a', type: 'text', label: 'A' }] }),
       });
       expect(save.status).toBe(201);
     } finally {

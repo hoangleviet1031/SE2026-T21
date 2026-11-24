@@ -115,6 +115,24 @@ describe('POST P/forms', () => {
     expect(body.details).toHaveLength(2);
   });
 
+  it('form không có trường nào hoặc mọi trường đều ẩn: 400 invalid_form, không lưu (tech-debt N15)', async () => {
+    const f = newForm();
+    const empty = await save({ ...f, fields: [] });
+    expect(empty.status).toBe(400);
+    expect(await empty.json()).toEqual({ error: 'invalid_form', details: ['Biểu mẫu chưa có trường nào'] });
+
+    await save(f);
+    const allHidden = await save({ ...f, fields: [{ ...NAME, hidden: true }, { ...WATER, hidden: true }] });
+    expect(allHidden.status).toBe(400);
+    expect(await allHidden.json()).toEqual({
+      error: 'invalid_form',
+      details: ['Biểu mẫu cần ít nhất một trường không ẩn'],
+    });
+    // Bị từ chối thì không tạo version mới
+    const next = await save(f);
+    expect(((await next.json()) as FormSchema).version).toBe(2);
+  });
+
   it.each([
     ['mảng thay cho object', []],
     ['thiếu fields', { id: 'x', title: 'X' }],

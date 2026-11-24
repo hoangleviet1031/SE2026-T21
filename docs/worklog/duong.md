@@ -11,6 +11,8 @@ Quy ước ở [README.md](README.md).
 
 | Ngày | Ticket | Loại | Việc đã làm | Ref | Trạng thái |
 |---|---|---|---|---|---|
+| 2026-11-24 | — | fix | N15: form phải có ít nhất một trường không ẩn (`validateFormSchema` ở shared, nên builder, nhập form, server cùng chặn); design 0.5.98 §4.1, ui 0.2.64, requirements 0.40 US-07, tech-debt N15 Đã trả | nhánh `fix/n15-form-it-nhat-mot-truong` | chờ merge |
+| 2026-11-24 | — | test | PR #164 đã merge | PR #164 | xong |
 | 2026-11-24 | — | test | Đo ba chỉ tiêu §11.2 còn lại (`client/e2e/perf/network.spec.ts`): 100 phiếu Slow 3G 207,7 s và 50 ảnh 3G 197,8 s không đạt (tech-debt N35, N36, đánh dấu `test.fail`), dung lượng 2.000 phiếu + 500 ảnh khoảng 142 MB đạt; perf.md mục mới, design 0.5.97, test-report 0.4.5 | PR #164 | chờ merge |
 | 2026-11-24 | — | docs | PR #163 đã merge | PR #163 | xong |
 | 2026-11-24 | — | docs | Thêm story US-16 "Giao diện tối" (Could): requirements 0.39 (3 tiêu chí, truy vết tới `dark-mode.spec.ts`, `theme.test.ts`, `themeChoice.test.ts`), test-report 0.4.4 §1, §4 (16/16 story) | PR #163 | chờ merge |
